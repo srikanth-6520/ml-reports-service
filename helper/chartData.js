@@ -2,7 +2,7 @@ exports.instanceReportChart = function (data) {
     var obj;
     var mutiSelectArray = []
 
-      // this is the response object which we are sending as a API response    
+      // obj is the response object which we are sending as a API response    
       obj = {
         entityName: data[0].event.entityName,
         observationName: data[0].event.observationName,
@@ -13,7 +13,7 @@ exports.instanceReportChart = function (data) {
     }
     
     for (var i = 0; i < data.length; i++) {
-
+        // Response object creation for text type
         if (data[i].event.questionResponseType == "text") {
             var resp = {
                 question: data[i].event.questionName,
@@ -23,6 +23,7 @@ exports.instanceReportChart = function (data) {
             }
             obj.response.push(resp);
         }
+        // Response object creation for radio type
         else if (data[i].event.questionResponseType == "radio") {
             var resp = {
                 question: data[i].event.questionName,
@@ -41,7 +42,8 @@ exports.instanceReportChart = function (data) {
                 }
             obj.response.push(resp);
 
-        }
+        }  
+        // Response object creation for slider type
         else if (data[i].event.questionResponseType == "slider") {
                 var resp = {
                     question: data[i].event.questionName,
@@ -81,6 +83,7 @@ exports.instanceReportChart = function (data) {
     }
 
 
+//Function to create a response object for multiselect question
 function multiselectFunc(data) {
     var dataArray = [];
     var labelArray = [];
@@ -104,6 +107,7 @@ function multiselectFunc(data) {
     for(j=1;j<=dataArray.length;j++){
        const k = 1;
        const value = (k/dataArray.length)*100;
+        value = value.toFixed(2);
        valueArray.push(value);
     }
 
