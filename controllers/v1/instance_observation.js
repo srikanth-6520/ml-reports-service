@@ -1,10 +1,10 @@
-var config = require('../config/config');
+var config = require('../../config/config');
 var rp = require('request-promise');
 var request = require('request');
 var cassandra = require('cassandra-driver');
 var client = new cassandra.Client({ contactPoints: [config.cassandra.host], keyspace: config.cassandra.keyspace, localDataCenter: 'datacenter1' });
-var model = require('../db')
-var helperFunc = require('../helper/chartData');
+var model = require('../../db')
+var helperFunc = require('../../helper/chartData');
 
 
 exports.slAssessment = function(req,res) {
