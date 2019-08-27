@@ -27,11 +27,11 @@ exports.slAssessment = function(req,res) {
 }
 
 exports.instanceReport = function(req,res){
-  if(!req.body.observationId || !req.body.entityId || !req.body.submissionId){
+  if(!req.body.submissionId){
     res.status(400);
     var response = {
       result:false,
-      message : 'observationId, entityId and submissionId are required fields' 
+      message : 'submissionId is a required field' 
     }
     res.send(response);
   }
@@ -39,14 +39,16 @@ exports.instanceReport = function(req,res){
   model.MyModel.findOneAsync({ qid: "instance_report_query" }, { allow_filtering: true })
   .then(async function (result) {
     var bodyParam = JSON.parse(result.query);
-    bodyParam.filter.fields[0].value = req.body.submissionId;
-    bodyParam.filter.fields[1].value = req.body.entityId;
-    bodyParam.filter.fields[2].value = req.body.observationId;
+    bodyParam.filter.value = req.body.submissionId;
     //pass the query as body param and get the resul from druid
      var options = config.options;
      options.method = "POST";
      options.body = bodyParam;
      var data = await rp(options);
+<<<<<<< HEAD
+=======
+     //console.log(data);
+>>>>>>> 7bdc63751257746b8245fa01c19849bb109ab08f
      var responseObj = helperFunc.instanceReportChart(data)
      res.send(responseObj);
    })

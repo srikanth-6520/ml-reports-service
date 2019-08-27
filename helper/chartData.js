@@ -1,8 +1,9 @@
 exports.instanceReportChart = function (data) {
     var obj;
     var mutiSelectArray = []
-
-      // obj is the response object which we are sending as a API response    
+      
+    try {
+     // obj is the response object which we are sending as a API response   
       obj = {
         entityName: data[0].event.entityName,
         observationName: data[0].event.observationName,
@@ -55,6 +56,8 @@ exports.instanceReportChart = function (data) {
             }
         }
     
+        console.log("abcd");
+     
     //filter all the objects whose questionResponseType is multiselect
     for(j=0;j<data.length;j++){
         if(data[j].event.questionResponseType == "multiselect"){
@@ -77,9 +80,13 @@ exports.instanceReportChart = function (data) {
            obj.response.push(multiSelectResp);
   
        })
-  
+   
     //return final response object
     return obj;
+    }
+    catch (err){
+        console.log(err);
+    }
     }
 
 
@@ -105,8 +112,8 @@ function multiselectFunc(data) {
     }
 
     for(j=1;j<=dataArray.length;j++){
-       const k = 1;
-       const value = (k/dataArray.length)*100;
+       var k = 1;
+       var value = (k/dataArray.length)*100;
         value = value.toFixed(2);
        valueArray.push(value);
     }
@@ -135,6 +142,7 @@ function multiselectFunc(data) {
             }
         }
     }
+
     return resp;
 
 }
