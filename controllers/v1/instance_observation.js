@@ -47,7 +47,6 @@ exports.instanceReport = function(req,res){
      options.method = "POST";
      options.body = bodyParam;
      var data = await rp(options);
-    // console.log(data);
      var responseObj = helperFunc.instanceReportChart(data)
      res.send(responseObj);
    })
