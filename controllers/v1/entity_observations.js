@@ -7,28 +7,29 @@ var model = require('../../db')
 var helperFunc = require('../../helper/chartData');
 
 
-exports.instanceReport = function(req,res){
-  if(!req.body.submissionId){
+exports.entityReport = function(req,res){
+  if(!req.body.entityId && !req.body.observationId) {
     res.status(400);
     var response = {
       result:false,
-      message : 'submissionId is a required field' 
+      message : 'entityId and observationId are required fields' 
     }
     res.send(response);
   }
   else {
-  model.MyModel.findOneAsync({ qid: "instance_report_query" }, { allow_filtering: true })
+  model.MyModel.findOneAsync({ qid: "entity_report_query" }, { allow_filtering: true })
   .then(async function (result) {
     var bodyParam = JSON.parse(result.query);
-    bodyParam.filter.value = req.body.submissionId;
+    bodyParam.filter.fields[0].value = req.body.entityId;
+    bodyParam.filter.fields[1].value = req.body.observationId;
     //pass the query as body param and get the resul from druid
      var options = config.options;
      options.method = "POST";
      options.body = bodyParam;
      var data = await rp(options);
-     //console.log(data);
-     var responseObj = helperFunc.instanceReportChart(data)
-     res.send(responseObj);
+     console.log(data);
+     var responseObj = helperFunc.entityReportChart(data)
+      res.send(responseObj);
    })
   .catch(function(err){
     res.status(400);

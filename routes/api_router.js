@@ -1,10 +1,13 @@
 var express = require('express');
 var router = express.Router();
 
-var myController = require('../controllers/v1/instance_observation');
+var instanceController = require('../controllers/v1/instance_observation');
+var entityontroller = require('../controllers/v1/entity_observations')
 
-//sl_assessment query
-router.post("/slassessment",myController.slAssessment);
-router.post("/observations/instance",myController.instanceReport);
+//API router for instanceReport
+router.post("/observations/instance",instanceController.instanceReport);
+
+//API router for entityReport
+router.post("/observations/entity",entityontroller.entityReport);
 
 module.exports = router;
