@@ -169,7 +169,9 @@ exports.entityReportChart = function (data) {
             return obj;
         }
         else {
-        // obj is the response object which we are sending as a API response   
+        // obj is the response object which we are sending as a API response  
+        if(data[0].event.entityId){ 
+            console.log("entered  entity report");
         obj = {
             entityName: data[0].event.entityName,
             observationName: data[0].event.observationName,
@@ -178,6 +180,15 @@ exports.entityReportChart = function (data) {
             entityId: data[0].event.entityId,
             response: []
         }
+    }
+    else {
+        console.log("entered  observation report");
+        obj = {
+            observationName: data[0].event.observationName,
+            observationId: data[0].event.observationId,
+            response: []
+        }
+    }
 
         //filter all the objects whose questionResponseType is multiselect
         for (var i = 0; i < data.length; i++) {
