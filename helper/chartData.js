@@ -161,7 +161,6 @@ exports.entityReportChart = function (data) {
     var textArray = [];
     var radioArray = [];
     var sliderArray = [];
-    console.log(data);
 
     try {
         if(!data.length){
@@ -171,7 +170,7 @@ exports.entityReportChart = function (data) {
         else {
         // obj is the response object which we are sending as a API response  
         if(data[0].event.entityId){ 
-            console.log("entered  entity report");
+
         obj = {
             entityName: data[0].event.entityName,
             observationName: data[0].event.observationName,
@@ -182,7 +181,7 @@ exports.entityReportChart = function (data) {
         }
     }
     else {
-        console.log("entered  observation report");
+
         obj = {
             observationName: data[0].event.observationName,
             observationId: data[0].event.observationId,
