@@ -56,7 +56,7 @@ exports.instanceReportChart = function (data) {
             }
         }
     
-        console.log("abcd");
+        // console.log("abcd");
      
     //filter all the objects whose questionResponseType is multiselect
     for(j=0;j<data.length;j++){

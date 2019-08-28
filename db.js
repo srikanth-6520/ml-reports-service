@@ -19,15 +19,28 @@ var models = ExpressCassandra.createClient({
 
 var MyModel = models.loadSchema(config.cassandra.table, {
     fields:{
-        id : "int",
+        id : "uuid",
         qid : "text",
         query : "text"
     },
     key:["id"]
 });
 
+var reportIndexes = models.loadSchema(config.cassandra.apiReqAndResTable, {
+    fields:{
+        id : {
+            type: "uuid",
+            default: {"$db_function": "uuid()"}
+        },
+        apirequest : 'text',
+        apiresponse : 'text',
+        downloadpdfpath : 'text'
+    },
+    key:['id']
+});
+
 // MyModel or models.instance.Person can now be used as the model instance
-console.log(models.instance.druidqueries === MyModel);
+// console.log(models.instance.druidqueries === MyModel);
 
 // sync the schema definition with the cassandra database table
 // if the schema has not changed, the callback will fire immediately
@@ -39,7 +52,12 @@ MyModel.syncDB(function(err, result) {
     
 });
 
+reportIndexes.syncDB(function(err, result) {
+    if (err) throw err;
+});
+
 
 module.exports = {
-    MyModel : MyModel
+    MyModel : MyModel,
+    reportIndexes : reportIndexes
 }
