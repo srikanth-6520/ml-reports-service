@@ -5,7 +5,8 @@
       "host": "CASSANDR_HOST_IP_ADDRESS",
       "keyspace":"CASSANDRA_KEYSPACE_NAME",
       "port":"CASSANDRA_PORT",
-      "table":"CASSANDRA_TABLE"
+      "table":"CASSANDRA_TABLE",
+      "apiReqAndResTable":"API_REQUEST_RESPONSE_TABLE"
   },
 
  "options" : {

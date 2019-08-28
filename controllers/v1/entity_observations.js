@@ -27,7 +27,6 @@ exports.entityReport = function(req,res){
      options.method = "POST";
      options.body = bodyParam;
      var data = await rp(options);
-     console.log(data);
      var responseObj = helperFunc.entityReportChart(data)
       res.send(responseObj);
    })
