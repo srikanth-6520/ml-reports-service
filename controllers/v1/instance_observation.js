@@ -8,27 +8,9 @@ var helperFunc = require('../../helper/chartData');
 var commonCassandraFunc = require('../../common/cassandraFunc');
 var ejs = require('ejs')
 
-exports.slAssessment = function (req, res) {
-  //Fetch query from cassandra 
-  model.MyModel.findOneAsync({ qid: req.body.qid }, { allow_filtering: true })
-    .then(async function (result) {
-      var bodyParam = JSON.parse(result.query);
-      bodyParam.filter.fields[0].value = req.body.entityId;
-      //pass the query as body param and get the resul from druid
-      var options = config.options;
-      options.method = "POST";
-      options.body = bodyParam;
-      var data = await rp(options);
-      var response = { result: true, response: data }
-      res.send(response);
-    })
-    .catch(function (err) {
-      console.log(err);
-    })
-}
 
-exports.instanceReport = async function (req, res) {
-  if (!req.body.submissionId) {
+exports.instanceReport = async function(req,res){
+  if(!req.body.submissionId){
     res.status(400);
     var response = {
       result: false,
@@ -49,8 +31,11 @@ exports.instanceReport = async function (req, res) {
           options.method = "POST";
           options.body = bodyParam;
           var data = await rp(options);
-          //console.log(data);
           var responseObj = helperFunc.instanceReportChart(data)
+          if(req.body.download){
+            console.log("download");
+            responseObj.pdfUrl = "http://www.africau.edu/images/default/sample.pdf"
+          }
           await commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj)
           res.send(responseObj);
         })
