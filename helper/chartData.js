@@ -1,4 +1,4 @@
-//function for nstance observation final response creation
+//function for instance observation final response creation
 exports.instanceReportChart = function (data) {
     var obj;
     var mutiSelectArray = []
@@ -154,7 +154,7 @@ function instanceMultiselectFunc(data) {
 }
 
 
-//Function for entity Observation final response creation
+//Function for entity Observation and observation report's final response creation
 exports.entityReportChart = function (data) {
     var obj;
     var mutiSelectArray = [];
@@ -437,6 +437,7 @@ function entityMultiselectGrouping(data) {
 
 
 
+//=====================  assessment chart data ===============================================
 
 
 
