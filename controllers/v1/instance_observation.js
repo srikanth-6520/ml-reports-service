@@ -6,6 +6,7 @@ var client = new cassandra.Client({ contactPoints: [config.cassandra.host], keys
 var model = require('../../db')
 var helperFunc = require('../../helper/chartData');
 var commonCassandraFunc = require('../../common/cassandraFunc');
+var ejs = require('ejs')
 
 exports.slAssessment = function (req, res) {
   //Fetch query from cassandra 
@@ -64,5 +65,53 @@ exports.instanceReport = async function (req, res) {
     } else {
       res.send(JSON.parse(dataReportIndexes['apiresponse']))
     }
+  }
+}
+
+async function instancePdfFunc(req) {
+  return new Promise(function (resolve, reject) {
+  model.MyModel.findOneAsync({ qid: "instance_report_query_staging" }, { allow_filtering: true })
+    .then(async function (result) {
+      var bodyParam = JSON.parse(result.query);
+      console.log(bodyParam)
+      bodyParam.filter.value = req.query.submissionId;
+      //pass the query as body param and get the resul from druid
+      var options = config.options;
+      options.method = "POST";
+      options.body = bodyParam;
+      var data = await rp(options);
+      var responseObj = helperFunc.instanceReportChart(data)
+      // await commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj)
+      console.log(responseObj)
+      resolve(responseObj);
+    })
+    .catch(function (err) {
+      reject(err);
+    })
+  })
+}
+exports.instancePdfReport = async function (req, res) {
+  if (!req.query.submissionId) {
+    res.status(400);
+    var response = {
+      result: false,
+      message: 'observationSubmissionId is a required field'
+    }
+    res.send(response);
+  } else {
+    reqData = req.query
+    console.log(reqData)
+    // var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData)
+    // if (dataReportIndexes == undefined) {
+    //   var instaRes = instancePdfFunc(req)
+    //   console.log(instaRes)
+    // } else {
+    //   console.log('test')
+    //   // res.send(JSON.parse(dataReportIndexes['apiresponse']))
+    // }
+    var instaRes = await instancePdfFunc(req)
+    console.log(instaRes['response'].length)
+    res.render('textReport',{instaRes:instaRes['response']})
+    // res.render('index')
   }
 }

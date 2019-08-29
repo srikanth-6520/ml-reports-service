@@ -30,6 +30,9 @@ res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With,Authorizati
    next();
 });
 
+app.set('views',path.join(__dirname,'controllers/views'));
+app.set('view engine','ejs');
+
 app.use('/dhiti/api/v1', indexRouter);
 
 /**
