@@ -30,13 +30,18 @@ exports.instanceReport = async function(req,res){
           options.method = "POST";
           options.body = bodyParam;
           var data = await rp(options);
+          if(!data.length){
+            res.send({"data":"Not observerd"})
+          }
+          else{
           var responseObj = helperFunc.instanceReportChart(data)
           if(req.body.download){
             console.log("download");
             responseObj.pdfUrl = "http://www.africau.edu/images/default/sample.pdf"
           }
-          await commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj)
           res.send(responseObj);
+          commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj)
+        }
         })
         .catch(function (err) {
           res.status(400);

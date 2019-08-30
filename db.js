@@ -39,6 +39,19 @@ var reportIndexes = models.loadSchema(config.cassandra.apiReqAndResTable, {
     key:['id']
 });
 
+var assessmentModel = models.loadSchema(config.cassandra.assessmentTable, {
+    fields:{
+        id : {
+            type: "uuid",
+            default: {"$db_function": "uuid()"}
+        },
+        apirequest : 'text',
+        apiresponse : 'text',
+        downloadpdfpath : 'text'
+    },
+    key:['id']
+});
+
 // MyModel or models.instance.Person can now be used as the model instance
 // console.log(models.instance.druidqueries === MyModel);
 
@@ -56,8 +69,13 @@ reportIndexes.syncDB(function(err, result) {
     if (err) throw err;
 });
 
+assessmentModel.syncDB(function(err, result) {
+    if (err) throw err;
+});
+
 
 module.exports = {
     MyModel : MyModel,
-    reportIndexes : reportIndexes
+    reportIndexes : reportIndexes,
+    assessmentModel : assessmentModel
 }
