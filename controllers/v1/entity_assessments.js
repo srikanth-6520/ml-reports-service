@@ -47,6 +47,7 @@ exports.entityAssessment = async function (req, res) {
               var entityData = await rp(options);
               var tableObj = helperFunc.entityTableViewFunc(entityData)
               responseObj.reportSections.push(tableObj);
+              responseObj = JSON.parse(responseObj)
               res.send(responseObj);
               commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
             })

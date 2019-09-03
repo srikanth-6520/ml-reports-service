@@ -1,5 +1,6 @@
 var express = require('express');
 var router = express.Router();
+var authService = require('../services/autentication_service')
 
 var instanceController = require('../controllers/v1/instance_observation');
 var entityController = require('../controllers/v1/entity_observations')
@@ -22,6 +23,28 @@ router.post("/observations/report",observationController.observationReport);
 
 //API router for HM view 
 router.post("/assessments/entity",entityAssessController.entityAssessment);
+
+
+function authenticate(req,res,next){
+
+    authService.validateToken(req,res)
+    .then(function (result) {
+        // res.send(result);
+
+        // console.log("result",result);
+
+        if(result.status=="success"){
+
+            req.body.userId = result.userId;
+            next();
+        } else {
+            res.send({ status:"failed",message:result.message })
+        }
+
+
+    });
+
+}
 
 
 module.exports = router;

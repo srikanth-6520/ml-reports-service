@@ -117,7 +117,8 @@ function instanceMultiselectFunc(data) {
         value = value.toFixed(2);
         valueArray.push(value);
     }
-
+    
+    //response object for multiselect questions
     var resp = {
         question: question,
         responseType: responseType,
