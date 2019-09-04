@@ -31,6 +31,7 @@ exports.entityAssessment = async function (req, res) {
           if (!data.length) {
             res.send({ "data": "No assessment data found for the entity" })
           }
+         else{
           //call the function entityAssessmentChart to get the data for stacked bar chart 
           var responseObj = helperFunc.entityAssessmentChart(data)
 
@@ -47,10 +48,10 @@ exports.entityAssessment = async function (req, res) {
               var entityData = await rp(options);
               var tableObj = helperFunc.entityTableViewFunc(entityData)
               responseObj.reportSections.push(tableObj);
-              responseObj = JSON.parse(responseObj)
               res.send(responseObj);
               commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
             })
+          }
         })
         .catch(function (err) {
           res.status(400);
