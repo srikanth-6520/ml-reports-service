@@ -594,16 +594,27 @@ function tableDataCreateFunc(data){
         criterias: []
     }
 
-    for(var i=0;i < data.length; i++){
-    if(data[i].event.childType == "criteria"){
-        var obj ={
-            name: data[i].event.childName,
-            level: data[i].event.level
+    for (var i = 0; i < data.length; i++) {
+        if (data[i].event.childType == "criteria") {
+            var obj = {
+                name: data[i].event.childName
+            }
+            if (data[i].event.level == "L1") {
+                obj.level = "Level 1"
+            }
+            else if (data[i].event.level == "L2") {
+                obj.level = "Level 2"
+            }
+            else if (data[i].event.level == "L3") {
+                obj.level = "Level 3"
+            }
+            else if (data[i].event.level == "L4") {
+                obj.level = "Level 4"
+            }
+            chartdata.criterias.push(obj);
         }
-    chartdata.criterias.push(obj);
     }
-  }
- return chartdata;
+    return chartdata;
 }
 
 // Function for grouping the array based on certain field name
