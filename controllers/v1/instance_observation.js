@@ -66,13 +66,14 @@ async function instancePdfFunc(req) {
     model.MyModel.findOneAsync({ qid: "instance_report_query_staging" }, { allow_filtering: true })
       .then(async function (result) {
         var bodyParam = JSON.parse(result.query);
-        bodyParam.filter.value = req.query.submissionId;
+        bodyParam.filter.value = req.submissionId;
         //pass the query as body param and get the resul from druid
         var options = config.options;
         options.method = "POST";
         options.body = bodyParam;
         var data = await rp(options);
         var responseObj = helperFunc.instanceReportChart(data)
+        // console.log(responseObj)
         // await commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj)
         // console.log(responseObj)
         resolve(responseObj);
@@ -102,6 +103,8 @@ exports.instancePdfReport = async function (req, res) {
     //   console.log('test')
     //   // res.send(JSON.parse(dataReportIndexes['apiresponse']))
     // }
+    var instaRes = await instancePdfFunc(reqData);
+    // console.log(instaRes)
     ejs.renderFile(__dirname + '/../../views/textReport.ejs', { instaRes: instaRes['response'] })
       .then(function (dataEjsRender) {
         var dir = __dirname + '/../../tmp/' + uuidv4()
@@ -156,7 +159,7 @@ exports.instancePdfReport = async function (req, res) {
               });
           }
         })
-        //delete the directory once stored into s3
+        // delete the directory once stored into s3
         // rimraf.sync(dir);
       })
       .catch(function (errEjsRender) {
@@ -166,7 +169,7 @@ exports.instancePdfReport = async function (req, res) {
     // console.log(instaRes['response'].length)
     // res.render('textReport',{instaRes:instaRes['response']})
     // res.render('index')
-    res.send({ "status":"success", "pdfUrl": "http://www.africau.edu/images/default/sample.pdf" }
-    )
+    // res.send({ "status":"success", "pdfUrl": "http://www.africau.edu/images/default/sample.pdf" }
+    // )
   }
 }
