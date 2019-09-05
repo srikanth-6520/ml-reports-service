@@ -140,7 +140,7 @@ exports.instancePdfReport = async function (req, res) {
                         const params = {
                           Bucket: config.s3_bucketName, // pass your bucket name
                           Key: 'instanceLevelPdfReports/instanceLevelReport.pdf', // file will be saved as testBucket/contacts.csv
-                          Body: JSON.stringify(data, null, 2)
+                          Body: Buffer.from(data, null, 2)
                         };
                         s3.upload(params, function (s3Err, data) {
                           if (s3Err) throw s3Err
