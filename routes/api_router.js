@@ -12,7 +12,7 @@ var entityAssessController = require('../controllers/v1/entity_assessments')
 // router.post("/observations/instance",instanceController.instanceReport);
 
 router.get('/observations/instanceLevelPdfReports',instanceController.instancePdfReport)
-// router.get('/observations/instanceLevelPdfReports',authenticate,instanceController.instancePdfReport)
+router.get('/observations/instanceLevelPdfReports',authenticate,instanceController.instancePdfReport)
 
 //API router for observations instanceReport
 router.post("/observations/instance",authenticate,instanceController.instanceReport);
