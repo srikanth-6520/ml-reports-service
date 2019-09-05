@@ -30,8 +30,16 @@ exports.observationReport = async function (req, res) {
                     options.method = "POST";
                     options.body = bodyParam;
                     var data = await rp(options);
+                    //if no data throw error message
+                    if(!data.length){
+                        res.send({"data":"No entities are observed"})
+                      }
+                    else{
                     var responseObj = helperFunc.entityReportChart(data)
+                    //send the response as API output
                     res.send(responseObj);
+                    commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj)
+                    }
                 })
                 .catch(function (err) {
                     res.status(400);

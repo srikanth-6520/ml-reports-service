@@ -4,11 +4,6 @@ exports.instanceReportChart = function (data) {
     var mutiSelectArray = []
 
     try {
-        if(!data.length){
-            obj = {};
-            return obj;
-        }
-        else {
         // obj is the response object which we are sending as a API response   
         obj = {
             entityName: data[0].event.entityName,
@@ -88,7 +83,6 @@ exports.instanceReportChart = function (data) {
 
         //return final response object
         return obj;
-       }
      }
     catch (err) {
         console.log(err);
@@ -123,7 +117,8 @@ function instanceMultiselectFunc(data) {
         value = value.toFixed(2);
         valueArray.push(value);
     }
-
+    
+    //response object for multiselect questions
     var resp = {
         question: question,
         responseType: responseType,
@@ -163,11 +158,6 @@ exports.entityReportChart = function (data) {
     var sliderArray = [];
 
     try {
-        if(!data.length){
-            obj = {};
-            return obj;
-        }
-        else {
         // obj is the response object which we are sending as a API response  
         if(data[0].event.entityId){ 
 
@@ -247,9 +237,8 @@ exports.entityReportChart = function (data) {
             obj.response.push(multiSelectResp);
         })
 
-
         return obj;
-    }
+    
   }
     catch (err) {
         console.log(err);
@@ -439,45 +428,202 @@ function entityMultiselectGrouping(data) {
 
 //=====================  assessment chart data ===============================================
 
+exports.entityAssessmentChart = function (data) {
+    try{
+    var domainArray = [];
+    var firstScoreArray =[];
+    var secondScoreArray = [];
+    var thirdScoreArray = [];
+    var fourthScoreArray = [];
+    
+    //Store the domain Names in an array
+    for (var i = 0; i < data.length; i++) {
+        if (domainArray.includes(data[i].event.domainName)) {
 
+        } else {
+            domainArray.push(data[i].event.domainName);
+        }
+    }
 
+    var res = groupArrayByDomainName(data);
+    var dt = Object.keys(res);
+    dt.forEach(element => {
+        var l1 = "";
+        var l2 = "";
+        var l3 = "";
+        var l4 = "";
+        var foundL1 = res[element].some(function (el) {
+            if (el.event.level === 'L1') {
+                l1 = el;
+                return el;
+            } else {
+                return false;
+            }
+        });
 
+        var foundL2 = res[element].some(el => {
+            if (el.event.level === 'L2') {
+                l2 = el;
+                return el;
+            } else {
+                return false;
+            }
+        });
 
+        var foundL3 = res[element].some(el => {
+            if (el.event.level === 'L3') {
+                l3 = el;
+                return el;
+            } else {
+                return false;
+            }
+        });
 
+        var foundL4 = res[element].some(el => {
+            if (el.event.level === 'L4') {
+                l4 = el;
+                return el;
+            } else {
+                return false;
+            }
+        })
 
+        //if domainCount is found, then push the count, otherwise push 0 
+        if (foundL1) {
+            firstScoreArray.push(l1.event.domainNameCount);
+        } else {
+            firstScoreArray.push(0);
+        }
+        if (foundL2) {
+            secondScoreArray.push(l2.event.domainNameCount);
+        } else {
+            secondScoreArray.push(0);
+        }
+        if (foundL3) {
+            thirdScoreArray.push(l3.event.domainNameCount);
+        } else {
+            thirdScoreArray.push(0);
+        }
+        if (foundL4) {
+            fourthScoreArray.push(l4.event.domainNameCount);
+        } else {
+            fourthScoreArray.push(0);
+        }
+    })
+      
+    var chartObj = {
+        title: "School Perfomance report for HM",
+        reportSections: [
+            {
+                order: 1,
+                chart: {
+                    type: "bar",
+                    stacking: "percent",
+                    title: "Criteria vs level mapping aggregated at domain level",
+                    xAxis: {
+                        categories: domainArray,
+                        title: ""
+                    },
+                    yAxis: {
+                        title: {
+                            text: "Criteria"
+                        }
+                    },
+                    data: [
+                        {
+                            name: "Level 1",
+                            data: firstScoreArray
+                        },
+                        {
+                            name: "Level 2",
+                            data: secondScoreArray
+                        },
+                        {
+                            name: "Level 3",
+                            data: thirdScoreArray
+                        },
+                        {
+                            name: "Level 4",
+                            data: fourthScoreArray
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+  return chartObj;
+}
+catch(err){
+    console.log(err);
+}
+}
 
+//Function for creating response object to show domainNames, criteria's and level's
+exports.entityTableViewFunc = function(data){
+    try{
+    var dataArray = [];
+    var result = groupArrayByDomainName(data);
+    var res = Object.keys(result);
 
+    res.forEach(element => {
+        var tableData = tableDataCreateFunc(result[element])
+        dataArray.push(tableData);
+    })
 
+    var tableObj = {
+        order: 2,
+        chart: {
+            type: "expansion",
+            title: "Descriptive view for HM for school performance",
+            data: dataArray
+        }
+    }
+return tableObj;
+    }
+    catch(err){
+        console.log(err);
+    }
 
+}
 
+//create criteria array based on domainName
+function tableDataCreateFunc(data){
+    var chartdata = {
+        domainName: data[0].event.domainName,
+        domainId: data[0].event.domainExternalId,
+        criterias: []
+    }
 
+    for (var i = 0; i < data.length; i++) {
+        if (data[i].event.childType == "criteria") {
+            var obj = {
+                name: data[i].event.childName
+            }
+            if (data[i].event.level == "L1") {
+                obj.level = "Level 1"
+            }
+            else if (data[i].event.level == "L2") {
+                obj.level = "Level 2"
+            }
+            else if (data[i].event.level == "L3") {
+                obj.level = "Level 3"
+            }
+            else if (data[i].event.level == "L4") {
+                obj.level = "Level 4"
+            }
+            chartdata.criterias.push(obj);
+        }
+    }
+    return chartdata;
+}
 
+// Function for grouping the array based on certain field name
+function groupArrayByDomainName (array){
+    result = array.reduce(function (r, a) {
+        r[a.event.domainName] = r[a.event.domainName] || [];
+        r[a.event.domainName].push(a);
+        return r;
+    }, Object.create(null));
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    return result;
+}

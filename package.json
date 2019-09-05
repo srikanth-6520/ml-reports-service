@@ -18,8 +18,14 @@
     "http-errors": "^1.6.3",
     "jade": "~1.11.0",
     "jsonwebtoken": "^8.5.1",
+    "keycloak-auth-utils": "^3.3.0",
+    "moment": "^2.24.0",
     "morgan": "~1.9.1",
+<<<<<<< HEAD
     "pure-uuid": "^1.5.7",
+=======
+    "q": "^1.5.1",
+>>>>>>> ae263e28284039370cfd84a6d4a19f56d0480fdb
     "request": "^2.88.0",
     "request-promise": "^4.2.4",
     "rimraf": "^3.0.0",

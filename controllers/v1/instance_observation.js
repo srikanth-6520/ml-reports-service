@@ -34,13 +34,18 @@ exports.instanceReport = async function (req, res) {
           options.method = "POST";
           options.body = bodyParam;
           var data = await rp(options);
+          if(!data.length){
+            res.send({"data":"Not observerd"})
+          }
+          else{
           var responseObj = helperFunc.instanceReportChart(data)
           if (req.body.download) {
             console.log("download");
             responseObj.pdfUrl = "http://www.africau.edu/images/default/sample.pdf"
           }
-          await commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj)
           res.send(responseObj);
+          commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj)
+        }
         })
         .catch(function (err) {
           res.status(400);
@@ -77,6 +82,7 @@ async function instancePdfFunc(req) {
       })
   })
 }
+
 exports.instancePdfReport = async function (req, res) {
   if (!req.query.submissionId) {
     res.status(400);
@@ -96,7 +102,6 @@ exports.instancePdfReport = async function (req, res) {
     //   console.log('test')
     //   // res.send(JSON.parse(dataReportIndexes['apiresponse']))
     // }
-    var instaRes = await instancePdfFunc(req)
     ejs.renderFile(__dirname + '/../../views/textReport.ejs', { instaRes: instaRes['response'] })
       .then(function (dataEjsRender) {
         var dir = __dirname + '/../../tmp/' + uuidv4()
@@ -157,5 +162,11 @@ exports.instancePdfReport = async function (req, res) {
       .catch(function (errEjsRender) {
         console.log(errEjsRender)
       })
+    //call instancePdfFunc to get the pdf report
+    // console.log(instaRes['response'].length)
+    // res.render('textReport',{instaRes:instaRes['response']})
+    // res.render('index')
+    res.send({ "status":"success", "pdfUrl": "http://www.africau.edu/images/default/sample.pdf" }
+    )
   }
 }
