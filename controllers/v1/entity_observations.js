@@ -20,7 +20,7 @@ exports.entityReport = async function (req, res) {
     bodyData = req.body
     var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(bodyData)
     if (dataReportIndexes == undefined) {
-      model.MyModel.findOneAsync({ qid: "entity_report_query" }, { allow_filtering: true })
+      model.MyModel.findOneAsync({ qid: "entity_observation_query" }, { allow_filtering: true })
         .then(async function (result) {
           var bodyParam = JSON.parse(result.query);
           if(config.druid.datasource_name){

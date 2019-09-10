@@ -15,7 +15,7 @@ router.get('/observations/instanceLevelPdfReports',instanceController.instancePd
 router.get('/observations/instanceLevelPdfReports',authenticate,instanceController.instancePdfReport)
 
 //API router for observations instanceReport
-router.post("/observations/instance",authenticate,instanceController.instanceReport);
+router.post("/observations/instance",instanceController.instanceReport);
 
 //API router for observations entityReport
 router.post("/observations/entity",authenticate,entityController.entityReport);
