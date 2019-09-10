@@ -1,0 +1,31 @@
+{
+  "name": "nodejs-druid-query-app",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "app.js"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.523.0",
+    "cassandra-driver": "^4.1.0",
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "druid-query": "^2.1.0",
+    "ejs": "^2.6.2",
+    "express": "^4.16.4",
+    "express-cassandra": "^2.3.0",
+    "fs-extra": "^8.1.0",
+    "http-errors": "^1.6.3",
+    "jade": "~1.11.0",
+    "jsonwebtoken": "^8.5.1",
+    "keycloak-auth-utils": "^3.3.0",
+    "moment": "^2.24.0",
+    "morgan": "~1.9.1",
+    "pure-uuid": "^1.5.7",
+    "q": "^1.5.1",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4",
+    "rimraf": "^3.0.0",
+    "uuid": "^3.3.3"
+  }
+}

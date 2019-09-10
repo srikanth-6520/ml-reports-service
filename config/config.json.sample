@@ -1,0 +1,28 @@
+{
+  "application_port_number": 4700,
+  
+  "cassandra":{
+      "host": "CASSANDR_HOST_IP_ADDRESS",
+      "keyspace":"CASSANDRA_KEYSPACE_NAME",
+      "port":"CASSANDRA_PORT",
+      "table":"CASSANDRA_TABLE",
+      "apiReqAndResTable":"API_REQUEST_RESPONSE_TABLE"
+  },
+
+ "options" : {
+    "method": "",
+    "json": true,
+    "body": "",
+    "headers": {
+        "Content-Type": "application/json"
+    },
+    "url": "http://DRUID_IP_ADDRESS:PORT/druid/v2/?pretty"
+},
+
+"sunbird_keycloak_auth_server_url": "",
+"sunbird_keycloak_realm": "",
+"sunbird_keycloak_client_id": "",
+"sunbird_keycloak_public": true,
+"sunbird_cache_store": "",
+"sunbird_cache_ttl": 1800
+}  
