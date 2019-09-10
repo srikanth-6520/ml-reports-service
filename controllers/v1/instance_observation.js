@@ -25,9 +25,12 @@ exports.instanceReport = async function(req,res){
       model.MyModel.findOneAsync({ qid: "instance_report_query" }, { allow_filtering: true })
         .then(async function (result) {
           var bodyParam = JSON.parse(result.query);
+          if(config.druid.datasource_name){
+            bodyParam.dataSource = config.druid.datasource_name;
+            }
           bodyParam.filter.value = req.body.submissionId;
           //pass the query as body param and get the resul from druid
-          var options = config.options;
+          var options = config.druid.options;
           options.method = "POST";
           options.body = bodyParam;
           var data = await rp(options);

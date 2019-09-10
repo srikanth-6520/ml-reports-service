@@ -22,9 +22,12 @@ exports.entityAssessment = async function (req, res) {
       model.MyModel.findOneAsync({ qid: "entity_assessment_query" }, { allow_filtering: true })
         .then(async function (result) {
           var bodyParam = JSON.parse(result.query);
+          if(config.druid.datasource_name){
+            bodyParam.dataSource = config.druid.datasource_name;
+            }
           bodyParam.filter.value = req.body.entityId;
           //pass the query as body param and get the resul from druid
-          var options = config.options;
+          var options = config.druid.options;
           options.method = "POST";
           options.body = bodyParam;
           var data = await rp(options);
@@ -39,10 +42,13 @@ exports.entityAssessment = async function (req, res) {
           model.MyModel.findOneAsync({ qid: "entity_assessment_table_view_query" }, { allow_filtering: true })
             .then(async function (response) {
               var bodyData = JSON.parse(response.query);
+              if(config.druid.datasource_name){
+                bodyParam.dataSource = config.druid.datasource_name;
+                }
               bodyData.filter.value = req.body.entityId;
 
               //pass the query as body param and get the resul from druid
-              var options = config.options;
+              var options = config.druid.options;
               options.method = "POST";
               options.body = bodyData;
               var entityData = await rp(options);

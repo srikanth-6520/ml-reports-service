@@ -9,7 +9,8 @@
       "apiReqAndResTable":"API_REQUEST_RESPONSE_TABLE"
   },
 
- "options" : {
+  "druid": {
+  "options" : {
     "method": "",
     "json": true,
     "body": "",
@@ -17,12 +18,17 @@
         "Content-Type": "application/json"
     },
     "url": "http://DRUID_IP_ADDRESS:PORT/druid/v2/?pretty"
+ },
+
+ "datasource_name": "DRUID_DATASOURCE_NAME"
 },
 
-"sunbird_keycloak_auth_server_url": "",
-"sunbird_keycloak_realm": "",
-"sunbird_keycloak_client_id": "",
-"sunbird_keycloak_public": true,
-"sunbird_cache_store": "",
-"sunbird_cache_ttl": 1800
+ "keycloak": {
+    "sunbird_keycloak_auth_server_url": "",
+    "sunbird_keycloak_realm": "",
+    "sunbird_keycloak_client_id": "",
+    "sunbird_keycloak_public": true,
+    "sunbird_cache_store": "",
+    "sunbird_cache_ttl": 1800
+ }
 }  
