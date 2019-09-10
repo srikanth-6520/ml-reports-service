@@ -10,6 +10,8 @@ var entityAssessController = require('../controllers/v1/entity_assessments')
 //sl_assessment query
 // router.post("/slassessment",instanceController.slAssessment);
 // router.post("/observations/instance",instanceController.instanceReport);
+
+router.get('/observations/instanceLevelPdfReports',instanceController.instancePdfReport)
 router.get('/observations/instanceLevelPdfReports',authenticate,instanceController.instancePdfReport)
 
 //API router for observations instanceReport
@@ -21,6 +23,8 @@ router.post("/observations/entity",authenticate,entityController.entityReport);
 //API router for observationReport
 router.post("/observations/report",authenticate,observationController.observationReport);
 
+//API router for HM view
+router.post("/assessments/school",observationController.observationReport);
 //API router for HM view 
 router.post("/assessments/entity",authenticate,entityAssessController.entityAssessment);
 
