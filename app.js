@@ -54,8 +54,8 @@ var server = http.createServer(app);
 
 server.listen(port,function(){
 
-  
-  console.log("started on port:"+ port);
+
+  console.log("started and running on port:"+ port);
 });
 server.on('error', onError);
 server.on('listening', onListening);

@@ -1,0 +1,1 @@
+No chart data found. Please make sure you are using application/json or multipart/form-data headers, and that the chart data is in the options attribute if sending JSON.
