@@ -1,14 +1,22 @@
-<div style="border:1px solid #ccc;padding-bottom:15px;background:blue;color:#fff;width:40%">
-    Question Statement
-    </div>
-    <table style="border: 2px solid black;border-collapse: collapse;width:40%">
-      <% for(var i=0; i < instaRes.length; i++) { %>
-        <% if(instaRes[i].responseType == 'text'){%>
-          <% for(var j=0; j < instaRes[i].answers.length; j++) { %>
-            <tr style="border: 2px solid black;">
-              <td style="border: 2px solid black;"><%= instaRes[i].answers[j] %></td>
-            </tr>
-            <% } %>
-        <% } %>
+<div class="row" style="padding:20px;margin:20px;">
+    <% for(var i=0; i < instaRes.length; i++) { %>
+      <% if(instaRes[i].responseType == 'text'){%>
+        <% for(var j=0; j < instaRes[i].answers.length; j++) { %>
+         
+                      <table class="table-bordered table-striped" style="min-width:60%;">
+                              <thead >
+                                <span class="btn-primary" style="border:1px solid #ccc;background:blue;color:#fff;min-width:60%"> 
+                                  <%=  instaRes[i].question %>
+                              </span>
+                          </thead>
+                      
+                          <tr style="border: 2px solid black;">
+                            <td style="border: 2px solid black;"><%= instaRes[i].answers[j] %></td>
+                          </tr>
+                      </table>  
+            
+          <% } %>
       <% } %>
-    </table>  
+    <% } %>
+ 
+</div>
