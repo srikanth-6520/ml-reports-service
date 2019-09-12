@@ -426,7 +426,68 @@ function entityMultiselectGrouping(data) {
 
 
 
-//=====================  assessment chart data ===============================================
+//=========================================  assessment chart data ===============================================
+
+exports.listProgramsObjectCreate = function(data){
+    try {
+    var responseObj = []
+    var dataArray = []
+
+    for(var i=0;i<data.length;i++){
+         dataArray.push(data[i].event);
+    }
+     
+    // Function for grouping the array based on program Id
+      result = dataArray.reduce(function (r, a) {
+            r[a.programId] = r[a.programId] || [];
+            r[a.programId].push(a);
+            return r;
+        }, Object.create(null));
+
+        var res = Object.keys(result);
+        //loop the keys 
+        res.forEach(ele => {
+            var programListResp = programListRespObjCreate(result[ele])
+            responseObj.push(programListResp);
+
+        })
+
+      return responseObj;
+    }
+    catch(err){
+        console.log(err);
+    }
+}
+
+//Function to create program object and solution array  -- listPrograms API
+function programListRespObjCreate(data){
+    try {
+    var pgmObj = {
+        programName: data[0].programName,
+        programId: data[0].programId,
+        programDescription: data[0].programDescription,
+        programExternalId: data[0].programExternalId,
+        solutions: []
+    }
+
+    for(var i=0;i < data.length;i++){
+        var solutionObj = {
+            solutionName : data[i].solutionName,
+            solutionId : data[i].solutionId,
+            solutionDescription: data[i].solutionDescription,
+            solutionExternalId: data[i].solutionExternalId
+        }
+
+     pgmObj.solutions.push(solutionObj);
+     return pgmObj;
+
+    }
+ }
+ catch(err){
+     console.log(err);
+ }
+}
+
 
 exports.entityAssessmentChart = function (data) {
     try{
