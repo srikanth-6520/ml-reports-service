@@ -90,7 +90,10 @@ async function instancePdfFunc(req) {
         console.log("result", result);
 
         var bodyParam = JSON.parse(result.query);
-        bodyParam.dataSource = "sl_observation_dev";
+    //    bodyParam.dataSource = "sl_observation_dev";
+        if (config.druid.datasource_name) {
+          bodyParam.dataSource = config.druid.datasource_name;
+        }
         bodyParam.filter.value = req.submissionId;
 
 
@@ -103,6 +106,8 @@ async function instancePdfFunc(req) {
         options.method = "POST";
         options.body = bodyParam;
         var data = await rp(options);
+
+
 
         if (!data.length) {
           resolve({
