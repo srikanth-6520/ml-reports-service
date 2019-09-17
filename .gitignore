@@ -62,3 +62,4 @@ typings/
 
 #application specific ignores
 config/config.json
+tmp/*
