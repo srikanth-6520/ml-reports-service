@@ -6,6 +6,7 @@ var instanceController = require('../controllers/v1/instance_observation');
 var entityController = require('../controllers/v1/entity_observations')
 var observationController = require('../controllers/v1/observation_controller')
 var entityAssessController = require('../controllers/v1/entity_assessments')
+var listAssessmentPrograms = require('../controllers/v1/list_assessment_programs')
 
 //sl_assessment query
 // router.post("/slassessment",instanceController.slAssessment);
@@ -15,7 +16,7 @@ router.get('/observations/instanceLevelPdfReports',instanceController.instancePd
 router.get('/observations/instanceLevelPdfReports',authenticate,instanceController.instancePdfReport)
 
 //API router for observations instanceReport
-router.post("/observations/instance",authenticate,instanceController.instanceReport);
+router.post("/observations/instance",instanceController.instanceReport);
 
 //API router for observations entityReport
 router.post("/observations/entity",authenticate,entityController.entityReport);
@@ -26,6 +27,10 @@ router.post("/observations/report",authenticate,observationController.observatio
 
 //API router for HM view
 router.post("/assessments/school",observationController.observationReport);
+
+//API router for list programs
+router.post("/assessments/listPrograms",listAssessmentPrograms.listPrograms);
+
 //API router for HM view 
 router.post("/assessments/entity",authenticate,entityAssessController.entityAssessment);
 
