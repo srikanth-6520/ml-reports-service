@@ -99,18 +99,26 @@ async function instancePdfFunc(req) {
         }
         console.log("reqdata");
         //pass the query as body param and get the resul from druid
-        var options = config.options;
+        var options = config.druid.options;
         options.method = "POST";
         options.body = bodyParam;
         var data = await rp(options);
 
+        if (!data.length) {
+          res.send({
+            "data": "Not observerd"
+          });
+        } else {
+
         // console.log("data======",data);
-        var responseObj = helperFunc.instanceReportChart(data)
+        var responseObj = await helperFunc.instanceReportChart(data)
         // var responseObj = dataResp;
         // console.log(responseObj)
         // await commonCassandraFunc.insertReqAndResInCassandra(query, responseObj)
         // console.log(responseObj)
         resolve(responseObj);
+
+        }
       })
       .catch(function (err) {
         reject(err);
@@ -143,7 +151,7 @@ exports.instancePdfReport = async function (req, res) {
     // dataReportIndexes.downloadpdfpath = "instanceLevelPdfReports/instanceLevelReport.pdf";
 
     console.log("dataReportIndexes", dataReportIndexes);
-    dataReportIndexes.downloadpdfpath ="";
+    // dataReportIndexes.downloadpdfpath ="";
     if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
       // var instaRes = await instancePdfFunc(reqData);
 
