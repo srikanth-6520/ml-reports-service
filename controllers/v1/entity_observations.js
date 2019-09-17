@@ -84,7 +84,7 @@ exports.observationsByEntity = async function (req, res) {
         // console.log("fields",fieldsArray);
         query.filter.fields.push(...fieldsArray);
         // console.log("query",query);
-        var options = config.options;
+        var options = config.druid.options;
         options.method = "POST";
         options.body = query;
         var data = await rp(options);
