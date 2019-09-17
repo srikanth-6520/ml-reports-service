@@ -19,6 +19,7 @@ router.post("/observations/instance",authenticate,instanceController.instanceRep
 
 //API router for observations entityReport
 router.post("/observations/entity",authenticate,entityController.entityReport);
+router.post("/observations/byEntity",entityController.observationsByEntity);
 
 //API router for observationReport
 router.post("/observations/report",authenticate,observationController.observationReport);

@@ -25,12 +25,23 @@ let checkReqInCassandra = async function (reqBody, callback) {
     })
 }
 
-let insertReqAndResInCassandra = async function (reqBody, resBody) {
+let insertReqAndResInCassandra = async function (reqBody, resBody,downloadPath=null) {
     return new Promise(function (resolve, reject) {
-        var insertData = new db.reportIndexes({
+
+        console.log("reqBody====",reqBody)
+
+       
+        var obj = {
             apirequest: JSON.stringify(reqBody),
             apiresponse: JSON.stringify(resBody)
-        });
+        };
+        if(downloadPath){
+            obj.downloadpdfpath = JSON.stringify(downloadPath);
+        }
+
+
+        console.log("obj",obj);
+        var insertData = new db.reportIndexes(obj);
         insertData.saveAsync()
             .then(function (insertRec) {
                 // console.log(insertRec)
@@ -81,7 +92,29 @@ let insertAssessmentReqAndResInCassandra = async function (reqBody, resBody) {
 }
 
 
+let updateInstanceDownloadPath = async function (reqBody, callback) {
+    return new Promise(function (resolve, reject) {
+      
+        // var query_object = reqBody.query;
+        console.log("ssssssssssss",JSON.stringify(reqBody.query ));
+        var query_object = { id : reqBody.query };
+var update_values_object = {downloadpdfpath : reqBody.downloadPath };
+var options = {ttl: 86400, if_exists: true};
+
+console.log("query_object",query_object);
+db.reportIndexes.update(query_object, update_values_object,options, function(err){
+    if(err) {
+        console.log(err);
+    }else{
+        resolve("updated");
+    }
+});
+
+});
+};
+
 exports.checkReqInCassandra = checkReqInCassandra
 exports.insertReqAndResInCassandra = insertReqAndResInCassandra
 exports.checkAssessmentReqInCassandra = checkAssessmentReqInCassandra
 exports.insertAssessmentReqAndResInCassandra = insertAssessmentReqAndResInCassandra
+exports.updateInstanceDownloadPath = updateInstanceDownloadPath
