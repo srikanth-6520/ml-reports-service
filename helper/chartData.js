@@ -686,7 +686,7 @@ exports.entityTableViewFunc = async function(dataObj){
     var data = dataObj.entityData;
     var entityType = dataObj.entityType;
     var childType = dataObj.childEntityType;
-    var result = await groupArrayByDomainName(data,entityType);
+    var result = await groupArrayByDomainName(data,childType);
     var res = Object.keys(result);
     
     var titleName;
