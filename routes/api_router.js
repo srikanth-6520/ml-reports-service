@@ -29,10 +29,10 @@ router.post("/observations/report",authenticate,observationController.observatio
 //router.post("/assessments/school",observationController.observationReport);
 
 //API router for list programs
-router.post("/assessments/listPrograms",listAssessmentPrograms.listPrograms);
+router.post("/assessments/listPrograms",authenticate,listAssessmentPrograms.listPrograms);
 
 //API router for HM view 
-router.post("/assessments/entity",entityAssessController.entityAssessment);
+router.post("/assessments/entity",authenticate,entityAssessController.entityAssessment);
 
 
 function authenticate(req,res,next){
