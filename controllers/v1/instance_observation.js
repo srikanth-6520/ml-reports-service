@@ -82,7 +82,7 @@ async function instancePdfFunc(req) {
     console.log("reqdata");
     // console.log("report");
     model.MyModel.findOneAsync({
-      qid: "instance_report_query"
+      qid: "instance_observation_query"
     }, {
       allow_filtering: true
     })
