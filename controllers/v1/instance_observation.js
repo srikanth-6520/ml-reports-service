@@ -161,8 +161,9 @@ exports.instancePdfReport = async function (req, res) {
       // var instaRes = await instancePdfFunc(reqData);
 
       console.log("dataReportIndexes", dataReportIndexes.id);
+      dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
       let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
-
+        
       // call to get SignedUrl 
       console.log("instaRes=======", signedUlr);
 
