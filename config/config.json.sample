@@ -20,7 +20,8 @@
     "url": "http://DRUID_IP_ADDRESS:PORT/druid/v2/?pretty"
  },
 
- "datasource_name": "DRUID_DATASOURCE_NAME"
+ "observation_datasource_name": "OBSERVATION_DATASOURCE_NAME",
+ "assessment_datasource_name": "ASSESSMENT_DATASOURCE_NAME"
 },
 
  "keycloak": {

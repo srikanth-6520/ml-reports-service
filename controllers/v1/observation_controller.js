@@ -24,8 +24,8 @@ exports.observationReport = async function (req, res) {
             model.MyModel.findOneAsync({ qid: "observation_report_query" }, { allow_filtering: true })
                 .then(async function (result) {
                     var bodyParam = JSON.parse(result.query);
-                    if(config.druid.datasource_name){
-                        bodyParam.dataSource = config.druid.datasource_name;
+                    if(config.druid.observation_datasource_name){
+                        bodyParam.dataSource = config.druid.observation_datasource_name;
                         }
                     bodyParam.filter.value = req.body.observationId;
                     //pass the query as body param and get the resul from druid
@@ -38,7 +38,7 @@ exports.observationReport = async function (req, res) {
                         res.send({"data":"No entities are observed"})
                       }
                     else{
-                    var responseObj = helperFunc.entityReportChart(data)
+                    var responseObj = await helperFunc.entityReportChart(data)
                     //send the response as API output
                     res.send(responseObj);
                     commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj)

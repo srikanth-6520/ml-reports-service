@@ -19,8 +19,8 @@ exports.listPrograms = async function (req, res) {
         model.MyModel.findOneAsync({ qid: "list_assessment_programs_query" }, { allow_filtering: true })
             .then(async function (result) {
                 var bodyParam = JSON.parse(result.query);
-                if (config.druid.datasource_name) {
-                    bodyParam.dataSource = config.druid.datasource_name;
+                if (config.druid.assessment_datasource_name) {
+                    bodyParam.dataSource = config.druid.assessment_datasource_name;
                 }
                 bodyParam.filter.dimension = req.body.entityType;
                 bodyParam.filter.value = req.body.entityId;
@@ -34,7 +34,8 @@ exports.listPrograms = async function (req, res) {
                 }
                 else {
                   //call the function entityAssessmentChart to get the data for stacked bar chart 
-                   var responseObj = helperFunc.listProgramsObjectCreate(data);
+                   var responseObj = await helperFunc.listProgramsObjectCreate(data);
+                   console.log(responseObj);
                    res.send(responseObj);
                 }
             })

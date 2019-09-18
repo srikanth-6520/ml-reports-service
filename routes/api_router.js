@@ -25,13 +25,13 @@ router.post("/observations/entity",authenticate,entityController.entityReport);
 router.post("/observations/report",authenticate,observationController.observationReport);
 
 //API router for HM view
-router.post("/assessments/school",observationController.observationReport);
+//router.post("/assessments/school",observationController.observationReport);
 
 //API router for list programs
 router.post("/assessments/listPrograms",listAssessmentPrograms.listPrograms);
 
 //API router for HM view 
-router.post("/assessments/entity",authenticate,entityAssessController.entityAssessment);
+router.post("/assessments/entity",entityAssessController.entityAssessment);
 
 
 function authenticate(req,res,next){

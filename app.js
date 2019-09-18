@@ -56,6 +56,8 @@ server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 
+console.log("application started");
+
 /**
  * Normalize a port into a number, string, or false.
  */

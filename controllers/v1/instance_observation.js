@@ -28,8 +28,8 @@ exports.instanceReport = async function (req, res) {
       model.MyModel.findOneAsync({ qid: "instance_observation_query" }, { allow_filtering: true })
         .then(async function (result) {
           var bodyParam = JSON.parse(result.query);
-          if(config.druid.datasource_name){
-            bodyParam.dataSource = config.druid.datasource_name;
+          if(config.druid.observation_datasource_name){
+            bodyParam.dataSource = config.druid.observation_datasource_name;
             }
           bodyParam.filter.value = req.body.submissionId;
           //pass the query as body param and get the resul from druid
@@ -41,7 +41,7 @@ exports.instanceReport = async function (req, res) {
             res.send({"data":"Not observerd"})
           }
           else{
-          var responseObj = helperFunc.instanceReportChart(data)
+          var responseObj = await helperFunc.instanceReportChart(data)
           if (req.body.download) {
             console.log("download");
             responseObj.pdfUrl = "http://www.africau.edu/images/default/sample.pdf"

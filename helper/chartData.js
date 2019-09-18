@@ -428,7 +428,7 @@ function entityMultiselectGrouping(data) {
 
 //=========================================  assessment chart data ===============================================
 
-exports.listProgramsObjectCreate = function(data){
+exports.listProgramsObjectCreate = async function(data){
     try {
     var responseObj = []
     var dataArray = []
@@ -445,12 +445,13 @@ exports.listProgramsObjectCreate = function(data){
         }, Object.create(null));
 
         var res = Object.keys(result);
+
         //loop the keys 
-        res.forEach(ele => {
-            var programListResp = programListRespObjCreate(result[ele])
+        await Promise.all(res.map(async ele => {
+            var programListResp = await programListRespObjCreate(result[ele])
             responseObj.push(programListResp);
 
-        })
+        }));
 
       return responseObj;
     }
@@ -460,7 +461,7 @@ exports.listProgramsObjectCreate = function(data){
 }
 
 //Function to create program object and solution array  -- listPrograms API
-function programListRespObjCreate(data){
+async function programListRespObjCreate(data){
     try {
     var pgmObj = {
         programName: data[0].programName,
@@ -470,18 +471,19 @@ function programListRespObjCreate(data){
         solutions: []
     }
 
-    for(var i=0;i < data.length;i++){
+     await Promise.all(data.map(element => {
         var solutionObj = {
-            solutionName : data[i].solutionName,
-            solutionId : data[i].solutionId,
-            solutionDescription: data[i].solutionDescription,
-            solutionExternalId: data[i].solutionExternalId
+            solutionName : element.solutionName,
+            solutionId : element.solutionId,
+            solutionDescription: element.solutionDescription,
+            solutionExternalId: element.solutionExternalId
         }
 
      pgmObj.solutions.push(solutionObj);
-     return pgmObj;
+      }));
 
-    }
+    return pgmObj;
+
  }
  catch(err){
      console.log(err);
@@ -489,26 +491,35 @@ function programListRespObjCreate(data){
 }
 
 
-exports.entityAssessmentChart = function (data) {
-    try{
+exports.entityAssessmentChart = async function (inputObj) {
+    try {
+    data = inputObj.data;
+    childEntity = inputObj.childEntity;
+    entityName = inputObj.entityName;
+    levelCount = inputObj.levelCount;
+    entityType = inputObj.entityType;
+
     var domainArray = [];
     var firstScoreArray =[];
     var secondScoreArray = [];
     var thirdScoreArray = [];
     var fourthScoreArray = [];
-    
+    var obj ={};
+
     //Store the domain Names in an array
-    for (var i = 0; i < data.length; i++) {
-        if (domainArray.includes(data[i].event.domainName)) {
+    await Promise.all(data.map(async ele => {               
+        if (domainArray.includes(ele.event[entityName])) {
 
         } else {
-            domainArray.push(data[i].event.domainName);
+            domainArray.push(ele.event[entityName]);
         }
-    }
+    }));
+   
+    //group the json objects based on entityName
+    var res = await groupArrayByDomainName(data,entityName);
 
-    var res = groupArrayByDomainName(data);
     var dt = Object.keys(res);
-    dt.forEach(element => {
+    await Promise.all(dt.map(element => {
         var l1 = "";
         var l2 = "";
         var l3 = "";
@@ -548,39 +559,86 @@ exports.entityAssessmentChart = function (data) {
                 return false;
             }
         })
+        
 
         //if domainCount is found, then push the count, otherwise push 0 
         if (foundL1) {
-            firstScoreArray.push(l1.event.domainNameCount);
+            obj = {
+                y: l1.event[levelCount],
+                entityId: l1.event[childEntity]
+            }
+            firstScoreArray.push(obj);
         } else {
-            firstScoreArray.push(0);
+            obj = {
+                y: 0,
+                entityId: ""
+            }
+            firstScoreArray.push(obj);
         }
         if (foundL2) {
-            secondScoreArray.push(l2.event.domainNameCount);
+            obj = {
+                y: l2.event[levelCount],
+                entityId: l2.event[childEntity]
+            }
+            secondScoreArray.push(obj);
         } else {
-            secondScoreArray.push(0);
+            obj = {
+                y: 0,
+                entityId: ""
+            }
+            secondScoreArray.push(obj);
         }
         if (foundL3) {
-            thirdScoreArray.push(l3.event.domainNameCount);
+            obj = {
+                y: l3.event[levelCount],
+                entityId: l3.event[childEntity]
+            }
+            thirdScoreArray.push(obj);
         } else {
-            thirdScoreArray.push(0);
+            obj = {
+                y: 0,
+                entityId: ""
+            }
+            thirdScoreArray.push(obj);
         }
         if (foundL4) {
-            fourthScoreArray.push(l4.event.domainNameCount);
+            obj = {
+                y: l4.event[levelCount],
+                entityId: l4.event[childEntity]
+            }
+            fourthScoreArray.push(obj);
         } else {
-            fourthScoreArray.push(0);
+            obj = {
+                y: 0,
+                entityId: ""
+            }
+            fourthScoreArray.push(obj);
         }
-    })
-      
-    var chartObj = {
-        title: "School Perfomance report for HM",
+    }));
+
+      var titleName = "";
+      var chartTitle = "";
+      if(childEntity == ""){
+          titleName = "School";
+          chartTitle = "domain"
+      }
+      else{
+          titleName = "Entity";
+          chartTitle = "Entity"
+      }
+
+      var designation = await designationCreateFunction(entityType);
+
+      var chartObj = {
+        title: titleName + " Perfomance report for " + designation + " View",
         reportSections: [
             {
                 order: 1,
                 chart: {
                     type: "bar",
+                    nextChildEntityType: childEntity,
                     stacking: "percent",
-                    title: "Criteria vs level mapping aggregated at domain level",
+                    title: "Criteria vs level mapping aggregated at " + chartTitle + " level",
                     xAxis: {
                         categories: domainArray,
                         title: ""
@@ -612,6 +670,7 @@ exports.entityAssessmentChart = function (data) {
             }
         ]
     }
+// console.log(chartObj.reportSections[0].chart);
   return chartObj;
 }
 catch(err){
@@ -619,27 +678,41 @@ catch(err){
 }
 }
 
-//Function for creating response object to show domainNames, criteria's and level's
-exports.entityTableViewFunc = function(data){
-    try{
-    var dataArray = [];
-    var result = groupArrayByDomainName(data);
+
+
+//Function for creating response object to show domainNames, criteria's and level's   -- expansion view entity assessment API
+exports.entityTableViewFunc = async function(dataObj){
+    try {
+    var data = dataObj.entityData;
+    var entityType = dataObj.entityType;
+    var childType = dataObj.childEntityType;
+    var result = await groupArrayByDomainName(data,entityType);
     var res = Object.keys(result);
-
-    res.forEach(element => {
-        var tableData = tableDataCreateFunc(result[element])
-        dataArray.push(tableData);
-    })
-
+    
+    var titleName;
+    if(entityType == "school"){
+        titleName = "school";
+    }
+    else{
+        titleName = "Entity"
+    }
+    var designation = await designationCreateFunction(entityType);
     var tableObj = {
         order: 2,
         chart: {
             type: "expansion",
-            title: "Descriptive view for HM for school performance",
-            data: dataArray
+            title: "Descriptive view for " + designation + " for " + titleName + " performance",
+            entities : []
         }
     }
-return tableObj;
+    
+    // wait till the final entity response object comes
+    await Promise.all(res.map(async element => {
+        var tableData = await tableDataCreateFunc(result[element],childType)
+        tableObj.chart.entities.push(tableData);
+    }));
+
+    return tableObj;
     }
     catch(err){
         console.log(err);
@@ -648,43 +721,102 @@ return tableObj;
 }
 
 //create criteria array based on domainName
-function tableDataCreateFunc(data){
+async function tableDataCreateFunc(data,entityType){
+    try{
+    var result = await groupArrayByDomainName(data,"domainName");
+    var res = Object.keys(result);
+
     var chartdata = {
+        entityName: data[0].event[entityType + "Name"],
+        entityId: data[0].event[entityType],
+        domains : []
+     }
+
+    // chartdata.domains = await domainLoopFunction(result,res)
+    await Promise.all(res.map( async element => {
+        var tableData = await domainCriteriaCreateFunc(result[element])
+        chartdata.domains.push(tableData);
+    }));
+
+    return chartdata;
+    }
+    catch(err){
+        console.log(err);
+    }
+}
+
+//Function to create criteria array based on the domain Name -- expansion view of entity assessment API
+async function domainCriteriaCreateFunc (data){
+    try{
+    var chartObj = {
         domainName: data[0].event.domainName,
         domainId: data[0].event.domainExternalId,
         criterias: []
     }
 
-    for (var i = 0; i < data.length; i++) {
-        if (data[i].event.childType == "criteria") {
+    await Promise.all(data.map(async ele => { 
+        if (ele.event.childType == "criteria") {
             var obj = {
-                name: data[i].event.childName
+                name: ele.event.childName
             }
-            if (data[i].event.level == "L1") {
+            if (ele.event.level == "L1") {
                 obj.level = "Level 1"
             }
-            else if (data[i].event.level == "L2") {
+            else if (ele.event.level == "L2") {
                 obj.level = "Level 2"
             }
-            else if (data[i].event.level == "L3") {
+            else if (ele.event.level == "L3") {
                 obj.level = "Level 3"
             }
-            else if (data[i].event.level == "L4") {
+            else if (ele.event.level == "L4") {
                 obj.level = "Level 4"
             }
-            chartdata.criterias.push(obj);
+            chartObj.criterias.push(obj);
         }
-    }
-    return chartdata;
+
+    }));
+       return chartObj;
+  }
+ catch(err){
+    console.log(err);
+ }
 }
 
 // Function for grouping the array based on certain field name
-function groupArrayByDomainName (array){
+function groupArrayByDomainName (array,name){
     result = array.reduce(function (r, a) {
-        r[a.event.domainName] = r[a.event.domainName] || [];
-        r[a.event.domainName].push(a);
+        r[a.event[name]] = r[a.event[name]] || [];
+        r[a.event[name]].push(a);
         return r;
     }, Object.create(null));
 
     return result;
+}
+
+//function to create the title
+function designationCreateFunction(entityType){
+    var value;
+    if(entityType == "school"){
+       value = "HM"
+    }
+    else if(entityType == "cluster"){
+        value = "CRP"
+    }
+    else if(entityType == "zone"){
+        value = "ZONE"
+    }
+    else if(entityType == "block"){
+        value = "BEO"
+    }
+    else if(entityType == "district"){
+        value = "DEO"
+    }
+    else if(entityType == "state"){
+        value = "State"
+    }
+    else if(entityType == "hub"){
+        value = "HUB"
+    }
+
+  return value;
 }
