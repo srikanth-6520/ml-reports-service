@@ -33,10 +33,10 @@ exports.entityReport = async function (req, res) {
           options.method = "POST";
           options.body = bodyParam;
           var data = await rp(options);
-          if(!data.length){
-            res.send({"data":"No observations made for the entity"})
+          if (!data.length) {
+            res.send({ "data": "No observations made for the entity" })
           }
-          else{
+          else {
           var responseObj = await helperFunc.entityReportChart(data)
           res.send(responseObj);
           commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj)
@@ -50,8 +50,46 @@ exports.entityReport = async function (req, res) {
           }
           res.send(response);
         })
-      } else {
-        res.send(JSON.parse(dataReportIndexes['apiresponse']))
-      }
+    } else {
+      res.send(JSON.parse(dataReportIndexes['apiresponse']))
     }
   }
+}
+
+exports.observationsByEntity = async function (req, res) {
+
+  if (!req.body && !req.body) {
+    res.status(400);
+    var response = {
+      result: false,
+      message: 'entityId and observationId are required fields'
+    }
+    res.send(response);
+  }
+  else {
+    model.MyModel.findOneAsync({
+      qid: "observations_by_entity"
+    }, {
+      allow_filtering: true
+    })
+      .then(async function (result) {
+        var bodyParam = JSON.parse(result.query);
+        var query = bodyParam;
+        var fieldsArray = [];
+        await Promise.all(req.body.entityIds.map(async ele => {
+          let objSelecter = { "type": "selector", "dimension": "entityId", "value": ele };
+          fieldsArray.push(objSelecter);
+        }
+        ));
+        // console.log("fields",fieldsArray);
+        query.filter.fields.push(...fieldsArray);
+        // console.log("query",query);
+        var options = config.druid.options;
+        options.method = "POST";
+        options.body = query;
+        var data = await rp(options);
+        res.send(data);
+      });
+  }
+
+}

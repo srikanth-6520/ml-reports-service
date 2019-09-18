@@ -52,7 +52,11 @@ var server = http.createServer(app);
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port);
+server.listen(port,function(){
+
+
+  console.log("started and running on port:"+ port);
+});
 server.on('error', onError);
 server.on('listening', onListening);
 
@@ -105,6 +109,7 @@ function onError(error) {
       throw error;
   }
 }
+
 
 /**
  * Event listener for HTTP server "listening" event.
