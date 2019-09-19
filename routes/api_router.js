@@ -12,15 +12,15 @@ var listAssessmentPrograms = require('../controllers/v1/list_assessment_programs
 // router.post("/slassessment",instanceController.slAssessment);
 // router.post("/observations/instance",instanceController.instanceReport);
 
-router.get('/observations/instanceLevelPdfReports',instanceController.instancePdfReport)
+// router.get('/observations/instanceLevelPdfReports',instanceController.instancePdfReport)
 router.get('/observations/instanceLevelPdfReports',authenticate,instanceController.instancePdfReport)
 
 //API router for observations instanceReport
-router.post("/observations/instance",instanceController.instanceReport);
+router.post("/observations/instance",authenticate,instanceController.instanceReport);
 
 //API router for observations entityReport
 router.post("/observations/entity",authenticate,entityController.entityReport);
-router.post("/observations/byEntity",entityController.observationsByEntity);
+router.post("/observations/byEntity",authenticate,entityController.observationsByEntity);
 
 //API router for observationReport
 router.post("/observations/report",authenticate,observationController.observationReport);
