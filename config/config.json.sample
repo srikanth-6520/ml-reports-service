@@ -5,7 +5,8 @@
       "keyspace":"CASSANDRA_KEYSPACE_NAME",
       "port":"CASSANDRA_PORT",
       "table":"CASSANDRA_TABLE",
-      "apiReqAndResTable":"API_REQUEST_RESPONSE_TABLE"
+      "apiReqAndResTable":"OBSERVATION_API_REQUEST_RESPONSE_TABLE",
+      "assessmentTable": "ASSESSMENT_API_REQUEST_RESPONSE_TABLE"
   },
 
   "druid": {
