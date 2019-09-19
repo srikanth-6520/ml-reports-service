@@ -1,0 +1,26 @@
+<html>
+  <head>
+      <link rel="stylesheet" type="text/css" href="style.css">
+    </head>
+    <body>
+            <%- include('textReport', {instaRes: data.instaRes}); %>
+
+            <%- include('sliderReport', {instaRes: data.sliderData}); %>
+
+
+            <p style="page-break-before: always;">&nbsp;</p>
+            <% for(var i=0; i < data.path.length; i++) { %>
+           <div class="col-sm-12" > <%- include('multiSelectReport', {path: data.path[i].options.filename}); %></div>
+           <p style="page-break-before: always;">&nbsp;</p>
+           <% } %>
+
+           <% for(var i=0; i < data.radioOptionsData.length; i++) { %>
+            <div class="col-sm-12" > <%- include('radioReport', {path: data.radioOptionsData[i].options.filename}); %></div>
+            <p style="page-break-before: always;">&nbsp;</p>
+            <% } %>
+
+          
+           <!-- <div style="padding-top:40px"> <%- include('radioReport', {path: data.radioImagePath}); %></div> -->
+    </body>
+       
+  </html>

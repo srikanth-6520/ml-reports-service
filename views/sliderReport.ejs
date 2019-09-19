@@ -1,0 +1,37 @@
+<div class="row" style="padding:20px;margin:20px;">
+        <% for(var i=0; i < instaRes.length; i++) { %>
+          <% if(instaRes[i].responseType == 'slider'){%>
+            <% if(instaRes[i].answers) { %>
+            <% for(var j=0; j < instaRes[i].answers.length; j++) { %>
+             
+                          <!-- <table class="table-bordered table-striped" style="min-width:60%;">
+                                  <thead >
+                                    <span class="btn-primary" style="border:1px solid #ccc;background:blue;color:#fff;min-width:60%"> 
+                                      <%= instaRes[i].question %>
+                                  </span>
+                              </thead>
+                          
+                            
+                              <tr style="border: 2px solid black;">
+                            
+                                <td style="border: 2px solid black;"><%= instaRes[i].answers[j]  %></td>
+                              </tr>
+                             
+                          </table>   -->
+
+                          <div class="row">
+                            <div class="col-sm-12" >
+                            <div class="card">
+                              <h5 class="card-header"><%=  instaRes[i].question %></h5>
+                              <div class="card-body">
+                              <p><%= instaRes[i].answers[j] %></p>
+                              </div>
+                              </div>
+                            </div>
+                          </div>
+                          <% } %>
+              <% } %>
+          <% } %>
+        <% } %>
+     
+    </div>

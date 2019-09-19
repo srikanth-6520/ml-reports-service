@@ -6,6 +6,8 @@
     "start": "app.js"
   },
   "dependencies": {
+    "async": "^3.1.0",
+    "aws-cloudfront-sign": "^2.2.0",
     "aws-sdk": "^2.523.0",
     "cassandra-driver": "^4.1.0",
     "cookie-parser": "~1.4.4",
