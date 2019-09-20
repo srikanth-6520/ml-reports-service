@@ -30,13 +30,13 @@ exports.listPrograms = async function (req, res) {
                 options.body = bodyParam;
                 var data = await rp(options);
                 if (!data.length) {
-                    res.send({ "data": "No programs found for the entityId" })
+                    res.send({ "data": []})
                 }
                 else {
                   //call the function entityAssessmentChart to get the data for stacked bar chart 
                    var responseObj = await helperFunc.listProgramsObjectCreate(data);
                    console.log(responseObj);
-                   res.send(responseObj);
+                   res.send({ "data":responseObj});
                 }
             })
             .catch(function (err) {

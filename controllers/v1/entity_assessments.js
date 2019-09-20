@@ -51,7 +51,7 @@ exports.entityAssessment = async function (req, res) {
           options.body = bodyParam;
           var data = await rp(options);
           if (!data.length) {
-            res.send({ "data": "No assessment data found for the entity" })
+            res.send({ "data": {} })
           }
          else {
            var inputObj = {
@@ -83,7 +83,7 @@ exports.entityAssessment = async function (req, res) {
               //call the function to get the data for expansion view of domain and criteria
               var tableObj = await helperFunc.entityTableViewFunc(dataObj)
               responseObj.reportSections.push(tableObj);
-              res.send(responseObj);
+              res.send({"data" : responseObj});
               commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
           }
       })
