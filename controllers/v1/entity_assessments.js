@@ -83,7 +83,7 @@ exports.entityAssessment = async function (req, res) {
               //call the function to get the data for expansion view of domain and criteria
               var tableObj = await helperFunc.entityTableViewFunc(dataObj)
               responseObj.reportSections.push(tableObj);
-              res.send({"data" : responseObj});
+              res.send(responseObj);
               commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
           }
       })
