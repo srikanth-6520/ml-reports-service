@@ -172,13 +172,14 @@ async function instanceMultiselectFunc(data) {
 
 
 //Function for entity Observation and observation report's final response creation
-exports.entityReportChart = function (data) {
+exports.entityReportChart = async function (data) {
     var obj;
     var mutiSelectArray = [];
     var textArray = [];
     var radioArray = [];
     var sliderArray = [];
-
+    var numberArray = [];
+    var dateArray = [];
     try {
         // obj is the response object which we are sending as a API response  
         if(data[0].event.entityId){ 
@@ -202,35 +203,48 @@ exports.entityReportChart = function (data) {
     }
 
         //filter all the objects whose questionResponseType is multiselect
-        for (var i = 0; i < data.length; i++) {
-            if (data[i].event.questionResponseType == "text") {
-                textArray.push(data[i])
+        // for (var i = 0; i < data.length; i++) {
+        await Promise.all(data.map(element => {
+            if (element.event.questionResponseType == "text") {
+                textArray.push(element)
             }
-            else if (data[i].event.questionResponseType == "radio") {
-                radioArray.push(data[i])
+            else if (element.event.questionResponseType == "radio") {
+                radioArray.push(element)
             }
-            else if (data[i].event.questionResponseType == "multiselect") {
-                mutiSelectArray.push(data[i])
+            else if (element.event.questionResponseType == "multiselect") {
+                mutiSelectArray.push(element)
             }
-            else if (data[i].event.questionResponseType == "slider") {
-                sliderArray.push(data[i])
+            else if (element.event.questionResponseType == "slider") {
+                sliderArray.push(element)
             }
-        }
+            else if (element.event.questionResponseType == "number") {
+                numberArray.push(element)
+            }
+            else if (element.event.questionResponseType == "date") {
+                dateArray.push(element)
+            }
+        // }
+        }))
 
         //group the text questions based on their questionName
-        textResult = groupArrayElements(textArray);
+        textResult = await groupArrayElements(textArray);
 
         //group the radio questions based on their questionName
-        radioResult = groupArrayElements(radioArray);
+        radioResult = await groupArrayElements(radioArray);
 
         //group the multiselect questions based on their questionName
-        multiSelectResult = groupArrayElements(mutiSelectArray)
+        multiSelectResult = await groupArrayElements(mutiSelectArray)
 
-        //group the multiselect questions based on their questionName
-        sliderResult = groupArrayElements(sliderArray);
+        //group the slider questions based on their questionName
+        sliderResult = await groupArrayElements(sliderArray);
+
+        //group the number questions based on their questionName
+        numberResult = await groupArrayElements(numberArray);
+        
+        //group the date questions based on their questionName
+         dateResult = await groupArrayElements(dateArray);
 
         var textRes = Object.keys(textResult);
-
         //loop the keys and construct a response object for text questions
         textRes.forEach(ele => {
             var textResponse = responseObjectCreateFunc(textResult[ele])
@@ -243,6 +257,20 @@ exports.entityReportChart = function (data) {
         sliderRes.forEach(ele => {
             var sliderResp = responseObjectCreateFunc(sliderResult[ele])
             obj.response.push(sliderResp);
+        })
+
+        var numberRes = Object.keys(numberResult);
+        //loop the keys and construct a response object for slider questions
+        numberRes.forEach(ele => {
+            var numberResp = responseObjectCreateFunc(numberResult[ele])
+            obj.response.push(numberResp);
+        })
+         
+        var dateRes = Object.keys(dateResult);
+        //loop the keys and construct a response object for slider questions
+        dateRes.forEach(ele => {
+            var dateResp = responseObjectCreateFunc(dateResult[ele])
+            obj.response.push(dateResp);
         })
 
         var radioRes = Object.keys(radioResult);
