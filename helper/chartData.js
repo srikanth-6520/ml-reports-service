@@ -1,5 +1,5 @@
 //function for instance observation final response creation
-exports.instanceReportChart = function (data) {
+exports.instanceReportChart = async function (data) {
     var obj;
     var mutiSelectArray = []
 
@@ -14,29 +14,29 @@ exports.instanceReportChart = function (data) {
             response: []
         }
 
-        for (var i = 0; i < data.length; i++) {
+        await Promise.all(data.map(element => {
             // Response object creation for text type
-            if (data[i].event.questionResponseType == "text") {
+            if (element.event.questionResponseType == "text") {
                 var resp = {
-                    question: data[i].event.questionName,
-                    responseType: data[i].event.questionResponseType,
-                    answers: [data[i].event.questionAnswer],
+                    question: element.event.questionName,
+                    responseType: element.event.questionResponseType,
+                    answers: [element.event.questionAnswer],
                     chart: {}
                 }
                 obj.response.push(resp);
             }
             // Response object creation for radio type
-            else if (data[i].event.questionResponseType == "radio") {
+            else if (element.event.questionResponseType == "radio") {
                 var resp = {
-                    question: data[i].event.questionName,
-                    responseType: data[i].event.questionResponseType,
+                    question: element.event.questionName,
+                    responseType: element.event.questionResponseType,
                     answers: [],
                     chart: {
                         type: "pie",
                         data: [
                             {
                                 data: [{
-                                    name: data[i].event.questionResponseLabel,
+                                    name: element.event.questionResponseLabel,
                                     y: 100,
                                 }]
                             }
@@ -47,24 +47,46 @@ exports.instanceReportChart = function (data) {
 
             }
             // Response object creation for slider type
-            else if (data[i].event.questionResponseType == "slider") {
+            else if (element.event.questionResponseType == "slider") {
                 var resp = {
-                    question: data[i].event.questionName,
-                    responseType: data[i].event.questionResponseType,
-                    answers: data[i].event.questionAnswer,
+                    question: element.event.questionName,
+                    responseType: element.event.questionResponseType,
+                    answers: element.event.questionAnswer,
                     chart: {}
                 }
                 obj.response.push(resp);
             }
-        }
+
+            // Response object creation for number type
+            else if (element.event.questionResponseType == "number") {
+                var resp = {
+                    question: element.event.questionName,
+                    responseType: element.event.questionResponseType,
+                    answers: [element.event.questionAnswer],
+                    chart: {}
+                }
+                obj.response.push(resp);
+            }
+
+            // Response object creation for date type
+            else if (element.event.questionResponseType == "date") {
+                var resp = {
+                    question: element.event.questionName,
+                    responseType: element.event.questionResponseType,
+                    answers: [element.event.questionAnswer],
+                    chart: {}
+                }
+                obj.response.push(resp);
+            }
+        }))
 
         //filter all the objects whose questionResponseType is multiselect
-        for (j = 0; j < data.length; j++) {
-            if (data[j].event.questionResponseType == "multiselect") {
-                mutiSelectArray.push(data[j])
+        await Promise.all(data.map(element => {
+            if (element.event.questionResponseType == "multiselect") {
+                mutiSelectArray.push(element)
             }
-        }
-
+        }))
+        
         //group the multiselect questions based on their questionName
         result = mutiSelectArray.reduce(function (r, a) {
             r[a.event.questionName] = r[a.event.questionName] || [];
@@ -91,25 +113,25 @@ exports.instanceReportChart = function (data) {
 
 
 //Function to create a response object for multiselect question (Instance level Report)
-function instanceMultiselectFunc(data) {
+async function instanceMultiselectFunc(data) {
     var dataArray = [];
     var labelArray = [];
     var valueArray = [];
     var question;
     var responseType;
 
-    for (i = 0; i < data.length; i++) {
-        if (dataArray.includes(data[i].event.questionAnswer)) {
+    await Promise.all(data.map(element => {
+        if (dataArray.includes(element.event.questionAnswer)) {
         } else {
-            dataArray.push(data[i].event.questionAnswer);
+            dataArray.push(element.event.questionAnswer);
         }
-        if (labelArray.includes(data[i].event.questionResponseLabel)) {
+        if (labelArray.includes(element.event.questionResponseLabel)) {
         } else {
-            labelArray.push(data[i].event.questionResponseLabel);
+            labelArray.push(element.event.questionResponseLabel);
         }
-        question = data[i].event.questionName;
-        responseType = data[i].event.questionResponseType;
-    }
+        question = element.event.questionName;
+        responseType = element.event.questionResponseType;
+    }))
 
     for (j = 1; j <= dataArray.length; j++) {
         var k = 1;
