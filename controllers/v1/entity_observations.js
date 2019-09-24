@@ -81,7 +81,8 @@ exports.observationsByEntity = async function (req, res) {
           fieldsArray.push(objSelecter);
         }
         ));
-        // console.log("fields",fieldsArray);
+        // console.log("fields",query);
+      
         query.filter.fields.push(...fieldsArray);
         // console.log("query",query);
         var options = config.druid.options;
