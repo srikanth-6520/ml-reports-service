@@ -51,7 +51,7 @@ exports.entityAssessment = async function (req, res) {
           options.body = bodyParam;
           var data = await rp(options);
           if (!data.length) {
-            res.send({ "data": "No assessment data found for the entity" })
+            res.send({ "data": {} })
           }
          else {
            var inputObj = {
