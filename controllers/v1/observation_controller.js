@@ -18,9 +18,9 @@ exports.observationReport = async function (req, res) {
         res.send(response);
     }
     else {
-        bodyData = req.body
-        var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(bodyData)
-        if (dataReportIndexes == undefined) {
+        // bodyData = req.body
+        // var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(bodyData)
+        // if (dataReportIndexes == undefined) {
             model.MyModel.findOneAsync({ qid: "observation_report_query" }, { allow_filtering: true })
                 .then(async function (result) {
                     var bodyParam = JSON.parse(result.query);
@@ -41,7 +41,7 @@ exports.observationReport = async function (req, res) {
                     var responseObj = await helperFunc.entityReportChart(data)
                     //send the response as API output
                     res.send(responseObj);
-                    commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj)
+                    // commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj)
                     }
                 })
                 .catch(function (err) {
@@ -52,8 +52,8 @@ exports.observationReport = async function (req, res) {
                     }
                     res.send(response);
                 })
-            } else {
-                res.send(JSON.parse(dataReportIndexes['apiresponse']))
-              }
+            // } else {
+            //     res.send(JSON.parse(dataReportIndexes['apiresponse']))
+            //   }
         }
     }

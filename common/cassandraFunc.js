@@ -27,10 +27,7 @@ let checkReqInCassandra = async function (reqBody, callback) {
 
 let insertReqAndResInCassandra = async function (reqBody, resBody,downloadPath=null) {
     return new Promise(function (resolve, reject) {
-
-        console.log("reqBody====",reqBody)
-
-       
+        
         var obj = {
             apirequest: JSON.stringify(reqBody),
             apiresponse: JSON.stringify(resBody)
@@ -39,8 +36,6 @@ let insertReqAndResInCassandra = async function (reqBody, resBody,downloadPath=n
             obj.downloadpdfpath = JSON.stringify(downloadPath);
         }
 
-
-        console.log("obj",obj);
         var insertData = new db.reportIndexes(obj);
         insertData.saveAsync()
             .then(function (insertRec) {

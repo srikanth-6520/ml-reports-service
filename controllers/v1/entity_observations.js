@@ -17,9 +17,10 @@ exports.entityReport = async function (req, res) {
     res.send(response);
   }
   else {
-    bodyData = req.body
-    var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(bodyData)
-    if (dataReportIndexes == undefined) {
+    //cassandra functionality to check response in cassandra
+    // bodyData = req.body
+    // var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(bodyData)
+    // if (dataReportIndexes == undefined) {
       model.MyModel.findOneAsync({ qid: "entity_observation_query" }, { allow_filtering: true })
         .then(async function (result) {
           var bodyParam = JSON.parse(result.query);
@@ -39,7 +40,7 @@ exports.entityReport = async function (req, res) {
           else {
           var responseObj = await helperFunc.entityReportChart(data)
           res.send(responseObj);
-          commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj)
+          // commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj)
           }
         })
         .catch(function (err) {
@@ -50,9 +51,9 @@ exports.entityReport = async function (req, res) {
           }
           res.send(response);
         })
-    } else {
-      res.send(JSON.parse(dataReportIndexes['apiresponse']))
-    }
+    // } else {
+    //   res.send(JSON.parse(dataReportIndexes['apiresponse']))
+    // }
   }
 }
 
@@ -74,6 +75,9 @@ exports.observationsByEntity = async function (req, res) {
     })
       .then(async function (result) {
         var bodyParam = JSON.parse(result.query);
+        if(config.druid.observation_datasource_name){
+          bodyParam.dataSource = config.druid.observation_datasource_name;
+          }
         var query = bodyParam;
         var fieldsArray = [];
         await Promise.all(req.body.entityIds.map(async ele => {
@@ -81,7 +85,8 @@ exports.observationsByEntity = async function (req, res) {
           fieldsArray.push(objSelecter);
         }
         ));
-        // console.log("fields",fieldsArray);
+        // console.log("fields",query);
+      
         query.filter.fields.push(...fieldsArray);
         // console.log("query",query);
         var options = config.druid.options;

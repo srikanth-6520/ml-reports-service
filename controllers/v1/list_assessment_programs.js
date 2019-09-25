@@ -36,7 +36,7 @@ exports.listPrograms = async function (req, res) {
                   //call the function entityAssessmentChart to get the data for stacked bar chart 
                    var responseObj = await helperFunc.listProgramsObjectCreate(data);
                    console.log(responseObj);
-                   res.send({ "data":responseObj});
+                   res.send(responseObj);
                 }
             })
             .catch(function (err) {
