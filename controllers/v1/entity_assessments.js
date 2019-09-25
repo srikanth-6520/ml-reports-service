@@ -15,6 +15,7 @@ exports.entityAssessment = async function (req, res) {
     res.send(response);
   }
   else {
+    childType = req.body.immediateChildEntityType;
     reqBody = req.body
     var dataAssessIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqBody)
     if (dataAssessIndexes == undefined) {
@@ -46,10 +47,10 @@ exports.entityAssessment = async function (req, res) {
             bodyParam.aggregations[0].name = entityName + "Count";
           }
           //pass the query as body param and get the resul from druid
-          var options = config.druid.options;
-          options.method = "POST";
-          options.body = bodyParam;
-          var data = await rp(options);
+          let opt = config.druid.options;
+          opt.method = "POST";
+          opt.body = bodyParam;
+          var data = await rp(opt);
           if (!data.length) {
             res.send({ "data": {} })
           }
@@ -83,8 +84,30 @@ exports.entityAssessment = async function (req, res) {
               //call the function to get the data for expansion view of domain and criteria
               var tableObj = await helperFunc.entityTableViewFunc(dataObj)
               responseObj.reportSections.push(tableObj);
+
+              if(childType){
+              //call samiksha entity list assessment API to get the grandchildEntity type.
+              var grandChildEntityType = await assessmentEntityList(req.body.entityId,childType,req.headers["x-auth-token"])
+              if(grandChildEntityType.status == 200){
+                if(grandChildEntityType.result[0].subEntityGroups.length != 0){
+                responseObj.reportSections[0].chart.grandChildEntityType = grandChildEntityType.result[0].immediateSubEntityType;
+                res.send(responseObj);
+                }
+                else{
+                  responseObj.reportSections[0].chart.grandChildEntityType = "";
+                  res.send(responseObj);
+                }
+              }
+              else{
+              responseObj.reportSections[0].chart.grandChildEntityType = "";
               res.send(responseObj);
-              commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
+              }
+            }
+            else{
+              responseObj.reportSections[0].chart.grandChildEntityType = "";
+              res.send(responseObj);
+            }
+            commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
           }
       })
         .catch(function (err) {
@@ -100,4 +123,30 @@ exports.entityAssessment = async function (req, res) {
       res.send(JSON.parse(dataAssessIndexes['apiresponse']))
     }
   }
+}
+
+
+
+//function to make a call to samiksha assessment entities list API
+async function assessmentEntityList(entityId,childType,token) {
+
+  return new Promise(async function(resolve){
+  var options = {
+    method: "GET",
+    json: true,
+    headers: {
+        "Content-Type": "application/json",
+        "X-authenticated-user-token": token
+    },
+    uri: config.samiksha_assessment_entity_list_api.url + entityId + "?type=" + childType
+}
+
+  rp(options).then(function(resp){
+    return resolve(resp);
+
+  }).catch(function(err){
+    return resolve(err);
+  })
+
+});
 }
