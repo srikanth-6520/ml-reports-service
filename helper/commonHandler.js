@@ -201,16 +201,21 @@ exports.pdfGeneration = async function pdfGeneration(instaRes) {
                                                                             //   let dataInsert = commonCassandraFunc.insertReqAndResInCassandra(reqData, instaRes, data.key);
                                                                             // }
 
-                                                                            fs.readdir(imgPath, (err, files) => {
-                                                                                if (err) throw err;
-                                                                
-                                                                                for (const file of files) {
-                                                                                    fs.unlink(path.join(imgPath, file), err => {
-                                                                                        if (err) throw err;
-                                                                                    });
-                                                                                }
-                                                                            });
+                                                                            try{
+                                                                                fs.readdir(imgPath, (err, files) => {
+                                                                                    if (err) throw err;
+                                                                    
+                                                                                    for (const file of files) {
+                                                                                        fs.unlink(path.join(imgPath, file), err => {
+                                                                                            if (err) throw err;
+                                                                                        });
+                                                                                    }
+                                                                                });
+                                                                            }catch(ex){
+                                                                                console.log("ex ",ex);
+                                                                            }
                                                                             
+
                                                                             var response = {
                                                                                 status: "success",
                                                                                 message: 'report generated',

@@ -142,7 +142,7 @@ exports.instancePdfReport = async function (req, res) {
     // dataReportIndexes.downloadpdfpath = "instanceLevelPdfReports/instanceLevelReport.pdf";
 
     // console.log("dataReportIndexes", dataReportIndexes);
-    dataReportIndexes.downloadpdfpath = "";
+    // dataReportIndexes.downloadpdfpath = "";
     if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
       // var instaRes = await instancePdfFunc(reqData);
 
