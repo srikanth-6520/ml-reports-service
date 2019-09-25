@@ -89,10 +89,17 @@ exports.entityAssessment = async function (req, res) {
               //call samiksha entity list assessment API to get the grandchildEntity type.
               var grandChildEntityType = await assessmentEntityList(req.body.entityId,childType,req.headers["x-auth-token"])
               if(grandChildEntityType.status == 200){
+                if(grandChildEntityType.result[0].subEntityGroups.length != 0){
                 responseObj.reportSections[0].chart.grandChildEntityType = grandChildEntityType.result[0].immediateSubEntityType;
                 res.send(responseObj);
+                }
+                else{
+                  responseObj.reportSections[0].chart.grandChildEntityType = "";
+                  res.send(responseObj);
+                }
               }
               else{
+              responseObj.reportSections[0].chart.grandChildEntityType = "";
               res.send(responseObj);
               }
             }
@@ -100,7 +107,7 @@ exports.entityAssessment = async function (req, res) {
               responseObj.reportSections[0].chart.grandChildEntityType = "";
               res.send(responseObj);
             }
-             commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
+            commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
           }
       })
         .catch(function (err) {
@@ -138,7 +145,6 @@ async function assessmentEntityList(entityId,childType,token) {
     return resolve(resp);
 
   }).catch(function(err){
-    console.log(err);
     return resolve(err);
   })
 
