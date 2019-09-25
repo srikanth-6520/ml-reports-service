@@ -34,6 +34,10 @@ router.post("/assessments/listPrograms",authenticate,listAssessmentPrograms.list
 //API router for HM view 
 router.post("/assessments/entity",authenticate,entityAssessController.entityAssessment);
 
+router.get("/observations/pdfReports",authenticate,observationController.pdfReports);
+
+
+
 
 function authenticate(req,res,next){
 

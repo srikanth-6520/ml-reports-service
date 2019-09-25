@@ -1,6 +1,6 @@
 <div class="container" style="padding:20px;margin:20px;">
     <% for(var i=0; i < instaRes.length; i++) { %>
-      <% if(instaRes[i].responseType == 'text'){%>
+      <% if(instaRes[i].responseType == 'text'){ %>
         <% for(var j=0; j < instaRes[i].answers.length; j++) { %>
          
                       <!-- <table class="table-bordered table-striped" style="min-width:60%;padding:20px;margin:20px;">
@@ -26,6 +26,10 @@
                         </div>
                       </div>
           <% } %>
+
+          <% if(i = instaRes.length-1){ %>
+            <p style="page-break-before: always;">&nbsp;</p>
+            <% } %>
       <% } %>
     <% } %>
  
