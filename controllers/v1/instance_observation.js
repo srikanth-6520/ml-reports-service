@@ -16,11 +16,8 @@ var fs = require('fs');
 var uuidv4 = require('uuid/v4');
 var rimraf = require("rimraf");
 const AWS = require('aws-sdk');
-
 const util = require('util');
-
 const readFile = util.promisify(fs.readFile);
-
 var async = require('async');
 
 exports.instanceReport = async function (req, res) {
@@ -78,39 +75,34 @@ exports.instanceReport = async function (req, res) {
 
 async function instancePdfFunc(req) {
   return new Promise(function (resolve, reject) {
-
-    console.log("reqdata");
-    // console.log("report");
     model.MyModel.findOneAsync({
       qid: "instance_observation_query"
     }, {
       allow_filtering: true
     })
       .then(async function (result) {
+        
         console.log("result", result);
-
+        
         var bodyParam = JSON.parse(result.query);
         //bodyParam.dataSource = "sl_observation_dev";
         if (config.druid.observation_datasource_name) {
           bodyParam.dataSource = config.druid.observation_datasource_name;
         }
         bodyParam.filter.value = req.submissionId;
-
-
         var query = {
           submissionId: req.submissionId
         }
-        console.log("reqdata");
+        
         //pass the query as body param and get the resul from druid
         var options = config.druid.options;
         options.method = "POST";
         options.body = bodyParam;
         var data = await rp(options);
 
-
-
         if (!data.length) {
           resolve({
+            "status":"failed",
             "error": "Not observerd"
           });
         } else {
@@ -122,7 +114,6 @@ async function instancePdfFunc(req) {
           // await commonCassandraFunc.insertReqAndResInCassandra(query, responseObj)
           // console.log(responseObj)
           resolve(responseObj);
-
         }
       })
       .catch(function (err) {
@@ -143,16 +134,9 @@ exports.instancePdfReport = async function (req, res) {
     reqData = req.query;
     // console.log(reqData)
     var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
-
-
-
     // if(dataReportIndexes){
 
     // }
-
-
-    // 
-
     // dataReportIndexes.downloadpdfpath = "instanceLevelPdfReports/instanceLevelReport.pdf";
 
     // console.log("dataReportIndexes", dataReportIndexes);
@@ -168,29 +152,21 @@ exports.instancePdfReport = async function (req, res) {
       // console.log("instaRes=======", signedUlr);
 
       var response = {
-        result: "success",
+        status: "success",
         message: 'Observation Pdf Generated successfully',
         pdfUrl: signedUlr
       };
       res.send(response);
 
     } else {
-
-      // console.log("reqData",reqData);
-
       var instaRes = await instancePdfFunc(reqData);
 
       if (instaRes && instaRes.error) {
         res.send(instaRes);
 
       } else {
-
-
-
         if (dataReportIndexes) {
-
         } else {
-
         }
 
         // console.log("instaRes",instaRes);
@@ -280,25 +256,10 @@ exports.instancePdfReport = async function (req, res) {
                               console.log(`File uploaded successfully at ${data.Location}`);
 
                               pdfHandler.getSignedUrl(data.key).then(function (signedRes) {
-                                // console.log("signedRes", apiRequestId);
-
-                                // apiRequestId = apiRequestId.replace(/^"(.*)"$/, '$1');
-                                // apiRequestId = apiRequestId.replace("^\"|\"$", "");
-
-
-
-
-
-                                // console.log("dataReportIndexes inserted", dataReportIndexes);
-
                                 if (dataReportIndexes) {
-
                                   var reqOptions = {
-
                                     query: dataReportIndexes.id,
-
                                     downloadPath: data.key
-
                                   }
                                   commonCassandraFunc.updateInstanceDownloadPath(reqOptions);
                                 } else {
@@ -335,20 +296,13 @@ exports.instancePdfReport = async function (req, res) {
 
 async function getSelectedData(items, type) {
   return new Promise(async function (resolve, reject) {
-
     var ArrayOfChartData = [];
     await Promise.all(items.map(async ele => {
-      // const response = await fetch(`/api/users/${userId}`);
-      // const user = await response.json();
-      // console.log(user);
       if (ele.responseType && ele.responseType == type) {
-        // console.log("ele---",ele.chart);
-
         let chartType = "bar";
         if (type == "radio") {
           chartType = "pie";
         } else {
-
         }
         var obj = {
 
@@ -363,140 +317,70 @@ async function getSelectedData(items, type) {
           question:ele.question
         };
         // return resolve(obj);
-
         ArrayOfChartData.push(obj);
       }
     }));
-
     return resolve(ArrayOfChartData);
-
-
-
   });
 }
 
 async function convertChartDataTofile(radioFilePath, options) {
-
-
   // console.log("options===", options);
   var fileInfo = await rp(options).pipe(fs.createWriteStream(radioFilePath))
-
   return new Promise(function (resolve, reject) {
-
-
     fileInfo.on('finish', function () {
       return resolve(fileInfo);
-
     });
-
     fileInfo.on('error', function (err) {
       // return resolve(fileInfo);
       console.log(err);
       return resolve(err)
-
     });
-
-
   });
-  // return promise;
 }
 
 async function copyBootStrapFile(from, to) {
   // var fileInfo = await rp(options).pipe(fs.createWriteStream(radioFilePath))
   var readCss = fs.createReadStream(from).pipe(fs.createWriteStream(to));
-
-
   return new Promise(function (resolve, reject) {
-
-
     readCss.on('finish', function () {
       // console.log("readCss", readCss);
       return resolve(readCss);
-
     });
-
     readCss.on('error', function (err) {
       // return resolve(fileInfo);
       // console.log("err--", err);
       return resolve(err)
-
     });
-
-
   });
 }
 
 async function apiCallToHighChart(chartData, imgPath, type) {
   return new Promise(async function (resolve, reject) {
-
     var formData = [];
     try {
-
-
-      // async.series([
-      //   function(callback) {
-      //     console.log('one');
-      //     callback(null, 1);
-      //   },
-      // ],
-      // function(err, results) {
-      //   console.log(result);
-      //   // results is now equal to [1, 2, 3]
-      // });
-      // var current = Promise.resolve();
-
-      // console.log(chartData.length, "type", type);
-      // await async.series([chartData,async ele => {
-      // console.log("type", type);
-      // console.log("ele======", ele);
-
-      // console.log("-----imgPath", imgPath)
-
-
       var carrent = 0;
-
       if (chartData && chartData.length > 0) {
-
         let dt = await callChartApiPreparation(chartData[0], imgPath, type, chartData, carrent, formData);
         return resolve(formData);
-
       } else {
         return resolve(formData);
       }
-
-      // console.log("response return");
-
-      // return resolve(formData);
-
     } catch (err) {
-
       console.log("error while calling", err);
-
     }
   });
-
-
 }
 
 
 async function callChartApiPreparation(ele, imgPath, type, chartData, carrent, formData) {
-
-  // console.log(chartData.length, "imgPath", imgPath);
-  // var formData = [];
   let loop = 0;
-  // var carrent = 0; 
-
-  // console.log("ele==",ele.question)
   var options = config.high_chart;
   var chartImage = "instanceMultiSelectFile_" + loop + "_" + uuidv4() + "_.png";
   options.method = "POST";
   options.body = JSON.stringify(ele);
   let imgFilePath = imgPath + "/" + chartImage;
   loop = loop + 1;
-  // //  var renderImage = await rp(options).pipe(fs.createWriteStream(imgFilePath));
-
-  // console.log("call");
-
   let renderImage = await convertChartDataTofile(imgFilePath, options);
   let fileDat = {
     value: fs.createReadStream(imgFilePath),
@@ -505,26 +389,17 @@ async function callChartApiPreparation(ele, imgPath, type, chartData, carrent, f
       question:ele.question
     }
   }
-
-  // console.log("fileDat",ele.question);
-  
   formData.push(fileDat);
   carrent = carrent + 1;
   if (chartData.length > carrent) {
-  
     try {
       let call = await callChartApiPreparation(chartData[carrent], imgPath, type, chartData, carrent, formData);
     } catch (err){
-
       console.log("error while making api call to high chart docker",err);
     }
-
-    
-     
     } else {
     return (formData);
   }
-
 }
 
 

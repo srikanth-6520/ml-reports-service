@@ -23,6 +23,8 @@ exports.observationReport = async function (req, res) {
         // if (dataReportIndexes == undefined) {
             model.MyModel.findOneAsync({ qid: "observation_report_query" }, { allow_filtering: true })
                 .then(async function (result) {
+
+                    console.log("result",result);
                     var bodyParam = JSON.parse(result.query);
                     if(config.druid.observation_datasource_name){
                         bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -45,6 +47,8 @@ exports.observationReport = async function (req, res) {
                     }
                 })
                 .catch(function (err) {
+
+                    console.log("err",err);
                     res.status(400);
                     var response = {
                         result: false,
