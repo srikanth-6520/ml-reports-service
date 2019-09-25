@@ -97,11 +97,12 @@ exports.instanceReportChart = async function (data) {
         var res = Object.keys(result);
 
         //loop the keys and construct a response object for multiselect questions
-        res.forEach(ele => {
-            var multiSelectResp = instanceMultiselectFunc(result[ele])
+        await Promise.all(res.map(async ele => {
+        // res.forEach(async ele => {
+            var multiSelectResp = await instanceMultiselectFunc(result[ele])
             obj.response.push(multiSelectResp);
 
-        })
+        }))
 
         //return final response object
         return obj;
@@ -165,7 +166,7 @@ async function instanceMultiselectFunc(data) {
             }
         }
     }
-
+    
     return resp;
 
 }
