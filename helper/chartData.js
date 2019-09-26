@@ -51,7 +51,7 @@ exports.instanceReportChart = async function (data) {
                 var resp = {
                     question: element.event.questionName,
                     responseType: element.event.questionResponseType,
-                    answers: element.event.questionAnswer,
+                    answers: [element.event.questionAnswer],
                     chart: {}
                 }
                 obj.response.push(resp);
@@ -175,7 +175,7 @@ async function instanceMultiselectFunc(data) {
 //Function for entity Observation and observation report's final response creation
 exports.entityReportChart = async function (data) {
     var obj;
-    var mutiSelectArray = [];
+    var multiSelectArray = [];
     var textArray = [];
     var radioArray = [];
     var sliderArray = [];
@@ -213,7 +213,7 @@ exports.entityReportChart = async function (data) {
                 radioArray.push(element)
             }
             else if (element.event.questionResponseType == "multiselect") {
-                mutiSelectArray.push(element)
+                multiSelectArray.push(element)
             }
             else if (element.event.questionResponseType == "slider") {
                 sliderArray.push(element)
@@ -234,7 +234,9 @@ exports.entityReportChart = async function (data) {
         radioResult = await groupArrayElements(radioArray);
 
         //group the multiselect questions based on their questionName
-        multiSelectResult = await groupArrayElements(mutiSelectArray)
+
+        // console.log("mutiSelectArray",mutiSelectArray);
+        multiSelectResult = await groupArrayElements(multiSelectArray);
 
         //group the slider questions based on their questionName
         sliderResult = await groupArrayElements(sliderArray);
@@ -281,8 +283,8 @@ exports.entityReportChart = async function (data) {
             obj.response.push(radioResp);
         }));
 
-        var multiSelectRes = Object.keys(multiSelectResult);
-        //loop the keys and construct a response object for multiselect questions
+         var multiSelectRes = Object.keys(multiSelectResult);
+         //loop the keys and construct a response object for multiselect questions
         await Promise.all(multiSelectRes.map(async ele => {
             var multiSelectResp = await multiSelectObjectCreateFunc(multiSelectResult[ele])
             obj.response.push(multiSelectResp);
@@ -314,7 +316,7 @@ async function responseObjectCreateFunc(data) {
     var dataArray = [];
     var question;
     var responseType;
-    
+      
     //loop the data and push answers to oe array
      for (i = 0; i < data.length; i++) {
         dataArray.push(data[i].event.questionAnswer);
@@ -386,25 +388,25 @@ function radioObjectCreateFunc(data) {
     return resp;
 }
 
-//function to create response onject for multiselect questions (Entiry Report)
+//function to create response object for multiselect questions (Entiry Report)
 function multiSelectObjectCreateFunc(data) {
     var dataArray = [];
     var labelArray = [];
     var chartdata = []
-
+   
     //group the multiselect questions based on their observationSubmissionId
-    multiSelectResult = data.reduce(function (r, a) {
+    multiSelectGroupBySubmission = data.reduce(function (r, a) {
         r[a.event.observationSubmissionId] = r[a.event.observationSubmissionId] || [];
         r[a.event.observationSubmissionId].push(a);
         return r;
     }, Object.create(null));
 
-    var multiSelectRes = Object.keys(multiSelectResult);
+    var multiSelect = Object.keys(multiSelectGroupBySubmission);
     //loop the keys and construct a response object for multiselect questions
-    multiSelectRes.forEach(ele => {
-        var multiSelectResp = entityMultiselectGrouping(multiSelectResult[ele])
-        dataArray.push(multiSelectResp[0]);
-        labelArray.push(multiSelectResp[1]);
+    multiSelect.forEach(ele => {
+        var multiSelectResponseObj = entityMultiselectGrouping(multiSelectGroupBySubmission[ele])
+        dataArray.push(multiSelectResponseObj[0]);
+        labelArray.push(multiSelectResponseObj[1]);
     })
 
     var dataMerged = [].concat.apply([], dataArray);   // to merger multiple arrays into single array
@@ -445,7 +447,7 @@ function multiSelectObjectCreateFunc(data) {
             }
         }
     }
-
+    
     return resp;
 
 }
