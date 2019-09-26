@@ -8,6 +8,7 @@ var config = require('../config/config');
 var rp = require('request-promise');
 var ejs = require('ejs');
 const path = require('path');
+var rimraf = require("rimraf");
 
 const s3 = new AWS.S3(config.s3_credentials);
 const myBucket = config.s3_bucketName;
@@ -65,7 +66,11 @@ exports.pdfGeneration = async function pdfGeneration(instaRes) {
 
         // console.log("instaRes",instaRes);
 
-        var imgPath = __dirname + '/../tmp/' + uuidv4();
+        var currentTempFolder = 'tmp/' + uuidv4()
+
+        var imgPath = __dirname + '/../'+currentTempFolder;
+
+
         try {
 
             // console.log("instaRes",);
@@ -202,20 +207,32 @@ exports.pdfGeneration = async function pdfGeneration(instaRes) {
                                                                             // }
 
                                                                             try{
-                                                                                fs.readdir(imgPath, (err, files) => {
-                                                                                    if (err) throw err;
+                                                                                // fs.readdir(imgPath, (err, files) => {
+                                                                                //     if (err) throw err;
                                                                     
-                                                                                    for (const file of files) {
-                                                                                        fs.unlink(path.join(imgPath, file), err => {
-                                                                                            if (err) throw err;
-                                                                                        });
-                                                                                    }
-                                                                                });
+                                                                                //     console.log("files",files.length);
+                                                                                //     var i = 0;
+                                                                                //     for (const file of files) {
+                                                                                //         i = i +1;
+                                                                                //         fs.unlink(path.join(imgPath, file), err => {
+                                                                                //             if (err) throw err;
+                                                                                //         });
+                                                                                //         if(i==files.length){
+                                                                                //             fs.unlink('../../'+currentTempFolder);
+                                                                                //             console.log("path.dirname(filename).split(path.sep).pop()",path.dirname(file).split(path.sep).pop());
+                                                                                //             // fs.unlink(path.join(imgPath, ""), err => {
+                                                                                //             //     if (err) throw err;
+                                                                                //             // });
+                                                                                //         }
+                                                                                        
+                                                                                //     }
+                                                                                // });
+                                                                                // rimraf(imgPath, function () { console.log("done"); });
+
                                                                             }catch(ex){
                                                                                 console.log("ex ",ex);
                                                                             }
-                                                                            
-
+                                                                      
                                                                             var response = {
                                                                                 status: "success",
                                                                                 message: 'report generated',
