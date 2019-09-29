@@ -13,16 +13,16 @@ var pdfHandler = require('../../helper/commonHandler');
 
 
 exports.observationReport = async function (req, res) {
-    return new Promise(async function(resolve,reject){
-        let data = await observationReportManuplate(req, res);
-        resolve(data);
-    })
+//     return new Promise(async function(resolve,reject){
+//         let data = await observationReportManuplate(req, res);
+//         resolve(data);
+//     })
 
     
-}
+// }
 
-async function observationReportManuplate(req, res){
-    return new Promise(async function(resolve,reject){
+//  async function observationReportManuplate(req, res){
+//     return new Promise(async function(resolve,reject){
 
     if (!req.body.observationId) {
         res.status(400);
@@ -30,7 +30,7 @@ async function observationReportManuplate(req, res){
             result: false,
             message: 'observationId is a required field'
         }
-        resolve(response);
+        res.send(response);
     }
     else {
         // bodyData = req.body
@@ -52,12 +52,12 @@ async function observationReportManuplate(req, res){
                 var data = await rp(options);
                 //if no data throw error message
                 if (!data.length) {
-                    resolve({ "data": "No entities are observed" })
+                    res.send({ "data": "No entities are observed" })
                 }
                 else {
                     var responseObj = await helperFunc.entityReportChart(data)
                     //send the response as API output
-                    resolve(responseObj);
+                    res.send(responseObj);
                     // commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj)
                 }
             })
@@ -69,13 +69,14 @@ async function observationReportManuplate(req, res){
                     result: false,
                     message: 'Data not found'
                 }
-                resolve(response);
+                res.send(response);
             })
         // } else {
         //     res.send(JSON.parse(dataReportIndexes['apiresponse']))
         //   }
-    }
-});
+//     }
+// });
+}
 }
 
 exports.pdfReports = async function (req, res) {

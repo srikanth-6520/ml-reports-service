@@ -9,8 +9,8 @@ var commonCassandraFunc = require('../../common/cassandraFunc');
 
 exports.entityReport = async function (req, res) {
 
-  try{
-    return new Promise(async function(resolve,reject){
+  // try{
+  //   return new Promise(async function(resolve,reject){
 
       try{
       if (!req.body.entityId && !req.body.observationId) {
@@ -19,7 +19,7 @@ exports.entityReport = async function (req, res) {
           result: false,
           message: 'entityId and observationId are required fields'
         }
-        resolve(response);
+        res.send(response);
       }
       else {
         //cassandra functionality to check response in cassandra
@@ -40,11 +40,11 @@ exports.entityReport = async function (req, res) {
               options.body = bodyParam;
               var data = await rp(options);
               if (!data.length) {
-                resolve({ "data": "No observations made for the entity" })
+                res.send({ "data": "No observations made for the entity" })
               }
               else {
               var responseObj = await helperFunc.entityReportChart(data)
-              resolve(responseObj);
+              res.send(responseObj);
               // commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj)
               }
             })
@@ -54,7 +54,7 @@ exports.entityReport = async function (req, res) {
                 result: false,
                 message: 'Data not found'
               }
-              resolve(response);
+              res.send(response);
             })
         // } else {
         //   res.send(JSON.parse(dataReportIndexes['apiresponse']))
@@ -64,10 +64,10 @@ exports.entityReport = async function (req, res) {
       console.log("error in entity report data",err);
     }
 
-    });
-  }catch(err){
-    console.log("error in entity report data",err);
-  }
+    // });
+  // }catch(err){
+  //   console.log("error in entity report data",err);
+  // }
   
 }
 
