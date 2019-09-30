@@ -118,7 +118,7 @@ async function entityObservationPdf(req,res){
 }
 
 
-exports.entityObservationData  = async function entityObservationData(req,res){
+async function entityObservationData(req,res){
  
   try{
     return new Promise(async function(resolve,reject){
