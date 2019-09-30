@@ -33,6 +33,8 @@ exports.getSignedUrl = async function getSignedUrl(filePath) {
 
         let urlInfo = s3SignedUrl(filePath);
 
+        resolve(urlInfo);
+
     });
 
 }
