@@ -54,7 +54,7 @@ async function s3SignedUrl(filePath) {
 }
 
 
-exports.pdfGeneration = async function pdfGeneration(instaRes) {
+exports.pdfGeneration = async function pdfGeneration(instaRes,deleteFromS3=null) {
 
 
     return new Promise(async function (resolve, reject) {
@@ -66,7 +66,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes) {
 
         // console.log("instaRes",instaRes);
 
-        var currentTempFolder = 'tmp/' + uuidv4()
+        var currentTempFolder = 'tmp/' + uuidv4()+"--"+ Math.floor(Math.random() * (10000 - 10 + 1) + 10)
 
         var imgPath = __dirname + '/../'+currentTempFolder;
 
@@ -187,8 +187,24 @@ exports.pdfGeneration = async function pdfGeneration(instaRes) {
                                                                     const params = {
                                                                         Bucket: config.s3_bucketName, // pass your bucket name
                                                                         Key: 'instanceLevelPdfReports/' + uuidv4() + 'instanceLevelReport.pdf', // file will be saved as testBucket/contacts.csv
-                                                                        Body: Buffer.from(data, null, 2)
+                                                                        Body: Buffer.from(data, null, 2),
+                                                                        Expires:10
                                                                     };
+
+                                                                    if(deleteFromS3==true){
+                                                                        var folderPath = Buffer.from(currentTempFolder).toString('base64')
+
+                                                                        var response = {
+                                                                            status: "success",
+                                                                            message: 'report generated',
+                                                                            pdfUrl: folderPath,
+                                                                        
+                                                                        };
+                                                                        resolve(response);
+
+                                                                    }else{
+
+                                                                    
                                                                     s3.upload(params, function (s3Err, data) {
                                                                         if (s3Err) throw s3Err;
 
@@ -196,38 +212,32 @@ exports.pdfGeneration = async function pdfGeneration(instaRes) {
                                                                         console.log(`File uploaded successfully at ${data.Location}`);
 
                                                                         s3SignedUrl(data.key).then(function (signedRes) {
-                                                                            // if (dataReportIndexes) {
-                                                                            //   var reqOptions = {
-                                                                            //     query: dataReportIndexes.id,
-                                                                            //     downloadPath: data.key
-                                                                            //   }
-                                                                            //    commonCassandraFunc.updateInstanceDownloadPath(reqOptions);
-                                                                            // } else {
-                                                                            //   let dataInsert = commonCassandraFunc.insertReqAndResInCassandra(reqData, instaRes, data.key);
-                                                                            // }
-
+                                                                           
                                                                             try{
-                                                                                // fs.readdir(imgPath, (err, files) => {
-                                                                                //     if (err) throw err;
+
+                                                                           
+
+                                                                                fs.readdir(imgPath, (err, files) => {
+                                                                                    if (err) throw err;
                                                                     
-                                                                                //     console.log("files",files.length);
-                                                                                //     var i = 0;
-                                                                                //     for (const file of files) {
-                                                                                //         i = i +1;
-                                                                                //         fs.unlink(path.join(imgPath, file), err => {
-                                                                                //             if (err) throw err;
-                                                                                //         });
-                                                                                //         if(i==files.length){
-                                                                                //             fs.unlink('../../'+currentTempFolder);
-                                                                                //             console.log("path.dirname(filename).split(path.sep).pop()",path.dirname(file).split(path.sep).pop());
-                                                                                //             // fs.unlink(path.join(imgPath, ""), err => {
-                                                                                //             //     if (err) throw err;
-                                                                                //             // });
-                                                                                //         }
+                                                                                    // console.log("files",files.length);
+                                                                                    var i = 0;
+                                                                                    for (const file of files) {
+                                                                                        i = i +1;
+                                                                                        fs.unlink(path.join(imgPath, file), err => {
+                                                                                            if (err) throw err;
+                                                                                        });
+                                                                                        if(i==files.length){
+                                                                                            fs.unlink('../../'+currentTempFolder);
+                                                                                            console.log("path.dirname(filename).split(path.sep).pop()",path.dirname(file).split(path.sep).pop());
+                                                                                            // fs.unlink(path.join(imgPath, ""), err => {
+                                                                                            //     if (err) throw err;
+                                                                                            // });
+                                                                                        }
                                                                                         
-                                                                                //     }
-                                                                                // });
-                                                                                // rimraf(imgPath, function () { console.log("done"); });
+                                                                                    }
+                                                                                });
+                                                                                rimraf(imgPath, function () { console.log("done"); });
 
                                                                             }catch(ex){
                                                                                 console.log("ex ",ex);
@@ -242,6 +252,8 @@ exports.pdfGeneration = async function pdfGeneration(instaRes) {
                                                                             resolve(response);
                                                                         })
                                                                     });
+
+                                                                }
                                                                 });
                                                             };
                                                             uploadFile();

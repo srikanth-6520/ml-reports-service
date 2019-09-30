@@ -10,96 +10,102 @@ var commonCassandraFunc = require('../../common/cassandraFunc');
 var instance = require('./instance_observation');
 var entityObserv = require('./entity_observations');
 var pdfHandler = require('../../helper/commonHandler');
+var fs = require('fs');
+var url = require('url');
+var rimraf = require("rimraf");
+const path = require('path');
 
 
 exports.observationReport = async function (req, res) {
-    return new Promise(async function(resolve,reject){
+    return new Promise(async function (resolve, reject) {
         let data = await observationReportManuplate(req, res);
-        resolve(data);
+        res.send(data);
     })
-
-    
 }
 
-async function observationReportManuplate(req, res){
-    return new Promise(async function(resolve,reject){
+async function observationReportManuplate(req, res) {
+    return new Promise(async function (resolve, reject) {
 
-    if (!req.body.observationId) {
-        res.status(400);
-        var response = {
-            result: false,
-            message: 'observationId is a required field'
+        if (!req.body.observationId) {
+            res.status(400);
+            var response = {
+                result: false,
+                message: 'observationId is a required field'
+            }
+            resolve(response);
         }
-        resolve(response);
-    }
-    else {
-        // bodyData = req.body
-        // var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(bodyData)
-        // if (dataReportIndexes == undefined) {
-        model.MyModel.findOneAsync({ qid: "observation_report_query" }, { allow_filtering: true })
-            .then(async function (result) {
+        else {
+            // bodyData = req.body
+            // var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(bodyData)
+            // if (dataReportIndexes == undefined) {
+            model.MyModel.findOneAsync({ qid: "observation_report_query" }, { allow_filtering: true })
+                .then(async function (result) {
 
-                // console.log("result", result);
-                var bodyParam = JSON.parse(result.query);
-                if (config.druid.observation_datasource_name) {
-                    bodyParam.dataSource = config.druid.observation_datasource_name;
-                }
-                bodyParam.filter.value = req.body.observationId;
-                //pass the query as body param and get the resul from druid
-                var options = config.druid.options;
-                options.method = "POST";
-                options.body = bodyParam;
-                var data = await rp(options);
-                //if no data throw error message
-                if (!data.length) {
-                    resolve({ "data": "No entities are observed" })
-                }
-                else {
-                    var responseObj = await helperFunc.entityReportChart(data)
-                    //send the response as API output
-                    resolve(responseObj);
-                    // commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj)
-                }
-            })
-            .catch(function (err) {
+                    // console.log("result", result);
+                    var bodyParam = JSON.parse(result.query);
+                    if (config.druid.observation_datasource_name) {
+                        bodyParam.dataSource = config.druid.observation_datasource_name;
+                    }
+                    bodyParam.filter.value = req.body.observationId;
+                    //pass the query as body param and get the resul from druid
+                    var options = config.druid.options;
+                    options.method = "POST";
+                    options.body = bodyParam;
+                    var data = await rp(options);
+                    //if no data throw error message
+                    if (!data.length) {
+                        resolve({ "data": "No entities are observed" })
+                    }
+                    else {
+                        var responseObj = await helperFunc.entityReportChart(data)
+                        //send the response as API output
+                        resolve(responseObj);
+                        // commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj)
+                    }
+                })
+                .catch(function (err) {
 
-                console.log("err", err);
-                res.status(400);
-                var response = {
-                    result: false,
-                    message: 'Data not found'
-                }
-                resolve(response);
-            })
-        // } else {
-        //     res.send(JSON.parse(dataReportIndexes['apiresponse']))
-        //   }
-    }
-});
+                    console.log("err", err);
+                    res.status(400);
+                    var response = {
+                        result: false,
+                        message: 'Data not found'
+                    }
+                    resolve(response);
+                })
+            // } else {
+            //     res.send(JSON.parse(dataReportIndexes['apiresponse']))
+            //   }
+        }
+    });
 }
+
 
 exports.pdfReports = async function (req, res) {
 
-    console.log("enty");
+    // console.log("enty");
 
     return new Promise(async function (resolve, reject) {
         // var bodyParam = JSON.parse(req);
         // console.log("body", req.query);
-        if(req.query && req.query.observationId && req.query.entityId) {
+        if (req.query && req.query.observationId && req.query.entityId) {
 
-            let resObj = await entityObservationPdf(req, res)
+            let resObj = await entityObservationPdf(req, res);
             res.send(resObj);
 
-        }else if (req.query && req.query.submissionId) {
+        } else if (req.query && req.query.submissionId) {
             let resObj = await instance.instancePdfReport(req, res)
             res.send(resObj);
-    
-          
-        } else if(req.query && req.query.observationId) {
+
+
+        } else if (req.query && req.query.observationId) {
 
             let resObj = await observationGenerateReport(req, res)
+
+
+
             res.send(resObj);
-        }else {
+        } else {
             resolve({
                 status: "success",
                 res: resObj
@@ -109,56 +115,133 @@ exports.pdfReports = async function (req, res) {
 
 }
 
-async function observationGenerateReport(req, res){
-    return new Promise(async function(resolve,reject){
+async function observationGenerateReport(req, res) {
+    return new Promise(async function (resolve, reject) {
 
         if (!req.query.observationId) {
             // res.status(400);
             var response = {
-              result: false,
-              message: 'observationSubmissionId is a required field'
+                result: false,
+                message: 'observationSubmissionId is a required field'
             };
             resolve(response);
-          }else{
+        } else {
 
-            req.body.observationId= req.query.observationId;
-           let responseData = await observationReportManuplate(req, res);
+            req.body.observationId = req.query.observationId;
+            let responseData = await observationReportManuplate(req, res);
 
-        //    console.log("responseData",responseData);
-           let resData = await pdfHandler.pdfGeneration(responseData);
-        //    console.log("responseData",resData);
 
-           resolve(resData);
-          } 
+            let resData = await pdfHandler.pdfGeneration(responseData, true);
+            //    console.log("responseData",resData);
+
+            if (resData.status && resData.status == "success") {
+                var hostname = req.headers.host;
+                var pathname = url.parse(req.url).pathname;
+                console.log(pathname, "responseData", hostname);
+                var obj = {
+                    status: "success",
+                    pdfUrl: hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+                }
+                //    console.log("responseData",resData);
+                resolve(obj);
+            } else {
+                resolve(resData);
+            }
+        }
 
     });
 }
-async function entityObservationPdf(req, res){
-    return new Promise(async function(resolve,reject){
+async function entityObservationPdf(req, res) {
+    return new Promise(async function (resolve, reject) {
         if (!req.query.observationId) {
             // res.status(400);
             var response = {
-              result: false,
-              message: 'observationId is a required field'
+                result: false,
+                message: 'observationId is a required field'
             };
             resolve(response);
-          }if(!req.query.entityId){
+        } if (!req.query.entityId) {
             var response = {
                 result: false,
                 message: 'entityId is a required field'
-              };
-              resolve(response);
-        }else{
+            };
+            resolve(response);
+        } else {
 
-            req.body.observationId= req.query.observationId;
-            req.body.entityId= req.query.entityId;
-           let responseData = await entityObserv.entityReport(req, res);
+            req.body.observationId = req.query.observationId;
+            req.body.entityId = req.query.entityId;
+            let responseData = await entityObserv.entityObservationData(req, res);
 
-        // //    console.log("responseData",responseData);
-           let resData = await pdfHandler.pdfGeneration(responseData);
-        //    console.log("responseData",resData);
-           resolve(resData);
-          } 
+            //    console.log("responseData",responseData);
+            let resData = await pdfHandler.pdfGeneration(responseData, true);
+
+            if (resData.status && resData.status == "success") {
+                var hostname = req.headers.host;
+                var pathname = url.parse(req.url).pathname;
+                console.log(pathname, "responseData", hostname);
+                var obj = {
+                    status: "success",
+                    pdfUrl: hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+                }
+                //    console.log("responseData",resData);
+                resolve(obj);
+            } else {
+                resolve(resData);
+            }
+        }
 
     });
 }
+
+exports.pdftempUrl = async function (req, response) {
+
+
+    var folderPath = Buffer.from(req.query.id, 'base64').toString('ascii')
+    console.log(folderPath, "req", __dirname + '../' + req.query.id);
+    fs.readFile(__dirname + '/../../' + folderPath + '/instanceLevelReport.pdf', function (err, data) {
+        if (!err) {
+
+            console.log('received data: ');
+            response.writeHead(200, { 'Content-Type': 'application/pdf' });
+            response.write(data);
+
+
+            try{
+                fs.readdir(__dirname + '/../../' + folderPath, (err, files) => {
+                    if (err) throw err;
+    
+                    // console.log("files",files.length);
+                    var i = 0;
+                    for (const file of files) {
+                        i = i +1;
+                        fs.unlink(path.join(__dirname + '/../../' + folderPath, file), err => {
+                            if (err) throw err;
+                        });
+                        if(i==files.length){
+                            // fs.unlink(__dirname + '/../../'+folderPath);
+                            // console.log("path.dirname(filename).split(path.sep).pop()",path.dirname(file).split(path.sep).pop());
+                            // fs.unlink(path.join(imgPath, ""), err => {
+                            //     if (err) throw err;
+                            // });
+                        }
+                        
+                    }
+                });
+                rimraf(__dirname + '/../../' + folderPath, function () { console.log("done"); });
+    
+            }catch(exp){
+
+                console.log("error",exp)
+
+            }
+
+         
+            response.end();
+            // fs.unlink(__dirname+'/instanceLevelReport.pdf');
+        } else {
+            response.send("File Not Found");
+            console.log(err);
+        }
+
+    });
+};

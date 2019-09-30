@@ -1,14 +1,20 @@
 <html>
     <head>
         <style>
-            body {
-                font-size: 10rem;
-                margin: 4rem auto;
+            .observation-header {
+                width: 100%;
+                color: blue;
+    text-align: center;
+    font-size: 12rem;
+    font-weight: 600;
+    padding-bottom: 8rem;
+    border-bottom: 1px solid #ccc;
             }
         </style>
     
-            <h2 class="col-sm-12" style="text-align: center;color:blue"><%=  data.observationName %></h2>
+            <h2 class="col-sm-12 observation-header">Observation Name : <%=  data.observationName %></h2>
     </head>
+    
     <!-- <body>
         <p>
             <span style="float: right;" class="pageNumber"></span> of <span class="totalPages"></span>

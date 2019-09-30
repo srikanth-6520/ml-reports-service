@@ -39,10 +39,10 @@ router.post("/assessments/listPrograms",authenticate,listAssessmentPrograms.list
 router.post("/assessments/entity",authenticate,entityAssessController.entityAssessment);
 
 router.get("/observations/instanceLevelPdfReports",authenticate,observationController.pdfReports);
-// router.get("/observations/pdfReports",authenticate,observationController.pdfReports);
+router.get("/observations/pdfReports",authenticate,observationController.pdfReports);
 // router.get('/observations/instanceLevelPdfReports',authenticate,instanceController.instancePdfReport);
 
-
+router.get("/observations/pdfReportsUrl",observationController.pdftempUrl);
 
 
 function authenticate(req,res,next){
