@@ -140,6 +140,7 @@ async function observationGenerateReport(req, res) {
                 console.log(pathname, "responseData", hostname);
                 var obj = {
                     status: "success",
+                    message: 'Observation Pdf Generated successfully',
                     pdfUrl: hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
                 }
                 //    console.log("responseData",resData);
@@ -170,7 +171,7 @@ async function entityObservationPdf(req, res) {
 
             req.body.observationId = req.query.observationId;
             req.body.entityId = req.query.entityId;
-            let responseData = await entityObserv.entityObservationData(req, res);
+            let responseData = await entityObserv.entityObservationDataExport(req, res);
 
             //    console.log("responseData",responseData);
             let resData = await pdfHandler.pdfGeneration(responseData, true);
@@ -181,6 +182,7 @@ async function entityObservationPdf(req, res) {
                 console.log(pathname, "responseData", hostname);
                 var obj = {
                     status: "success",
+                    message: 'Observation Pdf Generated successfully',
                     pdfUrl: hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
                 }
                 //    console.log("responseData",resData);
@@ -234,8 +236,6 @@ exports.pdftempUrl = async function (req, response) {
                 console.log("error",exp)
 
             }
-
-         
             response.end();
             // fs.unlink(__dirname+'/instanceLevelReport.pdf');
         } else {

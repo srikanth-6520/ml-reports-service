@@ -182,3 +182,16 @@ async function entityObservationData(req,res){
   
   
 }
+
+
+exports.entityObservationDataExport  = async function entityObservationDataExport(req,res){
+
+  return new Promise(async function(resolve,reject){
+
+    let responseData =  await entityObservationData(req,res);
+
+    resolve(responseData);
+    
+  })
+
+};

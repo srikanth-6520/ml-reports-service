@@ -129,12 +129,12 @@ exports.instancePdfReport = async function (req, res) {
     res.status(400);
     var response = {
       result: false,
-      message: 'observationSubmissionId is a required field'
+      message: 'submissionId is a required field'
     };
     res.send(response);
   } else {
     reqData = req.query;
-    // console.log(reqData)
+    console.log("reqData",reqData)
     var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
     // if(dataReportIndexes){
 
@@ -146,12 +146,12 @@ exports.instancePdfReport = async function (req, res) {
     if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
       // var instaRes = await instancePdfFunc(reqData);
 
-      console.log("dataReportIndexes", dataReportIndexes.id);
+      console.log(dataReportIndexes.downloadpdfpath,"dataReportIndexes", dataReportIndexes.id);
       dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
       let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
 
       // call to get SignedUrl 
-      // console.log("instaRes=======", signedUlr);
+      console.log("instaRes=======", signedUlr);
 
       var response = {
         status: "success",
