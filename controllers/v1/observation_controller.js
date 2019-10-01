@@ -87,7 +87,7 @@ exports.pdfReports = async function (req, res) {
 
     return new Promise(async function (resolve, reject) {
         // var bodyParam = JSON.parse(req);
-        // console.log("body", req.query);
+        // console.log("body", req);
         if (req.query && req.query.observationId && req.query.entityId) {
 
             let resObj = await entityObservationPdf(req, res);
@@ -141,7 +141,7 @@ async function observationGenerateReport(req, res) {
                 var obj = {
                     status: "success",
                     message: 'Observation Pdf Generated successfully',
-                    pdfUrl: hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+                    pdfUrl: "https://"+hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
                 }
                 //    console.log("responseData",resData);
                 resolve(obj);
@@ -183,7 +183,7 @@ async function entityObservationPdf(req, res) {
                 var obj = {
                     status: "success",
                     message: 'Observation Pdf Generated successfully',
-                    pdfUrl: hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+                    pdfUrl: "https://"+hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
                 }
                 //    console.log("responseData",resData);
                 resolve(obj);
