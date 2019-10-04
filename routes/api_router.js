@@ -42,7 +42,11 @@ router.get("/observations/instanceLevelPdfReports",authenticate,observationContr
 router.get("/observations/pdfReports",authenticate,observationController.pdfReports);
 // router.get('/observations/instanceLevelPdfReports',authenticate,instanceController.instancePdfReport);
 
+//API for observations PDF
 router.get("/observations/pdfReportsUrl",observationController.pdftempUrl);
+
+//API for Assessment PDF
+router.post("/assessment/pdfReports",entityAssessController.assessmentPdfReport);
 
 
 function authenticate(req,res,next){

@@ -18,12 +18,12 @@ const path = require('path');
 
 exports.observationReport = async function (req, res) {
     return new Promise(async function (resolve, reject) {
-        let data = await observationReportManuplate(req, res);
+        let data = await observationReportManipulate(req, res);
         res.send(data);
     })
 }
 
-async function observationReportManuplate(req, res) {
+async function observationReportManipulate(req, res) {
     return new Promise(async function (resolve, reject) {
 
         if (!req.body.observationId) {
@@ -128,7 +128,7 @@ async function observationGenerateReport(req, res) {
         } else {
 
             req.body.observationId = req.query.observationId;
-            let responseData = await observationReportManuplate(req, res);
+            let responseData = await observationReportManipulate(req, res);
 
 
             let resData = await pdfHandler.pdfGeneration(responseData, true);

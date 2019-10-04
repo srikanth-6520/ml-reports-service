@@ -4,15 +4,25 @@ var request = require('request');
 var model = require('../../db')
 var helperFunc = require('../../helper/chartData');
 var commonCassandraFunc = require('../../common/cassandraFunc');
+var pdfHandler = require('../../helper/commonHandler');
 
 exports.entityAssessment = async function (req, res) {
+  return new Promise(async function (resolve, reject) {
+      let data = await assessmentReportGetChartData(req, res);
+      res.send(data);
+  })
+}
+
+async function assessmentReportGetChartData(req, res) {
+  return new Promise(async function (resolve, reject) {
+
   if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
     res.status(400);
     var response = {
       result: false,
       message: 'entityId,entityType,programId,solutionId and immediateChildEntityType are required fields'
     }
-    res.send(response);
+    resolve(response);
   }
   else {
     childType = req.body.immediateChildEntityType;
@@ -52,7 +62,7 @@ exports.entityAssessment = async function (req, res) {
           opt.body = bodyParam;
           var data = await rp(opt);
           if (!data.length) {
-            res.send({ "data": {} })
+            resolve({"result":false,"data": {} })
           }
          else {
            var inputObj = {
@@ -91,21 +101,21 @@ exports.entityAssessment = async function (req, res) {
               if(grandChildEntityType.status == 200){
                 if(grandChildEntityType.result[0].subEntityGroups.length != 0){
                 responseObj.reportSections[0].chart.grandChildEntityType = grandChildEntityType.result[0].immediateSubEntityType;
-                res.send(responseObj);
+                resolve(responseObj);
                 }
                 else{
                   responseObj.reportSections[0].chart.grandChildEntityType = "";
-                  res.send(responseObj);
+                  resolve(responseObj);
                 }
               }
               else{
               responseObj.reportSections[0].chart.grandChildEntityType = "";
-              res.send(responseObj);
+              resolve(responseObj);
               }
             }
             else{
               responseObj.reportSections[0].chart.grandChildEntityType = "";
-              res.send(responseObj);
+              resolve(responseObj);
             }
             commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
           }
@@ -117,12 +127,13 @@ exports.entityAssessment = async function (req, res) {
             result: false,
             message: 'Data not found'
           }
-          res.send(response);
+          resolve(response);
         })
     } else {
-      res.send(JSON.parse(dataAssessIndexes['apiresponse']))
+      resolve(JSON.parse(dataAssessIndexes['apiresponse']))
     }
   }
+});
 }
 
 
@@ -150,3 +161,69 @@ async function assessmentEntityList(entityId,childType,token) {
 
 });
 }
+
+
+//FUnction to generate PDF for entity assessment API
+exports.assessmentPdfReport = async function(req, res) {
+  if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
+    res.status(400);
+    var response = {
+      result: false,
+      message: 'entityId,entityType,programId,solutionId and immediateChildEntityType are required fields'
+    }
+    res.send(response);
+  }
+    else{
+    reqData = req.body;
+    var dataReportIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqData);
+   
+    if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
+
+      console.log(dataReportIndexes.downloadpdfpath,"dataReportIndexes", dataReportIndexes.id);
+      dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
+      let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
+
+      // call to get SignedUrl 
+      console.log("instaRes=======", signedUlr);
+
+      var response = {
+        status: "success",
+        message: 'Assessment Pdf Generated successfully',
+        pdfUrl: signedUlr
+      };
+      res.send(response);
+
+    } else {
+      var assessmentRes;
+      if (dataReportIndexes) {
+        assessmentRes = JSON.parse(dataReportIndexes['apiresponse']);
+      }
+      else {
+        assessmentRes = await assessmentReportGetChartData(req, res);
+      }
+
+
+      if(assessmentRes.result == true){
+
+      let resData = await pdfHandler.assessmentPdfGeneration(assessmentRes);
+
+      if (dataReportIndexes) {
+        var reqOptions = {
+          query: dataReportIndexes.id,
+          downloadPath:resData.downloadPath
+        }
+        commonCassandraFunc.updateEntityAssessmentDownloadPath(reqOptions);
+      } else {
+        let dataInsert = commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqData, resData, resData.downloadPath);
+      }
+
+         res.send(resData);
+        // res.send(omit(resData,'downloadPath'));
+      }
+    else{
+      res.send(assessmentRes);
+    }
+   
+    }
+    }
+};

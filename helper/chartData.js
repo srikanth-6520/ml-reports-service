@@ -683,6 +683,7 @@ exports.entityAssessmentChart = async function (inputObj) {
       var designation = await designationCreateFunction(entityType);
 
       var chartObj = {
+        result:true,
         title: titleName + " Perfomance report for " + designation + " View",
         reportSections: [
             {
