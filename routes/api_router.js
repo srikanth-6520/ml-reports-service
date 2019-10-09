@@ -46,7 +46,7 @@ router.get("/observations/pdfReports",authenticate,observationController.pdfRepo
 router.get("/observations/pdfReportsUrl",observationController.pdftempUrl);
 
 //API for Assessment PDF
-router.post("/assessment/pdfReports",entityAssessController.assessmentPdfReport);
+router.post("/assessment/pdfReports",authenticate,entityAssessController.assessmentPdfReport);
 
 
 function authenticate(req,res,next){

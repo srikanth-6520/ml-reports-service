@@ -440,35 +440,38 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
 
                                                                         s3SignedUrl(data.key).then(function (signedRes) {
                                                                            
-                                                                            // try{
+                                                                            try{
 
                                                                            
 
-                                                                            //     fs.readdir(imgPath, (err, files) => {
-                                                                            //         if (err) throw err;
+                                                                                fs.readdir(imgPath, (err, files) => {
+                                                                                    if (err) throw err;
                                                                     
-                                                                            //         // console.log("files",files.length);
-                                                                            //         var i = 0;
-                                                                            //         for (const file of files) {
-                                                                            //             i = i +1;
-                                                                            //             fs.unlink(path.join(imgPath, file), err => {
-                                                                            //                 if (err) throw err;
-                                                                            //             });
-                                                                            //             if(i==files.length){
-                                                                            //                 fs.unlink('../../'+currentTempFolder);
-                                                                            //                 console.log("path.dirname(filename).split(path.sep).pop()",path.dirname(file).split(path.sep).pop());
-                                                                            //                 // fs.unlink(path.join(imgPath, ""), err => {
-                                                                            //                 //     if (err) throw err;
-                                                                            //                 // });
-                                                                            //             }
+                                                                                    // console.log("files",files.length);
+                                                                                    var i = 0;
+                                                                                    for (const file of files) {
                                                                                         
-                                                                            //         }
-                                                                            //     });
-                                                                            //     rimraf(imgPath, function () { console.log("done"); });
+                                                                                        fs.unlink(path.join(imgPath, file), err => {
+                                                                                            if (err) throw err;
+                                                                                        });
+                                                                                        if(i==files.length){
+                                                                                            fs.unlink('../../'+currentTempFolder, err => {
+                                                                                                if (err) throw err;
+                                                                                            });
+                                                                                            console.log("path.dirname(filename).split(path.sep).pop()",path.dirname(file).split(path.sep).pop());
+                                                                                            // fs.unlink(path.join(imgPath, ""), err => {
+                                                                                            //     if (err) throw err;
+                                                                                            // });
+                                                                                        }
+                                                                                        
+                                                                                        i = i +1;
+                                                                                    }
+                                                                                });
+                                                                                rimraf(imgPath, function () { console.log("done"); });
 
-                                                                            // }catch(ex){
-                                                                            //     console.log("ex ",ex);
-                                                                            // }
+                                                                            }catch(ex){
+                                                                                console.log("ex ",ex);
+                                                                            }
                                                                       
                                                                             var response = {
                                                                                 status: "success",
