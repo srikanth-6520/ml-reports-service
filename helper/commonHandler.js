@@ -302,13 +302,6 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
 
     return new Promise(async function (resolve, reject) {
 
-
-        // if (dataReportIndexes) {
-        // } else {
-        // }
-
-        // console.log("instaRes",instaRes);
-
         var currentTempFolder = 'tmp/' + uuidv4()+"--"+ Math.floor(Math.random() * (10000 - 10 + 1) + 10)
 
         var imgPath = __dirname + '/../'+currentTempFolder;
@@ -317,7 +310,7 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
 
 
         try {
-            console.log(assessmentRes.reportSections[1].chart);
+            
             var assessmentData = [assessmentRes.reportSections[0]]
             assessmentData[0].responseType = "stackedbar";
             var chartData = await getSelectedData(assessmentData, "stackedbar");
@@ -326,7 +319,7 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
             if (!fs.existsSync(imgPath)) {
                 fs.mkdirSync(imgPath);
             }
-            console.log(chartData);
+           
             let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
 
             // let headerFile = await copyBootStrapFile(__dirname + '/../views/header.html', imgPath + '/header.html');
@@ -358,7 +351,7 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
                             };
                             ejs.renderFile(__dirname + '/../views/stacked_bar_assessment_template.ejs', {
                                 data: obj.path[0].options.filename,
-                                assessmentRes : assessmentRes.reportSections[1]
+                                assessmentData : assessmentRes.reportSections[1]
                             })
                                 .then(function (dataEjsRender) {
                                     // console.log("dataEjsRender",imgPath);

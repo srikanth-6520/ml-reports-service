@@ -177,7 +177,7 @@ exports.assessmentPdfReport = async function(req, res) {
     reqData = req.body;
     var dataReportIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqData);
    
-    if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
+     if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
 
       console.log(dataReportIndexes.downloadpdfpath,"dataReportIndexes", dataReportIndexes.id);
       dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
@@ -193,7 +193,7 @@ exports.assessmentPdfReport = async function(req, res) {
       };
       res.send(response);
 
-    } else {
+     } else {
       var assessmentRes;
       if (dataReportIndexes) {
         assessmentRes = JSON.parse(dataReportIndexes['apiresponse']);
@@ -204,7 +204,7 @@ exports.assessmentPdfReport = async function(req, res) {
 
 
       if(assessmentRes.result == true){
-
+  
       let resData = await pdfHandler.assessmentPdfGeneration(assessmentRes);
 
       if (dataReportIndexes) {
@@ -224,6 +224,6 @@ exports.assessmentPdfReport = async function(req, res) {
       res.send(assessmentRes);
     }
    
-    }
-    }
+     }
+   }
 };
