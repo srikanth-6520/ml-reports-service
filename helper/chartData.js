@@ -51,7 +51,7 @@ exports.instanceReportChart = async function (data) {
                 var resp = {
                     question: element.event.questionName,
                     responseType: element.event.questionResponseType,
-                    answers: element.event.questionAnswer,
+                    answers: [element.event.questionAnswer],
                     chart: {}
                 }
                 obj.response.push(resp);
@@ -97,11 +97,12 @@ exports.instanceReportChart = async function (data) {
         var res = Object.keys(result);
 
         //loop the keys and construct a response object for multiselect questions
-        res.forEach(ele => {
-            var multiSelectResp = instanceMultiselectFunc(result[ele])
+        await Promise.all(res.map(async ele => {
+        // res.forEach(async ele => {
+            var multiSelectResp = await instanceMultiselectFunc(result[ele])
             obj.response.push(multiSelectResp);
 
-        })
+        }))
 
         //return final response object
         return obj;
@@ -174,7 +175,7 @@ async function instanceMultiselectFunc(data) {
 //Function for entity Observation and observation report's final response creation
 exports.entityReportChart = async function (data) {
     var obj;
-    var mutiSelectArray = [];
+    var multiSelectArray = [];
     var textArray = [];
     var radioArray = [];
     var sliderArray = [];
@@ -212,7 +213,7 @@ exports.entityReportChart = async function (data) {
                 radioArray.push(element)
             }
             else if (element.event.questionResponseType == "multiselect") {
-                mutiSelectArray.push(element)
+                multiSelectArray.push(element)
             }
             else if (element.event.questionResponseType == "slider") {
                 sliderArray.push(element)
@@ -233,7 +234,9 @@ exports.entityReportChart = async function (data) {
         radioResult = await groupArrayElements(radioArray);
 
         //group the multiselect questions based on their questionName
-        multiSelectResult = await groupArrayElements(mutiSelectArray)
+
+        // console.log("mutiSelectArray",mutiSelectArray);
+        multiSelectResult = await groupArrayElements(multiSelectArray);
 
         //group the slider questions based on their questionName
         sliderResult = await groupArrayElements(sliderArray);
@@ -246,46 +249,46 @@ exports.entityReportChart = async function (data) {
 
         var textRes = Object.keys(textResult);
         //loop the keys and construct a response object for text questions
-        textRes.forEach(ele => {
-            var textResponse = responseObjectCreateFunc(textResult[ele])
+        await Promise.all(textRes.map(async ele => {
+            var textResponse = await responseObjectCreateFunc(textResult[ele])
             obj.response.push(textResponse);
 
-        })
+        }));
 
         var sliderRes = Object.keys(sliderResult);
         //loop the keys and construct a response object for slider questions
-        sliderRes.forEach(ele => {
-            var sliderResp = responseObjectCreateFunc(sliderResult[ele])
+        await Promise.all(sliderRes.map(async ele => {
+            var sliderResp = await responseObjectCreateFunc(sliderResult[ele])
             obj.response.push(sliderResp);
-        })
+        }));
 
         var numberRes = Object.keys(numberResult);
         //loop the keys and construct a response object for slider questions
-        numberRes.forEach(ele => {
-            var numberResp = responseObjectCreateFunc(numberResult[ele])
+        await Promise.all(numberRes.map(async ele => {
+            var numberResp = await responseObjectCreateFunc(numberResult[ele])
             obj.response.push(numberResp);
-        })
+        }));
          
         var dateRes = Object.keys(dateResult);
         //loop the keys and construct a response object for slider questions
-        dateRes.forEach(ele => {
-            var dateResp = responseObjectCreateFunc(dateResult[ele])
+        await Promise.all(dateRes.map(async ele => {
+            var dateResp = await responseObjectCreateFunc(dateResult[ele])
             obj.response.push(dateResp);
-        })
+        }))
 
         var radioRes = Object.keys(radioResult);
         //loop the keys and construct a response object for slider questions
-        radioRes.forEach(ele => {
-            var radioResp = radioObjectCreateFunc(radioResult[ele])
+        await Promise.all(radioRes.map(async ele => {
+            var radioResp = await radioObjectCreateFunc(radioResult[ele])
             obj.response.push(radioResp);
-        })
+        }));
 
-        var multiSelectRes = Object.keys(multiSelectResult);
-        //loop the keys and construct a response object for multiselect questions
-        multiSelectRes.forEach(ele => {
-            var multiSelectResp = multiSelectObjectCreateFunc(multiSelectResult[ele])
+         var multiSelectRes = Object.keys(multiSelectResult);
+         //loop the keys and construct a response object for multiselect questions
+        await Promise.all(multiSelectRes.map(async ele => {
+            var multiSelectResp = await multiSelectObjectCreateFunc(multiSelectResult[ele])
             obj.response.push(multiSelectResp);
-        })
+        }))
 
         return obj;
     
@@ -309,17 +312,17 @@ function groupArrayElements (array){
 }
 
 //function to create response onject for text and slider questions (Entiry Report)
-function responseObjectCreateFunc(data) {
+async function responseObjectCreateFunc(data) {
     var dataArray = [];
     var question;
     var responseType;
-    
+      
     //loop the data and push answers to oe array
-    for (i = 0; i < data.length; i++) {
+     for (i = 0; i < data.length; i++) {
         dataArray.push(data[i].event.questionAnswer);
         question = data[i].event.questionName;
         responseType = data[i].event.questionResponseType;
-    }
+     }
 
     //response object
     var resp = {
@@ -385,25 +388,25 @@ function radioObjectCreateFunc(data) {
     return resp;
 }
 
-//function to create response onject for multiselect questions (Entiry Report)
+//function to create response object for multiselect questions (Entiry Report)
 function multiSelectObjectCreateFunc(data) {
     var dataArray = [];
     var labelArray = [];
     var chartdata = []
-
+   
     //group the multiselect questions based on their observationSubmissionId
-    multiSelectResult = data.reduce(function (r, a) {
+    multiSelectGroupBySubmission = data.reduce(function (r, a) {
         r[a.event.observationSubmissionId] = r[a.event.observationSubmissionId] || [];
         r[a.event.observationSubmissionId].push(a);
         return r;
     }, Object.create(null));
 
-    var multiSelectRes = Object.keys(multiSelectResult);
+    var multiSelect = Object.keys(multiSelectGroupBySubmission);
     //loop the keys and construct a response object for multiselect questions
-    multiSelectRes.forEach(ele => {
-        var multiSelectResp = entityMultiselectGrouping(multiSelectResult[ele])
-        dataArray.push(multiSelectResp[0]);
-        labelArray.push(multiSelectResp[1]);
+    multiSelect.forEach(ele => {
+        var multiSelectResponseObj = entityMultiselectGrouping(multiSelectGroupBySubmission[ele])
+        dataArray.push(multiSelectResponseObj[0]);
+        labelArray.push(multiSelectResponseObj[1]);
     })
 
     var dataMerged = [].concat.apply([], dataArray);   // to merger multiple arrays into single array
@@ -444,7 +447,7 @@ function multiSelectObjectCreateFunc(data) {
             }
         }
     }
-
+    
     return resp;
 
 }
@@ -680,6 +683,7 @@ exports.entityAssessmentChart = async function (inputObj) {
       var designation = await designationCreateFunction(entityType);
 
       var chartObj = {
+        result:true,
         title: titleName + " Perfomance report for " + designation + " View",
         reportSections: [
             {

@@ -66,12 +66,19 @@ let checkAssessmentReqInCassandra = async function (reqBody, callback) {
 }
 
 
-let insertAssessmentReqAndResInCassandra = async function (reqBody, resBody) {
+let insertAssessmentReqAndResInCassandra = async function (reqBody, resBody,downloadPath=null) {
     return new Promise(function (resolve, reject) {
-        var insertData = new db.assessmentModel({
+        var obj = { 
             apirequest: JSON.stringify(reqBody),
             apiresponse: JSON.stringify(resBody)
-        });
+        };
+
+        if(downloadPath){
+            obj.downloadpdfpath = JSON.stringify(downloadPath);
+        }
+
+        var insertData = new db.assessmentModel(obj);
+
         insertData.saveAsync()
             .then(function (insertRec) {
                 // console.log(insertRec)
@@ -108,8 +115,30 @@ db.reportIndexes.update(query_object, update_values_object,options, function(err
 });
 };
 
+let updateEntityAssessmentDownloadPath = async function (reqBody, callback) {
+    return new Promise(function (resolve, reject) {
+
+        // var query_object = reqBody.query;
+        console.log("ssssssssssss", JSON.stringify(reqBody.query));
+        var query_object = { id: reqBody.query };
+        var downloadPdfUrl = { downloadpdfpath: reqBody.downloadPath };
+        var options = { ttl: 86400, if_exists: true };
+
+        console.log("query_object", query_object);
+        db.assessmentModel.update(query_object, downloadPdfUrl, options, function (err) {
+            if (err) {
+                console.log(err);
+            } else {
+                resolve("updated");
+            }
+        });
+
+});
+};
+
 exports.checkReqInCassandra = checkReqInCassandra
 exports.insertReqAndResInCassandra = insertReqAndResInCassandra
 exports.checkAssessmentReqInCassandra = checkAssessmentReqInCassandra
 exports.insertAssessmentReqAndResInCassandra = insertAssessmentReqAndResInCassandra
 exports.updateInstanceDownloadPath = updateInstanceDownloadPath
+exports.updateEntityAssessmentDownloadPath = updateEntityAssessmentDownloadPath
