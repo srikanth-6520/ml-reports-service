@@ -122,7 +122,6 @@ exports.pdfGeneration = async function pdfGeneration(instaRes,deleteFromS3=null)
                             var obj = {
                                 path: formDataMultiSelect,
                                 instaRes: instaRes.response,
-                                sliderData: instaRes.response,
                                 radioOptionsData: radioFormData
                             };
                             ejs.renderFile(__dirname + '/../views/mainTemplate.ejs', {

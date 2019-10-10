@@ -6,8 +6,12 @@
       
             <%- include('textReport', {instaRes: data.instaRes}); %>
 
-            <%- include('sliderReport', {instaRes: data.sliderData}); %>
+            <%- include('sliderReport', {instaRes: data.instaRes}); %>
+            
 
+            <%- include('dateReport', {instaRes: data.instaRes}); %>
+
+            <%- include('numberReport', {instaRes: data.instaRes}); %>
 
             
             <% for(var i=0; i < data.path.length; i++) { %>
