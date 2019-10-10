@@ -1,7 +1,8 @@
 <div class="container" style="padding:20px;margin:20px;">
         <% for(var i=0; i < instaRes.length; i++) { %>
           <% if(instaRes[i].responseType == 'number'){ %>
-            <% for(var j=0; j < instaRes[i].answers.length; j++) { %>
+            <h3><%=  instaRes[i].question %></h3>
+              <% for(var j=0; j < instaRes[i].answers.length; j++) { %>
              
                           <!-- <table class="table-bordered table-striped" style="min-width:60%;padding:20px;margin:20px;">
                                   <thead >
@@ -17,10 +18,10 @@
     
                           <div class="row">
                             <div class="col-sm-12" >
-                            <div class="card">
-                              <h5 class="card-header"><%=  instaRes[i].question %></h5>
-                              <div class="card-body">
-                              <p><%= instaRes[i].answers[j] %></p>
+                            <div class="col-sm-12" style="border: 1px solid #eae8e8;
+                            padding: 10px;">
+                              <div class="col-sm-12" style="font-size: 18px;">
+                              <%= instaRes[i].answers[j] %>
                               </div>
                               </div>
                             </div>

@@ -75,11 +75,11 @@ exports.pdfGeneration = async function pdfGeneration(instaRes,deleteFromS3=null)
 
         try {
 
-            // console.log("instaRes",);
+            // console.log("instaRes",instaRes.response);
             var multiSelectData = await getSelectedData(instaRes.response, "multiselect");
 
 
-            console.log("imgPath======", imgPath);
+            // console.log("imgPath======", imgPath);
 
             // console.log("imgPath",imgPath);
             if (!fs.existsSync(imgPath)) {
@@ -118,6 +118,26 @@ exports.pdfGeneration = async function pdfGeneration(instaRes,deleteFromS3=null)
                         if (errWr) {
                             throw errWr;
                         } else {
+
+
+                        //    let groupedData = instaRes.response.reduce(function (r, a) {
+                        //         r[a.question] = r[a.question] || [];
+                        //         r[a.question].push(a);
+                        //         return r;
+                        //     }, Object.create(null));
+
+                        //     console.log("groupedData",groupedData);
+
+                        //     var resObjOfGroup = Object.keys(groupedData);
+                            // let Array = [];
+
+                            //loop the keys and construct a response object for multiselect questions
+                            // await Promise.all(resObjOfGroup.map(async ele => {
+                            // // res.forEach(async ele => {
+                            //     // var multiSelectResp = await instanceMultiselectFunc(result[ele])
+                            //     Array.push(multiSelectResp);
+
+                            // }))
 
                             var obj = {
                                 path: formDataMultiSelect,
@@ -525,10 +545,14 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
 async function getSelectedData(items, type) {
     return new Promise(async function (resolve, reject) {
         var ArrayOfChartData = [];
+        // console.log("items",items);
         await Promise.all(items.map(async ele => {
             if (ele.responseType && ele.responseType == type) {
                 var chartType = "bar";
                 if (type == "radio") {
+
+                    // console.log("ele",ele.chart);
+                    // console.log("ele",ele.chart.data[0]);
                     chartType = "pie";
                 } else if(type == "stackedbar"){
                     chartType = "stackedbar";
@@ -542,6 +566,8 @@ async function getSelectedData(items, type) {
                         title: {
                             text: ele.question
                         },
+                        colors: ['#D35400','#F1C40F','#3498DB','#8E44AD','#154360','#145A32'],
+
                         chart: {
                             type: chartType
                         },
@@ -556,12 +582,28 @@ async function getSelectedData(items, type) {
 
 
                 if (chartType == "pie") {
-                    obj.options.series[0].data[0].y = parseInt(obj.options.series[0].data[0].y);
+                    // obj.options.series[0].data[0].y = parseInt(obj.options.series[0].data[0].y);
+
+                    let multiSelectInputs = [];
+                    await Promise.all(obj.options.series[0].data.map(function (item) {
+                        // return parseInt(item, 10);
+                        // console.log("item",item);
+                        let parseVal =parseInt(item.y);
+                        var ex = {
+                            name:item.name,
+                            y:parseVal
+                        }
+                        multiSelectInputs.push(ex);
+
+                    }));
+                    obj.options.series[0].data = multiSelectInputs;
+
                 } else if(chartType == "bar"){
 
                     let multiSelectInputs = [];
                     await Promise.all(obj.options.series[0].data.map(function (item) {
                         // return parseInt(item, 10);
+                        console.log("item",item);
                         multiSelectInputs.push(parseInt(item));
 
                     }));
