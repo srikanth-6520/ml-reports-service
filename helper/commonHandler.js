@@ -573,6 +573,8 @@ async function getSelectedData(items, type) {
                             chart: {
                                 type: 'bar'
                             },
+                            colors: ['#D35400','#F1C40F','#3498DB','#8E44AD','#154360','#145A32'],
+
                             title: {
                                 text: ele.chart.title
                             },
@@ -590,7 +592,10 @@ async function getSelectedData(items, type) {
                             },
                             plotOptions: {
                                 series: {
-                                    stacking: ele.chart.stacking
+                                    stacking: ele.chart.stacking,
+                                    dataLabels: {
+                                        enabled: true
+                                      }
                                 }
                             },
                             series: ele.chart.data
