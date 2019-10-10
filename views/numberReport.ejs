@@ -1,0 +1,37 @@
+<div class="container" style="padding:20px;margin:20px;">
+        <% for(var i=0; i < instaRes.length; i++) { %>
+          <% if(instaRes[i].responseType == 'number'){ %>
+            <h3><%=  instaRes[i].question %></h3>
+              <% for(var j=0; j < instaRes[i].answers.length; j++) { %>
+             
+                          <!-- <table class="table-bordered table-striped" style="min-width:60%;padding:20px;margin:20px;">
+                                  <thead >
+                                    <span class="btn-primary" style="border:1px solid #ccc;background:blue;color:#fff;min-width:60%"> 
+                                      <%=  instaRes[i].question %>
+                                  </span>
+                              </thead>
+                          
+                              <tr style="border: 2px solid black;">
+                                <td style="border: 2px solid black;"><%= instaRes[i].answers[j] %></td>
+                              </tr>
+                          </table>   -->
+    
+                          <div class="row">
+                            <div class="col-sm-12" >
+                            <div class="col-sm-12" style="border: 1px solid #eae8e8;
+                            padding: 10px;">
+                              <div class="col-sm-12" style="font-size: 18px;">
+                              <%= instaRes[i].answers[j] %>
+                              </div>
+                              </div>
+                            </div>
+                          </div>
+              <% } %>
+    
+              <% if(i = instaRes.length-1){ %>
+                <p style="page-break-before: always;">&nbsp;</p>
+                <% } %>
+          <% } %>
+        <% } %>
+     
+    </div>
