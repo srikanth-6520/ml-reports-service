@@ -560,8 +560,7 @@ async function getSelectedData(items, type) {
               
                 //   console.log(chartType,"ele.chart.data",ele.chart.data[0].data)
                 var obj = {
-
-
+                    type:"svg",
                     options: {
                         title: {
                             text: ele.question
@@ -611,6 +610,7 @@ async function getSelectedData(items, type) {
 
                 } else if(chartType =="stackedbar"){
                      var obj = {
+                         type:"svg",
                          options : {
                             chart: {
                                 type: 'bar'
@@ -707,7 +707,7 @@ async function apiCallToHighChart(chartData, imgPath, type) {
 async function callChartApiPreparation(ele, imgPath, type, chartData, carrent, formData) {
     let loop = 0;
     var options = config.high_chart;
-    var chartImage = "chartPngImage_" + loop + "_" + uuidv4() + "_.png";
+    var chartImage = "chartPngImage_" + loop + "_" + uuidv4() + "_.svg";
     options.method = "POST";
     options.body = JSON.stringify(ele);
     let imgFilePath = imgPath + "/" + chartImage;
