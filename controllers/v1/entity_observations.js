@@ -7,14 +7,12 @@ var model = require('../../db')
 var helperFunc = require('../../helper/chartData');
 var commonCassandraFunc = require('../../common/cassandraFunc');
 
+//controller for entity observation report
 exports.entityReport = async function (req, res) {
 
-  // console.log("report");
     let data = await entityObservationData(req,res);
 
     res.send(data);
-
-  
 }
 
 exports.observationsByEntity = async function (req, res) {
