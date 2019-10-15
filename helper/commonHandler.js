@@ -244,17 +244,23 @@ exports.pdfGeneration = async function pdfGeneration(instaRes,deleteFromS3=null)
                                                                                     // console.log("files",files.length);
                                                                                     var i = 0;
                                                                                     for (const file of files) {
-                                                                                        i = i +1;
+                                                                                       
                                                                                         fs.unlink(path.join(imgPath, file), err => {
                                                                                             if (err) throw err;
                                                                                         });
+                                                                                       
                                                                                         if(i==files.length){
-                                                                                            fs.unlink('../../'+currentTempFolder);
+                                                                                            fs.unlink('../../'+currentTempFolder,err => {
+                                                                                                if (err) throw err;
+                                                                                                    
+                                                                                             });
                                                                                             console.log("path.dirname(filename).split(path.sep).pop()",path.dirname(file).split(path.sep).pop());
                                                                                             // fs.unlink(path.join(imgPath, ""), err => {
                                                                                             //     if (err) throw err;
                                                                                             // });
                                                                                         }
+
+                                                                                        i = i +1;
                                                                                         
                                                                                     }
                                                                                 });
@@ -602,7 +608,7 @@ async function getSelectedData(items, type) {
                     let multiSelectInputs = [];
                     await Promise.all(obj.options.series[0].data.map(function (item) {
                         // return parseInt(item, 10);
-                        console.log("item",item);
+                        // console.log("item",item);
                         multiSelectInputs.push(parseInt(item));
 
                     }));
@@ -691,7 +697,6 @@ async function apiCallToHighChart(chartData, imgPath, type) {
         try {
             var carrent = 0;
             if (chartData && chartData.length > 0) {
-                console.log("entered api call to highchart function");
                 let dt = await callChartApiPreparation(chartData[0], imgPath, type, chartData, carrent, formData);
                 return resolve(formData);
             } else {

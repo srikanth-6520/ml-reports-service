@@ -22,6 +22,7 @@ var async = require('async');
 var omit = require('object.omit');
 
 
+// Controller for instance observation report
 exports.instanceReport = async function (req, res) {
   if (!req.body.submissionId) {
     res.status(400);
@@ -111,10 +112,6 @@ async function instancePdfFunc(req) {
 
           // console.log("data======",data);
           var responseObj = await helperFunc.instanceReportChart(data)
-          // var responseObj = dataResp;
-          // console.log(responseObj)
-          // await commonCassandraFunc.insertReqAndResInCassandra(query, responseObj)
-          // console.log(responseObj)
           resolve(responseObj);
         }
       })
@@ -163,7 +160,7 @@ exports.instancePdfReport = async function (req, res) {
     } else {
       var instaRes = await instancePdfFunc(reqData);
 
-
+      if(("observationName" in instaRes) == true) {      
       let resData = await pdfHandler.pdfGeneration(instaRes);
 
       if (dataReportIndexes) {
@@ -179,115 +176,19 @@ exports.instancePdfReport = async function (req, res) {
       // res.send(resData);
          res.send(omit(resData,'downloadPath'));
       }
+
+      else {
+          res.send(instaRes);
+      }
+    }
   }
 };
 
-async function getSelectedData(items, type) {
-  return new Promise(async function (resolve, reject) {
-    var ArrayOfChartData = [];
-    await Promise.all(items.map(async ele => {
-      if (ele.responseType && ele.responseType == type) {
-        let chartType = "bar";
-        if (type == "radio") {
-          chartType = "pie";
-        } else {
-        }
-        var obj = {
-
-          options: {
-            chart: {
-              type: chartType
-            },
-            xAxis: ele.chart.xAxis,
-            yAxis: ele.chart.yAxis,
-            series: ele.chart.data
-          },
-          question: ele.question
-        };
-        // return resolve(obj);
-        ArrayOfChartData.push(obj);
-      }
-    }));
-    return resolve(ArrayOfChartData);
-  });
-}
-
-async function convertChartDataTofile(radioFilePath, options) {
-  // console.log("options===", options);
-  var fileInfo = await rp(options).pipe(fs.createWriteStream(radioFilePath))
-  return new Promise(function (resolve, reject) {
-    fileInfo.on('finish', function () {
-      return resolve(fileInfo);
-    });
-    fileInfo.on('error', function (err) {
-      // return resolve(fileInfo);
-      console.log(err);
-      return resolve(err)
-    });
-  });
-}
-
-async function copyBootStrapFile(from, to) {
-  // var fileInfo = await rp(options).pipe(fs.createWriteStream(radioFilePath))
-  var readCss = fs.createReadStream(from).pipe(fs.createWriteStream(to));
-  return new Promise(function (resolve, reject) {
-    readCss.on('finish', function () {
-      // console.log("readCss", readCss);
-      return resolve(readCss);
-    });
-    readCss.on('error', function (err) {
-      // return resolve(fileInfo);
-      // console.log("err--", err);
-      return resolve(err)
-    });
-  });
-}
-
-async function apiCallToHighChart(chartData, imgPath, type) {
-  return new Promise(async function (resolve, reject) {
-    var formData = [];
-    try {
-      var carrent = 0;
-      if (chartData && chartData.length > 0) {
-        let dt = await callChartApiPreparation(chartData[0], imgPath, type, chartData, carrent, formData);
-        return resolve(formData);
-      } else {
-        return resolve(formData);
-      }
-    } catch (err) {
-      console.log("error while calling", err);
-    }
-  });
-}
 
 
-async function callChartApiPreparation(ele, imgPath, type, chartData, carrent, formData) {
-  let loop = 0;
-  var options = config.high_chart;
-  var chartImage = "instanceMultiSelectFile_" + loop + "_" + uuidv4() + "_.png";
-  options.method = "POST";
-  options.body = JSON.stringify(ele);
-  let imgFilePath = imgPath + "/" + chartImage;
-  loop = loop + 1;
-  let renderImage = await convertChartDataTofile(imgFilePath, options);
-  let fileDat = {
-    value: fs.createReadStream(imgFilePath),
-    options: {
-      filename: chartImage,
-      question: ele.question
-    }
-  }
-  formData.push(fileDat);
-  carrent = carrent + 1;
-  if (chartData.length > carrent) {
-    try {
-      let call = await callChartApiPreparation(chartData[carrent], imgPath, type, chartData, carrent, formData);
-    } catch (err) {
-      console.log("error while making api call to high chart docker", err);
-    }
-  } else {
-    return (formData);
-  }
-}
+
+
+
+
 
 
