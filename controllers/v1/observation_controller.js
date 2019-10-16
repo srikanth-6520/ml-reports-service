@@ -130,6 +130,7 @@ async function observationGenerateReport(req, res) {
             req.body.observationId = req.query.observationId;
             let responseData = await observationReportManipulate(req, res);
 
+            if(("observationName" in responseData) == true){
 
             let resData = await pdfHandler.pdfGeneration(responseData, true);
             //    console.log("responseData",resData);
@@ -148,10 +149,16 @@ async function observationGenerateReport(req, res) {
             } else {
                 resolve(resData);
             }
+           }
+        else {
+            resolve(responseData);   
+          }
         }
-
+        
     });
 }
+
+
 async function entityObservationPdf(req, res) {
     return new Promise(async function (resolve, reject) {
         if (!req.query.observationId) {
@@ -172,7 +179,8 @@ async function entityObservationPdf(req, res) {
             req.body.observationId = req.query.observationId;
             req.body.entityId = req.query.entityId;
             let responseData = await entityObserv.entityObservationDataExport(req, res);
-
+            
+            if(("observationName" in responseData) == true){
             //    console.log("responseData",responseData);
             let resData = await pdfHandler.pdfGeneration(responseData, true);
 
@@ -190,6 +198,11 @@ async function entityObservationPdf(req, res) {
             } else {
                 resolve(resData);
             }
+        }
+        else {
+            resolve(responseData);   
+        }
+
         }
 
     });

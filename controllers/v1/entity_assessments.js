@@ -6,6 +6,8 @@ var helperFunc = require('../../helper/chartData');
 var commonCassandraFunc = require('../../common/cassandraFunc');
 var pdfHandler = require('../../helper/commonHandler');
 
+
+//Controller for entity assessment report
 exports.entityAssessment = async function (req, res) {
   return new Promise(async function (resolve, reject) {
       let data = await assessmentReportGetChartData(req, res);
@@ -163,7 +165,7 @@ async function assessmentEntityList(entityId,childType,token) {
 }
 
 
-//FUnction to generate PDF for entity assessment API
+//Function to generate PDF for entity assessment API
 exports.assessmentPdfReport = async function(req, res) {
   if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
     res.status(400);
@@ -204,7 +206,7 @@ exports.assessmentPdfReport = async function(req, res) {
 
 
       if(assessmentRes.result == true){
-  
+      
       let resData = await pdfHandler.assessmentPdfGeneration(assessmentRes);
 
       if (dataReportIndexes) {
@@ -214,6 +216,7 @@ exports.assessmentPdfReport = async function(req, res) {
         }
         commonCassandraFunc.updateEntityAssessmentDownloadPath(reqOptions);
       } else {
+        //store download url in cassandra
         let dataInsert = commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqData, resData, resData.downloadPath);
       }
 
