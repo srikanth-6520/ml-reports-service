@@ -18,6 +18,7 @@ exports.instanceReportChart = async function (data) {
             // Response object creation for text type
             if (element.event.questionResponseType == "text") {
                 var resp = {
+                    order:element.event.questionExternalId,
                     question: element.event.questionName,
                     responseType: element.event.questionResponseType,
                     answers: [element.event.questionAnswer],
@@ -28,6 +29,7 @@ exports.instanceReportChart = async function (data) {
             // Response object creation for radio type
             else if (element.event.questionResponseType == "radio") {
                 var resp = {
+                    order:element.event.questionExternalId,
                     question: element.event.questionName,
                     responseType: element.event.questionResponseType,
                     answers: [],
@@ -49,6 +51,7 @@ exports.instanceReportChart = async function (data) {
             // Response object creation for slider type
             else if (element.event.questionResponseType == "slider") {
                 var resp = {
+                    order:element.event.questionExternalId,
                     question: element.event.questionName,
                     responseType: element.event.questionResponseType,
                     answers: [element.event.questionAnswer],
@@ -60,6 +63,7 @@ exports.instanceReportChart = async function (data) {
             // Response object creation for number type
             else if (element.event.questionResponseType == "number") {
                 var resp = {
+                    order:element.event.questionExternalId,
                     question: element.event.questionName,
                     responseType: element.event.questionResponseType,
                     answers: [element.event.questionAnswer],
@@ -71,6 +75,7 @@ exports.instanceReportChart = async function (data) {
             // Response object creation for date type
             else if (element.event.questionResponseType == "date") {
                 var resp = {
+                    order:element.event.questionExternalId,
                     question: element.event.questionName,
                     responseType: element.event.questionResponseType,
                     answers: [element.event.questionAnswer],
@@ -103,7 +108,18 @@ exports.instanceReportChart = async function (data) {
             obj.response.push(multiSelectResp);
 
         }))
+        
+        //sort the response objects based on questionExternalId field
+        await obj.response.sort(GetSortOrder("order")); //Pass the attribute to be sorted on
 
+        await Promise.all(obj.response.map(async ele => {
+              
+            // res.forEach(async ele => {
+              delete ele.order;
+    
+            }))
+            
+        
         //return final response object
         return obj;
      }
@@ -120,6 +136,7 @@ async function instanceMultiselectFunc(data) {
     var valueArray = [];
     var question;
     var responseType;
+    var order;
 
     await Promise.all(data.map(element => {
         if (dataArray.includes(element.event.questionAnswer)) {
@@ -130,6 +147,7 @@ async function instanceMultiselectFunc(data) {
         } else {
             labelArray.push(element.event.questionResponseLabel);
         }
+        order = element.event.questionExternalId;
         question = element.event.questionName;
         responseType = element.event.questionResponseType;
     }))
@@ -143,6 +161,7 @@ async function instanceMultiselectFunc(data) {
     
     //response object for multiselect questions
     var resp = {
+        order:order,
         question: question,
         responseType: responseType,
         answers: [],
@@ -290,6 +309,18 @@ exports.entityReportChart = async function (data) {
             obj.response.push(multiSelectResp);
         }))
 
+
+        //sort the response objects based on questionExternalId field
+        await obj.response.sort(GetSortOrder("order")); //Pass the attribute to be sorted on
+
+        await Promise.all(obj.response.map(async ele => {
+              
+            // res.forEach(async ele => {
+              delete ele.order;
+    
+            }))
+            
+
         return obj;
     
   }
@@ -299,11 +330,24 @@ exports.entityReportChart = async function (data) {
 
 }
 
+
+//Function for sorting the array in ascending order based on a key
+function GetSortOrder(prop) {
+    return function(a, b) {
+        if (a[prop] > b[prop]) {
+            return 1;
+        } else if (a[prop] < b[prop]) {
+            return -1;
+        }
+        return 0;
+    }
+ }
+
 // Function for grouping the array based on certain field name
 function groupArrayElements (array){
     result = array.reduce(function (r, a) {
-        r[a.event.questionName] = r[a.event.questionName] || [];
-        r[a.event.questionName].push(a);
+        r[a.event.questionExternalId] = r[a.event.questionExternalId] || [];
+        r[a.event.questionExternalId].push(a);
         return r;
     }, Object.create(null));
 
@@ -316,16 +360,19 @@ async function responseObjectCreateFunc(data) {
     var dataArray = [];
     var question;
     var responseType;
+    var order;
       
     //loop the data and push answers to oe array
      for (i = 0; i < data.length; i++) {
         dataArray.push(data[i].event.questionAnswer);
         question = data[i].event.questionName;
+        order = data[i].event.questionExternalId;
         responseType = data[i].event.questionResponseType;
      }
 
     //response object
     var resp = {
+        order: order,
         question: question,
         responseType: responseType,
         answers: dataArray,
@@ -342,6 +389,7 @@ function radioObjectCreateFunc(data) {
     var chartdata = [];
     var question;
     var responseType;
+    var order;
 
     for (var i = 0; i < data.length; i++) {
         dataArray.push(data[i].event.questionAnswer);
@@ -349,7 +397,8 @@ function radioObjectCreateFunc(data) {
         } else {
             labelArray.push(data[i].event.questionResponseLabel);
         }
-
+        
+        order = data[i].event.questionExternalId;
         question = data[i].event.questionName;
         responseType = data[i].event.questionResponseType;
 
@@ -372,6 +421,7 @@ function radioObjectCreateFunc(data) {
     }
 
     var resp = {
+        order: order,
         question: question,
         responseType: responseType,
         answers: [],
@@ -424,6 +474,7 @@ function multiSelectObjectCreateFunc(data) {
     }
 
     var resp = {
+        order: data[0].event.questionExternalId,
         question: data[0].event.questionName,
         responseType: data[0].event.questionResponseType,
         answers: [],
