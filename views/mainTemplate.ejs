@@ -1,50 +1,32 @@
 <html>
-  <head>
-      <link rel="stylesheet" type="text/css" href="style.css">
-    </head>
-    <body>
+    <head>
+        <link rel="stylesheet" type="text/css" href="style.css">
+      </head>
+      <body>  
+      <% var orderData= data.orderData; %>
+        <% for (var r=0;r < orderData.length; r++){  %>   
+             <% if(orderData[r].responseType == 'text'){ %>  
+                 <%- include('textReport', {instaResponse: orderData[r] }); %>
+
+             <%  } else if(orderData[r].responseType == 'number'){ %>    
+              <%- include('numberReport', {instaResponse: orderData[r] }); %>
+
+          <%  } else if(orderData[r].responseType == 'date'){ %>   
+                 <%- include('dateReport', {instaResponse: orderData[r] }); %>  
+
+            <%  } else if(orderData[r].responseType == 'slider'){ %>    
+                <%- include('sliderReport', {instaResponse: orderData[r] }); %>
+
+            <%  } else if(orderData[r].responseType == 'multiselect'){ %>     
+                <%- include('multiSelectReport', {path: orderData[r][0].options.filename}); %>
+
+
+            <%  } else if(orderData[r].responseType == 'radio'){ %>  
+                <%- include('radioReport', {path: orderData[r][0].options.filename}); %>
+            <%  } %>        
+            <% } %>
+
+            
+      </body> 
       
-            <%- include('textReport', {instaRes: data.instaRes}); %>
-
-            <%- include('sliderReport', {instaRes: data.instaRes}); %>
-            
-
-            <%- include('dateReport', {instaRes: data.instaRes}); %>
-
-            <%- include('numberReport', {instaRes: data.instaRes}); %>
-
-            
-            <% for(var i=0; i < data.path.length; i++) { %>
-            <!-- <p style="page-break-before: always;">&nbsp;</p> -->
-              <!-- <h2 style="padding-bottom:30px;text-align: center"> <%= data.path[i].options.question %></h2> -->
-           <div class="col-sm-12" style="text-align: center;" > <%- include('multiSelectReport', {path: data.path[i].options.filename}); %></div>
-           <!-- <p style="page-break-before: always;">&nbsp;</p> --> 
-              
-           <% if(i< data.path.length-1){ %>
-            <p style="page-break-before: always;">&nbsp;</p>           
-            <%  } %>
-            <%  } %>
-
-            <% if(data.path.length > 0){ %>
-              <p style="page-break-before: always;">&nbsp;</p>           
-              <%  } %>
-           <% for(var i=0; i < data.radioOptionsData.length; i++) { %>
-
-            
-           
-
-            <!-- <p style="page-break-before: always;">&nbsp;</p> -->
-            <!-- <h2 style="padding-bottom:30px;text-align: center"> <%= data.radioOptionsData[i].options.question %></h2> -->
-            <div class="col-sm-12" style="text-align: center;" > <%- include('radioReport', { path: data.radioOptionsData[i].options.filename } ); %></div>
-            
-            <% if(i< data.radioOptionsData.length-1){ %>
-              <p style="page-break-before: always;">&nbsp;</p>
-             
-              <%  }
-             } %>
-
-          
-           <!-- <div style="padding-top:40px"> <%- include('radioReport', {path: data.radioImagePath}); %></div> -->
-    </body>
-       
-  </html>
+</html>
