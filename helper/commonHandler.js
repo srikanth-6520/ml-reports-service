@@ -114,7 +114,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes,deleteFromS3=null)
                     if (!fs.existsSync(dir)) {
                         fs.mkdirSync(dir);
                     }
-                    fs.writeFile(dir + '/header.html', headerHtml, function (errWr, dataWr) {
+                    fs.writeFile(dir + '/header.html', headerHtml, async function (errWr, dataWr) {
                         if (errWr) {
                             throw errWr;
                         } else {
@@ -139,10 +139,63 @@ exports.pdfGeneration = async function pdfGeneration(instaRes,deleteFromS3=null)
 
                             // }))
 
+
+                            var arrOfData = [ ];
+
+                            var orderId=instaRes.response[0].order; 
+
+                            // orderId = 
+                            
+                            await Promise.all(instaRes.response.map(async ele => {
+
+                                // console.log(ele.order);
+                                if(ele.responseType==="text" || ele.responseType==="date" || ele.responseType==="number" || ele.responseType==="slider" ){
+
+                                    arrOfData.push(ele);
+
+                                }else if(ele.responseType==="multiselect"){
+
+
+
+                                    // console.log("formDataMultiSelect",formDataMultiSelect);
+
+                                    let dt = formDataMultiSelect.filter(or=>{
+
+                                        // console.log(ele.order,"or",or.order);
+                                        if(or.order==ele.order){
+                                            return or;
+                                        }
+                                    })
+
+                                    dt.responseType = "multiselect";
+                                    arrOfData.push(dt);
+                                    // console.log("dt",dt);
+
+                                }else  if(ele.responseType==="radio"){
+                                    let dt = radioFormData.filter(or=>{
+
+                                        // console.log(ele.order,"or",or.order);
+                                        if(or.order==ele.order){
+                                            return or;
+                                        }
+                                    })
+
+                                    dt.responseType = "radio";
+                                    arrOfData.push(dt);
+                                    // console.log("dt",dt);
+
+                                }
+                            }));
+
+                            // console.log("arrOfData",arrOfData);
+
+                         
+
                             var obj = {
                                 path: formDataMultiSelect,
                                 instaRes: instaRes.response,
-                                radioOptionsData: radioFormData
+                                radioOptionsData: radioFormData,
+                                orderData:arrOfData
                             };
                             ejs.renderFile(__dirname + '/../views/mainTemplate.ejs', {
                                 data: obj
@@ -566,6 +619,7 @@ async function getSelectedData(items, type) {
               
                 //   console.log(chartType,"ele.chart.data",ele.chart.data[0].data)
                 var obj = {
+                    order:ele.order,
                     type:"svg",
                     options: {
                         title: {
@@ -718,7 +772,10 @@ async function callChartApiPreparation(ele, imgPath, type, chartData, carrent, f
     let imgFilePath = imgPath + "/" + chartImage;
     loop = loop + 1;
     let renderImage = await convertChartDataTofile(imgFilePath, options);
+
+    // console.log("ele",ele);
     let fileDat = {
+        order:ele.order,
         value: fs.createReadStream(imgFilePath),
         options: {
             filename: chartImage,

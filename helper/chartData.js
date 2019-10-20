@@ -94,8 +94,8 @@ exports.instanceReportChart = async function (data) {
         
         //group the multiselect questions based on their questionName
         result = mutiSelectArray.reduce(function (r, a) {
-            r[a.event.questionName] = r[a.event.questionName] || [];
-            r[a.event.questionName].push(a);
+            r[a.event.questionExternalId] = r[a.event.questionExternalId] || [];
+            r[a.event.questionExternalId].push(a);
             return r;
         }, Object.create(null));
 
@@ -111,13 +111,12 @@ exports.instanceReportChart = async function (data) {
         
         //sort the response objects based on questionExternalId field
         await obj.response.sort(GetSortOrder("order")); //Pass the attribute to be sorted on
-
-        await Promise.all(obj.response.map(async ele => {
-              
-            // res.forEach(async ele => {
-              delete ele.order;
+        
+        //loop through response objects to delete order key
+        // await Promise.all(obj.response.map(async ele => {
+        //    delete ele.order;
     
-            }))
+        // }))
             
         
         //return final response object
@@ -154,7 +153,7 @@ async function instanceMultiselectFunc(data) {
 
     for (j = 1; j <= dataArray.length; j++) {
         var k = 1;
-        var value = (k / dataArray.length) * 100;
+        var value = (k / 1) * 100;
         value = value.toFixed(2);
         valueArray.push(value);
     }
@@ -200,6 +199,7 @@ exports.entityReportChart = async function (data) {
     var sliderArray = [];
     var numberArray = [];
     var dateArray = [];
+    var noOfSubmissions = [];
     try {
         // obj is the response object which we are sending as a API response  
         if(data[0].event.entityId){ 
@@ -225,6 +225,11 @@ exports.entityReportChart = async function (data) {
         //filter all the objects whose questionResponseType is multiselect
         // for (var i = 0; i < data.length; i++) {
         await Promise.all(data.map(element => {
+            if (noOfSubmissions.includes(element.event.observationSubmissionId)) {
+            } else {
+                noOfSubmissions.push(element.event.observationSubmissionId);
+            }
+
             if (element.event.questionResponseType == "text") {
                 textArray.push(element)
             }
@@ -298,27 +303,28 @@ exports.entityReportChart = async function (data) {
         var radioRes = Object.keys(radioResult);
         //loop the keys and construct a response object for slider questions
         await Promise.all(radioRes.map(async ele => {
-            var radioResp = await radioObjectCreateFunc(radioResult[ele])
+            var radioResp = await radioObjectCreateFunc(radioResult[ele],noOfSubmissions)
             obj.response.push(radioResp);
         }));
 
          var multiSelectRes = Object.keys(multiSelectResult);
          //loop the keys and construct a response object for multiselect questions
         await Promise.all(multiSelectRes.map(async ele => {
-            var multiSelectResp = await multiSelectObjectCreateFunc(multiSelectResult[ele])
+            var multiSelectResp = await multiSelectObjectCreateFunc(multiSelectResult[ele],noOfSubmissions)
             obj.response.push(multiSelectResp);
         }))
 
 
         //sort the response objects based on questionExternalId field
-        await obj.response.sort(GetSortOrder("order")); //Pass the attribute to be sorted on
-
-        await Promise.all(obj.response.map(async ele => {
+         await obj.response.sort(GetSortOrder("order")); //Pass the attribute to be sorted on
+         
+        //code to remove order key from the response object
+        // await Promise.all(obj.response.map(async ele => {
               
-            // res.forEach(async ele => {
-              delete ele.order;
+        //     // res.forEach(async ele => {
+        //       delete ele.order;
     
-            }))
+        //     }))
             
 
         return obj;
@@ -382,8 +388,8 @@ async function responseObjectCreateFunc(data) {
 }
 
 
-//function to create response onject for radio questions (Entiry Report)
-function radioObjectCreateFunc(data) {
+//function to create response object for radio questions (Entiry Report)
+function radioObjectCreateFunc(data,noOfSubmissions) {
     var dataArray = [];
     var labelArray = [];
     var chartdata = [];
@@ -410,7 +416,7 @@ function radioObjectCreateFunc(data) {
     for (var j = 0; j < responseArray.length; j++) {
         var k = 0;
         var element = responseArray[j];
-        var value = (element[k + 1] / dataArray.length) * 100;
+        var value = (element[k + 1] / noOfSubmissions.length) * 100;
         value = value.toFixed(2);
         var dataObj = {
             name: labelArray[j],
@@ -439,7 +445,7 @@ function radioObjectCreateFunc(data) {
 }
 
 //function to create response object for multiselect questions (Entiry Report)
-function multiSelectObjectCreateFunc(data) {
+function multiSelectObjectCreateFunc(data,noOfSubmissions) {
     var dataArray = [];
     var labelArray = [];
     var chartdata = []
@@ -450,6 +456,8 @@ function multiSelectObjectCreateFunc(data) {
         r[a.event.observationSubmissionId].push(a);
         return r;
     }, Object.create(null));
+
+    
 
     var multiSelect = Object.keys(multiSelectGroupBySubmission);
     //loop the keys and construct a response object for multiselect questions
@@ -462,13 +470,14 @@ function multiSelectObjectCreateFunc(data) {
     var dataMerged = [].concat.apply([], dataArray);   // to merger multiple arrays into single array
     var labelMerged = [].concat.apply([], labelArray);  // to merger multiple arrays into single array
 
+
     labelMerged = Array.from(new Set(labelMerged))  //remove duplicates from label array
     uniqueDataArray = Object.entries(count(dataMerged));
 
     for (var j = 0; j < uniqueDataArray.length; j++) {
         var k = 0;
         var element = uniqueDataArray[j];
-        var value = (element[k + 1] / dataMerged.length) * 100;
+        var value = (element[k + 1] / noOfSubmissions.length) * 100;
         value = value.toFixed(2);
         chartdata.push(value);
     }
@@ -523,7 +532,7 @@ function entityMultiselectGrouping(data) {
             labelArray.push(data[i].event.questionResponseLabel);
         }
     }
-    return [dataArray, labelArray];
+     return [dataArray, labelArray];
 }
 
 
