@@ -45,7 +45,7 @@ router.post("/assessment/pdfReports",authenticate,entityAssessController.assessm
 //========= API calls for container app=============
 
 //API for course enrollment
-router.post("/shikshalokam/courseEnrollement",authenticate,course_enrollment.courseEnrollment);
+router.post("/shikshalokam/courseEnrollment",authenticate,course_enrollment.courseEnrollment);
 
 //API for content view
 router.get("/shikshalokam/contentView",authenticate,content_view.contentView);
