@@ -6,7 +6,7 @@ var helperFunc = require('../../helper/chartData');
 
 
 exports.courseEnrollment = async function (req, res) {
-    if (!req.body.userId) {
+    if (!req.body.user_id) {
         res.status(400);
         var response = {
             result: false,
@@ -16,6 +16,7 @@ exports.courseEnrollment = async function (req, res) {
         res.send(response);
     }
     else {
+        console.log("req data", req.body.user_id);
         //get quey from cassandra
         model.MyModel.findOneAsync({ qid: "course_enrollment_query" }, { allow_filtering: true })
             .then(async function (result) {
@@ -23,7 +24,7 @@ exports.courseEnrollment = async function (req, res) {
                 if (config.druid.enrollment_datasource_name) {
                     bodyParam.dataSource = config.druid.enrollment_datasource_name;
                 }
-                bodyParam.filter.value = req.body.userId;
+                bodyParam.filter.value = req.body.user_id;
                 //pass the query as body param and get the result from druid
                 var options = config.druid.options;
                 options.method = "POST";

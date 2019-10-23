@@ -23,6 +23,7 @@
     "keycloak-auth-utils": "^3.3.0",
     "moment": "^2.24.0",
     "morgan": "~1.9.1",
+    "node-fetch": "^2.6.0",
     "nodemon": "^1.19.3",
     "object.omit": "^3.0.0",
     "pure-uuid": "^1.5.7",

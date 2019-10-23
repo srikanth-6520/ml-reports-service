@@ -46,16 +46,17 @@ exports.contentView = async function (req, res) {
 
 
 exports.contentViewedByUser = async function (req, res) {
-    if (!req.body.userId) {
+    if (!req.body.usr_id) {
         res.status(400);
         var response = {
             result: false,
-            message: 'userId is a required field',
+            message: 'usr_id is a required field',
             data: []
         }
         res.send(response);
     }
     else {
+        console.log(req.body.usr_id);
         //get quey from cassandra
         model.MyModel.findOneAsync({ qid: "content_viewed_by_user_query" }, { allow_filtering: true })
             .then(async function (result) {
@@ -63,7 +64,7 @@ exports.contentViewedByUser = async function (req, res) {
                 if (config.druid.telemetry_datasource_name) {
                     bodyParam.dataSource = config.druid.telemetry_datasource_name;
                 }
-                bodyParam.filter.fields[0].value = req.body.userId;
+                bodyParam.filter.fields[0].value = req.body.usr_id;
                 var today = new Date();
                 var mm = today.getMonth() + 1;
                 var year = today.getFullYear();
