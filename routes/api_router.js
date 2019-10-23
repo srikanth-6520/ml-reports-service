@@ -53,6 +53,10 @@ router.get("/shikshalokam/contentView",authenticate,content_view.contentView);
 //API for content view by user
 router.post("/shikshalokam/contentDownloadedByUser",authenticate,content_view.contentViewedByUser);
 
+//API for content view by user
+router.get("/shikshalokam/usageByContent",authenticate,content_view.usageByContent);
+
+
 function authenticate(req,res,next){
 
     authService.validateToken(req,res)
