@@ -934,3 +934,23 @@ function designationCreateFunction(entityType){
 
   return value;
 }
+
+
+
+//============================ Container APP Response object creation ==========================================
+
+exports.courseEnrollmentResponeObj = async function(result){
+    var response = {
+        result: true,
+        data : []
+    }
+   
+    for (var i = 0; i < result.length; i++) {
+            let obj = {}
+            obj.course_name = result[i].event.course_name;
+            obj.status = result[i].event.course_status;
+        response.data.push(obj);
+        }
+   
+    return response;
+}
