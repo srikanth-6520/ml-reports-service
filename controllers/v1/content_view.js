@@ -4,7 +4,7 @@ var request = require('request');
 var model = require('../../db')
 var helperFunc = require('../../helper/chartData');
 
-
+//Controller for listing Top 5 contents viewed in platform
 exports.contentView = async function (req, res) {
     //get quey from cassandra
     model.MyModel.findOneAsync({ qid: "content_view_query" }, { allow_filtering: true })
@@ -23,7 +23,7 @@ exports.contentView = async function (req, res) {
             options.method = "POST";
             options.body = bodyParam;
             var data = await rp(options);
-            if (!data.length) {
+            if (data[0].result.length == 0) {
                 res.send({ "result": false, "data": [] })
             }
             else {
@@ -44,7 +44,7 @@ exports.contentView = async function (req, res) {
 }
 
 
-
+//Controller for listing Top 5 contents Downloaded by user in platform
 exports.contentViewedByUser = async function (req, res) {
     if (!req.body.usr_id) {
         res.status(400);
@@ -56,7 +56,6 @@ exports.contentViewedByUser = async function (req, res) {
         res.send(response);
     }
     else {
-        console.log(req.body.usr_id);
         //get quey from cassandra
         model.MyModel.findOneAsync({ qid: "content_viewed_by_user_query" }, { allow_filtering: true })
             .then(async function (result) {
@@ -64,22 +63,24 @@ exports.contentViewedByUser = async function (req, res) {
                 if (config.druid.telemetry_datasource_name) {
                     bodyParam.dataSource = config.druid.telemetry_datasource_name;
                 }
-                bodyParam.filter.fields[0].value = req.body.usr_id;
+                //append user id to the filter
+                bodyParam.filter.fields[1].fields[1].fields[0].value = req.body.usr_id;
+                //calculate current date and month
                 var today = new Date();
                 var mm = today.getMonth() + 1;
                 var year = today.getFullYear();
                 var date = year + "-" + mm + '-01T00:00:00.000Z';
-                bodyParam.filter.fields[1].fields[1].lower = date;
+                //append date to the filter
+                bodyParam.filter.fields[1].fields[0].lower = date;
                 //pass the query as body param and get the result from druid
                 var options = config.druid.options;
                 options.method = "POST";
                 options.body = bodyParam;
                 var data = await rp(options);
-                if (!data.length) {
+                if (data[0].result.length == 0) {
                     res.send({ "result": false, "data": [] })
                 }
                 else {
-                    console.log(data);
                     res.send({ "result": true, "data": data[0].result });
                 }
             })

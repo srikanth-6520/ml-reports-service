@@ -51,7 +51,7 @@ router.post("/shikshalokam/courseEnrollment",authenticate,course_enrollment.cour
 router.get("/shikshalokam/contentView",authenticate,content_view.contentView);
 
 //API for content view by user
-router.post("/shikshalokam/contentViewedByUser",authenticate,content_view.contentViewedByUser);
+router.post("/shikshalokam/contentDownloadedByUser",authenticate,content_view.contentViewedByUser);
 
 function authenticate(req,res,next){
 

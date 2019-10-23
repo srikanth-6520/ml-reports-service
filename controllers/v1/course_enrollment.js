@@ -5,6 +5,7 @@ var model = require('../../db')
 var helperFunc = require('../../helper/chartData');
 
 
+//Controller for listing the courses enrolled by user
 exports.courseEnrollment = async function (req, res) {
     if (!req.body.user_id) {
         res.status(400);
