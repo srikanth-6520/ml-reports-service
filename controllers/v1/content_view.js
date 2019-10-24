@@ -123,7 +123,8 @@ exports.usageByContent = async function (req, res) {
                 res.send({ "result": false, "data": [] })
             }
             else {
-                res.send({ "result": true, "data": data[0].result });
+                var responseObj = await helperFunc.usageByContentResponeObj(data[0].result);
+                res.send(responseObj);
             }
         })
         .catch(function (err) {
