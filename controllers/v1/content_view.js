@@ -18,6 +18,8 @@ exports.contentView = async function (req, res) {
             var year = today.getFullYear();
             var date = year + "-" + mm + '-01T00:00:00.000Z';
             bodyParam.filter.fields[1].lower = date;
+            //Assign threshold value to restrict number of records to be shown
+            bodyParam.threshold = config.druid.threshold_in_content_api;
             //pass the query as body param and get the result from druid
             var options = config.druid.options;
             options.method = "POST";
@@ -72,6 +74,8 @@ exports.contentViewedByUser = async function (req, res) {
                 var date = year + "-" + mm + '-01T00:00:00.000Z';
                 //append date to the filter
                 bodyParam.filter.fields[1].fields[0].lower = date;
+                //Assign threshold value to restrict number of records to be shown
+                bodyParam.threshold = config.druid.threshold_in_content_api;
                 //pass the query as body param and get the result from druid
                 var options = config.druid.options;
                 options.method = "POST";
@@ -114,6 +118,8 @@ exports.usageByContent = async function (req, res) {
             var year = today.getFullYear();
             var date = year + "-" + mm + '-01T00:00:00.000Z';
             bodyParam.filter.fields[0].value = date;
+            //Assign threshold value to restrict number of records to be shown
+            bodyParam.threshold = config.druid.threshold_in_content_api
             //pass the query as body param and get the result from druid
             var options = config.druid.options;
             options.method = "POST";
