@@ -21,7 +21,10 @@
  },
 
  "observation_datasource_name": "OBSERVATION_DATASOURCE_NAME",
- "assessment_datasource_name": "ASSESSMENT_DATASOURCE_NAME"
+ "assessment_datasource_name": "ASSESSMENT_DATASOURCE_NAME",
+ "enrollment_datasource_name": "ENROLLMENT_DATASOURCE_NAME",
+ "telemetry_datasource_name": "TELEMETRY_DATASOURCE_NAME",
+ "threshold_in_content_api" : 5
 },
 
  "keycloak": {
