@@ -7,17 +7,10 @@ var entityController = require('../controllers/v1/entity_observations')
 var observationController = require('../controllers/v1/observation_controller')
 var entityAssessController = require('../controllers/v1/entity_assessments')
 var listAssessmentPrograms = require('../controllers/v1/list_assessment_programs')
+var course_enrollment = require('../controllers/v1/course_enrollment')
+var content_view = require('../controllers/v1/content_view')
 
-
-
-
-
-
-//sl_assessment query
-// router.post("/slassessment",instanceController.slAssessment);
-// router.post("/observations/instance",instanceController.instanceReport);
-
-// router.get('/observations/instanceLevelPdfReports',instanceController.instancePdfReport)
+//========= API calls for samiksha observation and assessment reports=============
 
 //API router for observations instanceReport
 router.post("/observations/instance",authenticate,instanceController.instanceReport);
@@ -47,6 +40,21 @@ router.get("/observations/pdfReportsUrl",observationController.pdftempUrl);
 
 //API for Assessment PDF
 router.post("/assessment/pdfReports",authenticate,entityAssessController.assessmentPdfReport);
+
+
+//========= API calls for container app=============
+
+//API for course enrollment
+router.post("/shikshalokam/courseEnrollment",authenticate,course_enrollment.courseEnrollment);
+
+//API for content view
+router.get("/shikshalokam/contentView",authenticate,content_view.contentView);
+
+//API for content view by user
+router.post("/shikshalokam/contentDownloadedByUser",authenticate,content_view.contentViewedByUser);
+
+//API for content view by user
+router.get("/shikshalokam/usageByContent",authenticate,content_view.usageByContent);
 
 
 function authenticate(req,res,next){
