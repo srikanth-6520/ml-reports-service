@@ -9,6 +9,7 @@ var entityAssessController = require('../controllers/v1/entity_assessments')
 var listAssessmentPrograms = require('../controllers/v1/list_assessment_programs')
 var course_enrollment = require('../controllers/v1/course_enrollment')
 var content_view = require('../controllers/v1/content_view')
+var listObservationNames = require('../controllers/v1/list_observation_names')
 
 //========= API calls for samiksha observation and assessment reports=============
 
@@ -22,13 +23,16 @@ router.post("/observations/byEntity",authenticate,entityController.observationsB
 //API router for observationReport
 router.post("/observations/report",authenticate,observationController.observationReport);
 
-//API router for HM view
-//router.post("/assessments/school",observationController.observationReport);
+//API router for listing all the observation Names
+router.post("/observations/listObservationNames",listObservationNames.listObservationNames)
 
-//API router for list programs
+//API router for observation report
+// router.post("/observations/entity",listObservationNames.listObservationNames)
+
+//API router for list programs (Assessment)
 router.post("/assessments/listPrograms",authenticate,listAssessmentPrograms.listPrograms);
 
-//API router for HM view 
+//API router for Assessment Report 
 router.post("/assessments/entity",authenticate,entityAssessController.entityAssessment);
 
 router.get("/observations/instanceLevelPdfReports",authenticate,observationController.pdfReports);

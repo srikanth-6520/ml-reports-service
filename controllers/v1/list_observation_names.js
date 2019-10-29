@@ -5,22 +5,23 @@ var model = require('../../db')
 var helperFunc = require('../../helper/chartData');
 
 
-exports.listPrograms = async function (req, res) {
+//Controller for listing observation Names
+exports.listObservationNames = async function (req, res) {
     if (!req.body.entityId || !req.body.entityType) {
         res.status(400);
         var response = {
             result: false,
-            message: 'entityId,entityType and immediateChildType are required fields'
+            message: 'entityId,entityType are required fields'
         }
         res.send(response);
     }
     else {
         //get quey from cassandra
-        model.MyModel.findOneAsync({ qid: "list_assessment_programs_query" }, { allow_filtering: true })
+        model.MyModel.findOneAsync({ qid: "list_observation_names_query" }, { allow_filtering: true })
             .then(async function (result) {
                 var bodyParam = JSON.parse(result.query);
-                if (config.druid.assessment_datasource_name) {
-                    bodyParam.dataSource = config.druid.assessment_datasource_name;
+                if (config.druid.observation_datasource_name) {
+                    bodyParam.dataSource = config.druid.observation_datasource_name;
                 }
                 bodyParam.filter.dimension = req.body.entityType;
                 bodyParam.filter.value = req.body.entityId;
@@ -30,12 +31,12 @@ exports.listPrograms = async function (req, res) {
                 options.body = bodyParam;
                 var data = await rp(options);
                 if (!data.length) {
-                    res.send({ "data": []})
+                    res.send({ "result": false, "data": [] })
                 }
                 else {
-                  //call the function entityAssessmentChart to get the data for stacked bar chart 
-                   var responseObj = await helperFunc.listProgramsObjectCreate(data);
-                   res.send(responseObj);
+                    //call the function listObservationNamesObjectCreate to create response object
+                    var responseObj = await helperFunc.listObservationNamesObjectCreate(data);
+                    res.send(responseObj);
                 }
             })
             .catch(function (err) {

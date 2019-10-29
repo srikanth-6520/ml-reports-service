@@ -536,6 +536,21 @@ function entityMultiselectGrouping(data) {
 }
 
 
+//Create response object for listObservationNames API
+exports.listObservationNamesObjectCreate = async function(data){
+    try {
+    var responseObj = []
+
+    for(var i=0;i<data.length;i++){
+        responseObj.push(data[i].event);
+    }
+
+      return responseObj;
+    }
+    catch(err){
+        console.log(err);
+    }
+}
 
 
 

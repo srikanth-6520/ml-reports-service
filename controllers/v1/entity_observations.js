@@ -313,3 +313,21 @@ async function getObsvByentitys(req,result){
   });
 
 }
+
+//Controller for entity observation report
+exports.entityObservationReport = async function(req,res){
+  if (!req.body.entityId && !req.body.entityType && !req.body.immediateChildEntityType && !req.body.observationId){
+    res.status(400);
+    var response = {
+      result: false,
+      message: 'entityId,entityType,immediateChildEntityType and observationId are required fields'
+    }
+    res.send(response);
+  }
+  else{
+     
+
+
+  }
+
+}
