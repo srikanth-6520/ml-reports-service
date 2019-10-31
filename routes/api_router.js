@@ -24,10 +24,10 @@ router.post("/observations/byEntity",authenticate,entityController.observationsB
 router.post("/observations/report",authenticate,observationController.observationReport);
 
 //API router for listing all the observation Names
-router.post("/observations/listObservationNames",listObservationNames.listObservationNames)
+router.post("/observations/listObservationNames",authenticate,listObservationNames.listObservationNames)
 
 //API router for observation report
-// router.post("/observations/entity",listObservationNames.listObservationNames)
+router.post("/observations/entityReport",authenticate,entityController.entityObservationReport)
 
 //API router for list programs (Assessment)
 router.post("/assessments/listPrograms",authenticate,listAssessmentPrograms.listPrograms);

@@ -337,6 +337,138 @@ exports.entityReportChart = async function (data) {
 }
 
 
+//=============== Entity Observation Report API ======================================
+exports.entityObservationReportChartObjectCreation = async function (data) {
+    var obj;
+    var multiSelectArray = [];
+    var textArray = [];
+    var radioArray = [];
+    var sliderArray = [];
+    var numberArray = [];
+    var dateArray = [];
+    var noOfSubmissions = [];
+    try {
+        // obj is the response object which we are sending as a API response  
+        obj = {
+            observationName: data[0].event.observationName,
+            observationId: data[0].event.observationId,
+            response: []
+        }
+
+        //filter all the objects whose questionResponseType is multiselect
+        // for (var i = 0; i < data.length; i++) {
+        await Promise.all(data.map(element => {
+            if (noOfSubmissions.includes(element.event.observationSubmissionId)) {
+            } else {
+                noOfSubmissions.push(element.event.observationSubmissionId);
+            }
+
+            if (element.event.questionResponseType == "text") {
+                textArray.push(element)
+            }
+            else if (element.event.questionResponseType == "radio") {
+                radioArray.push(element)
+            }
+            else if (element.event.questionResponseType == "multiselect") {
+                multiSelectArray.push(element)
+            }
+            else if (element.event.questionResponseType == "slider") {
+                sliderArray.push(element)
+            }
+            else if (element.event.questionResponseType == "number") {
+                numberArray.push(element)
+            }
+            else if (element.event.questionResponseType == "date") {
+                dateArray.push(element)
+            }
+        // }
+        }))
+
+        //group the text questions based on their questionName
+        textResult = await groupArrayElements(textArray);
+
+        //group the radio questions based on their questionName
+        radioResult = await groupArrayElements(radioArray);
+
+        //group the multiselect questions based on their questionName
+
+        // console.log("mutiSelectArray",mutiSelectArray);
+        multiSelectResult = await groupArrayElements(multiSelectArray);
+
+        //group the slider questions based on their questionName
+        sliderResult = await groupArrayElements(sliderArray);
+
+        //group the number questions based on their questionName
+        numberResult = await groupArrayElements(numberArray);
+        
+        //group the date questions based on their questionName
+         dateResult = await groupArrayElements(dateArray);
+
+        var textRes = Object.keys(textResult);
+        //loop the keys and construct a response object for text questions
+        await Promise.all(textRes.map(async ele => {
+            var textResponse = await responseObjectCreateFunc(textResult[ele])
+            obj.response.push(textResponse);
+
+        }));
+
+        var sliderRes = Object.keys(sliderResult);
+        //loop the keys and construct a response object for slider questions
+        await Promise.all(sliderRes.map(async ele => {
+            var sliderResp = await responseObjectCreateFunc(sliderResult[ele])
+            obj.response.push(sliderResp);
+        }));
+
+        var numberRes = Object.keys(numberResult);
+        //loop the keys and construct a response object for slider questions
+        await Promise.all(numberRes.map(async ele => {
+            var numberResp = await responseObjectCreateFunc(numberResult[ele])
+            obj.response.push(numberResp);
+        }));
+         
+        var dateRes = Object.keys(dateResult);
+        //loop the keys and construct a response object for slider questions
+        await Promise.all(dateRes.map(async ele => {
+            var dateResp = await responseObjectCreateFunc(dateResult[ele])
+            obj.response.push(dateResp);
+        }))
+
+        var radioRes = Object.keys(radioResult);
+        //loop the keys and construct a response object for slider questions
+        await Promise.all(radioRes.map(async ele => {
+            var radioResp = await radioObjectCreateFunc(radioResult[ele],noOfSubmissions)
+            obj.response.push(radioResp);
+        }));
+
+         var multiSelectRes = Object.keys(multiSelectResult);
+         //loop the keys and construct a response object for multiselect questions
+        await Promise.all(multiSelectRes.map(async ele => {
+            var multiSelectResp = await multiSelectObjectCreateFunc(multiSelectResult[ele],noOfSubmissions)
+            obj.response.push(multiSelectResp);
+        }))
+
+
+        //sort the response objects based on questionExternalId field
+         await obj.response.sort(GetSortOrder("order")); //Pass the attribute to be sorted on
+         
+        //code to remove order key from the response object
+        // await Promise.all(obj.response.map(async ele => {
+              
+        //     // res.forEach(async ele => {
+        //       delete ele.order;
+    
+        //     }))
+            
+
+        return obj;
+    
+  }
+    catch (err) {
+        console.log(err);
+    }
+
+}
+
 //Function for sorting the array in ascending order based on a key
 function GetSortOrder(prop) {
     return function(a, b) {

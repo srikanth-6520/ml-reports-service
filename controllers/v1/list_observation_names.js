@@ -23,20 +23,23 @@ exports.listObservationNames = async function (req, res) {
                 if (config.druid.observation_datasource_name) {
                     bodyParam.dataSource = config.druid.observation_datasource_name;
                 }
+
                 bodyParam.filter.dimension = req.body.entityType;
                 bodyParam.filter.value = req.body.entityId;
+
                 //pass the query as body param and get the result from druid
                 var options = config.druid.options;
                 options.method = "POST";
                 options.body = bodyParam;
                 var data = await rp(options);
+
                 if (!data.length) {
                     res.send({ "result": false, "data": [] })
                 }
                 else {
                     //call the function listObservationNamesObjectCreate to create response object
                     var responseObj = await helperFunc.listObservationNamesObjectCreate(data);
-                    res.send(responseObj);
+                    res.send({ "result": true, "data": responseObj });
                 }
             })
             .catch(function (err) {
