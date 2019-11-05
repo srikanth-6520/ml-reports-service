@@ -32,19 +32,9 @@ exports.instanceReportChart = async function (data) {
                     order:element.event.questionExternalId,
                     question: element.event.questionName,
                     responseType: element.event.questionResponseType,
-                    answers: [],
-                    chart: {
-                        type: "pie",
-                        data: [
-                            {
-                                data: [{
-                                    name: element.event.questionResponseLabel,
-                                    y: 100,
-                                }]
-                            }
-                        ]
+                    answers: [element.event.questionResponseLabel],
+                    chart: {}
                     }
-                }
                 obj.response.push(resp);
 
             }
@@ -130,18 +120,12 @@ exports.instanceReportChart = async function (data) {
 
 //Function to create a response object for multiselect question (Instance level Report)
 async function instanceMultiselectFunc(data) {
-    var dataArray = [];
     var labelArray = [];
-    var valueArray = [];
     var question;
     var responseType;
     var order;
 
     await Promise.all(data.map(element => {
-        if (dataArray.includes(element.event.questionAnswer)) {
-        } else {
-            dataArray.push(element.event.questionAnswer);
-        }
         if (labelArray.includes(element.event.questionResponseLabel)) {
         } else {
             labelArray.push(element.event.questionResponseLabel);
@@ -151,38 +135,13 @@ async function instanceMultiselectFunc(data) {
         responseType = element.event.questionResponseType;
     }))
 
-    for (j = 1; j <= dataArray.length; j++) {
-        var k = 1;
-        var value = (k / 1) * 100;
-        value = value.toFixed(2);
-        valueArray.push(value);
-    }
-    
     //response object for multiselect questions
     var resp = {
         order:order,
         question: question,
         responseType: responseType,
-        answers: [],
-        chart: {
-            type: "bar",
-            data: [
-                {
-                    data: valueArray
-                }
-            ],
-            xAxis: {
-                categories: labelArray,
-                title: {
-                    text: "Responses"
-                }
-            },
-            yAxis: {
-                title: {
-                    text: "Responses in percentage"
-                }
-            }
-        }
+        answers: labelArray,
+        chart: {}
     }
 
     return resp;

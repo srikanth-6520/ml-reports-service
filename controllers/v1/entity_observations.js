@@ -348,13 +348,13 @@ exports.entityObservationReport = async function(req,res){
        else {
          bodyParam.dimensions.push(entityType, entityType + "Name", immediateChildEntityType, immediateChildEntityType + "Name");
        }
-
+       
        //pass the query as body param and get the result from druid
        var options = config.druid.options;
        options.method = "POST";
        options.body = bodyParam;
        var data = await rp(options);
-       
+
        if (!data.length) {
          res.send({"data": "No observations made for the entity"})
        }
