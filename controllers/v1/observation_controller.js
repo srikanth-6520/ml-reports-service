@@ -14,6 +14,7 @@ var fs = require('fs');
 var url = require('url');
 var rimraf = require("rimraf");
 const path = require('path');
+var omit = require('object.omit');
 
 
 exports.observationReport = async function (req, res) {
@@ -83,29 +84,31 @@ async function observationReportManipulate(req, res) {
 
 exports.pdfReports = async function (req, res) {
 
-    // console.log("enty");
+    console.log("enty",req.query);
 
     return new Promise(async function (resolve, reject) {
         // var bodyParam = JSON.parse(req);
         // console.log("body", req);
-        if (req.query && req.query.observationId && req.query.entityId) {
 
+        if (req.query.entityId && req.query.entityType && req.query.observationId) {
+            let resObj = await entityObserv.entityObservationReportPdfGeneration(req, res)
+            res.send(resObj);
+
+        }
+       
+        else if (req.query.observationId && req.query.entityId) {
             let resObj = await entityObservationPdf(req, res);
             res.send(resObj);
 
-        } else if (req.query && req.query.submissionId) {
+        } else if (req.query.submissionId) {
             let resObj = await instance.instancePdfReport(req, res)
             res.send(resObj);
 
-
-        } else if (req.query && req.query.observationId) {
-
+        }  else if (req.query.observationId) {
             let resObj = await observationGenerateReport(req, res)
-
-
-
             res.send(resObj);
-        } else {
+
+        }  else {
             resolve({
                 status: "success",
                 res: resObj
@@ -207,6 +210,7 @@ async function entityObservationPdf(req, res) {
 
     });
 }
+
 
 exports.pdftempUrl = async function (req, response) {
 

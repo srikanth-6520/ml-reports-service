@@ -18,6 +18,7 @@ router.post("/observations/instance",authenticate,instanceController.instanceRep
 
 //API router for observations entityReport
 router.post("/observations/entity",authenticate,entityController.entityReport);
+
 router.post("/observations/byEntity",authenticate,entityController.observationsByEntity);
 
 //API router for observationReport
@@ -27,7 +28,7 @@ router.post("/observations/report",authenticate,observationController.observatio
 router.post("/observations/listObservationNames",authenticate,listObservationNames.listObservationNames)
 
 //API router for observation report
-router.post("/observations/entityReport",authenticate,entityController.entityObservationReport)
+router.post("/observations/entityObservationReport",authenticate,entityController.entityObservationReport)
 
 //API router for list programs (Assessment)
 router.post("/assessments/listPrograms",authenticate,listAssessmentPrograms.listPrograms);
@@ -36,10 +37,11 @@ router.post("/assessments/listPrograms",authenticate,listAssessmentPrograms.list
 router.post("/assessments/entity",authenticate,entityAssessController.entityAssessment);
 
 router.get("/observations/instanceLevelPdfReports",authenticate,observationController.pdfReports);
-router.get("/observations/pdfReports",authenticate,observationController.pdfReports);
-// router.get('/observations/instanceLevelPdfReports',authenticate,instanceController.instancePdfReport);
 
-//API for observations PDF
+//API for entity observation PDF generation
+router.get("/observations/pdfReports",authenticate,observationController.pdfReports);
+
+//API for observations PDF ( For internal use)
 router.get("/observations/pdfReportsUrl",observationController.pdftempUrl);
 
 //API for Assessment PDF

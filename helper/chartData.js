@@ -1,3 +1,5 @@
+const moment = require("moment");
+
 //function for instance observation final response creation
 exports.instanceReportChart = async function (data) {
     var obj;
@@ -68,7 +70,7 @@ exports.instanceReportChart = async function (data) {
                     order:element.event.questionExternalId,
                     question: element.event.questionName,
                     responseType: element.event.questionResponseType,
-                    answers: [element.event.questionAnswer],
+                    answers: [moment(element.event.questionAnswer).format('D MMM YYYY, h:mm:ss A')],
                     chart: {}
                 }
                 obj.response.push(resp);
@@ -256,6 +258,11 @@ exports.entityReportChart = async function (data) {
         //loop the keys and construct a response object for slider questions
         await Promise.all(dateRes.map(async ele => {
             var dateResp = await responseObjectCreateFunc(dateResult[ele])
+            var answers = []
+             await Promise.all(dateResp.answers.map(element => {
+                answers.push(moment(element).format('D MMM YYYY, h:mm:ss A'));
+             }))
+             dateResp.answers = answers;
             obj.response.push(dateResp);
         }))
 
@@ -389,6 +396,11 @@ exports.entityObservationReportChartObjectCreation = async function (data) {
         //loop the keys and construct a response object for slider questions
         await Promise.all(dateRes.map(async ele => {
             var dateResp = await responseObjectCreateFunc(dateResult[ele])
+             var answers = []
+             await Promise.all(dateResp.answers.map(element => {
+                answers.push(moment(element).format('D MMM YYYY, h:mm:ss A'));
+             }))
+             dateResp.answers = answers;
             obj.response.push(dateResp);
         }))
 
