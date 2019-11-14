@@ -1,111 +1,89 @@
+const moment = require("moment");
+
 //function for instance observation final response creation
 exports.instanceReportChart = async function (data) {
     var obj;
-    var mutiSelectArray = []
+    var multiSelectArray = [];
+    var matrixArray = [];
+
+    data = await getHardCodeddata();
 
     try {
         // obj is the response object which we are sending as a API response   
         obj = {
-            entityName: data[0].event.entityName,
+            entityName: data[0].event.schoolName,
             observationName: data[0].event.observationName,
             observationId: data[0].event.observationId,
             entityType: data[0].event.entityType,
-            entityId: data[0].event.entityId,
+            entityId: data[0].event.school,
             response: []
         }
 
         await Promise.all(data.map(element => {
-            // Response object creation for text type
-            if (element.event.questionResponseType == "text") {
+
+            // Response object creation for text, slider, number and date type of questions
+            if (element.event.questionResponseType == "text" && element.event.instanceParentResponsetype != "matrix" || element.event.questionResponseType == "slider" && element.event.instanceParentResponsetype != "matrix" || element.event.questionResponseType == "number" && element.event.instanceParentResponsetype != "matrix" || element.event.questionResponseType == "date" && element.event.instanceParentResponsetype != "matrix") {
+               
+                if (element.event.questionResponseType == "date"){
+                    element.event.questionAnswer = moment(element.event.questionAnswer).format('D MMM YYYY, h:mm:ss A');
+                }
+
                 var resp = {
                     order:element.event.questionExternalId,
                     question: element.event.questionName,
                     responseType: element.event.questionResponseType,
                     answers: [element.event.questionAnswer],
-                    chart: {}
+                    chart: {},
+                    instanceQuestions:[]
                 }
                 obj.response.push(resp);
             }
+
             // Response object creation for radio type
-            else if (element.event.questionResponseType == "radio") {
+            else if (element.event.questionResponseType == "radio" && element.event.instanceParentResponsetype != "matrix") {
                 var resp = {
                     order:element.event.questionExternalId,
                     question: element.event.questionName,
                     responseType: element.event.questionResponseType,
-                    answers: [],
-                    chart: {
-                        type: "pie",
-                        data: [
-                            {
-                                data: [{
-                                    name: element.event.questionResponseLabel,
-                                    y: 100,
-                                }]
-                            }
-                        ]
-                    }
+                    answers: [element.event.questionResponseLabel],
+                    chart: {},
+                    instanceQuestions:[]
                 }
                 obj.response.push(resp);
 
             }
-            // Response object creation for slider type
-            else if (element.event.questionResponseType == "slider") {
-                var resp = {
-                    order:element.event.questionExternalId,
-                    question: element.event.questionName,
-                    responseType: element.event.questionResponseType,
-                    answers: [element.event.questionAnswer],
-                    chart: {}
-                }
-                obj.response.push(resp);
-            }
 
-            // Response object creation for number type
-            else if (element.event.questionResponseType == "number") {
-                var resp = {
-                    order:element.event.questionExternalId,
-                    question: element.event.questionName,
-                    responseType: element.event.questionResponseType,
-                    answers: [element.event.questionAnswer],
-                    chart: {}
-                }
-                obj.response.push(resp);
-            }
-
-            // Response object creation for date type
-            else if (element.event.questionResponseType == "date") {
-                var resp = {
-                    order:element.event.questionExternalId,
-                    question: element.event.questionName,
-                    responseType: element.event.questionResponseType,
-                    answers: [element.event.questionAnswer],
-                    chart: {}
-                }
-                obj.response.push(resp);
-            }
         }))
 
         //filter all the objects whose questionResponseType is multiselect
         await Promise.all(data.map(element => {
-            if (element.event.questionResponseType == "multiselect") {
-                mutiSelectArray.push(element)
+            if (element.event.questionResponseType == "multiselect" && element.event.instanceParentResponsetype != "matrix") {
+                multiSelectArray.push(element);
+            }
+            if (element.event.instanceParentResponsetype == "matrix") {
+                matrixArray.push(element);
             }
         }))
-        
-        //group the multiselect questions based on their questionName
-        result = mutiSelectArray.reduce(function (r, a) {
-            r[a.event.questionExternalId] = r[a.event.questionExternalId] || [];
-            r[a.event.questionExternalId].push(a);
-            return r;
-        }, Object.create(null));
 
-        var res = Object.keys(result);
+        //group the multiselect questions based on their questionExternalId
+        let multiSelectResult = await groupArrayByGivenField(multiSelectArray,"questionExternalId");
+        let res = Object.keys(multiSelectResult);
 
         //loop the keys and construct a response object for multiselect questions
         await Promise.all(res.map(async ele => {
-        // res.forEach(async ele => {
-            var multiSelectResp = await instanceMultiselectFunc(result[ele])
+            let multiSelectResp = await instanceMultiselectFunc(multiSelectResult[ele])
             obj.response.push(multiSelectResp);
+
+        }))
+
+        //group the Matrix questions based on their questionExternalId
+        let matrixResult = await groupArrayByGivenField(matrixArray,"instanceParentExternalId");
+        let matrixRes = Object.keys(matrixResult);
+
+         //loop the keys of matrix array
+         await Promise.all(matrixRes.map(async ele => {
+            let matrixResponse = await matrixResponseObjectCreateFunc(matrixResult[ele])
+            obj.response.push(matrixResponse);
 
         }))
         
@@ -130,18 +108,12 @@ exports.instanceReportChart = async function (data) {
 
 //Function to create a response object for multiselect question (Instance level Report)
 async function instanceMultiselectFunc(data) {
-    var dataArray = [];
     var labelArray = [];
-    var valueArray = [];
     var question;
     var responseType;
     var order;
 
     await Promise.all(data.map(element => {
-        if (dataArray.includes(element.event.questionAnswer)) {
-        } else {
-            dataArray.push(element.event.questionAnswer);
-        }
         if (labelArray.includes(element.event.questionResponseLabel)) {
         } else {
             labelArray.push(element.event.questionResponseLabel);
@@ -151,38 +123,14 @@ async function instanceMultiselectFunc(data) {
         responseType = element.event.questionResponseType;
     }))
 
-    for (j = 1; j <= dataArray.length; j++) {
-        var k = 1;
-        var value = (k / 1) * 100;
-        value = value.toFixed(2);
-        valueArray.push(value);
-    }
-    
     //response object for multiselect questions
     var resp = {
         order:order,
         question: question,
         responseType: responseType,
-        answers: [],
-        chart: {
-            type: "bar",
-            data: [
-                {
-                    data: valueArray
-                }
-            ],
-            xAxis: {
-                categories: labelArray,
-                title: {
-                    text: "Responses"
-                }
-            },
-            yAxis: {
-                title: {
-                    text: "Responses in percentage"
-                }
-            }
-        }
+        answers: labelArray,
+        chart: {},
+        instanceQuestions:[]
     }
 
     return resp;
@@ -200,16 +148,19 @@ exports.entityReportChart = async function (data) {
     var numberArray = [];
     var dateArray = [];
     var noOfSubmissions = [];
+    var matrixArray = [];
+
     try {
+        data = await getHardCodeddata();
         // obj is the response object which we are sending as a API response  
-        if(data[0].event.entityId){ 
+        if(data[0].event.school){ 
 
         obj = {
-            entityName: data[0].event.entityName,
+            entityName: data[0].event.schoolName,
             observationName: data[0].event.observationName,
             observationId: data[0].event.observationId,
             entityType: data[0].event.entityType,
-            entityId: data[0].event.entityId,
+            entityId: data[0].event.school,
             response: []
         }
     }
@@ -223,97 +174,114 @@ exports.entityReportChart = async function (data) {
     }
 
         //filter all the objects whose questionResponseType is multiselect
-        // for (var i = 0; i < data.length; i++) {
         await Promise.all(data.map(element => {
             if (noOfSubmissions.includes(element.event.observationSubmissionId)) {
             } else {
                 noOfSubmissions.push(element.event.observationSubmissionId);
             }
 
-            if (element.event.questionResponseType == "text") {
+            if (element.event.questionResponseType == "text" && element.event.instanceParentResponsetype != "matrix") {
                 textArray.push(element)
             }
-            else if (element.event.questionResponseType == "radio") {
+            else if (element.event.questionResponseType == "radio" && element.event.instanceParentResponsetype != "matrix") {
                 radioArray.push(element)
             }
-            else if (element.event.questionResponseType == "multiselect") {
+            else if (element.event.questionResponseType == "multiselect" && element.event.instanceParentResponsetype != "matrix") {
                 multiSelectArray.push(element)
             }
-            else if (element.event.questionResponseType == "slider") {
+            else if (element.event.questionResponseType == "slider" && element.event.instanceParentResponsetype != "matrix") {
                 sliderArray.push(element)
             }
-            else if (element.event.questionResponseType == "number") {
+            else if (element.event.questionResponseType == "number" && element.event.instanceParentResponsetype != "matrix") {
                 numberArray.push(element)
             }
-            else if (element.event.questionResponseType == "date") {
+            else if (element.event.questionResponseType == "date" && element.event.instanceParentResponsetype != "matrix") {
                 dateArray.push(element)
             }
-        // }
+            
+            if (element.event.instanceParentResponsetype == "matrix"){
+                matrixArray.push(element)
+            }
         }))
 
         //group the text questions based on their questionName
-        textResult = await groupArrayElements(textArray);
+        textResult = await groupArrayByGivenField(textArray,"questionExternalId");
 
         //group the radio questions based on their questionName
-        radioResult = await groupArrayElements(radioArray);
+        radioResult = await groupArrayByGivenField(radioArray,"questionExternalId");
 
         //group the multiselect questions based on their questionName
 
         // console.log("mutiSelectArray",mutiSelectArray);
-        multiSelectResult = await groupArrayElements(multiSelectArray);
+        multiSelectResult = await groupArrayByGivenField(multiSelectArray,"questionExternalId");
 
         //group the slider questions based on their questionName
-        sliderResult = await groupArrayElements(sliderArray);
+        sliderResult = await groupArrayByGivenField(sliderArray,"questionExternalId");
 
         //group the number questions based on their questionName
-        numberResult = await groupArrayElements(numberArray);
+        numberResult = await groupArrayByGivenField(numberArray,"questionExternalId");
         
         //group the date questions based on their questionName
-         dateResult = await groupArrayElements(dateArray);
+         dateResult = await groupArrayByGivenField(dateArray,"questionExternalId");
 
-        var textRes = Object.keys(textResult);
+        //group the Matrix questions based on their instanceParentExternalId
+         matrixResult = await groupArrayByGivenField(matrixArray,"instanceParentExternalId");
+
+        let textRes = Object.keys(textResult);
         //loop the keys and construct a response object for text questions
         await Promise.all(textRes.map(async ele => {
-            var textResponse = await responseObjectCreateFunc(textResult[ele])
+            let textResponse = await responseObjectCreateFunc(textResult[ele])
             obj.response.push(textResponse);
 
         }));
 
-        var sliderRes = Object.keys(sliderResult);
+        let sliderRes = Object.keys(sliderResult);
         //loop the keys and construct a response object for slider questions
         await Promise.all(sliderRes.map(async ele => {
-            var sliderResp = await responseObjectCreateFunc(sliderResult[ele])
+            let sliderResp = await responseObjectCreateFunc(sliderResult[ele])
             obj.response.push(sliderResp);
         }));
 
-        var numberRes = Object.keys(numberResult);
+        let numberRes = Object.keys(numberResult);
         //loop the keys and construct a response object for slider questions
         await Promise.all(numberRes.map(async ele => {
-            var numberResp = await responseObjectCreateFunc(numberResult[ele])
+            let numberResp = await responseObjectCreateFunc(numberResult[ele])
             obj.response.push(numberResp);
         }));
          
-        var dateRes = Object.keys(dateResult);
+        let dateRes = Object.keys(dateResult);
         //loop the keys and construct a response object for slider questions
         await Promise.all(dateRes.map(async ele => {
-            var dateResp = await responseObjectCreateFunc(dateResult[ele])
+            let dateResp = await responseObjectCreateFunc(dateResult[ele])
+            let answers = []
+             await Promise.all(dateResp.answers.map(element => {
+                answers.push(moment(element).format('D MMM YYYY, h:mm:ss A'));
+             }))
+             dateResp.answers = answers;
             obj.response.push(dateResp);
         }))
 
-        var radioRes = Object.keys(radioResult);
+        let radioRes = Object.keys(radioResult);
         //loop the keys and construct a response object for slider questions
         await Promise.all(radioRes.map(async ele => {
-            var radioResp = await radioObjectCreateFunc(radioResult[ele],noOfSubmissions)
+            let radioResp = await radioObjectCreateFunc(radioResult[ele],noOfSubmissions)
             obj.response.push(radioResp);
         }));
 
-         var multiSelectRes = Object.keys(multiSelectResult);
+         let multiSelectRes = Object.keys(multiSelectResult);
          //loop the keys and construct a response object for multiselect questions
         await Promise.all(multiSelectRes.map(async ele => {
-            var multiSelectResp = await multiSelectObjectCreateFunc(multiSelectResult[ele],noOfSubmissions)
+            let multiSelectResp = await multiSelectObjectCreateFunc(multiSelectResult[ele],noOfSubmissions)
             obj.response.push(multiSelectResp);
         }))
 
+        let matrixRes = Object.keys(matrixResult);
+        //loop the keys of matrix array
+        await Promise.all(matrixRes.map(async ele => {
+           let matrixResponse = await matrixResponseObjectCreateFunc(matrixResult[ele])
+           obj.response.push(matrixResponse);
+
+       }))
 
         //sort the response objects based on questionExternalId field
          await obj.response.sort(GetSortOrder("order")); //Pass the attribute to be sorted on
@@ -337,6 +305,247 @@ exports.entityReportChart = async function (data) {
 }
 
 
+
+//=============== Entity Observation Report API ======================================
+exports.entityObservationReportChartObjectCreation = async function (data) {
+    var obj;
+    var multiSelectArray = [];
+    var textArray = [];
+    var radioArray = [];
+    var sliderArray = [];
+    var numberArray = [];
+    var dateArray = [];
+    var noOfSubmissions = [];
+    var matrixArray = [];
+
+    try {
+        data = await getHardCodeddata();
+        // obj is the response object which we are sending as a API response  
+        obj = {
+            observationName: data[0].event.observationName,
+            observationId: data[0].event.observationId,
+            response: []
+        }
+
+        //filter all the objects whose questionResponseType is multiselect
+        await Promise.all(data.map(element => {
+            if (noOfSubmissions.includes(element.event.observationSubmissionId)) {
+            } else {
+                noOfSubmissions.push(element.event.observationSubmissionId);
+            }
+
+            if (element.event.questionResponseType == "text" && element.event.instanceParentResponsetype != "matrix") {
+                textArray.push(element)
+            }
+            else if (element.event.questionResponseType == "radio" && element.event.instanceParentResponsetype != "matrix") {
+                radioArray.push(element)
+            }
+            else if (element.event.questionResponseType == "multiselect" && element.event.instanceParentResponsetype != "matrix") {
+                multiSelectArray.push(element)
+            }
+            else if (element.event.questionResponseType == "slider" && element.event.instanceParentResponsetype != "matrix") {
+                sliderArray.push(element)
+            }
+            else if (element.event.questionResponseType == "number" && element.event.instanceParentResponsetype != "matrix") {
+                numberArray.push(element)
+            }
+            else if (element.event.questionResponseType == "date" && element.event.instanceParentResponsetype != "matrix") {
+                dateArray.push(element)
+            }
+            if (element.event.instanceParentResponsetype == "matrix"){
+                matrixArray.push(element)
+            }
+        }))
+
+        //group the text questions based on their questionName
+        textResult = await groupArrayByGivenField(textArray,"questionExternalId");
+
+        //group the radio questions based on their questionName
+        radioResult = await groupArrayByGivenField(radioArray,"questionExternalId");
+
+        //group the multiselect questions based on their questionName
+
+        // console.log("mutiSelectArray",mutiSelectArray);
+        multiSelectResult = await groupArrayByGivenField(multiSelectArray,"questionExternalId");
+
+        //group the slider questions based on their questionName
+        sliderResult = await groupArrayByGivenField(sliderArray,"questionExternalId");
+
+        //group the number questions based on their questionName
+        numberResult = await groupArrayByGivenField(numberArray,"questionExternalId");
+        
+        //group the date questions based on their questionName
+         dateResult = await groupArrayByGivenField(dateArray,"questionExternalId");
+
+        //group the Matrix questions based on their instanceParentExternalId
+         matrixResult = await groupArrayByGivenField(matrixArray,"instanceParentExternalId");
+        
+        let textRes = Object.keys(textResult);
+        //loop the keys and construct a response object for text questions
+        await Promise.all(textRes.map(async ele => {
+            let textResponse = await responseObjectCreateFunc(textResult[ele])
+            obj.response.push(textResponse);
+
+        }));
+
+        let sliderRes = Object.keys(sliderResult);
+        //loop the keys and construct a response object for slider questions
+        await Promise.all(sliderRes.map(async ele => {
+            let sliderResp = await responseObjectCreateFunc(sliderResult[ele])
+            obj.response.push(sliderResp);
+        }));
+
+        let numberRes = Object.keys(numberResult);
+        //loop the keys and construct a response object for slider questions
+        await Promise.all(numberRes.map(async ele => {
+            let numberResp = await responseObjectCreateFunc(numberResult[ele])
+            obj.response.push(numberResp);
+        }));
+         
+        let dateRes = Object.keys(dateResult);
+        //loop the keys and construct a response object for slider questions
+        await Promise.all(dateRes.map(async ele => {
+            let dateResp = await responseObjectCreateFunc(dateResult[ele])
+             let answers = []
+             await Promise.all(dateResp.answers.map(element => {
+                answers.push(moment(element).format('D MMM YYYY, h:mm:ss A'));
+             }))
+             dateResp.answers = answers;
+            obj.response.push(dateResp);
+        }))
+
+        let radioRes = Object.keys(radioResult);
+        //loop the keys and construct a response object for slider questions
+        await Promise.all(radioRes.map(async ele => {
+            let radioResp = await radioObjectCreateFunc(radioResult[ele],noOfSubmissions)
+            obj.response.push(radioResp);
+        }));
+
+         let multiSelectRes = Object.keys(multiSelectResult);
+         //loop the keys and construct a response object for multiselect questions
+        await Promise.all(multiSelectRes.map(async ele => {
+            let multiSelectResp = await multiSelectObjectCreateFunc(multiSelectResult[ele],noOfSubmissions)
+            obj.response.push(multiSelectResp);
+        }))
+        
+         let matrixRes = Object.keys(matrixResult);
+         //loop the keys of matrix array
+         await Promise.all(matrixRes.map(async ele => {
+            let matrixResponse = await matrixResponseObjectCreateFunc(matrixResult[ele])
+            obj.response.push(matrixResponse);
+
+        }))
+
+          
+        //sort the response objects based on questionExternalId field
+         await obj.response.sort(GetSortOrder("order")); //Pass the attribute to be sorted on
+         
+        //code to remove order key from the response object
+        // await Promise.all(obj.response.map(async ele => {
+              
+        //     // res.forEach(async ele => {
+        //       delete ele.order;
+    
+        //     }))
+            
+
+        return obj;
+    
+  }
+    catch (err) {
+        console.log(err);
+    }
+
+}
+
+
+//matrix questions response object creation
+async function matrixResponseObjectCreateFunc(data){
+    var noOfInstances = [];
+    var obj = {
+        order:data[0].event.instanceParentExternalId,
+        question: data[0].event.instanceParentQuestion,
+        responseType: data[0].event.instanceParentResponsetype,
+        answers: [],
+        chart: {},
+        instanceQuestions:[]
+    }
+   
+    let groupBySubmissionId = await groupArrayByGivenField(data, "observationSubmissionId");
+    let submissionKeys = Object.keys(groupBySubmissionId);
+
+    await Promise.all(submissionKeys.map(async ele => {
+
+        let groupByInstanceId = await groupArrayByGivenField(groupBySubmissionId[ele], "instanceId")
+        let instanceKeys = Object.keys(groupByInstanceId)
+
+        await Promise.all(instanceKeys.map(async element => {
+            let instanceData = groupByInstanceId[element];
+            let instanceIdArray = [];
+
+            await Promise.all(instanceData.map(resp => {
+                if (instanceIdArray.includes(resp.event.instanceId)) {
+
+                } else {
+                    instanceIdArray.push(resp.event.instanceId);
+                }
+            }))
+
+            noOfInstances.push(instanceIdArray);
+
+        }))
+    }))
+
+    let instanceIdArrayData = [].concat.apply([], noOfInstances); 
+
+    //group the Matrix questions based on their questionExternalId
+    let matrixResult = await groupArrayByGivenField(data,"questionExternalId");
+    let matrixRes = Object.keys(matrixResult);
+
+     //loop the keys and construct a response object for multiselect questions
+     await Promise.all(matrixRes.map(async ele => {
+        let matrixResponse = await matrixResponseObject(matrixResult[ele],instanceIdArrayData)
+        obj.instanceQuestions.push(matrixResponse);
+
+    }))
+
+    //sort the response objects based on questionExternalId field
+    await obj.instanceQuestions.sort(GetSortOrder("order")); //Pass the attribute to be sorted on
+
+    return obj;
+}
+
+
+//Create Response object for matrix type instance questions
+async function matrixResponseObject(data,noOfInstances){
+
+    if(data[0].event.questionResponseType == "text" || data[0].event.questionResponseType == "slider" || data[0].event.questionResponseType == "number" || data[0].event.questionResponseType == "date"){
+         var answers = []
+        let responseObj = await responseObjectCreateFunc(data);
+         
+        if(responseObj.responseType == "date") {
+          await Promise.all(responseObj.answers.map(element => {
+             answers.push(moment(element).format('D MMM YYYY, h:mm:ss A'));
+           }))
+
+           responseObj.answers = answers
+        }
+        //  responseObj.answers = answers;
+         return responseObj;
+    }
+    else if(data[0].event.questionResponseType == "radio"){
+
+        let responseObj = await radioObjectCreateFunc(data,noOfInstances);
+        return responseObj;
+    }
+    else if(data[0].event.questionResponseType == "multiselect"){
+            
+        let responseObj = await multiSelectObjectCreateFunc(data,noOfInstances);
+        return responseObj;
+    }
+}
+
+
 //Function for sorting the array in ascending order based on a key
 function GetSortOrder(prop) {
     return function(a, b) {
@@ -349,19 +558,8 @@ function GetSortOrder(prop) {
     }
  }
 
-// Function for grouping the array based on certain field name
-function groupArrayElements (array){
-    result = array.reduce(function (r, a) {
-        r[a.event.questionExternalId] = r[a.event.questionExternalId] || [];
-        r[a.event.questionExternalId].push(a);
-        return r;
-    }, Object.create(null));
 
-    return result;
-
-}
-
-//function to create response onject for text and slider questions (Entiry Report)
+//function to create response onject for text, number,slider,date questions (Entiry Report)
 async function responseObjectCreateFunc(data) {
     var dataArray = [];
     var question;
@@ -382,23 +580,29 @@ async function responseObjectCreateFunc(data) {
         question: question,
         responseType: responseType,
         answers: dataArray,
-        chart: {}
+        chart: {},
+        instanceQuestions:[]
     }
     return resp;
+
 }
 
 
 //function to create response object for radio questions (Entiry Report)
-function radioObjectCreateFunc(data,noOfSubmissions) {
+async function radioObjectCreateFunc(data,noOfSubmissions) {
     var dataArray = [];
     var labelArray = [];
     var chartdata = [];
+    var answerArray = [];
     var question;
     var responseType;
     var order;
 
     for (var i = 0; i < data.length; i++) {
+        
         dataArray.push(data[i].event.questionAnswer);
+        answerArray.push(data[i].event.questionResponseLabel);
+
         if (labelArray.includes(data[i].event.questionResponseLabel)) {
         } else {
             labelArray.push(data[i].event.questionResponseLabel);
@@ -417,7 +621,7 @@ function radioObjectCreateFunc(data,noOfSubmissions) {
         var k = 0;
         var element = responseArray[j];
         var value = (element[k + 1] / noOfSubmissions.length) * 100;
-        value = value.toFixed(2);
+        value = parseFloat(value.toFixed(2));
         var dataObj = {
             name: labelArray[j],
             y: value,
@@ -438,47 +642,42 @@ function radioObjectCreateFunc(data,noOfSubmissions) {
                     data: chartdata
                 }
             ]
-        }
+        },
+        instanceQuestions:[]
+    }
+    
+    if("instanceParentResponsetype" in data[0].event){
+        resp.answers = answerArray;
     }
 
     return resp;
 }
 
 //function to create response object for multiselect questions (Entiry Report)
-function multiSelectObjectCreateFunc(data,noOfSubmissions) {
-    var dataArray = [];
-    var labelArray = [];
-    var chartdata = []
+async function multiSelectObjectCreateFunc(data,noOfSubmissions) {
+    try {
+    let dataArray = [];
+    let answerArray = [];
+    let labelArray = [];
+    let chartdata = []
    
-    //group the multiselect questions based on their observationSubmissionId
-    multiSelectGroupBySubmission = data.reduce(function (r, a) {
-        r[a.event.observationSubmissionId] = r[a.event.observationSubmissionId] || [];
-        r[a.event.observationSubmissionId].push(a);
-        return r;
-    }, Object.create(null));
+    await Promise.all(data.map(ele => {
+        dataArray.push(ele.event.questionAnswer);
 
+        if (labelArray.includes(ele.event.questionResponseLabel)) {
+        } else {
+            labelArray.push(ele.event.questionResponseLabel)
+        }
+    }))
     
-
-    var multiSelect = Object.keys(multiSelectGroupBySubmission);
-    //loop the keys and construct a response object for multiselect questions
-    multiSelect.forEach(ele => {
-        var multiSelectResponseObj = entityMultiselectGrouping(multiSelectGroupBySubmission[ele])
-        dataArray.push(multiSelectResponseObj[0]);
-        labelArray.push(multiSelectResponseObj[1]);
-    })
-
-    var dataMerged = [].concat.apply([], dataArray);   // to merger multiple arrays into single array
-    var labelMerged = [].concat.apply([], labelArray);  // to merger multiple arrays into single array
-
-
-    labelMerged = Array.from(new Set(labelMerged))  //remove duplicates from label array
-    uniqueDataArray = Object.entries(count(dataMerged));
+    labelMerged = Array.from(new Set(labelArray))  
+    uniqueDataArray = Object.entries(count(dataArray));
 
     for (var j = 0; j < uniqueDataArray.length; j++) {
         var k = 0;
         var element = uniqueDataArray[j];
         var value = (element[k + 1] / noOfSubmissions.length) * 100;
-        value = value.toFixed(2);
+        value = parseFloat(value.toFixed(2));
         chartdata.push(value);
     }
 
@@ -505,11 +704,42 @@ function multiSelectObjectCreateFunc(data,noOfSubmissions) {
                     text: "Responses in percentage"
                 }
             }
-        }
+        },
+        instanceQuestions:[]
+    }
+
+    // Constructing answer array for matrix questions
+    if ("instanceParentResponsetype" in data[0].event) {
+        var groupBySubmissionId = await groupArrayByGivenField(data, "observationSubmissionId");
+        var submissionKeys = Object.keys(groupBySubmissionId);
+        
+        await Promise.all(submissionKeys.map(async ele => {
+            var groupByInstanceId = await groupArrayByGivenField(groupBySubmissionId[ele], "instanceId")
+            var instanceKeys = Object.keys(groupByInstanceId)
+            
+            await Promise.all(instanceKeys.map(async element => {
+                let instanceData = groupByInstanceId[element];
+                let instanceAnswerArray = [];
+
+                await Promise.all(instanceData.map(resp => {
+
+                    instanceAnswerArray.push(resp.event.questionResponseLabel);
+                }))
+
+                answerArray.push(instanceAnswerArray);
+
+            }))
+
+        }))
+
+        resp.answers = answerArray;
     }
     
     return resp;
-
+}
+catch(err) {
+  console.log(err);
+ }
 }
 
 // to count the occurances of same elements in the array
@@ -536,6 +766,21 @@ function entityMultiselectGrouping(data) {
 }
 
 
+//Create response object for listObservationNames API
+exports.listObservationNamesObjectCreate = async function(data){
+    try {
+    var responseObj = []
+
+    for(var i=0;i<data.length;i++){
+        responseObj.push(data[i].event);
+    }
+
+      return responseObj;
+    }
+    catch(err){
+        console.log(err);
+    }
+}
 
 
 
@@ -629,7 +874,7 @@ exports.entityAssessmentChart = async function (inputObj) {
     }));
    
     //group the json objects based on entityName
-    var res = await groupArrayByDomainName(data,entityName);
+    var res = await groupArrayByGivenField(data,entityName);
 
     var dt = Object.keys(res);
     await Promise.all(dt.map(element => {
@@ -800,7 +1045,7 @@ exports.entityTableViewFunc = async function(dataObj){
     var data = dataObj.entityData;
     var entityType = dataObj.entityType;
     var childType = dataObj.childEntityType;
-    var result = await groupArrayByDomainName(data,childType);
+    var result = await groupArrayByGivenField(data,childType);
     var res = Object.keys(result);
     
     var titleName;
@@ -837,7 +1082,7 @@ exports.entityTableViewFunc = async function(dataObj){
 //create criteria array based on domainName
 async function tableDataCreateFunc(data,entityType){
     try{
-    var result = await groupArrayByDomainName(data,"domainName");
+    var result = await groupArrayByGivenField(data,"domainName");
     var res = Object.keys(result);
 
     var chartdata = {
@@ -897,7 +1142,7 @@ async function domainCriteriaCreateFunc (data){
 }
 
 // Function for grouping the array based on certain field name
-function groupArrayByDomainName (array,name){
+function groupArrayByGivenField (array,name){
     result = array.reduce(function (r, a) {
         r[a.event[name]] = r[a.event[name]] || [];
         r[a.event[name]].push(a);
@@ -969,4 +1214,497 @@ exports.usageByContentResponeObj = async function (result) {
         response.data.push(obj);
     }
     return response;
+}
+
+
+
+
+
+function getHardCodeddata(){
+    var data = [ {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR001",
+          "questionId" : "5da42ac150ca920d5034f4a8",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "12",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "questionResponseLabel" : "12",
+          "questionName" : "Class:",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "number",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR002",
+          "questionId" : "5da42ac150ca920d5034f4a9",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "2019-10-16T14:09:12.737Z",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "questionResponseLabel" : "2019-10-16T14:09:12.737Z",
+          "questionName" : "Date:",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "date",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR003A",
+          "questionId" : "5da42ac150ca920d5034f4aa",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "Maths",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "instanceParentQuestion" : "school assessment",
+          "instanceParentExternalId" : "CR003",
+          "instanceParentResponsetype" : "matrix",
+          "instanceId" : 1,
+          "questionResponseLabel" : "Maths",
+          "questionName" : "Subject:",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "text",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR003B",
+          "questionId" : "5da42ac150ca920d5034f4ab",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R1",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "instanceParentQuestion" : "school assessment",
+          "instanceParentExternalId" : "CR003",
+          "instanceParentResponsetype" : "matrix",
+          "instanceId" : 1,
+          "questionResponseLabel" : "Spoke respectfully to all students; did not humiliate or discriminate",
+          "questionName" : "What does teacher's rapport with learners look like?",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "multiselect",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR003C",
+          "questionId" : "5da42ac150ca920d5034f4ab",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R4",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "instanceParentQuestion" : "school assessment",
+          "instanceParentExternalId" : "CR003",
+          "instanceParentResponsetype" : "matrix",
+          "instanceId" : 1,
+          "questionResponseLabel" : "Demonstrated sensitivity to learner's needs; specially engaged slow learners",
+          "questionName" : "What does teacher's rapport with learners look like?",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "multiselect",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR003D",
+          "questionId" : "5da42ac150ca920d5034f4ab",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R3",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "instanceParentQuestion" : "school assessment",
+          "instanceParentExternalId" : "CR003",
+          "instanceParentResponsetype" : "matrix",
+          "instanceId" : 1,
+          "questionResponseLabel" : "Created opportunities to appreciate and encourage learners.",
+          "questionName" : "What does teacher's rapport with learners look like?",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "multiselect",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR003E",
+          "questionId" : "5da42ac150ca920d5034f4ac",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R4",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "instanceParentQuestion" : "school assessment",
+          "instanceParentExternalId" : "CR003",
+          "instanceParentResponsetype" : "matrix",
+          "instanceId" : 1,
+          "questionResponseLabel" : "Expert",
+          "questionName" : "Overall rating",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "radio",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR006",
+          "questionId" : "5da42ac150ca920d5034f4ad",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R5",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "questionResponseLabel" : "Resorts to corporal punishment",
+          "questionName" : "How does the teacher respond to unexpected student behavior or disengagement during lesson?",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "multiselect",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR007",
+          "questionId" : "5da42ac150ca920d5034f4ae",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R2",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "questionResponseLabel" : "Developing",
+          "questionName" : "Overall rating",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "radio",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR008",
+          "questionId" : "5da42ac150ca920d5034f4af",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R7",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "questionResponseLabel" : "Focused only on a small group of students while teaching; ignored the rest",
+          "questionName" : "How does teacher support learning process for students?",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "multiselect",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR008",
+          "questionId" : "5da42ac150ca920d5034f4af",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R8",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "questionResponseLabel" : "Took no initiative to encourage students; Maintained neutral tone towards students",
+          "questionName" : "How does teacher support learning process for students?",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "multiselect",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR008",
+          "questionId" : "5da42ac150ca920d5034f4af",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R5",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "questionResponseLabel" : "Engaged learners who are at different levels of learning through differentiated activities.",
+          "questionName" : "How does teacher support learning process for students?",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "multiselect",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR009",
+          "questionId" : "5da42ac150ca920d5034f4b0",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R4",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "questionResponseLabel" : "Expert",
+          "questionName" : "Overall rating",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "radio",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR010",
+          "questionId" : "5da42ac150ca920d5034f4b1",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R6",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "questionResponseLabel" : "Used e-content to teach",
+          "questionName" : "What does teaching - learning process in class look like?",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "multiselect",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR011",
+          "questionId" : "5da42ac150ca920d5034f4b2",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R2",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "questionResponseLabel" : "Developing",
+          "questionName" : "Overall rating",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "radio",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR012",
+          "questionId" : "5da42ac150ca920d5034f4b3",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R6",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "questionResponseLabel" : "Was able to draw upon additional information beyond the text",
+          "questionName" : "How was teacher's command over content?",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "multiselect",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR012",
+          "questionId" : "5da42ac150ca920d5034f4b3",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R7",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "questionResponseLabel" : "Made connections to other subjects and topics",
+          "questionName" : "How was teacher's command over content?",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "multiselect",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR013",
+          "questionId" : "5da42ac150ca920d5034f4b4",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R3",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "questionResponseLabel" : "Proficient",
+          "questionName" : "Overall rating",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "radio",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR014",
+          "questionId" : "5da42ac150ca920d5034f4b5",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R6",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "questionResponseLabel" : "Were visibly disengaged and uninterested",
+          "questionName" : "What is the rigor of activities in which students are engaged?",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "multiselect",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR014",
+          "questionId" : "5da42ac150ca920d5034f4b5",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R5",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "questionResponseLabel" : "Participated in independent problem solving or project work or challenging tasks",
+          "questionName" : "What is the rigor of activities in which students are engaged?",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "multiselect",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR015",
+          "questionId" : "5da42ac150ca920d5034f4b6",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R3",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "questionResponseLabel" : "Proficient",
+          "questionName" : "Overall rating",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "radio",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      },
+      {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR016A",
+          "questionId" : "5da42ac150ca920d5034f4aa",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "Maths",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "instanceParentQuestion" : "school assessment details",
+          "instanceParentExternalId" : "CR016",
+          "instanceParentResponsetype" : "matrix",
+          "instanceId" : 1,
+          "questionResponseLabel" : "Maths",
+          "questionName" : "Subject:",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "text",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR016B",
+          "questionId" : "5da42ac150ca920d5034f4ab",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R1",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "instanceParentQuestion" : "school assessment",
+          "instanceParentExternalId" : "CR016",
+          "instanceParentResponsetype" : "matrix",
+          "instanceId" : 1,
+          "questionResponseLabel" : "Spoke respectfully to all students; did not humiliate or discriminate",
+          "questionName" : "What does teacher's rapport with learners look like?",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "multiselect",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR016C",
+          "questionId" : "5da42ac150ca920d5034f4ab",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R4",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "instanceParentQuestion" : "school assessment",
+          "instanceParentExternalId" : "CR016",
+          "instanceParentResponsetype" : "matrix",
+          "instanceId" : 1,
+          "questionResponseLabel" : "Demonstrated sensitivity to learner's needs; specially engaged slow learners",
+          "questionName" : "What does teacher's rapport with learners look like?",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "multiselect",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR016D",
+          "questionId" : "5da42ac150ca920d5034f4ab",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R3",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "instanceParentQuestion" : "school assessment",
+          "instanceParentExternalId" : "CR016",
+          "instanceParentResponsetype" : "matrix",
+          "instanceId" : 1,
+          "questionResponseLabel" : "Created opportunities to appreciate and encourage learners.",
+          "questionName" : "What does teacher's rapport with learners look like?",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "multiselect",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      }, {
+        "version" : "v1",
+        "timestamp" : "1901-01-01T00:00:00.000Z",
+        "event" : {
+          "observationId" : "5da70be3c1b12e2431c26929",
+          "questionExternalId" : "CR016E",
+          "questionId" : "5da42ac150ca920d5034f4ac",
+          "school" : "5bfe53ea1d0c350d61b78d0a",
+          "questionAnswer" : "R4",
+          "entityType" : "school",
+          "observationName" : "PISA-Classroom Observation Form",
+          "instanceParentQuestion" : "school assessment",
+          "instanceParentExternalId" : "CR016",
+          "instanceParentResponsetype" : "matrix",
+          "instanceId" : 1,
+          "questionResponseLabel" : "Expert",
+          "questionName" : "Overall rating",
+          "schoolName" : "Sachdeva Convent School, Street No.-5 Sangam Vihar (Wazirabad - Jagatpur Road), Delhi",
+          "questionResponseType" : "radio",
+          "observationSubmissionId" : "5da7247d8fffa124407ad976",
+        }
+      } ]
+
+      return data;
 }

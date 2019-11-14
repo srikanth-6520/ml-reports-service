@@ -76,6 +76,8 @@ exports.instanceReport = async function (req, res) {
   }
 };
 
+
+// Function for instance observation PDF generation
 async function instancePdfFunc(req) {
   return new Promise(function (resolve, reject) {
     model.MyModel.findOneAsync({
@@ -84,8 +86,6 @@ async function instancePdfFunc(req) {
       allow_filtering: true
     })
       .then(async function (result) {
-
-        console.log("result", result);
 
         var bodyParam = JSON.parse(result.query);
         //bodyParam.dataSource = "sl_observation_dev";
@@ -131,7 +131,6 @@ exports.instancePdfReport = async function (req, res) {
     res.send(response);
   } else {
     reqData = req.query;
-    console.log("reqData",reqData)
     var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
     // if(dataReportIndexes){
 
@@ -147,9 +146,6 @@ exports.instancePdfReport = async function (req, res) {
       dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
       let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
 
-      // call to get SignedUrl 
-      console.log("instaRes=======", signedUlr);
-
       var response = {
         status: "success",
         message: 'Observation Pdf Generated successfully',
@@ -160,8 +156,8 @@ exports.instancePdfReport = async function (req, res) {
     } else {
       var instaRes = await instancePdfFunc(reqData);
 
-      if(("observationName" in instaRes) == true) {      
-      let resData = await pdfHandler.pdfGeneration(instaRes);
+      if(("observationName" in instaRes) == true) { 
+      let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes);
 
       if (dataReportIndexes) {
         var reqOptions = {
