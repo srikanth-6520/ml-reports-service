@@ -4,12 +4,12 @@ var request = require('request');
 var cassandra = require('cassandra-driver');
 var client = new cassandra.Client({ contactPoints: [config.cassandra.host], keyspace: config.cassandra.keyspace, localDataCenter: 'datacenter1' });
 var model = require('../../db')
-var helperFunc = require('../../helper/chartData');
-var commonCassandraFunc = require('../../common/cassandraFunc');
+var helperFunc = require('../../helper/chart_data');
+var commonCassandraFunc = require('../../common/cassandra_func');
 
 var instance = require('./instance_observation');
 var entityObserv = require('./entity_observations');
-var pdfHandler = require('../../helper/commonHandler');
+var pdfHandler = require('../../helper/common_handler');
 var fs = require('fs');
 var url = require('url');
 var rimraf = require("rimraf");

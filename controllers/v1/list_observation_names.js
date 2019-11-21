@@ -2,7 +2,7 @@ var config = require('../../config/config');
 var rp = require('request-promise');
 var request = require('request');
 var model = require('../../db')
-var helperFunc = require('../../helper/chartData');
+var helperFunc = require('../../helper/chart_data');
 
 
 //Controller for listing observation Names
