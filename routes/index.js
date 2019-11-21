@@ -51,16 +51,16 @@ router.post("/assessment/pdfReports",authenticate,entityAssessController.assessm
 //========= API calls for container app=============
 
 //API for course enrollment
-router.post("/shikshalokam/courseEnrollment",authenticate,course_enrollment.courseEnrollment);
+router.post("/shikshalokam/courseEnrollment",course_enrollment.courseEnrollment);
 
 //API for content view
-router.get("/shikshalokam/contentView",authenticate,content_view.contentView);
+router.get("/shikshalokam/contentView",content_view.contentView);
 
 //API for content view by user
-router.post("/shikshalokam/contentDownloadedByUser",authenticate,content_view.contentViewedByUser);
+router.post("/shikshalokam/contentDownloadedByUser",content_view.contentDownloadedByUser);
 
 //API for content view by user
-router.get("/shikshalokam/usageByContent",authenticate,content_view.usageByContent);
+router.get("/shikshalokam/usageByContent",content_view.usageByContent);
 
 
 function authenticate(req,res,next){

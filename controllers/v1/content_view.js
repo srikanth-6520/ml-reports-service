@@ -2,22 +2,19 @@ var config = require('../../config/config');
 var rp = require('request-promise');
 var request = require('request');
 var model = require('../../db')
-var helperFunc = require('../../helper/chartData');
+var helperFunc = require('../../helper/chart_data');
 
 //Controller for listing Top 5 contents viewed in platform
 exports.contentView = async function (req, res) {
     //get quey from cassandra
-    model.MyModel.findOneAsync({ qid: "content_view_query" }, { allow_filtering: true })
+    model.MyModel.findOneAsync({ qid: "content_viewed_in_platform_query" }, { allow_filtering: true })
         .then(async function (result) {
             var bodyParam = JSON.parse(result.query);
             if (config.druid.telemetry_datasource_name) {
                 bodyParam.dataSource = config.druid.telemetry_datasource_name;
             }
-            var today = new Date();
-            var mm = today.getMonth() + 1;
-            var year = today.getFullYear();
-            var date = year + "-" + mm + '-01T00:00:00.000Z';
-            bodyParam.filter.fields[1].lower = date;
+            // get previous month date and append to intervals field
+            bodyParam.intervals = await getIntervals();
             //Assign threshold value to restrict number of records to be shown
             bodyParam.threshold = config.druid.threshold_in_content_api;
             //pass the query as body param and get the result from druid
@@ -47,7 +44,7 @@ exports.contentView = async function (req, res) {
 
 
 //Controller for listing Top 5 contents Downloaded by user in platform
-exports.contentViewedByUser = async function (req, res) {
+exports.contentDownloadedByUser = async function (req, res) {
     if (!req.body.usr_id) {
         res.status(400);
         var response = {
@@ -59,21 +56,16 @@ exports.contentViewedByUser = async function (req, res) {
     }
     else {
         //get quey from cassandra
-        model.MyModel.findOneAsync({ qid: "content_viewed_by_user_query" }, { allow_filtering: true })
+        model.MyModel.findOneAsync({ qid: "content_downloaded_by_user_query" }, { allow_filtering: true })
             .then(async function (result) {
                 var bodyParam = JSON.parse(result.query);
                 if (config.druid.telemetry_datasource_name) {
                     bodyParam.dataSource = config.druid.telemetry_datasource_name;
                 }
                 //append user id to the filter
-                bodyParam.filter.fields[1].fields[1].fields[0].value = req.body.usr_id;
-                //calculate current date and month
-                var today = new Date();
-                var mm = today.getMonth() + 1;
-                var year = today.getFullYear();
-                var date = year + "-" + mm + '-01T00:00:00.000Z';
-                //append date to the filter
-                bodyParam.filter.fields[1].fields[0].lower = date;
+                 bodyParam.filter.fields[0].value = req.body.usr_id;
+                 // get previous month date and append to intervals field
+                 bodyParam.intervals = await getIntervals();
                 //Assign threshold value to restrict number of records to be shown
                 bodyParam.threshold = config.druid.threshold_in_content_api;
                 //pass the query as body param and get the result from druid
@@ -113,13 +105,11 @@ exports.usageByContent = async function (req, res) {
             if (config.druid.telemetry_datasource_name) {
                 bodyParam.dataSource = config.druid.telemetry_datasource_name;
             }
-            var today = new Date();
-            var mm = today.getMonth() + 1;
-            var year = today.getFullYear();
-            var date = year + "-" + mm + '-01T00:00:00.000Z';
-            bodyParam.filter.fields[0].value = date;
+            
             //Assign threshold value to restrict number of records to be shown
             bodyParam.threshold = config.druid.threshold_in_content_api
+             // get previous month date and append to intervals field
+             bodyParam.intervals = await getIntervals();
             //pass the query as body param and get the result from druid
             var options = config.druid.options;
             options.method = "POST";
@@ -145,3 +135,24 @@ exports.usageByContent = async function (req, res) {
         })
 
 }
+
+
+
+async function getIntervals() {
+    var now = new Date();
+    var prevMonthLastDate = new Date(now.getFullYear(), now.getMonth(), 0);
+    var prevMonthFirstDate = new Date(now.getFullYear() - (now.getMonth() > 0 ? 0 : 1), (now.getMonth() - 1 + 12) % 12, 1);
+
+    var formatDateComponent = function (dateComponent) {
+        return (dateComponent < 10 ? '0' : '') + dateComponent;
+    };
+
+    var formatDate = function (date) {
+        return date.getFullYear() + '-' + formatDateComponent(date.getMonth() + 1) + '-' + formatDateComponent(date.getDate()) + 'T00:00:00+00:00';
+    };
+
+   var intervals = formatDate(prevMonthFirstDate) + '/' + formatDate(prevMonthLastDate);
+
+   return intervals;
+
+}    

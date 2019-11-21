@@ -8,9 +8,9 @@ var client = new cassandra.Client({
   localDataCenter: 'datacenter1'
 });
 var model = require('../../db');
-var helperFunc = require('../../helper/chartData');
-var commonCassandraFunc = require('../../common/cassandraFunc');
-var pdfHandler = require('../../helper/commonHandler');
+var helperFunc = require('../../helper/chart_data');
+var commonCassandraFunc = require('../../common/cassandra_func');
+var pdfHandler = require('../../helper/common_handler');
 var ejs = require('ejs');
 var fs = require('fs');
 var uuidv4 = require('uuid/v4');
