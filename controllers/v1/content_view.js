@@ -26,7 +26,8 @@ exports.contentView = async function (req, res) {
                 res.send({ "result": false, "data": [] })
             }
             else {
-                res.send({ "result": true, "data": data[0].result });
+                var responseObj = await helperFunc.contentViewResponeObj(data[0].result);
+                res.send(responseObj);
             }
         })
         .catch(function (err) {
@@ -77,11 +78,11 @@ exports.contentDownloadedByUser = async function (req, res) {
                     res.send({ "result": false, "data": [] })
                 }
                 else {
-                    res.send({ "result": true, "data": data[0].result });
+                    var responseObj = await helperFunc.contentDownloadResponeObj(data[0].result);
+                    res.send(responseObj);
                 }
             })
             .catch(function (err) {
-                console.log(err);
                 res.status(400);
                 var response = {
                     result: false,
@@ -124,7 +125,6 @@ exports.usageByContent = async function (req, res) {
             }
         })
         .catch(function (err) {
-            console.log(err);
             res.status(400);
             var response = {
                 result: false,

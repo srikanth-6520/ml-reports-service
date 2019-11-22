@@ -1198,7 +1198,7 @@ exports.courseEnrollmentResponeObj = async function(result){
     return response;
 }
 
-//Chart object creation for usage by content response object creation
+//Chart object creation for usage by content 
 exports.usageByContentResponeObj = async function (result) {
     var response = {
         result: true,
@@ -1209,6 +1209,40 @@ exports.usageByContentResponeObj = async function (result) {
         let obj = {}
         obj.content_name = result[i].content_name;
         obj.total_users_viewed = result[i]["Total Users Viewed"];
+        response.data.push(obj);
+    }
+    return response;
+}
+
+
+//Chart object creation for contents downloaded by the user
+exports.contentDownloadResponeObj = async function (result) {
+    var response = {
+        result: true,
+        data: []
+    }
+
+    for (var i = 0; i < result.length; i++) {
+        let obj = {}
+        obj.content_name = result[i].content_name;
+        obj.total_downloads = result[i]["COUNT(content_identifier)"];
+        response.data.push(obj);
+    }
+    return response;
+}
+
+
+//Chart object creation for contents viewed in the platform
+exports.contentViewResponeObj = async function (result) {
+    var response = {
+        result: true,
+        data: []
+    }
+
+    for (var i = 0; i < result.length; i++) {
+        let obj = {}
+        obj.content_name = result[i].content_name;
+        obj.total_views = result[i]["COUNT(content_identifier)"];
         response.data.push(obj);
     }
     return response;
