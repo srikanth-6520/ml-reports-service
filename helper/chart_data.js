@@ -42,7 +42,7 @@ exports.instanceReportChart = async function (data) {
                 var resp = {
                     order:element.event.questionExternalId,
                     question: element.event.questionName,
-                    responseType: element.event.questionResponseType,
+                    responseType: "text",
                     answers: [element.event.questionResponseLabel],
                     chart: {},
                     instanceQuestions:[]
