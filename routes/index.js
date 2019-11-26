@@ -9,6 +9,7 @@ var entityAssessController = require('../controllers/v1/entity_assessments')
 var listAssessmentPrograms = require('../controllers/v1/list_assessment_programs')
 var course_enrollment = require('../controllers/v1/course_enrollment')
 var content_view = require('../controllers/v1/content_view')
+var listObservationNames = require('../controllers/v1/list_observation_names')
 
 //========= API calls for samiksha observation and assessment reports=============
 
@@ -17,25 +18,30 @@ router.post("/observations/instance",authenticate,instanceController.instanceRep
 
 //API router for observations entityReport
 router.post("/observations/entity",authenticate,entityController.entityReport);
+
 router.post("/observations/byEntity",authenticate,entityController.observationsByEntity);
 
 //API router for observationReport
 router.post("/observations/report",authenticate,observationController.observationReport);
 
-//API router for HM view
-//router.post("/assessments/school",observationController.observationReport);
+//API router for listing all the observation Names
+router.post("/observations/listObservationNames",authenticate,listObservationNames.listObservationNames)
 
-//API router for list programs
+//API router for observation report
+router.post("/observations/entityObservationReport",authenticate,entityController.entityObservationReport)
+
+//API router for list programs (Assessment)
 router.post("/assessments/listPrograms",authenticate,listAssessmentPrograms.listPrograms);
 
-//API router for HM view 
+//API router for Assessment Report 
 router.post("/assessments/entity",authenticate,entityAssessController.entityAssessment);
 
 router.get("/observations/instanceLevelPdfReports",authenticate,observationController.pdfReports);
-router.get("/observations/pdfReports",authenticate,observationController.pdfReports);
-// router.get('/observations/instanceLevelPdfReports',authenticate,instanceController.instancePdfReport);
 
-//API for observations PDF
+//API for entity observation PDF generation
+router.get("/observations/pdfReports",authenticate,observationController.pdfReports);
+
+//API for observations PDF ( For internal use)
 router.get("/observations/pdfReportsUrl",observationController.pdftempUrl);
 
 //API for Assessment PDF
@@ -51,7 +57,7 @@ router.post("/shikshalokam/courseEnrollment",authenticate,course_enrollment.cour
 router.get("/shikshalokam/contentView",authenticate,content_view.contentView);
 
 //API for content view by user
-router.post("/shikshalokam/contentDownloadedByUser",authenticate,content_view.contentViewedByUser);
+router.post("/shikshalokam/contentDownloadedByUser",authenticate,content_view.contentDownloadedByUser);
 
 //API for content view by user
 router.get("/shikshalokam/usageByContent",authenticate,content_view.usageByContent);
