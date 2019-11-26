@@ -2,7 +2,7 @@ var config = require('../../config/config');
 var rp = require('request-promise');
 var request = require('request');
 var model = require('../../db')
-var helperFunc = require('../../helper/chart_data');
+var helperFunc = require('../../helper/chartData');
 
 
 exports.listPrograms = async function (req, res) {
@@ -35,6 +35,7 @@ exports.listPrograms = async function (req, res) {
                 else {
                   //call the function entityAssessmentChart to get the data for stacked bar chart 
                    var responseObj = await helperFunc.listProgramsObjectCreate(data);
+                   console.log(responseObj);
                    res.send(responseObj);
                 }
             })

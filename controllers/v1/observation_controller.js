@@ -4,17 +4,16 @@ var request = require('request');
 var cassandra = require('cassandra-driver');
 var client = new cassandra.Client({ contactPoints: [config.cassandra.host], keyspace: config.cassandra.keyspace, localDataCenter: 'datacenter1' });
 var model = require('../../db')
-var helperFunc = require('../../helper/chart_data');
-var commonCassandraFunc = require('../../common/cassandra_func');
+var helperFunc = require('../../helper/chartData');
+var commonCassandraFunc = require('../../common/cassandraFunc');
 
 var instance = require('./instance_observation');
 var entityObserv = require('./entity_observations');
-var pdfHandler = require('../../helper/common_handler');
+var pdfHandler = require('../../helper/commonHandler');
 var fs = require('fs');
 var url = require('url');
 var rimraf = require("rimraf");
 const path = require('path');
-var omit = require('object.omit');
 
 
 exports.observationReport = async function (req, res) {
@@ -84,31 +83,29 @@ async function observationReportManipulate(req, res) {
 
 exports.pdfReports = async function (req, res) {
 
-    console.log("enty",req.query);
+    // console.log("enty");
 
     return new Promise(async function (resolve, reject) {
         // var bodyParam = JSON.parse(req);
         // console.log("body", req);
+        if (req.query && req.query.observationId && req.query.entityId) {
 
-        if (req.query.entityId && req.query.entityType && req.query.observationId) {
-            let resObj = await entityObserv.entityObservationReportPdfGeneration(req, res)
-            res.send(resObj);
-
-        }
-       
-        else if (req.query.observationId && req.query.entityId) {
             let resObj = await entityObservationPdf(req, res);
             res.send(resObj);
 
-        } else if (req.query.submissionId) {
+        } else if (req.query && req.query.submissionId) {
             let resObj = await instance.instancePdfReport(req, res)
             res.send(resObj);
 
-        }  else if (req.query.observationId) {
-            let resObj = await observationGenerateReport(req, res)
-            res.send(resObj);
 
-        }  else {
+        } else if (req.query && req.query.observationId) {
+
+            let resObj = await observationGenerateReport(req, res)
+
+
+
+            res.send(resObj);
+        } else {
             resolve({
                 status: "success",
                 res: resObj
@@ -210,7 +207,6 @@ async function entityObservationPdf(req, res) {
 
     });
 }
-
 
 exports.pdftempUrl = async function (req, response) {
 

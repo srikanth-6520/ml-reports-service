@@ -2,9 +2,9 @@ var config = require('../../config/config');
 var rp = require('request-promise');
 var request = require('request');
 var model = require('../../db')
-var helperFunc = require('../../helper/chart_data');
-var commonCassandraFunc = require('../../common/cassandra_func');
-var pdfHandler = require('../../helper/common_handler');
+var helperFunc = require('../../helper/chartData');
+var commonCassandraFunc = require('../../common/cassandraFunc');
+var pdfHandler = require('../../helper/commonHandler');
 
 
 //Controller for entity assessment report
