@@ -1,11 +1,11 @@
 var config = require('../../config/config');
 var rp = require('request-promise');
 var request = require('request');
+var cassandra = require('cassandra-driver');
+var client = new cassandra.Client({ contactPoints: [config.cassandra.host], keyspace: config.cassandra.keyspace, localDataCenter: 'datacenter1' });
 var model = require('../../db')
-var helperFunc = require('../../helper/chart_data');
-var commonCassandraFunc = require('../../common/cassandra_func');
-var pdfHandler = require('../../helper/common_handler');
-var omit = require('object.omit');
+var helperFunc = require('../../helper/chartData');
+var commonCassandraFunc = require('../../common/cassandraFunc');
 
 //controller for entity observation report
 exports.entityReport = async function (req, res) {
@@ -160,29 +160,30 @@ async function entityObservationPdf(req, res) {
       reject(response);
     }
     else {
+      //cassandra functionality to check response in cassandra
+      // bodyData = req.body
+      // var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(bodyData)
+      // if (dataReportIndexes == undefined) {
       model.MyModel.findOneAsync({ qid: "entity_observation_query" }, { allow_filtering: true })
         .then(async function (result) {
           var bodyParam = JSON.parse(result.query);
-
           if (config.druid.observation_datasource_name) {
             bodyParam.dataSource = config.druid.observation_datasource_name;
           }
-
           bodyParam.filter.fields[0].value = req.body.entityId;
           bodyParam.filter.fields[1].value = req.body.observationId;
-
           //pass the query as body param and get the resul from druid
           var options = config.druid.options;
           options.method = "POST";
           options.body = bodyParam;
           var data = await rp(options);
-
           if (!data.length) {
             reject({ "data": "No observations made for the entity" })
           }
           else {
             var responseObj = await helperFunc.entityReportChart(data)
             resolve(responseObj);
+            // commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj)
           }
         })
         .catch(function (err) {
@@ -306,132 +307,9 @@ async function getObsvByentitys(req,result){
     options.method = "POST";
     options.body = query;
     var data = await rp(options);
+
+    console.log("data", data);
     resolve(data);
   });
 
 }
-
-
-// Controller for entity observation
-exports.entityObservationReport = async function entityObservationReport(req, res) {
-
-  return new Promise(async function (resolve, reject) {
-
-    let responseData = await entityObservationReportGeneration(req, res);
-    res.send(responseData);
-
-  })
-
-};
-
-// Function for entity observation report generation
-async function entityObservationReportGeneration(req, res) {
-
-  return new Promise(async function (resolve, reject) {
-
-  if (!req.body.entityId && !req.body.entityType && !req.body.observationId) {
-    res.status(400);
-    var response = {
-      result: false,
-      message: 'entityId, entityType, immediateChildEntityType and observationId are required fields'
-    }
-    resolve(response);
-  }
-
-  else {
-
-    entityType = req.body.entityType;
-    entityId = req.body.entityId;
-    immediateChildEntityType = req.body.immediateChildEntityType;
-
-    // Fetch query from cassandra
-    model.MyModel.findOneAsync({ qid: "entity_observation_report_query" }, { allow_filtering: true })
-      .then(async function (result) {
-
-        var bodyParam = JSON.parse(result.query);
-
-        if (config.druid.observation_datasource_name) {
-          bodyParam.dataSource = config.druid.observation_datasource_name;
-        }
-
-        //Assign values to the query filter object 
-        bodyParam.filter.fields[0].dimension = req.body.entityType;
-        bodyParam.filter.fields[0].value = req.body.entityId;
-        bodyParam.filter.fields[1].value = req.body.observationId;
-
-        //Push column names dynamically to the query dimensions array 
-        if (!req.body.immediateChildEntityType) {
-          bodyParam.dimensions.push(entityType, entityType + "Name");
-        }
-        else if (req.body.immediateChildEntityType == "school") {
-          bodyParam.dimensions.push(entityType, entityType + "Name", immediateChildEntityType, immediateChildEntityType + "Name");
-        }
-        else {
-          bodyParam.dimensions.push(entityType, entityType + "Name", immediateChildEntityType, immediateChildEntityType + "Name", "school", "schoolName");
-        }
-
-        //pass the query as body param and get the result from druid
-        var options = config.druid.options;
-        options.method = "POST";
-        options.body = bodyParam;
-        var data = await rp(options);
-
-        if (!data.length) {
-          resolve({ "data": "No observations made for the entity" })
-        }
-        else {
-          var responseObj = await helperFunc.entityObservationReportChartObjectCreation(data)
-          responseObj.observationId = req.body.observationId;
-          resolve(responseObj);
-        }
-      })
-      .catch(function (err) {
-        res.status(400);
-        var response = {
-          result: false,
-          message: 'Data not found'
-        }
-        resolve(response);
-      })
-
-    }
-
-  })
-
-}
-
-
-//Function for entity observation report PDF generation
-exports.entityObservationReportPdfGeneration = async function (req, res) {
-
-  if (!req.query.entityId && !req.query.entityType && !req.query.observationId) {
-    res.status(400);
-    var response = {
-      result: false,
-      message: 'entityId, entityType, observationId and immediateChildEntityType are required fields'
-    };
-    res.send(response);
-
-  } else {
-      req.body = req.query;
-      var entityResponse = await entityObservationReportGeneration(req,res);
-
-      if(("observationName" in entityResponse) == true) { 
-
-      let resData = await pdfHandler.pdfGeneration(entityResponse,true);
-      let hostname = req.headers.host;
-
-      var responseObject = {
-        "status": "success",
-        "message": "report generated",
-        pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-      }
-         res.send(responseObject);
-      }
-
-      else {
-          res.send(entityResponse);
-      }
-    
-  }
-};

@@ -2,7 +2,7 @@ var config = require('../../config/config');
 var rp = require('request-promise');
 var request = require('request');
 var model = require('../../db')
-var helperFunc = require('../../helper/chart_data');
+var helperFunc = require('../../helper/chartData');
 
 
 //Controller for listing the courses enrolled by user
@@ -11,12 +11,13 @@ exports.courseEnrollment = async function (req, res) {
         res.status(400);
         var response = {
             result: false,
-            message: 'user_id is a required field',
+            message: 'userId is a required field',
             data: []
         }
         res.send(response);
     }
     else {
+        console.log("req data", req.body.user_id);
         //get quey from cassandra
         model.MyModel.findOneAsync({ qid: "course_enrollment_query" }, { allow_filtering: true })
             .then(async function (result) {
@@ -24,10 +25,7 @@ exports.courseEnrollment = async function (req, res) {
                 if (config.druid.enrollment_datasource_name) {
                     bodyParam.dataSource = config.druid.enrollment_datasource_name;
                 }
-
                 bodyParam.filter.value = req.body.user_id;
-                bodyParam.intervals = await getIntervals();
-                
                 //pass the query as body param and get the result from druid
                 var options = config.druid.options;
                 options.method = "POST";
@@ -54,24 +52,3 @@ exports.courseEnrollment = async function (req, res) {
             })
     }
 }
-
-
-
-async function getIntervals() {
-    var now = new Date();
-    var prevMonthLastDate = new Date(now.getFullYear(), now.getMonth(), 0);
-    var prevMonthFirstDate = new Date(now.getFullYear() - (now.getMonth() > 0 ? 0 : 1), (now.getMonth() - 1 + 12) % 12, 1);
-
-    var formatDateComponent = function (dateComponent) {
-        return (dateComponent < 10 ? '0' : '') + dateComponent;
-    };
-
-    var formatDate = function (date) {
-        return date.getFullYear() + '-' + formatDateComponent(date.getMonth() + 1) + '-' + formatDateComponent(date.getDate()) + 'T00:00:00+00:00';
-    };
-
-   var intervals = formatDate(prevMonthFirstDate) + '/' + formatDate(prevMonthLastDate);
-
-   return intervals;
-
-}    
