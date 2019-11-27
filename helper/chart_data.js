@@ -125,7 +125,7 @@ async function instanceMultiselectFunc(data) {
     var resp = {
         order:order,
         question: question,
-        responseType: responseType,
+        responseType: "text",
         answers: labelArray,
         chart: {},
         instanceQuestions:[]
