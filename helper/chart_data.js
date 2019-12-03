@@ -620,6 +620,9 @@ async function radioObjectCreateFunc(data,noOfSubmissions) {
         var element = responseArray[j];
         var value = (element[k + 1] / noOfSubmissions.length) * 100;
         value = parseFloat(value.toFixed(2));
+        if(labelArray[j] == null){
+            labelArray[j] = "Not answered";
+        }
         var dataObj = {
             name: labelArray[j],
             y: value,
@@ -698,6 +701,8 @@ async function multiSelectObjectCreateFunc(data,noOfSubmissions) {
                 }
             },
             yAxis: {
+                min : 0,
+                max : 100,
                 title: {
                     text: "Responses in percentage"
                 }
