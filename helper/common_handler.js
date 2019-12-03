@@ -702,6 +702,60 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
 }
 
 
+
+
+//==================================== PDF generation for instance observation score report ======================
+exports.instanceObservationScorePdfGeneration = async function instanceObservationPdfGeneration(observationResp) {
+    
+    return new Promise(async function (resolve, reject) {
+
+        var currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
+
+        var imgPath = __dirname + '/../' + currentTempFolder;
+
+        try {
+
+            if (!fs.existsSync(imgPath)) {
+                fs.mkdirSync(imgPath);
+            }
+
+            let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
+
+            // let headerFile = await copyBootStrapFile(__dirname + '/../views/header.html', imgPath + '/header.html');
+            let footerFile = await copyBootStrapFile(__dirname + '/../views/footer.html', imgPath + '/footer.html');
+        }
+
+        catch (err) {
+
+        }
+
+        finally {
+
+
+        }
+    
+    })
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ============> PDF generation function for assessment API ======================>
 exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessmentRes, deleteFromS3 = null) {
 
