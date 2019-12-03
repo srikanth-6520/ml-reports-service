@@ -34,7 +34,7 @@ router.post("/observations/entityObservationReport",authenticate,entityControlle
 router.post("/assessments/listPrograms",authenticate,listAssessmentPrograms.listPrograms);
 
 //API router for Assessment Report 
-router.post("/assessments/entity",authenticate,entityAssessController.entityAssessment);
+router.post("/assessments/entity",entityAssessController.entityAssessment);
 
 router.get("/observations/instanceLevelPdfReports",authenticate,observationController.pdfReports);
 
