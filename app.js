@@ -5,7 +5,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var config = require('./config/config')
 
-var indexRouter = require('./routes/api_router');
+var indexRouter = require('./routes/index');
 
 var app = express();
 
@@ -52,9 +52,15 @@ var server = http.createServer(app);
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port);
+server.listen(port,function(){
+
+
+  console.log("started and running on port:"+ port);
+});
 server.on('error', onError);
 server.on('listening', onListening);
+
+console.log("application started");
 
 /**
  * Normalize a port into a number, string, or false.
@@ -103,6 +109,7 @@ function onError(error) {
       throw error;
   }
 }
+
 
 /**
  * Event listener for HTTP server "listening" event.
