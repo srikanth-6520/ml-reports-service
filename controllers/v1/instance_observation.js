@@ -179,7 +179,7 @@ exports.instancePdfReport = async function (req, res) {
 //<======================== Instance observation score report ========================================>
 
 // Controller for instance observation score report query
-exports.entityRepinstanceObservationScoreReportort = async function (req, res) {
+exports.instanceObservationScoreReport = async function (req, res) {
 
   let data = await instanceScoreReport(req, res);
 
@@ -202,51 +202,42 @@ async function instanceScoreReport(req, res) {
 
     } else {
 
-      bodyData = req.body;
-      var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(bodyData);
+      model.MyModel.findOneAsync({ qid: "instance_observation_score_query" }, { allow_filtering: true })
+        .then(async function (result) {
 
-      if (dataReportIndexes == undefined) {
+          var bodyParam = JSON.parse(result.query);
 
-        model.MyModel.findOneAsync({ qid: "instance_observation_score_query" }, { allow_filtering: true })
-          .then(async function (result) {
+          if (config.druid.observation_datasource_name) {
+            bodyParam.dataSource = config.druid.observation_datasource_name;
+          }
 
-            var bodyParam = JSON.parse(result.query);
+          bodyParam.filter.fields[0].value = req.body.submissionId;
+          
+          //pass the query as body param and get the resul from druid
+          var options = config.druid.options;
+          options.method = "POST";
+          options.body = bodyParam;
+          var data = await rp(options);
 
-            if (config.druid.observation_datasource_name) {
-              bodyParam.dataSource = config.druid.observation_datasource_name;
-            }
+          if (!data.length) {
+            res.send({
+              "data": "SUBMISSION_ID_NOT_FOUND"
+            });
+          } else {
 
-            bodyParam.filter.fields[0].value = req.body.submissionId;
+            var responseObj = await helperFunc.instanceScoreReportChartObjectCreation(data);
+            res.send(responseObj);
+          }
+        })
+        .catch(function (err) {
+          res.status(400);
+          var response = {
+            result: false,
+            message: 'Data not found'
+          };
+          res.send(response);
+        });
 
-            //pass the query as body param and get the resul from druid
-            var options = config.druid.options;
-            options.method = "POST";
-            options.body = bodyParam;
-            var data = await rp(options);
-
-            if (!data.length) {
-              res.send({
-                "data": "SUBMISSION_ID_NOT_FOUND"
-              });
-            } else {
-
-              var responseObj = await helperFunc.instanceScoreReportChartObjectCreation(data);
-              res.send(responseObj);
-              commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj);
-
-            }
-          })
-          .catch(function (err) {
-            res.status(400);
-            var response = {
-              result: false,
-              message: 'Data not found'
-            };
-            res.send(response);
-          });
-      } else {
-        res.send(JSON.parse(dataReportIndexes['apiresponse']));
-      }
     }
   })
 };

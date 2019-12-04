@@ -1206,7 +1206,7 @@ exports.entityScoreReportChartObjectCreation = async function (data) {
         response : []
     }
 
-    await Promise.all(sortedData.map( element => {
+    await Promise.all(sortedData[0].map( element => {
        
       if(submissionId.length <= 5) {
         if(!submissionId.includes(element.event.observationSubmissionId)){
@@ -1215,11 +1215,10 @@ exports.entityScoreReportChartObjectCreation = async function (data) {
       }
     }))
 
-
     //loop sortedData and take required json objects
-    await Promise.all(sortedData.map( async objectData => {
-      
-        if(submissionId.includes(ele.event.observationSubmissionId)){
+    await Promise.all(sortedData[0].map( async objectData => {
+
+        if(submissionId.includes(objectData.event.observationSubmissionId)){
               
              responseData.push(objectData);
         }
@@ -1285,6 +1284,8 @@ async function entityScoreObjectCreateFunc (data) {
 
         }
     }
+
+    return chartData;
 }
 
 
