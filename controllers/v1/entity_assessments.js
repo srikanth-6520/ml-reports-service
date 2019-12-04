@@ -95,6 +95,7 @@ async function assessmentReportGetChartData(req, res) {
               }
                //call the function entityAssessmentChart to get the data for stacked bar chart 
               var responseObj = await helperFunc.entityAssessmentChart(inputObj);
+                  responseObj.title = "Performance Report";
                  bodyParam.dimensions.push("childType","childName","domainExternalId");
                  if(!bodyParam.dimensions.includes("domainName")){
                    bodyParam.dimensions.push("domainName");
@@ -114,6 +115,7 @@ async function assessmentReportGetChartData(req, res) {
                  }
                  //call the function to get the data for expansion view of domain and criteria
                  var tableObject = await helperFunc.entityTableViewFunc(dataObject)
+                 tableObject.chart.title = "Descriptive View";
                  responseObj.reportSections.push(tableObject);
    
                  if(childType){
