@@ -1264,6 +1264,10 @@ async function entityScoreObjectCreateFunc (data) {
 
     await Promise.all(groupedSubmissionKeys.map(async scoreData => {
 
+        if(groupedSubmissionData[scoreData][0].event.minScore == null) {
+            groupedSubmissionData[scoreData][0].event.minScore = 0;
+        }
+
         seriesData.push([parseInt(groupedSubmissionData[scoreData][0].event.minScore)]);
     
     }))
