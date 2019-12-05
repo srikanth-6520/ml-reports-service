@@ -15,7 +15,7 @@ var listObservationNames = require('../controllers/v1/list_observation_names')
 //========= API calls for samiksha observation and assessment reports=============
 
 //API router for observations instanceReport
-router.post("/observations/instance",instanceController.instanceReport);
+router.post("/observations/instance",authenticate,instanceController.instanceReport);
 
 //API router for observations entityReport
 router.post("/observations/entity",authenticate,entityController.entityReport);
@@ -29,13 +29,13 @@ router.post("/observations/report",authenticate,observationController.observatio
 router.post("/observations/listObservationNames",authenticate,listObservationNames.listObservationNames)
 
 //API router for observation report
-router.post("/observations/entityObservationReport",entityController.entityObservationReport)
+router.post("/observations/entityObservationReport",authenticate,entityController.entityObservationReport)
 
 //API router for instance observation score report
-router.post("/observations/instanceObservationScoreReport",instanceController.instanceObservationScoreReport)
+router.post("/observations/instanceObservationScoreReport",authenticate,instanceController.instanceObservationScoreReport)
 
 //API router for instance observation score report
-router.post("/observations/entityScoreReport",entityController.entityObservationScoreReport)
+router.post("/observations/entityScoreReport",authenticate,entityController.entityObservationScoreReport)
 
 //API router for list programs (Assessment)
 router.post("/assessments/listPrograms",authenticate,listAssessmentPrograms.listPrograms);
@@ -46,16 +46,16 @@ router.post("/assessments/entity",authenticate,entityAssessController.entityAsse
 router.get("/observations/instanceLevelPdfReports",authenticate,observationController.pdfReports);
 
 //API for entity observation PDF generation
-router.get("/observations/pdfReports",observationController.pdfReports);
+router.get("/observations/pdfReports",authenticate,observationController.pdfReports);
 
 //API for observations PDF ( For internal use)
 router.get("/observations/pdfReportsUrl",observationController.pdftempUrl);
 
 //API router for observation score PDF report
-// router.post("/observations/observationScorePdfReport",scoreController.observationScorePdfReport)
+router.post("/observations/observationScorePdfReport",authenticate,scoreController.observationScorePdfReport)
 
 //API for Assessment PDF
-router.post("/assessment/pdfReports",entityAssessController.assessmentPdfReport);
+router.post("/assessment/pdfReports",authenticate,entityAssessController.assessmentPdfReport);
 
 
 //========= API calls for container app=============

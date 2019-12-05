@@ -214,7 +214,7 @@ exports.pdftempUrl = async function (req, response) {
 
     var folderPath = Buffer.from(req.query.id, 'base64').toString('ascii')
     console.log(folderPath, "req", __dirname + '../' + req.query.id);
-    fs.readFile(__dirname + '/../../' + folderPath + '/instanceLevelReport.pdf', function (err, data) {
+    fs.readFile(__dirname + '/../../' + folderPath + '/pdfReport.pdf', function (err, data) {
         if (!err) {
 
             console.log('received data: ');

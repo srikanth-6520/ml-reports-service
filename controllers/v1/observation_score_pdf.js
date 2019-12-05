@@ -9,13 +9,11 @@ exports.observationScorePdfReport = async function (req, res) {
         if (req.body && req.body.submissionId) {
 
             let resObj = await instanceObserv.instanceObservationScorePdfFunc(req, res)
-            res.send(resObj);
         }
 
         else if (req.body && req.body.entityId && req.body.observationId) {
 
             let resObj = await entityObserv.entityObservationScorePdfFunc(req, res)
-            res.send(resObj);
         }
 
     })

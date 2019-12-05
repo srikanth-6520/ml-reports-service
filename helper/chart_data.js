@@ -1137,7 +1137,7 @@ async function domainCriteriaCreateFunc (data){
 exports.instanceScoreReportChartObjectCreation = async function (data) {
 
     let obj = {
-
+        result : true,
         totalScore: data[0].event.totalScore,
         scoreAchieved: data[0].event.scoreAchieved,
         response: []
@@ -1167,10 +1167,14 @@ async function scoreObjectCreateFunction(data) {
 
     let value = (data[0].event.minScore / data[0].event.maxScore) * 100;
     value = parseFloat(value.toFixed(2));
-    let dataObj = {
-        name: data[0].event.questionResponseLabel,
+    let dataObj = [{
+        name: "score achieved : " + value,
         y: value
-    }
+    },{
+        name: "",
+        y: 100 - value,
+        color: "#eee"
+    }]
 
     let resp = {
         order: data[0].event.questionExternalId,
@@ -1201,6 +1205,7 @@ exports.entityScoreReportChartObjectCreation = async function (data) {
     let submissionId = [];
     let responseData = [];
     let obj = {
+        result : true,
         schoolName : data[0].event.schoolName,
         totalObservations : 5,
         response : []
@@ -1256,7 +1261,7 @@ async function entityScoreObjectCreateFunc (data) {
 
     await Promise.all(groupedSubmissionKeys.map(async scoreData => {
 
-        seriesData.push([groupedSubmissionData[scoreData][0].event.minScore]);
+        seriesData.push([parseInt(groupedSubmissionData[scoreData][0].event.minScore)]);
     
     }))
 
@@ -1271,7 +1276,10 @@ async function entityScoreObjectCreateFunc (data) {
                     enabled: true,
                     text: "observations"
                 },
-                labels: "obs",
+                labels: {},
+                categories: ["Obs1", "Obs2", "Obs3", "Obs4", "Obs5"],
+                startOnTick: false,
+                endOnTick: false,
                 showLastLabel: true
             },
             yAxis: {
@@ -1279,8 +1287,22 @@ async function entityScoreObjectCreateFunc (data) {
                     text: "Score"
                 }
             },
-
-            "data": seriesData
+            plotOptions:{
+                scatter:{
+                    lineWidth:1,
+                    lineColor:"#eee"
+                }
+            },
+            credits: {
+                enabled: false
+            },
+            legend: {
+                enabled: false
+            },
+            data: [{
+                color: "#F6B343",
+                data : seriesData
+            }]
 
         }
     }

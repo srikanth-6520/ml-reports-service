@@ -512,3 +512,28 @@ async function entityScoreReport(req, res) {
   })
 
 }
+
+
+
+//<=================== entity observation score pdf generation =============================
+exports.entityObservationScorePdfFunc = async function (req, res) {
+
+  var entityRes = await entityScoreReport(req, res);
+
+  if (entityRes.result == true) {
+
+    let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, true);
+
+    let hostname = req.headers.host;
+
+    resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+
+    res.send(resData);
+  }
+
+  else {
+    res.send(instaRes);
+  }
+
+
+};

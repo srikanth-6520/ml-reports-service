@@ -220,22 +220,21 @@ async function instanceScoreReport(req, res) {
           var data = await rp(options);
 
           if (!data.length) {
-            res.send({
+            resolve({
               "data": "SUBMISSION_ID_NOT_FOUND"
             });
           } else {
 
             var responseObj = await helperFunc.instanceScoreReportChartObjectCreation(data);
-            res.send(responseObj);
+            resolve(responseObj);
           }
         })
         .catch(function (err) {
-          res.status(400);
           var response = {
             result: false,
             message: 'Data not found'
           };
-          res.send(response);
+          resolve(response);
         });
 
     }
@@ -247,30 +246,23 @@ async function instanceScoreReport(req, res) {
 
 //<=================== instance observation score pdf generation =============================
 exports.instanceObservationScorePdfFunc = async function (req, res) {
-  if (!req.body.submissionId) {
-    res.status(400);
-    var response = {
-      result: false,
-      message: 'submissionId is a required field'
-    };
-    res.send(response);
-  } else {
 
-    reqData = req.body;
-   
-      var instaRes = await instanceScoreReport(reqData);
+  var instaRes = await instanceScoreReport(req, res);
 
-      if (instaRes.result== true) {
-        
-        let resData = await pdfHandler.instanceObservationScorePdfGeneration(instaRes);
-        
-        // res.send(resData);
-        res.send(omit(resData, 'downloadPath'));
-      }
+  if (instaRes.result == true) {
 
-      else {
-        res.send(instaRes);
-      }
-    
+    let resData = await pdfHandler.instanceObservationScorePdfGeneration(instaRes, true);
+
+    let hostname = req.headers.host;
+
+    resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+
+    res.send(resData);
   }
+
+  else {
+    res.send(instaRes);
+  }
+
+
 };
