@@ -1170,12 +1170,20 @@ async function scoreObjectCreateFunction(data) {
 
     let value = (data[0].event.minScore / data[0].event.maxScore) * 100;
     value = parseFloat(value.toFixed(2));
+    
+    let yy=0;
+    if(!value){
+        value = 0;
+    }else{
+        yy=100 - value
+    }
+
     let dataObj = [{
         name: "score achieved : " + value,
         y: value
     },{
         name: "",
-        y: 100 - value,
+        y: yy,
         color: "#eee"
     }]
 
