@@ -1,12 +1,9 @@
 var config = require('../../config/config');
 var rp = require('request-promise');
 var request = require('request');
-var cassandra = require('cassandra-driver');
-var client = new cassandra.Client({ contactPoints: [config.cassandra.host], keyspace: config.cassandra.keyspace, localDataCenter: 'datacenter1' });
 var model = require('../../db')
 var helperFunc = require('../../helper/chart_data');
 var commonCassandraFunc = require('../../common/cassandra_func');
-
 var instance = require('./instance_observation');
 var entityObserv = require('./entity_observations');
 var pdfHandler = require('../../helper/common_handler');
@@ -217,7 +214,7 @@ exports.pdftempUrl = async function (req, response) {
 
     var folderPath = Buffer.from(req.query.id, 'base64').toString('ascii')
     console.log(folderPath, "req", __dirname + '../' + req.query.id);
-    fs.readFile(__dirname + '/../../' + folderPath + '/instanceLevelReport.pdf', function (err, data) {
+    fs.readFile(__dirname + '/../../' + folderPath + '/pdfReport.pdf', function (err, data) {
         if (!err) {
 
             console.log('received data: ');
