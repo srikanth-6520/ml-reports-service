@@ -20,11 +20,17 @@ exports.instanceReportChart = async function (data) {
         await Promise.all(data.map(element => {
 
             // Response object creation for text, slider, number and date type of questions
-            if (element.event.questionResponseType == "text" && element.event.instanceParentResponsetype != "matrix" && element.event.questionAnswer != null || element.event.questionResponseType == "slider" && element.event.instanceParentResponsetype != "matrix" && element.event.questionAnswer != null || element.event.questionResponseType == "number" && element.event.instanceParentResponsetype != "matrix" && element.event.questionAnswer != null || element.event.questionResponseType == "date" && element.event.instanceParentResponsetype != "matrix" && element.event.questionAnswer != null) {
+            if (element.event.questionResponseType == "text" && element.event.instanceParentResponsetype != "matrix" || element.event.questionResponseType == "slider" && element.event.instanceParentResponsetype != "matrix" || element.event.questionResponseType == "number" && element.event.instanceParentResponsetype != "matrix" || element.event.questionResponseType == "date" && element.event.instanceParentResponsetype != "matrix") {
                
                 if (element.event.questionResponseType == "date"){
                     element.event.questionAnswer = moment(element.event.questionAnswer).format('D MMM YYYY, h:mm:ss A');
                 }
+
+                // If answer is null then assign value as not answered
+                if (element.event.questionAnswer == null) {
+                    element.event.questionAnswer = "Not Answered";
+                }
+
 
                 var resp = {
                     order:element.event.questionExternalId,
@@ -38,14 +44,20 @@ exports.instanceReportChart = async function (data) {
             }
 
             // Response object creation for radio type
-            else if (element.event.questionResponseType == "radio" && element.event.instanceParentResponsetype != "matrix" && element.event.questionAnswer != null) {
+            else if (element.event.questionResponseType == "radio" && element.event.instanceParentResponsetype != "matrix") {
+
+                // If answer is null then assign value as not answered
+                if (element.event.questionResponseLabel == null) {
+                    element.event.questionResponseLabel = "Not Answered";
+                }
+
                 var resp = {
-                    order:element.event.questionExternalId,
+                    order: element.event.questionExternalId,
                     question: element.event.questionName,
                     responseType: "text",
                     answers: [element.event.questionResponseLabel],
                     chart: {},
-                    instanceQuestions:[]
+                    instanceQuestions: []
                 }
                 obj.response.push(resp);
 
@@ -55,7 +67,7 @@ exports.instanceReportChart = async function (data) {
 
         //filter all the objects whose questionResponseType is multiselect
         await Promise.all(data.map(element => {
-            if (element.event.questionResponseType == "multiselect" && element.event.instanceParentResponsetype != "matrix" && element.event.questionAnswer != null) {
+            if (element.event.questionResponseType == "multiselect" && element.event.instanceParentResponsetype != "matrix" ) {
                 multiSelectArray.push(element);
             }
             if (element.event.instanceParentResponsetype == "matrix" && element.event.questionAnswer != null) {
@@ -112,10 +124,14 @@ async function instanceMultiselectFunc(data) {
     var order;
 
     await Promise.all(data.map(element => {
-        if (labelArray.includes(element.event.questionResponseLabel)) {
-        } else {
-            labelArray.push(element.event.questionResponseLabel);
-        }
+
+         // If answer is null then assign value as not answered
+         if (element.event.questionResponseLabel == null) {
+             element.event.questionResponseLabel = "Not Answered";
+         }
+
+        labelArray.push(element.event.questionResponseLabel);
+    
         order = element.event.questionExternalId;
         question = element.event.questionName;
         responseType = element.event.questionResponseType;
@@ -178,28 +194,30 @@ exports.entityReportChart = async function (data) {
                 noOfSubmissions.push(element.event.observationSubmissionId);
             }
 
-            if (element.event.questionResponseType == "text" && element.event.instanceParentResponsetype != "matrix" && element.event.questionAnswer != null) {
+            if (element.event.questionResponseType == "text" && element.event.instanceParentResponsetype != "matrix") {
                 textArray.push(element)
             }
-            else if (element.event.questionResponseType == "radio" && element.event.instanceParentResponsetype != "matrix" && element.event.questionAnswer != null) {
+            else if (element.event.questionResponseType == "radio" && element.event.instanceParentResponsetype != "matrix") {
                 radioArray.push(element)
             }
-            else if (element.event.questionResponseType == "multiselect" && element.event.instanceParentResponsetype != "matrix" && element.event.questionAnswer != null) {
+            else if (element.event.questionResponseType == "multiselect" && element.event.instanceParentResponsetype != "matrix" && element.event.questionAnswer !=null) {
                 multiSelectArray.push(element)
             }
-            else if (element.event.questionResponseType == "slider" && element.event.instanceParentResponsetype != "matrix" && element.event.questionAnswer != null) {
+            else if (element.event.questionResponseType == "slider" && element.event.instanceParentResponsetype != "matrix") {
                 sliderArray.push(element)
             }
-            else if (element.event.questionResponseType == "number" && element.event.instanceParentResponsetype != "matrix" && element.event.questionAnswer != null) {
+            else if (element.event.questionResponseType == "number" && element.event.instanceParentResponsetype != "matrix") {
                 numberArray.push(element)
             }
-            else if (element.event.questionResponseType == "date" && element.event.instanceParentResponsetype != "matrix" && element.event.questionAnswer != null) {
+            else if (element.event.questionResponseType == "date" && element.event.instanceParentResponsetype != "matrix") {
                 dateArray.push(element)
             }
             
-            if (element.event.instanceParentResponsetype == "matrix" && element.event.questionAnswer != null){
+            if (element.event.instanceParentResponsetype == "matrix"){
+                if(element.event.questionResponseType == "multiselect" && element.event.questionAnswer != null || element.event.questionResponseType == "radio" || element.event.questionResponseType == "text" || element.event.questionResponseType == "date" || element.event.questionResponseType == "slider" || element.event.questionResponseType == "number"){
                 matrixArray.push(element)
             }
+           }
         }))
 
         //group the text questions based on their questionName
@@ -332,26 +350,28 @@ exports.entityObservationReportChartObjectCreation = async function (data) {
                 noOfSubmissions.push(element.event.observationSubmissionId);
             }
 
-            if (element.event.questionResponseType == "text" && element.event.instanceParentResponsetype != "matrix" && element.event.questionAnswer != null) {
+            if (element.event.questionResponseType == "text" && element.event.instanceParentResponsetype != "matrix") {
                 textArray.push(element)
             }
-            else if (element.event.questionResponseType == "radio" && element.event.instanceParentResponsetype != "matrix" && element.event.questionAnswer !=null) {
+            else if (element.event.questionResponseType == "radio" && element.event.instanceParentResponsetype != "matrix") {
                 radioArray.push(element)
             }
             else if (element.event.questionResponseType == "multiselect" && element.event.instanceParentResponsetype != "matrix" && element.event.questionAnswer !=null) {
                 multiSelectArray.push(element)
             }
-            else if (element.event.questionResponseType == "slider" && element.event.instanceParentResponsetype != "matrix" && element.event.questionAnswer !=null) {
+            else if (element.event.questionResponseType == "slider" && element.event.instanceParentResponsetype != "matrix") {
                 sliderArray.push(element)
             }
-            else if (element.event.questionResponseType == "number" && element.event.instanceParentResponsetype != "matrix" && element.event.questionAnswer !=null) {
+            else if (element.event.questionResponseType == "number" && element.event.instanceParentResponsetype != "matrix") {
                 numberArray.push(element)
             }
-            else if (element.event.questionResponseType == "date" && element.event.instanceParentResponsetype != "matrix" && element.event.questionAnswer !=null) {
+            else if (element.event.questionResponseType == "date" && element.event.instanceParentResponsetype != "matrix") {
                 dateArray.push(element)
             }
-            if (element.event.instanceParentResponsetype == "matrix" && element.event.questionAnswer !=null){
-                matrixArray.push(element)
+            if (element.event.instanceParentResponsetype == "matrix"){
+                if(element.event.questionResponseType == "multiselect" && element.event.questionAnswer != null || element.event.questionResponseType == "radio" || element.event.questionResponseType == "text" || element.event.questionResponseType == "date" || element.event.questionResponseType == "slider" || element.event.questionResponseType == "number"){
+                    matrixArray.push(element)
+                }
             }
         }))
 
@@ -553,6 +573,9 @@ async function responseObjectCreateFunc(data) {
       
     //loop the data and push answers to oe array
      for (i = 0; i < data.length; i++) {
+         if(data[i].event.questionAnswer == null){
+            data[i].event.questionAnswer = "Not answered";
+         }
         dataArray.push(data[i].event.questionAnswer);
         question = data[i].event.questionName;
         order = data[i].event.questionExternalId;
@@ -584,6 +607,13 @@ async function radioObjectCreateFunc(data,noOfSubmissions) {
     var order;
 
     for (var i = 0; i < data.length; i++) {
+
+        if(data[i].event.questionAnswer == null){
+            data[i].event.questionAnswer = "Not answered";
+        }
+        if(data[i].event.questionResponseLabel == null) {
+            data[i].event.questionResponseLabel = "Not answered";
+        }
         
         dataArray.push(data[i].event.questionAnswer);
         answerArray.push(data[i].event.questionResponseLabel);
@@ -1143,6 +1173,7 @@ exports.instanceScoreReportChartObjectCreation = async function (data) {
         result : true,
         totalScore: data[0].event.totalScore,
         scoreAchieved: data[0].event.scoreAchieved,
+        observationName: data[0].event.observationName,
         response: []
     }
 
@@ -1208,10 +1239,8 @@ async function scoreObjectCreateFunction(data) {
 
 // Chart object creation for entity observation score report
 exports.entityScoreReportChartObjectCreation = async function (data) {
-     
-    let response = [data]; 
 
-    let sortedData = await response.sort(getSortOrder("completedDate"));
+    let sortedData = await data.sort(custom_sort);
 
     let submissionId = [];
     let responseData = [];
@@ -1219,11 +1248,12 @@ exports.entityScoreReportChartObjectCreation = async function (data) {
         result : true,
         schoolName : data[0].event.schoolName,
         totalObservations : 5,
+        observationName: data[0].event.observationName,
         response : []
     }
 
-    await Promise.all(sortedData[0].map( element => {
-       
+    await Promise.all(sortedData.map( element => {
+
       if(submissionId.length <= 5) {
         if(!submissionId.includes(element.event.observationSubmissionId)){
                submissionId.push(element.event.observationSubmissionId)
@@ -1232,7 +1262,7 @@ exports.entityScoreReportChartObjectCreation = async function (data) {
     }))
 
     //loop sortedData and take required json objects
-    await Promise.all(sortedData[0].map( async objectData => {
+    await Promise.all(sortedData.map( async objectData => {
 
         if(submissionId.includes(objectData.event.observationSubmissionId)){
               
@@ -1260,7 +1290,9 @@ exports.entityScoreReportChartObjectCreation = async function (data) {
 
     }
 
-
+    function custom_sort(a, b) {
+        return new Date(a.event.completedDate).getTime() - new Date(b.event.completedDate).getTime();
+    }
 
 async function entityScoreObjectCreateFunc (data) {
 

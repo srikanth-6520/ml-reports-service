@@ -107,8 +107,8 @@ exports.pdfReports = async function (req, res) {
 
         }  else {
             resolve({
-                status: "success",
-                res: resObj
+                status: "failure",
+                message: "Invalid input"
             });
         }
     })

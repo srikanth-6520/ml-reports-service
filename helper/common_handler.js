@@ -729,7 +729,7 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
             let highChartData = await apiCallToHighChart(chartObj, imgPath,"scatter");
 
             var params = {
-                observationName: "abcd"
+                observationName: observationResp.observationName
             }
             ejs.renderFile(__dirname + '/../views/header.ejs', {
                 data: params
