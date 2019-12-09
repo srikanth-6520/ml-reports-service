@@ -1,5 +1,4 @@
-<div class="container" style="padding:20px;margin:20px;">
-  <% if(instaResponse.responseType == 'number'){ %>
+<% if(instaResponse.responseType == 'number'){ %>
   <div class="container" style="padding:20px;margin:20px">
     <div style="border: solid 1px rgb(182, 175, 175)">
       <h3 style="background-color: #eee;padding:10px; padding-left: 10px;font-size: 21px"><%= instaResponse.question %></h3>
@@ -9,12 +8,10 @@
               <%= instaResponse.answers[j] %>
         </div>
       </div>
-    </div>
-  </div>
-  <% if(j == instaResponse.answers.length - 1){ %>
-  <p style="page-break-before: always;">&nbsp;</p>
+ 
   <% } %>
-  <% } %>
-  <% } %>
-
 </div>
+</div>
+<% } %>
+
+

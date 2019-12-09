@@ -27,6 +27,7 @@ async function assessmentReportGetChartData(req, res) {
     resolve(response);
   }
   else {
+
     childType = req.body.immediateChildEntityType;
     reqBody = req.body
     var dataAssessIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqBody)
@@ -63,9 +64,91 @@ async function assessmentReportGetChartData(req, res) {
           opt.method = "POST";
           opt.body = bodyParam;
           var data = await rp(opt);
+
           if (!data.length) {
+
+          //==========Production hotfix code============================
+
+          //dynamically appending values to filter
+          bodyParam.filter.fields[0].dimension = "school";
+          childType = "";
+          
+          // console.log(bodyParam.filter.fields);
+
+          //pass the query as body param and get the resul from druid
+          let options = config.druid.options;
+          options.method = "POST";
+          options.body = bodyParam;
+          var assessData = await rp(options);
+            
+            if (!assessData.length) {
             resolve({"result":false,"data": {} })
+            }
+            else {
+
+              let inputObj = {
+                data : assessData,
+                entityName : "domainName",
+                childEntity : "",
+                levelCount : "domainNameCount",
+                entityType : "school"
+              }
+               //call the function entityAssessmentChart to get the data for stacked bar chart 
+              var responseObj = await helperFunc.entityAssessmentChart(inputObj);
+                  responseObj.title = "Performance Report";
+                 bodyParam.dimensions.push("childType","childName","domainExternalId");
+                 if(!bodyParam.dimensions.includes("domainName")){
+                   bodyParam.dimensions.push("domainName");
+                 }
+                 if(req.body.immediateChildEntityType == ""){
+                   req.body.immediateChildEntityType = "school"
+                 }
+                 //pass the query as body param and get the result from druid
+                 let optionsData = config.druid.options;
+                 optionsData.method = "POST";
+                 optionsData.body = bodyParam;
+                 let entityData = await rp(optionsData);
+                 let dataObject = {
+                   entityData :entityData,
+                   childEntityType : req.body.immediateChildEntityType,
+                   entityType : "school"
+                 }
+                 //call the function to get the data for expansion view of domain and criteria
+                 var tableObject = await helperFunc.entityTableViewFunc(dataObject)
+                 tableObject.chart.title = "Descriptive View";
+                 responseObj.reportSections.push(tableObject);
+   
+                 if(childType){
+                 //call samiksha entity list assessment API to get the grandchildEntity type.
+                 var grandChildEntityType = await assessmentEntityList(req.body.entityId,childType,req.headers["x-auth-token"])
+                 if(grandChildEntityType.status == 200){
+                   if(grandChildEntityType.result[0].subEntityGroups.length != 0){
+                   responseObj.reportSections[0].chart.grandChildEntityType = grandChildEntityType.result[0].immediateSubEntityType;
+                   resolve(responseObj);
+                   }
+                   else{
+                     responseObj.reportSections[0].chart.grandChildEntityType = "";
+                     resolve(responseObj);
+                   }
+                 }
+                 else{
+                 responseObj.reportSections[0].chart.grandChildEntityType = "";
+                 resolve(responseObj);
+                 }
+               }
+               else{
+                 responseObj.reportSections[0].chart.grandChildEntityType = "";
+                 resolve(responseObj);
+               }
+               commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
+             
+
+            }
+
+
           }
+
+
          else {
            var inputObj = {
              data : data,
@@ -83,7 +166,7 @@ async function assessmentReportGetChartData(req, res) {
               if(req.body.immediateChildEntityType == ""){
                 req.body.immediateChildEntityType = "school"
               }
-              //pass the query as body param and get the resul from druid
+              //pass the query as body param and get the result from druid
               var options = config.druid.options;
               options.method = "POST";
               options.body = bodyParam;

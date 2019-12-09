@@ -1,0 +1,21 @@
+<html>
+
+<head>
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+  <% var orderData= data.orderData; %>
+  <% for (var r=0;r < orderData.length; r++){  %>
+
+    <div>
+        <img style="width:80%" src="<%=orderData[r][0].options.filename%>" />
+        <br><br>
+        <!-- <div style='page-break-after:always'></div> -->
+    </div>
+
+  <% } %>
+
+</body>
+
+</html>

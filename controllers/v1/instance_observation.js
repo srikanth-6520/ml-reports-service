@@ -1,12 +1,6 @@
 var config = require('../../config/config');
 var rp = require('request-promise');
 var request = require('request');
-var cassandra = require('cassandra-driver');
-var client = new cassandra.Client({
-  contactPoints: [config.cassandra.host],
-  keyspace: config.cassandra.keyspace,
-  localDataCenter: 'datacenter1'
-});
 var model = require('../../db');
 var helperFunc = require('../../helper/chart_data');
 var commonCassandraFunc = require('../../common/cassandra_func');
@@ -48,16 +42,13 @@ exports.instanceReport = async function (req, res) {
           options.method = "POST";
           options.body = bodyParam;
           var data = await rp(options);
+
           if (!data.length) {
             res.send({
-              "data": "Not observerd"
+              "data": "SUBMISSION_ID_NOT_FOUND"
             });
           } else {
             var responseObj = await helperFunc.instanceReportChart(data);
-            if (req.body.download) {
-              console.log("download");
-              responseObj.pdfUrl = "http://www.africau.edu/images/default/sample.pdf";
-            }
             res.send(responseObj);
             commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj);
           }
@@ -83,8 +74,8 @@ async function instancePdfFunc(req) {
     model.MyModel.findOneAsync({
       qid: "instance_observation_query"
     }, {
-      allow_filtering: true
-    })
+        allow_filtering: true
+      })
       .then(async function (result) {
 
         var bodyParam = JSON.parse(result.query);
@@ -106,7 +97,7 @@ async function instancePdfFunc(req) {
         if (!data.length) {
           resolve({
             "status": "failed",
-            "error": "Not observerd"
+            "error": "SUBMISSION_ID_NOT_FOUND"
           });
         } else {
 
@@ -142,7 +133,7 @@ exports.instancePdfReport = async function (req, res) {
     if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
       // var instaRes = await instancePdfFunc(reqData);
 
-      console.log(dataReportIndexes.downloadpdfpath,"dataReportIndexes", dataReportIndexes.id);
+      console.log(dataReportIndexes.downloadpdfpath, "dataReportIndexes", dataReportIndexes.id);
       dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
       let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
 
@@ -156,25 +147,25 @@ exports.instancePdfReport = async function (req, res) {
     } else {
       var instaRes = await instancePdfFunc(reqData);
 
-      if(("observationName" in instaRes) == true) { 
-      let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes);
+      if (("observationName" in instaRes) == true) {
+        let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes);
 
-      if (dataReportIndexes) {
-        var reqOptions = {
-          query: dataReportIndexes.id,
-          downloadPath:resData.downloadPath
+        if (dataReportIndexes) {
+          var reqOptions = {
+            query: dataReportIndexes.id,
+            downloadPath: resData.downloadPath
+          }
+          commonCassandraFunc.updateInstanceDownloadPath(reqOptions);
+        } else {
+          let dataInsert = commonCassandraFunc.insertReqAndResInCassandra(reqData, instaRes, resData.downloadPath);
         }
-        commonCassandraFunc.updateInstanceDownloadPath(reqOptions);
-      } else {
-        let dataInsert = commonCassandraFunc.insertReqAndResInCassandra(reqData, instaRes, resData.downloadPath);
-      }
 
-      // res.send(resData);
-         res.send(omit(resData,'downloadPath'));
+        // res.send(resData);
+        res.send(omit(resData, 'downloadPath'));
       }
 
       else {
-          res.send(instaRes);
+        res.send(instaRes);
       }
     }
   }
@@ -185,6 +176,93 @@ exports.instancePdfReport = async function (req, res) {
 
 
 
+//<======================== Instance observation score report ========================================>
+
+// Controller for instance observation score report query
+exports.instanceObservationScoreReport = async function (req, res) {
+
+  let data = await instanceScoreReport(req, res);
+
+  res.send(data);
+}
+
+
+// Controller for instance observation score report chart object creation
+async function instanceScoreReport(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    if (!req.body.submissionId) {
+      var response = {
+        result: false,
+        message: 'submissionId is a required field'
+      };
+
+      resolve(response);
+
+    } else {
+
+      model.MyModel.findOneAsync({ qid: "instance_observation_score_query" }, { allow_filtering: true })
+        .then(async function (result) {
+
+          var bodyParam = JSON.parse(result.query);
+
+          if (config.druid.observation_datasource_name) {
+            bodyParam.dataSource = config.druid.observation_datasource_name;
+          }
+
+          bodyParam.filter.fields[0].value = req.body.submissionId;
+          
+          //pass the query as body param and get the resul from druid
+          var options = config.druid.options;
+          options.method = "POST";
+          options.body = bodyParam;
+          var data = await rp(options);
+
+          if (!data.length) {
+            resolve({
+              "data": "SUBMISSION_ID_NOT_FOUND"
+            });
+          } else {
+
+            var responseObj = await helperFunc.instanceScoreReportChartObjectCreation(data);
+            resolve(responseObj);
+          }
+        })
+        .catch(function (err) {
+          var response = {
+            result: false,
+            message: 'Data not found'
+          };
+          resolve(response);
+        });
+
+    }
+  })
+};
 
 
 
+
+//<=================== instance observation score pdf generation =============================
+exports.instanceObservationScorePdfFunc = async function (req, res) {
+
+  var instaRes = await instanceScoreReport(req, res);
+
+  if (instaRes.result == true) {
+
+    let resData = await pdfHandler.instanceObservationScorePdfGeneration(instaRes, true);
+
+    let hostname = req.headers.host;
+
+    resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+
+    res.send(resData);
+  }
+
+  else {
+    res.send(instaRes);
+  }
+
+
+};
