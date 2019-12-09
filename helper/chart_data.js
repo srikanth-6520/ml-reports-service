@@ -1,4 +1,5 @@
 const moment = require("moment");
+const config = require('../config/config');
 
 //function for instance observation final response creation
 exports.instanceReportChart = async function (data) {
@@ -1210,7 +1211,7 @@ async function scoreObjectCreateFunction(data) {
     }
 
     let dataObj = [{
-        name: "score achieved : " + value,
+        name: "score achieved : " + value +"%",
         y: value
     },{
         name: "",
@@ -1244,22 +1245,24 @@ exports.entityScoreReportChartObjectCreation = async function (data) {
 
     let submissionId = [];
     let responseData = [];
-    let obj = {
-        result : true,
-        schoolName : data[0].event.schoolName,
-        totalObservations : 5,
-        observationName: data[0].event.observationName,
-        response : []
-    }
 
     await Promise.all(sortedData.map( element => {
 
-      if(submissionId.length <= 5) {
-        if(!submissionId.includes(element.event.observationSubmissionId)){
-               submissionId.push(element.event.observationSubmissionId)
-         }
-      }
-    }))
+        if(submissionId.length <= config.druid.threshold_in_entity_score_api) {
+          if(!submissionId.includes(element.event.observationSubmissionId)){
+                 submissionId.push(element.event.observationSubmissionId)
+           }
+        }
+      }))
+
+
+    let obj = {
+        result : true,
+        schoolName : data[0].event.schoolName,
+        totalObservations : submissionId.length,
+        observationName: data[0].event.observationName,
+        response : []
+    }
 
     //loop sortedData and take required json objects
     await Promise.all(sortedData.map( async objectData => {
@@ -1337,7 +1340,7 @@ async function entityScoreObjectCreateFunc (data) {
             plotOptions:{
                 scatter:{
                     lineWidth:1,
-                    lineColor:"#eee"
+                    lineColor:"#F6B343"
                 }
             },
             credits: {
