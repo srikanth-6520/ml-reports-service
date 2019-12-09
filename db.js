@@ -53,7 +53,7 @@ var assessmentModel = models.loadSchema(config.cassandra.assessmentTable, {
 });
 
 // MyModel or models.instance.Person can now be used as the model instance
-// console.log(models.instance.druidqueries === MyModel);
+
 
 // sync the schema definition with the cassandra database table
 // if the schema has not changed, the callback will fire immediately

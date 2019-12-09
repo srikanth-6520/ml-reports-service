@@ -217,7 +217,7 @@ exports.pdftempUrl = async function (req, response) {
     fs.readFile(__dirname + '/../../' + folderPath + '/pdfReport.pdf', function (err, data) {
         if (!err) {
 
-            console.log('received data: ');
+           
             response.writeHead(200, { 'Content-Type': 'application/pdf' });
             response.write(data);
 

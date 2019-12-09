@@ -24,7 +24,8 @@
  "assessment_datasource_name": "ASSESSMENT_DATASOURCE_NAME",
  "enrollment_datasource_name": "ENROLLMENT_DATASOURCE_NAME",
  "telemetry_datasource_name": "TELEMETRY_DATASOURCE_NAME",
- "threshold_in_content_api" : 5
+ "threshold_in_content_api" : 5,
+ "threshold_in_entity_score_api": 5
 },
 
  "keycloak": {

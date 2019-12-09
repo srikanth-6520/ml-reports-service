@@ -101,7 +101,7 @@ async function instancePdfFunc(req) {
           });
         } else {
 
-          // console.log("data======",data);
+        
           var responseObj = await helperFunc.instanceReportChart(data)
           resolve(responseObj);
         }
@@ -128,12 +128,12 @@ exports.instancePdfReport = async function (req, res) {
     // }
     // dataReportIndexes.downloadpdfpath = "instanceLevelPdfReports/instanceLevelReport.pdf";
 
-    // console.log("dataReportIndexes", dataReportIndexes);
+  
     // dataReportIndexes.downloadpdfpath = "";
     if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
       // var instaRes = await instancePdfFunc(reqData);
 
-      console.log(dataReportIndexes.downloadpdfpath, "dataReportIndexes", dataReportIndexes.id);
+     
       dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
       let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
 
