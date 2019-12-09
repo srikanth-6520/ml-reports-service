@@ -1358,6 +1358,22 @@ async function entityScoreObjectCreateFunc (data) {
 }
 
 
+
+// Chart object creation for observation score report 
+
+exports.observationScoreReportChart = async function(data){
+
+    //group the data based on entity Id
+
+    let entityGroupedData = await groupArrayByGivenField(data,"school");
+
+
+
+
+
+}
+
+
 // Function for grouping the array based on certain field name
 function groupArrayByGivenField (array,name){
     result = array.reduce(function (r, a) {

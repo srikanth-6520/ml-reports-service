@@ -15,6 +15,12 @@ exports.observationScorePdfReport = async function (req, res) {
 
             let resObj = await entityObserv.entityObservationScorePdfFunc(req, res)
         }
+        else {
+            resolve({
+                status: "failure",
+                message: "Invalid input"
+            });
+        }
 
     })
 
