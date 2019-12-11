@@ -704,7 +704,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
 
 
 //==================================== PDF generation for instance observation score report ======================
-exports.instanceObservationScorePdfGeneration = async function instanceObservationPdfGeneration(observationResp,deleteFromS3 = null) {
+exports.instanceObservationScorePdfGeneration = async function instanceObservationPdfGeneration(observationResp,deleteFromS3 = null,obj) {
     
     return new Promise(async function (resolve, reject) {
 
@@ -749,21 +749,24 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
                                 
                             let arrayOfData = [];
 
-                            await Promise.all(observationResp.response.map(async ele => {
+                            
+                                await Promise.all(observationResp.response.map(async ele => {
 
-                                let dt = highChartData.filter(or => {
+                                    let dt = highChartData.filter(or => {
 
-                                    if (or.order == ele.order) {
-                                        return or;
-                                    }
-                                })
+                                        if (or.order == ele.order) {
+                                            return or;
+                                        }
+                                    })
 
-                                arrayOfData.push(dt);
+                                    arrayOfData.push(dt);
 
-                            }))
-                                var obj = {
-                                    orderData: arrayOfData
-                                };
+                                }))
+                           
+                                obj.orderData = arrayOfData;
+
+                                console.log(obj);
+
                                 ejs.renderFile(__dirname + '/../views/instanceScoreObsTemplate.ejs', {
                                     data: obj
                                 })
@@ -951,23 +954,6 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
     })
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // ============> PDF generation function for assessment API ======================>
@@ -1339,6 +1325,7 @@ async function getScoreChartObject(items) {
                         },
                         xAxis: ele.chart.xAxis,
                         yAxis: ele.chart.yAxis,
+                        credits: ele.chart.credits,
                         series: ele.chart.data
                     },
                     question: ele.question
@@ -1351,7 +1338,7 @@ async function getScoreChartObject(items) {
                     type: "svg",
                     options: {
                         title: {
-                            text: ele.question
+                            text: ""
                         },
                         chart: {
                             type: ele.chart.type
@@ -1362,17 +1349,24 @@ async function getScoreChartObject(items) {
                         credits: ele.chart.credits,
                         legend: ele.chart.legend,
                         series: ele.chart.data
-                    },
-                    question: ele.question
+                    }
                 };
 
+                if(ele.question){
+                    obj.question = ele.question;
+                    obj.options.title.text = ele.question;
+                }
+
+                if(ele.schoolName){
+                    obj.options.title.text = ele.schoolName;
+                }
 
             }
 
             ArrayOfChartData.push(obj);
             
         }));
-
+         
         return resolve(ArrayOfChartData);
         
     });
@@ -1447,9 +1441,14 @@ async function callChartApiPreparation(ele, imgPath, type, chartData, carrent, f
         value: fs.createReadStream(imgFilePath),
         options: {
             filename: chartImage,
-            question: ele.question
+            
         }
     }
+
+    if(ele.question){
+        fileDat.options.question = ele.question;
+    }
+
     formData.push(fileDat);
     carrent = carrent + 1;
     if (chartData.length > carrent) {

@@ -39,6 +39,9 @@
     "samiksha_assessment_entity_list_api": {
        "url":"SAMIKSHA_ASSESSMENT_ENTITY_LIST_API"
     },
+    "samiksha_observation_details_api": {
+       "url": "SAMIKSHA_OBSERVATION_DETAILS_API"
+    },
  "optionsHtmlToPdf":{ 
       "method":"POST",
       "uri":"",

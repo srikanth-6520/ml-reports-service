@@ -251,7 +251,12 @@ exports.instanceObservationScorePdfFunc = async function (req, res) {
 
   if (instaRes.result == true) {
 
-    let resData = await pdfHandler.instanceObservationScorePdfGeneration(instaRes, true);
+    let obj = {
+      totalScore : instaRes.totalScore,
+      scoreAchieved: instaRes.scoreAchieved
+     }
+
+    let resData = await pdfHandler.instanceObservationScorePdfGeneration(instaRes, true, obj);
 
     let hostname = req.headers.host;
 
