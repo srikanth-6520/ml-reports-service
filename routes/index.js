@@ -77,9 +77,6 @@ function authenticate(req,res,next){
 
     authService.validateToken(req,res)
     .then(function (result) {
-        // res.send(result);
-
-        // console.log("result",result);
 
         if(result.status=="success"){
 

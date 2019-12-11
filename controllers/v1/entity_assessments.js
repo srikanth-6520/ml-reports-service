@@ -72,8 +72,6 @@ async function assessmentReportGetChartData(req, res) {
           //dynamically appending values to filter
           bodyParam.filter.fields[0].dimension = "school";
           childType = "";
-          
-          // console.log(bodyParam.filter.fields);
 
           //pass the query as body param and get the resul from druid
           let options = config.druid.options;
@@ -206,7 +204,6 @@ async function assessmentReportGetChartData(req, res) {
           }
       })
         .catch(function (err) {
-          console.log(err);
           res.status(400);
           var response = {
             result: false,
@@ -264,12 +261,10 @@ exports.assessmentPdfReport = async function(req, res) {
    
      if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
 
-      console.log(dataReportIndexes.downloadpdfpath,"dataReportIndexes", dataReportIndexes.id);
+     
       dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
       let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
 
-      // call to get SignedUrl 
-      console.log("instaRes=======", signedUlr);
 
       var response = {
         status: "success",
