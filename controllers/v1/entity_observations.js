@@ -522,7 +522,12 @@ exports.entityObservationScorePdfFunc = async function (req, res) {
 
   if (entityRes.result == true) {
 
-    let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, true);
+    let obj = {
+      schoolName : entityRes.schoolName,
+      totalObservations : entityRes.totalObservations
+     }
+
+    let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, true, obj);
 
     let hostname = req.headers.host;
 

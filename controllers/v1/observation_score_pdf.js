@@ -1,5 +1,6 @@
-var instanceObserv = require('./instance_observation');
-var entityObserv = require('./entity_observations');
+let instanceObserv = require('./instance_observation');
+let entityObserv = require('./entity_observations');
+let observationController = require('./observation_controller'); 
 
 
 exports.observationScorePdfReport = async function (req, res) {
@@ -14,6 +15,10 @@ exports.observationScorePdfReport = async function (req, res) {
         else if (req.body && req.body.entityId && req.body.observationId) {
 
             let resObj = await entityObserv.entityObservationScorePdfFunc(req, res)
+        }
+        else if (req.body && req.body.observationId) {
+
+            let resObj = await observationController.observationScorePdfFunc(req, res)
         }
         else {
             resolve({

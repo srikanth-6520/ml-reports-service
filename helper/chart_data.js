@@ -1,4 +1,5 @@
 const moment = require("moment");
+let obsScoreOrder = 0;
 
 //function for instance observation final response creation
 exports.instanceReportChart = async function (data) {
@@ -1223,6 +1224,9 @@ async function scoreObjectCreateFunction(data) {
         question: data[0].event.questionName,
         chart: {
             type: "pie",
+            credits: {
+                enabled: false
+            },
             data: [
                 {
                     data: dataObj
@@ -1290,10 +1294,7 @@ exports.entityScoreReportChartObjectCreation = async function (data) {
 
     }
 
-    function custom_sort(a, b) {
-        return new Date(a.event.completedDate).getTime() - new Date(b.event.completedDate).getTime();
-    }
-
+    
 async function entityScoreObjectCreateFunc (data) {
 
     let seriesData = [];
@@ -1360,19 +1361,99 @@ async function entityScoreObjectCreateFunc (data) {
 
 
 // Chart object creation for observation score report 
+exports.observationScoreReportChart = async function (data) {
 
-exports.observationScoreReportChart = async function(data){
+    let obj = {
+        result: true,
+        observationName: data[0].event.observationName,
+        response: []
+    }
 
     //group the data based on entity Id
+    let entityGroupedData = await groupArrayByGivenField(data, "school");
 
-    let entityGroupedData = await groupArrayByGivenField(data,"school");
+    let entityKeys = Object.keys(entityGroupedData);
+
+    await Promise.all(entityKeys.map(async element => {
+
+        let responseObj = await observationScoreResponseObj(entityGroupedData[element]);
+
+        obj.response.push(responseObj);
+    }))
 
 
+    // Number of schools in this particular observation
+    obj.schoolsObserved = entityKeys.length;
+
+    //sort the response objects using questionExternalId field
+    await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
 
 
-
+    return obj;
 }
 
+
+
+async function observationScoreResponseObj(data){
+
+    let dataArray = [];
+
+    let sortedData = await data.sort(custom_sort);
+
+    await Promise.all(sortedData.map(element => {
+
+        if(element.event.scoreAchieved == null){
+            element.event.scoreAchieved = 0;
+        }
+
+        dataArray.push([parseInt(element.event.scoreAchieved)]);
+
+    }))
+
+    let chartData = {
+        order : obsScoreOrder + 1,
+        schoolName : data[0].event.schoolName,
+        chart: {
+            type: "scatter",
+            title: "",
+            xAxis: {
+                title: {
+                    enabled: true,
+                    text: "observations"
+                },
+                labels: {},
+                categories: ["Obs1", "Obs2", "Obs3", "Obs4", "Obs5"],
+                startOnTick: false,
+                endOnTick: false,
+                showLastLabel: true
+            },
+            yAxis: {
+                title: {
+                    text: "Score"
+                }
+            },
+            plotOptions:{
+                scatter:{
+                    lineWidth:1,
+                    lineColor:"#eee"
+                }
+            },
+            credits: {
+                enabled: false
+            },
+            legend: {
+                enabled: false
+            },
+            data: [{
+                color: "#F6B343",
+                data : dataArray
+            }]
+
+        }
+    }
+
+    return chartData;
+}
 
 // Function for grouping the array based on certain field name
 function groupArrayByGivenField (array,name){
@@ -1383,6 +1464,11 @@ function groupArrayByGivenField (array,name){
     }, Object.create(null));
 
     return result;
+}
+
+
+function custom_sort(a, b) {
+    return new Date(a.event.completedDate).getTime() - new Date(b.event.completedDate).getTime();
 }
 
 

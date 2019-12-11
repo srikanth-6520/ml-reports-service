@@ -313,15 +313,18 @@ exports.scoreReport = async function (req , res){
   
             else {
   
-              var responseObj = await helperFunc.observationScoreReportChart(data)
+              var responseObj = await helperFunc.observationScoreReportChart(data);
+
+              //Call samiksha API to get total schools count for the given observationId
+              let totalSchools = await getTotalSchools(req.body.observationId,req.headers["x-auth-token"]);
+              responseObj.totalSchools = totalSchools.result.count;
+
               resolve(responseObj);
   
             }
           })
   
           .catch(function (err) {
-            console.log(err);
-            //res.status(400);
             var response = {
               result: false,
               message: 'Data not found'
@@ -335,16 +338,46 @@ exports.scoreReport = async function (req , res){
   
   }
   
+
+//function to make a call to samiksha assessment entities list API
+async function getTotalSchools(observationId,token) {
+
+    return new Promise(async function(resolve){
+    var options = {
+      method: "GET",
+      json: true,
+      headers: {
+          "Content-Type": "application/json",
+          "X-authenticated-user-token": token
+      },
+      uri: config.samiksha_observation_details_api.url + observationId
+  }
+  
+    rp(options).then(function(resp){
+      return resolve(resp);
+  
+    }).catch(function(err){
+      return resolve(err);
+    })
+  
+  });
+}
   
   
+
 //<=================== entity observation score pdf generation =============================
-  exports.entityObservationScorePdfFunc = async function (req, res) {
+  exports.observationScorePdfFunc = async function (req, res) {
   
-    var entityRes = await entityScoreReport(req, res);
+    let observationRes = await observationScoreReport(req, res);
   
-    if (entityRes.result == true) {
-  
-      let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, true);
+    if (observationRes.result == true) {
+
+      let obj = {
+          totalSchools : observationRes.totalSchools,
+          schoolsObserved : observationRes.schoolsObserved
+      }
+
+      let resData = await pdfHandler.instanceObservationScorePdfGeneration(observationRes, true, obj);
   
       let hostname = req.headers.host;
   
@@ -354,9 +387,8 @@ exports.scoreReport = async function (req , res){
     }
   
     else {
-      res.send(instaRes);
+      res.send(observationRes);
     }
   
-  
-  };
+};
   
