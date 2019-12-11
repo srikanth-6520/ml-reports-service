@@ -34,8 +34,11 @@ router.post("/observations/entityObservationReport",authenticate,entityControlle
 //API router for instance observation score report
 router.post("/observations/instanceObservationScoreReport",authenticate,instanceController.instanceObservationScoreReport)
 
-//API router for instance observation score report
+//API router for observation score report
 router.post("/observations/entityScoreReport",authenticate,entityController.entityObservationScoreReport)
+
+//API router observation score report
+router.post("/observations/scoreReport",authenticate,observationController.scoreReport)
 
 //API router for list programs (Assessment)
 router.post("/assessments/listPrograms",authenticate,listAssessmentPrograms.listPrograms);
