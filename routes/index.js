@@ -11,6 +11,7 @@ var course_enrollment = require('../controllers/v1/course_enrollment')
 var content_view = require('../controllers/v1/content_view')
 var scoreController = require('../controllers/v1/observation_score_pdf')
 var listObservationNames = require('../controllers/v1/list_observation_names')
+var observationSubmissions = require('../controllers/v1/observation_submissions')
 
 //========= API calls for samiksha observation and assessment reports=============
 
@@ -27,6 +28,9 @@ router.post("/observations/report",authenticate,observationController.observatio
 
 //API router for listing all the observation Names
 router.post("/observations/listObservationNames",authenticate,listObservationNames.listObservationNames)
+
+//API router for getting observation submission count
+router.post("/observations/submissionsCount",authenticate,observationSubmissions.observationSubmissionsCount)
 
 //API router for observation report
 router.post("/observations/entityObservationReport",authenticate,entityController.entityObservationReport)

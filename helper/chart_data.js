@@ -1012,7 +1012,8 @@ exports.entityAssessmentChart = async function (inputObj) {
 
       var chartObj = {
         result:true,
-        title: titleName + " Perfomance report for " + designation + " View",
+        programName : data[0].event.programName,
+        title: "School performance report",
         reportSections: [
             {
                 order: 1,
@@ -1083,7 +1084,7 @@ exports.entityTableViewFunc = async function(dataObj){
         order: 2,
         chart: {
             type: "expansion",
-            title: "Descriptive view for " + designation + " for " + titleName + " performance",
+            title: "Descriptive view",
             entities : []
         }
     }

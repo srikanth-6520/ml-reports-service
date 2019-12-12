@@ -315,12 +315,14 @@ exports.scoreReport = async function (req , res){
   
               var responseObj = await helperFunc.observationScoreReportChart(data);
 
-              //Call samiksha API to get total schools count for the given observationId
-              let totalSchools = await getTotalSchools(req.body.observationId,req.headers["x-auth-token"]);
-              responseObj.totalSchools = totalSchools.result.count;
+                //Call samiksha API to get total schools count for the given observationId
+                let totalSchools = await getTotalSchools(req.body.observationId,req.headers["x-auth-token"]);
 
-              resolve(responseObj);
-  
+                if (totalSchools.result) {
+                    responseObj.totalSchools = totalSchools.result.count;
+                }
+                resolve(responseObj);
+
             }
           })
   
