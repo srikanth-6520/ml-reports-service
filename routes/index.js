@@ -11,6 +11,7 @@ var course_enrollment = require('../controllers/v1/course_enrollment')
 var content_view = require('../controllers/v1/content_view')
 var scoreController = require('../controllers/v1/observation_score_pdf')
 var listObservationNames = require('../controllers/v1/list_observation_names')
+var observationSubmissions = require('../controllers/v1/observation_submissions')
 
 //========= API calls for samiksha observation and assessment reports=============
 
@@ -28,14 +29,20 @@ router.post("/observations/report",authenticate,observationController.observatio
 //API router for listing all the observation Names
 router.post("/observations/listObservationNames",authenticate,listObservationNames.listObservationNames)
 
+//API router for getting observation submission count
+router.post("/observations/submissionsCount",authenticate,observationSubmissions.observationSubmissionsCount)
+
 //API router for observation report
 router.post("/observations/entityObservationReport",authenticate,entityController.entityObservationReport)
 
 //API router for instance observation score report
 router.post("/observations/instanceObservationScoreReport",authenticate,instanceController.instanceObservationScoreReport)
 
-//API router for instance observation score report
+//API router for observation score report
 router.post("/observations/entityScoreReport",authenticate,entityController.entityObservationScoreReport)
+
+//API router observation score report
+router.post("/observations/scoreReport",authenticate,observationController.scoreReport)
 
 //API router for list programs (Assessment)
 router.post("/assessments/listPrograms",authenticate,listAssessmentPrograms.listPrograms);
@@ -77,9 +84,6 @@ function authenticate(req,res,next){
 
     authService.validateToken(req,res)
     .then(function (result) {
-        // res.send(result);
-
-        // console.log("result",result);
 
         if(result.status=="success"){
 

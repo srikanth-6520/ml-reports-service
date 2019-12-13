@@ -47,14 +47,14 @@ async function assessmentReportGetChartData(req, res) {
          
           if(req.body.immediateChildEntityType == ""){
             // req.body.immediateChildEntityType = "domain"
-            bodyParam.dimensions.push("domainName","level","schoolName","school");
+            bodyParam.dimensions.push("domainName","level","schoolName","school","programName");
             bodyParam.aggregations[0].fieldName = "domainName";
             bodyParam.aggregations[0].fieldNames.push("domainName");
             bodyParam.aggregations[0].name = "domainNameCount";
           }
           else{
             var entityName = req.body.immediateChildEntityType + "Name";
-            bodyParam.dimensions.push(req.body.immediateChildEntityType,entityName,"level");
+            bodyParam.dimensions.push(req.body.immediateChildEntityType,entityName,"level","programName");
             bodyParam.aggregations[0].fieldName = entityName;
             bodyParam.aggregations[0].fieldNames.push(entityName);
             bodyParam.aggregations[0].name = entityName + "Count";
@@ -231,7 +231,7 @@ async function assessmentEntityList(entityId,childType,token) {
         "Content-Type": "application/json",
         "X-authenticated-user-token": token
     },
-    uri: config.samiksha_assessment_entity_list_api.url + entityId + "?type=" + childType
+    uri: config.samiksha_api.assessment_entity_list_api + entityId + "?type=" + childType
 }
 
   rp(options).then(function(resp){

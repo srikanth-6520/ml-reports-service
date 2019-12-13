@@ -17,9 +17,6 @@ exports.entityReport = async function (req, res) {
 
 exports.observationsByEntity = async function (req, res) {
 
-
-  // console.log("req", req);
-  // console.log("entityId and observationId are required fields");
   if (!req.body && !req.body) {
     res.status(400);
     var response = {
@@ -37,9 +34,6 @@ exports.observationsByEntity = async function (req, res) {
       .then(async function (result) {
 
         if (req.body.search) {
-
-          console.log("result", result.query);
-
 
           var bodyParam = JSON.parse(result.query);
           if (config.druid.observation_datasource_name) {
@@ -69,8 +63,6 @@ exports.observationsByEntity = async function (req, res) {
           fieldsArray.push({ "type": "selector", "dimension": dimension, "value": req.body.queryId });
           fieldsArray.push({ "type": "like", "dimension": "observationName", "pattern": search });
           query.filter.fields.push(...fieldsArray);
-
-          console.log("fieldsArray",fieldsArray);
           
           query.filter.type = "and";
           var options = config.druid.options;
@@ -78,12 +70,12 @@ exports.observationsByEntity = async function (req, res) {
           options.body = query;
           var data = await rp(options);
 
-          // console.log("data", data);
+          
 
 
           let observationData  = await getObsvByentitys(req,result);
 
-          // console.log("observationData",observationData);
+         
 
           var arr = [];
 
@@ -91,12 +83,12 @@ exports.observationsByEntity = async function (req, res) {
             arr.push(each);
           }));
 
-          // console.log("data",data);
+          
 
           await Promise.all(data.map(async each => {
 
 
-            console.log("each",each);
+           
             if(!arr.includes(each)){
               arr.push(each);
             }
@@ -113,7 +105,7 @@ exports.observationsByEntity = async function (req, res) {
           res.send(observationData);
 
 
-          // console.log("result", result.query);
+         
 
           // var bodyParam = JSON.parse(result.query);
           // if (config.druid.observation_datasource_name) {
@@ -128,16 +120,16 @@ exports.observationsByEntity = async function (req, res) {
           //   fieldsArray.push(objSelecter);
           // }
           // ));
-          // console.log("fields",fieldsArray);
+         
 
           // query.filter.fields.push(...fieldsArray);
-          // // console.log("query",query);
+         
           // var options = config.druid.options;
           // options.method = "POST";
           // options.body = query;
           // var data = await rp(options);
 
-          // console.log("data", data);
+         
           // res.send(data);
 
         }
@@ -298,10 +290,8 @@ async function getObsvByentitys(req,result){
       fieldsArray.push(objSelecter);
     }
     ));
-    console.log("fields",fieldsArray);
 
     query.filter.fields.push(...fieldsArray);
-    // console.log("query",query);
     var options = config.druid.options;
     options.method = "POST";
     options.body = query;
@@ -386,7 +376,6 @@ async function entityObservationReportGeneration(req, res) {
         }
       })
       .catch(function (err) {
-        console.log(err);
         res.status(400);
         var response = {
           result: false,
@@ -498,7 +487,6 @@ async function entityScoreReport(req, res) {
         })
 
         .catch(function (err) {
-          console.log(err);
           //res.status(400);
           var response = {
             result: false,
@@ -522,7 +510,12 @@ exports.entityObservationScorePdfFunc = async function (req, res) {
 
   if (entityRes.result == true) {
 
-    let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, true);
+    let obj = {
+      schoolName : entityRes.schoolName,
+      totalObservations : entityRes.totalObservations
+     }
+
+    let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, true, obj);
 
     let hostname = req.headers.host;
 

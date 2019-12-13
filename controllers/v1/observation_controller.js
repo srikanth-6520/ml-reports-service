@@ -1,7 +1,7 @@
 var config = require('../../config/config');
 var rp = require('request-promise');
 var request = require('request');
-var model = require('../../db')
+var model = require('../../db');
 var helperFunc = require('../../helper/chart_data');
 var commonCassandraFunc = require('../../common/cassandra_func');
 var instance = require('./instance_observation');
@@ -259,3 +259,138 @@ exports.pdftempUrl = async function (req, response) {
 
     });
 };
+
+
+
+
+
+//========================== Observation Score report  ===========================================>
+
+exports.scoreReport = async function (req , res){
+
+    let data = await observationScoreReport(req, res);
+  
+    res.send(data);
+  
+  }
+  
+  
+  async function observationScoreReport(req, res) {
+  
+    return new Promise(async function (resolve, reject) {
+  
+      if (!req.body.observationId) {
+        var response = {
+          result: false,
+          message: 'observationId is a required fields'
+        }
+        resolve(response);
+      }
+  
+      else {
+  
+        model.MyModel.findOneAsync({ qid: "observation_score_report_query" }, { allow_filtering: true })
+          .then(async function (result) {
+  
+            var bodyParam = JSON.parse(result.query);
+  
+            if (config.druid.observation_datasource_name) {
+              bodyParam.dataSource = config.druid.observation_datasource_name;
+            }
+  
+            bodyParam.filter.value = req.body.observationId;
+  
+            //pass the query as body param and get the resul from druid
+            var options = config.druid.options;
+            options.method = "POST";
+            options.body = bodyParam;
+  
+            var data = await rp(options);
+  
+            if (!data.length) {
+              resolve({ "data": "No entities found" })
+            }
+  
+            else {
+  
+              var responseObj = await helperFunc.observationScoreReportChart(data);
+
+                //Call samiksha API to get total schools count for the given observationId
+                let totalSchools = await getTotalSchools(req.body.observationId,req.headers["x-auth-token"]);
+
+                if (totalSchools.result) {
+                    responseObj.totalSchools = totalSchools.result.count;
+                }
+                resolve(responseObj);
+
+            }
+          })
+  
+          .catch(function (err) {
+            var response = {
+              result: false,
+              message: 'Data not found'
+            }
+            resolve(response);
+          })
+  
+      }
+  
+    })
+  
+  }
+  
+
+//function to make a call to samiksha assessment entities list API
+async function getTotalSchools(observationId,token) {
+
+    return new Promise(async function(resolve){
+    var options = {
+      method: "GET",
+      json: true,
+      headers: {
+          "Content-Type": "application/json",
+          "X-authenticated-user-token": token
+      },
+      uri: config.samiksha_api.observation_details_api + observationId
+  }
+  
+    rp(options).then(function(resp){
+      return resolve(resp);
+  
+    }).catch(function(err){
+      return resolve(err);
+    })
+  
+  });
+}
+  
+  
+
+//<=================== entity observation score pdf generation =============================
+  exports.observationScorePdfFunc = async function (req, res) {
+  
+    let observationRes = await observationScoreReport(req, res);
+  
+    if (observationRes.result == true) {
+
+      let obj = {
+          totalSchools : observationRes.totalSchools,
+          schoolsObserved : observationRes.schoolsObserved
+      }
+
+      let resData = await pdfHandler.instanceObservationScorePdfGeneration(observationRes, true, obj);
+  
+      let hostname = req.headers.host;
+  
+      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+  
+      res.send(resData);
+    }
+  
+    else {
+      res.send(observationRes);
+    }
+  
+};
+  
