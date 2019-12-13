@@ -231,7 +231,7 @@ async function assessmentEntityList(entityId,childType,token) {
         "Content-Type": "application/json",
         "X-authenticated-user-token": token
     },
-    uri: config.samiksha_assessment_entity_list_api.url + entityId + "?type=" + childType
+    uri: config.samiksha_api.assessment_entity_list_api + entityId + "?type=" + childType
 }
 
   rp(options).then(function(resp){

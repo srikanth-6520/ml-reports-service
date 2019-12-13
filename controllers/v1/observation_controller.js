@@ -1,7 +1,7 @@
 var config = require('../../config/config');
 var rp = require('request-promise');
 var request = require('request');
-var model = require('../../db')
+var model = require('../../db');
 var helperFunc = require('../../helper/chart_data');
 var commonCassandraFunc = require('../../common/cassandra_func');
 var instance = require('./instance_observation');
@@ -352,7 +352,7 @@ async function getTotalSchools(observationId,token) {
           "Content-Type": "application/json",
           "X-authenticated-user-token": token
       },
-      uri: config.samiksha_observation_details_api.url + observationId
+      uri: config.samiksha_api.observation_details_api + observationId
   }
   
     rp(options).then(function(resp){
