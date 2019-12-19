@@ -25,7 +25,6 @@ exports.getSignedUrl = async function getSignedUrl(filePath) {
         //     Expires: config.s3_signed_url_expire_seconds
         // })
 
-        // // console.log("url",url)
         // return resolve(url);
 
         let urlInfo = s3SignedUrl(filePath);
@@ -45,7 +44,6 @@ async function s3SignedUrl(filePath) {
             Expires: config.s3_signed_url_expire_seconds
         })
 
-        // console.log("url",url)
         return resolve(url);
 
     });
@@ -223,7 +221,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, deleteFromS3 = nu
                                 data: obj
                             })
                                 .then(function (dataEjsRender) {
-                                    // console.log("dataEjsRender",imgPath);
+                                  
                                     var dir = imgPath;
                                     if (!fs.existsSync(dir)) {
                                         fs.mkdirSync(dir);
@@ -263,8 +261,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, deleteFromS3 = nu
                                                 }
                                             });
                                             optionsHtmlToPdf.formData.files = FormData;
-                                            // console.log("formData ===", optionsHtmlToPdf.formData.files);
-                                            // optionsHtmlToPdf.formData.files.push(formDataMultiSelect);
+                                          
                                             rp(optionsHtmlToPdf)
                                                 .then(function (responseHtmlToPdf) {
 
@@ -304,7 +301,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, deleteFromS3 = nu
                                                                         s3.upload(params, function (s3Err, data) {
                                                                             if (s3Err) throw s3Err;
 
-                                                                            // console.log("data", data);
+                                                                            
                                                                             console.log(`File uploaded successfully at ${data.Location}`);
 
                                                                             s3SignedUrl(data.key).then(function (signedRes) {
@@ -363,7 +360,6 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, deleteFromS3 = nu
                                                     }
                                                 })
                                                 .catch(function (err) {
-                                                    console.log("error in converting HtmlToPdf", err);
                                                     resolve(err);
                                                     throw err;
                                                 });
@@ -439,8 +435,6 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
             let multiSelectChartObj = await getSelectedData(multiSelectArray, "multiselect");
             let radioChartObj = await getSelectedData(radioArray, "radio");
 
-            // console.log(radioChartObj);
-
             let multiselectFormData = await apiCallToHighChart(multiSelectChartObj, imgPath, "multiselect");
             let radioFormData = await apiCallToHighChart(radioChartObj, imgPath, "radio");
             formData.push(...multiselectFormData);
@@ -471,7 +465,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
 
                             await Promise.all(instaRes.response.map(async ele => {
                             
-                                // console.log(ele.order);
+                               
                                 if (ele.responseType === "text" || ele.responseType === "date" || ele.responseType === "number" || ele.responseType === "slider" || ele.responseType === "multiselect" || ele.responseType === "radio") {
 
                                     arrOfData.push(ele);
@@ -529,7 +523,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
                                 data: obj
                             })
                                 .then(function (dataEjsRender) {
-                                    // console.log("dataEjsRender",imgPath);
+                                  
                                     var dir = imgPath;
                                     if (!fs.existsSync(dir)) {
                                         fs.mkdirSync(dir);
@@ -569,8 +563,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
                                                 }
                                             });
                                             optionsHtmlToPdf.formData.files = formData;
-                                            // console.log("formData ===", optionsHtmlToPdf.formData.files);
-                                            // optionsHtmlToPdf.formData.files.push(formDataMultiSelect);
+                                           
                                             rp(optionsHtmlToPdf)
                                                 .then(function (responseHtmlToPdf) {
 
@@ -622,7 +615,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
                                                                                     fs.readdir(imgPath, (err, files) => {
                                                                                         if (err) throw err;
 
-                                                                                        // console.log("files",files.length);
+                                                                                       
                                                                                         var i = 0;
                                                                                         for (const file of files) {
 
@@ -764,8 +757,6 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
                                 }))
                            
                                 obj.orderData = arrayOfData;
-
-                                console.log(obj);
 
                                 ejs.renderFile(__dirname + '/../views/instanceScoreObsTemplate.ejs', {
                                     data: obj
@@ -1212,9 +1203,15 @@ async function getSelectedData(items, type) {
 
                         chart: {
                             type: chartType
+                           
+                            
                         },
+                        plotOptions : ele.chart.plotOptions,
                         xAxis: ele.chart.xAxis,
                         yAxis: ele.chart.yAxis,
+                        credits: {
+                            enabled: false
+                        },
                         series: ele.chart.data
                     },
                     question: ele.question
@@ -1283,6 +1280,9 @@ async function getSelectedData(items, type) {
                                     }
                                 }
                             },
+                            credits: {
+                                enabled: false
+                            },
                             series: ele.chart.data
                         }
                     }
@@ -1333,7 +1333,7 @@ async function getScoreChartObject(items) {
             }
             else if(ele.chart.type == "scatter") {
 
-                  obj = {
+                obj = {
                     order: ele.order,
                     type: "svg",
                     options: {
