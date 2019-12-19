@@ -11,16 +11,16 @@
     <%- include('textReport', {instaResponse: orderData[r] }); %>
 
     <%  } else if(orderData[r].responseType == 'number'){ %>
-    <%- include('numberReport', {instaResponse: orderData[r] }); %>
+    <%- include('textReport', {instaResponse: orderData[r] }); %>
 
     <%  } else if(orderData[r].responseType == 'date'){ %>
-    <%- include('dateReport', {instaResponse: orderData[r] }); %>
+    <%- include('textReport', {instaResponse: orderData[r] }); %>
 
     <%  } else if(orderData[r].responseType == 'slider'){ %>
-    <%- include('sliderReport', {instaResponse: orderData[r] }); %>
+    <%- include('textReport', {instaResponse: orderData[r] }); %>
 
     <%  } else if(orderData[r].responseType == 'multiselect'){ %>
-    <%- include('multiSelectReport', {path: orderData[r][0].options.filename}); %>
+    <%- include('radioReport', {path: orderData[r][0].options.filename}); %>
 
 
     <%  } else if(orderData[r].responseType == 'radio'){ %>
@@ -60,7 +60,7 @@
         </div>
     </div>
 
-    <div style='page-break-after:always'></div>
+    <!-- <div style='page-break-after:always'></div> -->
 
     <% } else if(matrixResponse[k][0].options.responseType == 'radio' || matrixResponse[k][0].options.responseType == 'multiselect' ){ %>
 
@@ -85,7 +85,7 @@
         <!-- </div> -->
     </div>
 
-    <div style='page-break-after:always'></div>
+    <!-- <div style='page-break-after:always'></div> -->
 
     <%  } %>
     <% } %>
