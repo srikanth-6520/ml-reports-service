@@ -481,9 +481,13 @@ async function matrixResponseObjectCreateFunc(data){
         order = "instanceParentExternalId";
     }
     
+     //To get the latest edited question
+     let questionObject = data.sort(custom_sort);
+     let question = questionObject[questionObject.length-1].event.instanceParentQuestion;
+
     var obj = {
         order:data[0].event[order],
-        question: data[0].event.instanceParentQuestion,
+        question: question,
         responseType: data[0].event.instanceParentResponsetype,
         answers: [],
         chart: {},
@@ -578,7 +582,6 @@ async function responseObjectCreateFunc(data) {
             data[i].event.questionAnswer = "Not answered";
          }
         dataArray.push(data[i].event.questionAnswer);
-        question = data[i].event.questionName;
 
         if(data[i].event.questionSequenceByEcm != null){
 
@@ -589,6 +592,10 @@ async function responseObjectCreateFunc(data) {
 
         responseType = data[i].event.questionResponseType;
      }
+      
+     //To get the latest edited question
+     let questionObject = data.sort(custom_sort);
+     question = questionObject[questionObject.length-1].event.questionName;
 
     //response object
     let resp = {
@@ -638,7 +645,7 @@ async function radioObjectCreateFunc(data,noOfSubmissions) {
             order = data[i].event.questionExternalId;
         } 
         
-        question = data[i].event.questionName;
+        
         responseType = data[i].event.questionResponseType;
 
     }
@@ -656,11 +663,16 @@ async function radioObjectCreateFunc(data,noOfSubmissions) {
         }
         var dataObj = {
             name: labelArray[j],
-            y: value,
+            y: value
         }
 
         chartdata.push(dataObj);
+        
     }
+    
+    //To get the latest edited question
+    let questionObject = data.sort(custom_sort);
+    question = questionObject[questionObject.length-1].event.questionName;
 
     var resp = {
         order: order,
@@ -669,6 +681,16 @@ async function radioObjectCreateFunc(data,noOfSubmissions) {
         answers: [],
         chart: {
             type: "pie",
+            plotOptions: {
+                pie: {
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: false
+                    },
+                    showInLegend: true
+                }
+            },
             data: [
                 {
                     data: chartdata
@@ -720,11 +742,15 @@ async function multiSelectObjectCreateFunc(data,noOfSubmissions) {
     } else {
         order = data[0].event.questionExternalId;
     } 
+
+    //To get the latest edited question
+    let questionObject = data.sort(custom_sort);
+    let question = questionObject[questionObject.length-1].event.questionName;
     
 
     var resp = {
         order: order,
-        question: data[0].event.questionName,
+        question: question,
         responseType: data[0].event.questionResponseType,
         answers: [],
         chart: {
@@ -790,25 +816,6 @@ catch(err) {
 function count(arr) {
     return arr.reduce((prev, curr) => (prev[curr] = ++prev[curr] || 1, prev), {})
 }
-
-//Function to create data and label array for multiselect 
-function entityMultiselectGrouping(data) {
-    var dataArray = [];
-    var labelArray = [];
-
-    for (i = 0; i < data.length; i++) {
-        if (dataArray.includes(data[i].event.questionAnswer)) {
-        } else {
-            dataArray.push(data[i].event.questionAnswer);
-        }
-        if (labelArray.includes(data[i].event.questionResponseLabel)) {
-        } else {
-            labelArray.push(data[i].event.questionResponseLabel);
-        }
-    }
-     return [dataArray, labelArray];
-}
-
 
 //Create response object for listObservationNames API
 exports.listObservationNamesObjectCreate = async function(data){
@@ -1322,6 +1329,7 @@ exports.entityScoreReportChartObjectCreation = async function (data) {
 async function entityScoreObjectCreateFunc (data) {
 
     let seriesData = [];
+    let yAxisMaxValue = data[0].event.maxScore;
     //group the questions based on their observationSubmissionId
     let groupedSubmissionData = await groupArrayByGivenField(data,"observationSubmissionId"); 
 
@@ -1355,6 +1363,8 @@ async function entityScoreObjectCreateFunc (data) {
                 showLastLabel: true
             },
             yAxis: {
+                min:0,
+                max: yAxisMaxValue,
                 title: {
                     text: "Score"
                 }
@@ -1421,6 +1431,7 @@ exports.observationScoreReportChart = async function (data) {
 async function observationScoreResponseObj(data){
 
     let dataArray = [];
+    let yAxisMaxValue = data[0].event.totalScore;
 
     let sortedData = await data.sort(custom_sort);
 
@@ -1430,7 +1441,9 @@ async function observationScoreResponseObj(data){
             element.event.scoreAchieved = 0;
         }
 
-        dataArray.push([parseInt(element.event.scoreAchieved)]);
+        if(dataArray.length != config.druid.threshold_in_entity_score_api){
+            dataArray.push([parseInt(element.event.scoreAchieved)]);
+        }
 
     }))
 
@@ -1452,6 +1465,8 @@ async function observationScoreResponseObj(data){
                 showLastLabel: true
             },
             yAxis: {
+                min: 0,
+                max : yAxisMaxValue,
                 title: {
                     text: "Score"
                 }
