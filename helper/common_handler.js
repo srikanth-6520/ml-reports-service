@@ -118,8 +118,17 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, deleteFromS3 = nu
             FormData.push(...formDataMatrixMultiSelect);
             FormData.push(...matrixRadioFormData);
             
-            var params = {
-                observationName: instaRes.observationName
+            var params;
+
+            if (instaRes.solutionName) {
+                params = {
+                    solutionName: instaRes.solutionName
+                }
+            }
+            else {
+                params = {
+                    observationName: instaRes.observationName
+                }
             }
             ejs.renderFile(__dirname + '/../views/header.ejs', {
                 data: params
@@ -696,7 +705,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
 
 
 
-//==================================== PDF generation for instance observation score report ======================
+//PDF generation for observation score report
 exports.instanceObservationScorePdfGeneration = async function instanceObservationPdfGeneration(observationResp,deleteFromS3 = null,obj) {
     
     return new Promise(async function (resolve, reject) {
@@ -721,8 +730,17 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
 
             let highChartData = await apiCallToHighChart(chartObj, imgPath,"scatter");
 
-            var params = {
-                observationName: observationResp.observationName
+            var params;
+
+            if (observationResp.solutionName) {
+                params = {
+                    solutionName: observationResp.solutionName
+                }
+            }
+            else {
+                params = {
+                    observationName: observationResp.observationName
+                }
             }
             ejs.renderFile(__dirname + '/../views/header.ejs', {
                 data: params
@@ -1318,7 +1336,7 @@ async function getScoreChartObject(items) {
                         title: {
                             text: ele.question
                         },
-                        colors: ['#D35400', '#F1C40F', '#3498DB', '#8E44AD', '#154360', '#145A32'],
+                       // colors: ['#6c4fa1'],
 
                         chart: {
                             type: ele.chart.type
@@ -1326,11 +1344,35 @@ async function getScoreChartObject(items) {
                         xAxis: ele.chart.xAxis,
                         yAxis: ele.chart.yAxis,
                         credits: ele.chart.credits,
+                        plotOptions: ele.chart.plotOptions,
                         series: ele.chart.data
                     },
                     question: ele.question
                 };
             }
+            else if(ele.chart.type == "bar") {
+               
+                obj = {
+                   order: ele.order,
+                   type: "svg",
+                   options: {
+                       title: {
+                           text: ele.question
+                       },
+                       chart: {
+                           type: ele.chart.type
+                       },
+                       colors: ['#D35400', '#F1C40F', '#3498DB', '#8E44AD', '#154360', '#145A32'],
+                       xAxis: ele.chart.xAxis,
+                       yAxis: ele.chart.yAxis,
+                       credits: ele.chart.credits,
+                       plotOptions: ele.chart.plotOptions,
+                       legend: ele.chart.legend,
+                       series: ele.chart.data
+                   },
+                   question: ele.question
+               };
+           }
             else if(ele.chart.type == "scatter") {
 
                 obj = {
