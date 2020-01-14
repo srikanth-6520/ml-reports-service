@@ -359,8 +359,14 @@ async function entitySolutionScoreReportGeneration(req, res) {
       resolve(response);
     }
 
-    else {
+    else if (req.body.entityType == "school") {
+      
+      let response = await schoolSolutionScoreReport(req, res);
+      resolve(response);
+    
+    }
 
+    else {
       // Fetch query from cassandra
       model.MyModel.findOneAsync({ qid: "entity_solution_score_query" }, { allow_filtering: true })
         .then(async function (result) {
@@ -372,9 +378,9 @@ async function entitySolutionScoreReportGeneration(req, res) {
           }
 
           //Assign values to the query filter object 
-          bodyParam.filter.fields[0].dimension = req.body.entityType;
-          bodyParam.filter.fields[0].value = req.body.entityId;
-          bodyParam.filter.fields[1].value = req.body.solutionId;
+          bodyParam.filter.fields[1].fields[0].dimension = req.body.entityType;
+          bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+          bodyParam.filter.fields[1].fields[1].value = req.body.solutionId;
 
           //pass the query as body param and get the result from druid
           var options = config.druid.options;
@@ -406,13 +412,61 @@ async function entitySolutionScoreReportGeneration(req, res) {
 
 }
 
+//School solution score report creation function
+async function schoolSolutionScoreReport(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+      model.MyModel.findOneAsync({ qid: "entity_solution_score_query" }, { allow_filtering: true })
+        .then(async function (result) {
+
+          var bodyParam = JSON.parse(result.query);
+
+          if (config.druid.observation_datasource_name) {
+            bodyParam.dataSource = config.druid.observation_datasource_name;
+          }
+
+           //Assign values to the query filter object 
+           bodyParam.filter.fields[1].fields[0].dimension = req.body.entityType;
+           bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+           bodyParam.filter.fields[1].fields[1].value = req.body.solutionId;
+           
+          //pass the query as body param and get the resul from druid
+          var options = config.druid.options;
+          options.method = "POST";
+          options.body = bodyParam;
+
+          var data = await rp(options);
+
+          if (!data.length) {
+            resolve({ "data": "No observations made for the entity" })
+          }
+
+          else {
+
+            var responseObj = await helperFunc.entityScoreReportChartObjectCreation(data)
+            delete responseObj.observationName;
+            responseObj.solutionName = data[0].event.solutionName;
+            resolve(responseObj);
+
+          }
+        })
+
+        .catch(function (err) {
+          var response = {
+            result: false,
+            message: 'Data not found'
+          }
+          resolve(response);
+        })
+  })
+
+}
 
 //Entity solution score pdf generation
 exports.entitySolutionScorePdfFunc = async function (req, res) {
 
   return new Promise(async function (resolve, reject) {
-
-    console.log("hey i am here");
 
     var entityRes = await entitySolutionScoreReportGeneration(req, res);
 
