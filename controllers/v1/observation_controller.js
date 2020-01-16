@@ -34,7 +34,7 @@ async function observationReportData(req, res) {
                     if (config.druid.observation_datasource_name) {
                         bodyParam.dataSource = config.druid.observation_datasource_name;
                     }
-                    bodyParam.filter.fields[0].value = req.body.observationId;
+                    bodyParam.filter.value = req.body.observationId;
 
                     //pass the query as body param and get the resul from druid
                     var options = config.druid.options;
@@ -139,7 +139,7 @@ async function observationScoreReport(req, res) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
             }
   
-            bodyParam.filter.value = req.body.observationId;
+            bodyParam.filter.fields[0].value = req.body.observationId;
   
             //pass the query as body param and get the resul from druid
             var options = config.druid.options;
