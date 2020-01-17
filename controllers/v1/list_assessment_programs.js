@@ -30,7 +30,28 @@ exports.listPrograms = async function (req, res) {
                 options.body = bodyParam;
                 var data = await rp(options);
                 if (!data.length) {
+
+                     //==========Production hotfix code============================
+                    bodyParam.filter.dimension = "school";
+                    bodyParam.filter.value = req.body.entityId;
+
+                    //pass the query as body param and get the result from druid
+                    let optionsData = config.druid.options;
+                    optionsData.method = "POST";
+                    optionsData.body = bodyParam;
+                    let programData = await rp(options);
+                    
+                    if(!programData.length){
+                   
                     res.send({ "data": []})
+                    }
+                    else {
+
+                   //call the function entityAssessmentChart to get the data for stacked bar chart 
+                   var responseObj = await helperFunc.listProgramsObjectCreate(programData);
+                   res.send(responseObj);
+
+                    }
                 }
                 else {
                   //call the function entityAssessmentChart to get the data for stacked bar chart 
