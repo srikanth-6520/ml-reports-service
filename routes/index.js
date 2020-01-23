@@ -74,6 +74,10 @@ router.post("/observations/observationScorePdfReport",authenticate,pdfController
 router.post("/assessment/pdfReports",authenticate,entityAssessController.assessmentPdfReport);
 
 
+//API for Unnati app PDF generation 
+router.post("/unnati/pdfReport",authenticate,pdfController.unnatiPdfGeneration)
+
+
 //========= API calls for container app=============
 
 //API for course enrollment
