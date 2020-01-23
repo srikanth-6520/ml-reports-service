@@ -31,7 +31,6 @@ exports.contentView = async function (req, res) {
             }
         })
         .catch(function (err) {
-            console.log(err);
             res.status(400);
             var response = {
                 result: false,
