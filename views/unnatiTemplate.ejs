@@ -38,7 +38,7 @@
 
 <body class="container">
     <div class="container">
-        <h4 class="col-sm-12" style="padding-left: 0px"><img src="arrow.png" style="padding-right: inherit"><%= data.projectName %><img src="headerlogo.png" style="float:right; width: 5%;"></h4>
+        <h4 class="col-sm-12" style="padding-left: 0px"><%= data.projectName %></h4>
     </div>
 
 
@@ -99,17 +99,17 @@
     <div>
         <div style="padding: 15px 20px;">
             <div style="width:50%; float:left;">
-                <h5>Total Tasks : <%= data.tasksArray.length %></h5>
+                <h5><b>Total Tasks : <%= data.tasksArray.length %></b></h5>
             </div>
 
             <div style="width:50%; float:right">
-                <h5 style="text-align:right;"><%= data.category %></h5>
+                <h5 style="text-align:right;"><b><%= data.category %></b></h5>
             </div>
         </div>
         <br>
 
         <% for (var i=0;i < data.tasksArray.length; i++){  %>
-        <p style="padding: 15px 20px;"><%= data.tasksArray[i].title %></p>
+        <p style="padding: 15px 20px;"><b><%= data.tasksArray[i].title %></b></p>
         <hr class="new1">
         <% } %>
 
