@@ -1,0 +1,142 @@
+<html>
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <style>
+        hr.new1 {
+            border-top: 1px solid #c0192d;
+        }
+
+        hr {
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background-color: red;
+            color: white;
+            text-align: center;
+        }
+    </style>
+
+
+</head>
+
+<body class="container">
+    <div class="container">
+        <h4 class="col-sm-12" style="padding-left: 0px"><%= data.projectName %></h4>
+    </div>
+
+
+    <hr class="new1">
+    <div class="" style=" background: #eee;
+    padding: 15px 40px;">
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>GOAL</b></p>
+            </div>
+            <div style="width:50%; float:left;">
+                <p><%= data.goal %></p>
+            </div>
+
+        </div>
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>DURATION</b></p>
+            </div>
+            <div style="width:50%; float:left;">
+                <p><%= data.duration %></p>
+            </div>
+
+        </div>
+
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>START DATE</b></p>
+            </div>
+            <div style="width:50%; float:left;">
+                <p><%= data.startDate %></p>
+            </div>
+
+        </div>
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>END DATE</b></p>
+            </div>
+            <div style="width:50%; float:left;">
+                <p><%= data.endDate %></p>
+            </div>
+
+        </div>
+
+        <div class="row">
+                <div style="width:30%; float:left;">
+                    <p><b>STATUS</b></p>
+                </div>
+                <div style="width:50%; float:left;">
+                    <p><%= data.status %></p>
+                </div>
+    
+        </div>
+    </div>
+
+    <hr class="new1">
+
+    <div>
+        <div style="padding: 15px 20px;">
+            <div style="width:50%; float:left;">
+                <h5><b>Total Tasks : <%= data.tasksArray.length %></b></h5>
+            </div>
+
+            <div style="width:50%; float:right">
+                <h5 style="text-align:right;"><b><%= data.category %></b></h5>
+            </div>
+        </div>
+        <br>
+
+        <% for (var i=0;i < data.tasksArray.length; i++){  %>
+        <p style="padding: 15px 20px;"><b><%= data.tasksArray[i].title %></b></p>
+        <hr class="new1">
+        <% } %>
+
+
+    </div>
+
+
+    <!-- <div class="footer" style="background: #c0192d">
+          
+                <table style='table-layout: fixed;
+                background-image: url("background.png");
+                width: 100%;
+                bottom: 0;
+                <!-- background-size: 100% 100%;
+                background-repeat: no-repeat;' >
+                    <tbody>
+                     <tr style="text-align: center;"><td> <img src="home.png"> </td>
+                         <td> <img src="home.png"> </td>
+                         <td> <img src="home.png"> </td>
+                         <td> <img src="home.png"> </td>
+                         <td> <img src="home.png"> </td></tr>
+                    </tbody>
+                </table>
+            
+            </div> --> 
+
+
+</body>
+
+</html>
