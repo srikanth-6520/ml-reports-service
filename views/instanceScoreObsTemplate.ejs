@@ -1,0 +1,45 @@
+<html>
+
+<head>
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+  
+  <%if(data.schoolName) {%>
+    <div style="border: solid 1px #A9A9A9;margin-top:15px;padding: 10px">
+        <h4><%=data.schoolName %></h4>
+    </div>
+    <div style="margin-top:20px">
+    <h4>Total Observations : <%= data.totalObservations %></h4>
+  </div>
+  <% } %>
+
+  <%if(data.schoolsObserved) {%>
+    <div style="width:50%;float:left;margin-top:15px">
+      <h4>Total Schools : <%= data.totalSchools %></h4>
+    </div>
+    <div style="width:50%;float:right;margin-top:15px">
+      <h4>Schools Observed : <%= data.schoolsObserved %></h4>
+    </div>
+  <% } %>
+
+
+  <%if(data.totalScore) {%>
+      <div style="width:50%;float:left;margin-top:15px">
+        <h4>Total Score : <%= data.totalScore %></h4>
+      </div>
+      <div style="width:50%;float:right;margin-top:15px">
+        <h4>Score Achieved : <%= data.scoreAchieved %></h4>
+      </div>
+    <% } %>
+
+  
+  <% var orderData= data.orderData; %>
+  <% for (var r=0;r < orderData.length; r++){  %>
+     <img style="width:80%;border: solid 1px #A9A9A9;margin-top:25px;margin-bottom: 25px;margin-left: 10%" src="<%=orderData[r][0].options.filename%>" />
+  <% } %>
+
+</body>
+
+</html>

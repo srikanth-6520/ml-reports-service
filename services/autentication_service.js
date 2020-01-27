@@ -59,13 +59,12 @@ function validateToken(req, res) {
 
                     if(tokenData){
 
-                        // console.log("tokenData",tokenData);
+                        
                         resolve({ status: "success",userId:tokenData.userId });
                     }
                     if(err){
 
-                        // console.log("err",err);
-                        // console.log("tokenData",tokenData);
+                       
                         resolve({ status: "failed", message: err });
                     }
                 });

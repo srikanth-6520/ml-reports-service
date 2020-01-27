@@ -3,11 +3,11 @@ var rp = require('request-promise');
 var request = require('request');
 var model = require('../../db')
 var helperFunc = require('../../helper/chart_data');
-var commonCassandraFunc = require('../../common/cassandra_func');
 var pdfHandler = require('../../helper/common_handler');
 var omit = require('object.omit');
+var url = require("url");
 
-//controller for entity observation report
+//Controller for entity observation report
 exports.entityReport = async function (req, res) {
 
   let data = await entityObservationData(req, res);
@@ -15,153 +15,23 @@ exports.entityReport = async function (req, res) {
   res.send(data);
 }
 
-exports.observationsByEntity = async function (req, res) {
 
-
-  // console.log("req", req);
-  // console.log("entityId and observationId are required fields");
-  if (!req.body && !req.body) {
-    res.status(400);
-    var response = {
-      result: false,
-      message: 'entityId and observationId are required fields'
-    }
-    res.send(response);
-  }
-  else {
-    model.MyModel.findOneAsync({
-      qid: "observations_by_entity"
-    }, {
-      allow_filtering: true
-    })
-      .then(async function (result) {
-
-        if (req.body.search) {
-
-          console.log("result", result.query);
-
-
-          var bodyParam = JSON.parse(result.query);
-          if (config.druid.observation_datasource_name) {
-            bodyParam.dataSource = config.druid.observation_datasource_name;
-          }
-          var query = bodyParam;
-          var fieldsArray = [];
-          var search = "%"+req.body.search+"%";
-          var dimension = "";
-
-          if (req.body.entityType == "zone") {
-            dimension= "zone";
-          } else if (req.body.entityType == "block") {
-            dimension= "block";
-          } else if (req.body.entityType == "hub") {
-            dimension= "hub";
-          } else if (req.body.entityType == "cluster") {
-            dimension= "cluster";
-          } else if (req.body.entityType == "distict") {
-            dimension= "distict";
-          } else if (req.body.entityType == "state") {
-            dimension= "state";
-          } else {
-            dimension= "entityId";
-          }
-
-          fieldsArray.push({ "type": "selector", "dimension": dimension, "value": req.body.queryId });
-          fieldsArray.push({ "type": "like", "dimension": "observationName", "pattern": search });
-          query.filter.fields.push(...fieldsArray);
-
-          console.log("fieldsArray",fieldsArray);
-          
-          query.filter.type = "and";
-          var options = config.druid.options;
-          options.method = "POST";
-          options.body = query;
-          var data = await rp(options);
-
-          // console.log("data", data);
-
-
-          let observationData  = await getObsvByentitys(req,result);
-
-          // console.log("observationData",observationData);
-
-          var arr = [];
-
-          await Promise.all(observationData.map(async each => {
-            arr.push(each);
-          }));
-
-          // console.log("data",data);
-
-          await Promise.all(data.map(async each => {
-
-
-            console.log("each",each);
-            if(!arr.includes(each)){
-              arr.push(each);
-            }
-          }));
-
-        
-
-          res.send(arr);
-
-
-        } else {
-
-          let observationData  = await getObsvByentitys(req,result);
-          res.send(observationData);
-
-
-          // console.log("result", result.query);
-
-          // var bodyParam = JSON.parse(result.query);
-          // if (config.druid.observation_datasource_name) {
-          //   bodyParam.dataSource = config.druid.observation_datasource_name;
-          // }
-          // var query = bodyParam;
-          // var fieldsArray = [];
-
-
-          // await Promise.all(req.body.entityIds.map(async ele => {
-          //   let objSelecter = { "type": "selector", "dimension": "entityId", "value": ele };
-          //   fieldsArray.push(objSelecter);
-          // }
-          // ));
-          // console.log("fields",fieldsArray);
-
-          // query.filter.fields.push(...fieldsArray);
-          // // console.log("query",query);
-          // var options = config.druid.options;
-          // options.method = "POST";
-          // options.body = query;
-          // var data = await rp(options);
-
-          // console.log("data", data);
-          // res.send(data);
-
-        }
-      });
-  }
-
-}
-
-async function entityObservationPdf(req, res) {
+async function entityObservationData(req, res) {
 
   return new Promise(async function (resolve, reject) {
 
-
     if (!req.body.entityId && !req.body.observationId) {
-      // res.status(400);
       var response = {
         result: false,
         message: 'entityId and observationId are required fields'
       }
-      reject(response);
+      resolve(response);
     }
     else {
+
       model.MyModel.findOneAsync({ qid: "entity_observation_query" }, { allow_filtering: true })
         .then(async function (result) {
+
           var bodyParam = JSON.parse(result.query);
 
           if (config.druid.observation_datasource_name) {
@@ -178,113 +48,564 @@ async function entityObservationPdf(req, res) {
           var data = await rp(options);
 
           if (!data.length) {
-            reject({ "data": "No observations made for the entity" })
+            resolve({ "data": "No observations made for the entity" })
           }
           else {
-            var responseObj = await helperFunc.entityReportChart(data)
+            var responseObj = await helperFunc.entityReportChart(data,req.body.entityId,"school")
             resolve(responseObj);
+
           }
         })
         .catch(function (err) {
-          // res.status(400);
+          res.status(400);
           var response = {
             result: false,
             message: 'Data not found'
           }
-          reject(response);
-        })
-      // } else {
-      //   res.send(JSON.parse(dataReportIndexes['apiresponse']))
-      // }
-    }
-
-  });
-
-
-}
-
-
-async function entityObservationData(req, res) {
-
-  try {
-    return new Promise(async function (resolve, reject) {
-
-      try {
-        if (!req.body.entityId && !req.body.observationId) {
-          // res.status(400);
-          var response = {
-            result: false,
-            message: 'entityId and observationId are required fields'
-          }
           resolve(response);
-        }
-        else {
-          //cassandra functionality to check response in cassandra
-          // bodyData = req.body
-          // var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(bodyData)
-          // if (dataReportIndexes == undefined) {
-          model.MyModel.findOneAsync({ qid: "entity_observation_query" }, { allow_filtering: true })
-            .then(async function (result) {
-              var bodyParam = JSON.parse(result.query);
-              if (config.druid.observation_datasource_name) {
-                bodyParam.dataSource = config.druid.observation_datasource_name;
-              }
-              bodyParam.filter.fields[0].value = req.body.entityId;
-              bodyParam.filter.fields[1].value = req.body.observationId;
-              //pass the query as body param and get the resul from druid
-              var options = config.druid.options;
-              options.method = "POST";
-              options.body = bodyParam;
-              var data = await rp(options);
-              if (!data.length) {
-                resolve({ "data": "No observations made for the entity" })
-              }
-              else {
-                var responseObj = await helperFunc.entityReportChart(data)
-                resolve(responseObj);
-                // commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj)
-              }
-            })
-            .catch(function (err) {
-              res.status(400);
-              var response = {
-                result: false,
-                message: 'Data not found'
-              }
-              resolve(response);
-            })
-          // } else {
-          //   res.send(JSON.parse(dataReportIndexes['apiresponse']))
-          // }
-        }
-      } catch (err) {
-        console.log("error in entity report data", err);
-      }
-
-    });
-  } catch (err) {
-    console.log("error in entity report data", err);
-  }
-
-
+        })
+    }
+  });
 }
 
 
-exports.entityObservationDataExport = async function entityObservationDataExport(req, res) {
+//Controller for entity observation pdf generation
+exports.entityObservationPdf = async function (req, res) {
 
   return new Promise(async function (resolve, reject) {
 
+    req.body.observationId = req.query.observationId;
+    req.body.entityId = req.query.entityId;
+
     let responseData = await entityObservationData(req, res);
 
-    resolve(responseData);
+    if (("observationName" in responseData) == true) {
+
+      let resData = await pdfHandler.pdfGeneration(responseData, true);
+
+      if (resData.status && resData.status == "success") {
+
+        var hostname = req.headers.host;
+        var pathname = url.parse(req.url).pathname;
+
+        console.log(pathname, "responseData", hostname);
+
+        var obj = {
+          status: "success",
+          message: 'Observation Pdf Generated successfully',
+          pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        }
+
+        resolve(obj);
+
+      } else {
+        resolve(resData);
+      }
+    }
+    else {
+      resolve(responseData);
+    }
+
+  });
+}
+
+
+
+// Controller for entity observation  (cluster/block/zone/district)
+exports.entityObservationReport = async function entityObservationReport(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    let responseData = await entityObservationReportGeneration(req, res);
+    res.send(responseData);
 
   })
 
 };
 
-async function getObsvByentitys(req,result){
-  return new Promise(async function(resolve,reject){
+// Function for entity observation report generation 
+async function entityObservationReportGeneration(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    if (!req.body.entityId && !req.body.entityType && !req.body.observationId) {
+      res.status(400);
+      var response = {
+        result: false,
+        message: 'entityId, entityType, immediateChildEntityType and observationId are required fields'
+      }
+      resolve(response);
+    }
+
+    else {
+
+      entityType = req.body.entityType;
+      entityId = req.body.entityId;
+      immediateChildEntityType = req.body.immediateChildEntityType;
+
+      // Fetch query from cassandra
+      model.MyModel.findOneAsync({ qid: "entity_observation_report_query" }, { allow_filtering: true })
+        .then(async function (result) {
+
+          var bodyParam = JSON.parse(result.query);
+
+          if (config.druid.observation_datasource_name) {
+            bodyParam.dataSource = config.druid.observation_datasource_name;
+          }
+
+          //Assign values to the query filter object 
+          bodyParam.filter.fields[0].dimension = req.body.entityType;
+          bodyParam.filter.fields[0].value = req.body.entityId;
+          bodyParam.filter.fields[1].value = req.body.observationId;
+
+          //Push column names dynamically to the query dimensions array 
+          if (!req.body.immediateChildEntityType) {
+            bodyParam.dimensions.push(entityType, entityType + "Name");
+          }
+          else if (req.body.immediateChildEntityType == "school") {
+            bodyParam.dimensions.push(entityType, entityType + "Name", immediateChildEntityType, immediateChildEntityType + "Name");
+          }
+          else {
+            bodyParam.dimensions.push(entityType, entityType + "Name", immediateChildEntityType, immediateChildEntityType + "Name", "school", "schoolName");
+          }
+
+          //pass the query as body param and get the result from druid
+          var options = config.druid.options;
+          options.method = "POST";
+          options.body = bodyParam;
+          var data = await rp(options);
+
+          if (!data.length) {
+            resolve({ "data": "No observations made for the entity" })
+          }
+          else {
+            var responseObj = await helperFunc.entityReportChart(data,req.body.entityId,req.body.entityType)
+            resolve(responseObj);
+          }
+        })
+        .catch(function (err) {
+          res.status(400);
+          var response = {
+            result: false,
+            message: 'Data not found'
+          }
+          resolve(response);
+        })
+
+    }
+
+  })
+
+}
+
+
+//Function for entity observation report PDF generation
+exports.entityObservationReportPdfGeneration = async function (req, res) {
+
+  return new Promise (async function (resolve,reject){
+
+    req.body = req.query;
+    var entityResponse = await entityObservationReportGeneration(req, res);
+
+    if (("observationName" in entityResponse) == true) {
+
+      let resData = await pdfHandler.pdfGeneration(entityResponse, true);
+      let hostname = req.headers.host;
+
+      var responseObject = {
+        "status": "success",
+        "message": "report generated",
+        pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      }
+      resolve(responseObject);
+    }
+
+    else {
+      resolve(entityResponse);
+    }
+  });
+  
+};
+
+
+//<======================== Entity observation score report ========================================>
+
+
+//Controller for Entity Observation Score Report
+exports.entityObservationScoreReport = async function (req, res) {
+
+  let data = await entityScoreReport(req, res);
+
+  res.send(data);
+
+}
+
+async function entityScoreReport(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    if (!req.body.entityId && !req.body.observationId) {
+      var response = {
+        result: false,
+        message: 'entityId and observationId are required fields'
+      }
+      resolve(response);
+    }
+
+    else {
+
+      model.MyModel.findOneAsync({ qid: "entity_observation_score_query" }, { allow_filtering: true })
+        .then(async function (result) {
+
+          var bodyParam = JSON.parse(result.query);
+
+          if (config.druid.observation_datasource_name) {
+            bodyParam.dataSource = config.druid.observation_datasource_name;
+          }
+
+          bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+          bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
+
+          //pass the query as body param and get the resul from druid
+          var options = config.druid.options;
+          options.method = "POST";
+          options.body = bodyParam;
+
+          var data = await rp(options);
+
+          if (!data.length) {
+            resolve({ "data": "No observations made for the entity" })
+          }
+
+          else {
+
+            var responseObj = await helperFunc.entityScoreReportChartObjectCreation(data)
+            resolve(responseObj);
+
+          }
+        })
+
+        .catch(function (err) {
+          console.log(err);
+          var response = {
+            result: false,
+            message: 'Data not found'
+          }
+          resolve(response);
+        })
+
+    }
+
+  })
+
+}
+
+//Entity observation score pdf generation
+exports.entityObservationScorePdfFunc = async function (req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    var entityRes = await entityScoreReport(req, res);
+
+    if (entityRes.result == true) {
+
+      let obj = {
+        schoolName: entityRes.schoolName,
+        totalObservations: entityRes.totalObservations
+      }
+
+      let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, true, obj);
+
+      let hostname = req.headers.host;
+
+      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+
+      resolve(resData);
+    }
+
+    else {
+      resolve(entityRes);
+    }
+
+  });
+
+};
+
+
+
+//Controller for entity solution score report (cluster/block/zone/district/state)
+exports.entitySolutionScoreReport = async function (req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    let responseData = await entitySolutionScoreReportGeneration(req, res);
+    res.send(responseData);
+
+  })
+
+};
+
+//Function for entity solution report generation 
+async function entitySolutionScoreReportGeneration(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    if (!req.body.entityId && !req.body.entityType && !req.body.solutionId) {
+      res.status(400);
+      var response = {
+        result: false,
+        message: 'entityId, entityType and solutionId are required fields'
+      }
+      resolve(response);
+    }
+
+    else if (req.body.entityType == "school") {
+      
+      let response = await schoolSolutionScoreReport(req, res);
+      resolve(response);
     
+    }
+
+    else {
+      // Fetch query from cassandra
+      model.MyModel.findOneAsync({ qid: "entity_solution_score_query" }, { allow_filtering: true })
+        .then(async function (result) {
+
+          var bodyParam = JSON.parse(result.query);
+
+          if (config.druid.observation_datasource_name) {
+            bodyParam.dataSource = config.druid.observation_datasource_name;
+          }
+
+          //Assign values to the query filter object 
+          bodyParam.filter.fields[1].fields[0].dimension = req.body.entityType;
+          bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+          bodyParam.filter.fields[1].fields[1].value = req.body.solutionId;
+
+          //pass the query as body param and get the result from druid
+          var options = config.druid.options;
+          options.method = "POST";
+          options.body = bodyParam;
+          var data = await rp(options);
+
+          if (!data.length) {
+            resolve({ "data": "No observations made for the entity" })
+          }
+          else {
+            var responseObj = await helperFunc.observationScoreReportChart(data)
+            responseObj.solutionId = req.body.solutionId;
+            resolve(responseObj);
+          }
+        })
+        .catch(function (err) {
+          res.status(400);
+          var response = {
+            result: false,
+            message: 'Data not found'
+          }
+          resolve(response);
+        })
+
+    }
+
+  })
+
+}
+
+//School solution score report creation function
+async function schoolSolutionScoreReport(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+      model.MyModel.findOneAsync({ qid: "entity_solution_score_query" }, { allow_filtering: true })
+        .then(async function (result) {
+
+          var bodyParam = JSON.parse(result.query);
+
+          if (config.druid.observation_datasource_name) {
+            bodyParam.dataSource = config.druid.observation_datasource_name;
+          }
+
+           //Assign values to the query filter object 
+           bodyParam.filter.fields[1].fields[0].dimension = req.body.entityType;
+           bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+           bodyParam.filter.fields[1].fields[1].value = req.body.solutionId;
+           
+          //pass the query as body param and get the resul from druid
+          var options = config.druid.options;
+          options.method = "POST";
+          options.body = bodyParam;
+
+          var data = await rp(options);
+
+          if (!data.length) {
+            resolve({ "data": "No observations made for the entity" })
+          }
+
+          else {
+
+            var responseObj = await helperFunc.entityScoreReportChartObjectCreation(data)
+            delete responseObj.observationName;
+            responseObj.solutionName = data[0].event.solutionName;
+            resolve(responseObj);
+
+          }
+        })
+
+        .catch(function (err) {
+          var response = {
+            result: false,
+            message: 'Data not found'
+          }
+          resolve(response);
+        })
+  })
+
+}
+
+//Entity solution score pdf generation
+exports.entitySolutionScorePdfFunc = async function (req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    var entityRes = await entitySolutionScoreReportGeneration(req, res);
+
+    if (entityRes.result == true) {
+
+      let obj = {
+        solutionName: entityRes.solutionName
+      }
+
+      let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, true, obj);
+
+      let hostname = req.headers.host;
+
+      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+
+      resolve(resData);
+    }
+
+    else {
+      resolve(entityRes);
+    }
+
+  });
+
+};
+
+
+
+//API for unnati service
+exports.observationsByEntity = async function (req, res) {
+
+  if (!req.body && !req.body) {
+    res.status(400);
+    var response = {
+      result: false,
+      message: 'entityId and observationId are required fields'
+    }
+    res.send(response);
+  }
+  else {
+    model.MyModel.findOneAsync({
+      qid: "observations_by_entity"
+    }, {
+        allow_filtering: true
+      })
+      .then(async function (result) {
+
+        if (req.body.search) {
+
+          var bodyParam = JSON.parse(result.query);
+          if (config.druid.observation_datasource_name) {
+            bodyParam.dataSource = config.druid.observation_datasource_name;
+          }
+          var query = bodyParam;
+          var fieldsArray = [];
+          var search = "%" + req.body.search + "%";
+          var dimension = "";
+
+          if (req.body.entityType == "zone") {
+            dimension = "zone";
+          } else if (req.body.entityType == "block") {
+            dimension = "block";
+          } else if (req.body.entityType == "hub") {
+            dimension = "hub";
+          } else if (req.body.entityType == "cluster") {
+            dimension = "cluster";
+          } else if (req.body.entityType == "distict") {
+            dimension = "distict";
+          } else if (req.body.entityType == "state") {
+            dimension = "state";
+          } else {
+            dimension = "entityId";
+          }
+
+          fieldsArray.push({ "type": "selector", "dimension": dimension, "value": req.body.queryId });
+          fieldsArray.push({ "type": "like", "dimension": "observationName", "pattern": search });
+          query.filter.fields.push(...fieldsArray);
+
+          query.filter.type = "and";
+          var options = config.druid.options;
+          options.method = "POST";
+          options.body = query;
+          var data = await rp(options);
+
+          let observationData = await getObsvByentitys(req, result);
+          var arr = [];
+
+          await Promise.all(observationData.map(async each => {
+            arr.push(each);
+          }));
+
+          await Promise.all(data.map(async each => {
+            if (!arr.includes(each)) {
+              arr.push(each);
+            }
+          }));
+
+          res.send(arr);
+
+
+        } else {
+
+          let observationData = await getObsvByentitys(req, result);
+          res.send(observationData);
+
+          // var bodyParam = JSON.parse(result.query);
+          // if (config.druid.observation_datasource_name) {
+          //   bodyParam.dataSource = config.druid.observation_datasource_name;
+          // }
+          // var query = bodyParam;
+          // var fieldsArray = [];
+
+
+          // await Promise.all(req.body.entityIds.map(async ele => {
+          //   let objSelecter = { "type": "selector", "dimension": "entityId", "value": ele };
+          //   fieldsArray.push(objSelecter);
+          // }
+          // ));
+
+
+          // query.filter.fields.push(...fieldsArray);
+
+          // var options = config.druid.options;
+          // options.method = "POST";
+          // options.body = query;
+          // var data = await rp(options);
+
+
+          // res.send(data);
+
+        }
+      });
+  }
+
+}
+
+async function getObsvByentitys(req, result) {
+  return new Promise(async function (resolve, reject) {
+
     var bodyParam = JSON.parse(result.query);
     if (config.druid.observation_datasource_name) {
       bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -298,10 +619,8 @@ async function getObsvByentitys(req,result){
       fieldsArray.push(objSelecter);
     }
     ));
-    console.log("fields",fieldsArray);
 
     query.filter.fields.push(...fieldsArray);
-    // console.log("query",query);
     var options = config.druid.options;
     options.method = "POST";
     options.body = query;
@@ -310,128 +629,3 @@ async function getObsvByentitys(req,result){
   });
 
 }
-
-
-// Controller for entity observation
-exports.entityObservationReport = async function entityObservationReport(req, res) {
-
-  return new Promise(async function (resolve, reject) {
-
-    let responseData = await entityObservationReportGeneration(req, res);
-    res.send(responseData);
-
-  })
-
-};
-
-// Function for entity observation report generation
-async function entityObservationReportGeneration(req, res) {
-
-  return new Promise(async function (resolve, reject) {
-
-  if (!req.body.entityId && !req.body.entityType && !req.body.observationId) {
-    res.status(400);
-    var response = {
-      result: false,
-      message: 'entityId, entityType, immediateChildEntityType and observationId are required fields'
-    }
-    resolve(response);
-  }
-
-  else {
-
-    entityType = req.body.entityType;
-    entityId = req.body.entityId;
-    immediateChildEntityType = req.body.immediateChildEntityType;
-
-    // Fetch query from cassandra
-    model.MyModel.findOneAsync({ qid: "entity_observation_report_query" }, { allow_filtering: true })
-      .then(async function (result) {
-
-        var bodyParam = JSON.parse(result.query);
-
-        if (config.druid.observation_datasource_name) {
-          bodyParam.dataSource = config.druid.observation_datasource_name;
-        }
-
-        //Assign values to the query filter object 
-        bodyParam.filter.fields[0].dimension = req.body.entityType;
-        bodyParam.filter.fields[0].value = req.body.entityId;
-        bodyParam.filter.fields[1].value = req.body.observationId;
-
-        //Push column names dynamically to the query dimensions array 
-        if (!req.body.immediateChildEntityType) {
-          bodyParam.dimensions.push(entityType, entityType + "Name");
-        }
-        else if (req.body.immediateChildEntityType == "school") {
-          bodyParam.dimensions.push(entityType, entityType + "Name", immediateChildEntityType, immediateChildEntityType + "Name");
-        }
-        else {
-          bodyParam.dimensions.push(entityType, entityType + "Name", immediateChildEntityType, immediateChildEntityType + "Name", "school", "schoolName");
-        }
-
-        //pass the query as body param and get the result from druid
-        var options = config.druid.options;
-        options.method = "POST";
-        options.body = bodyParam;
-        var data = await rp(options);
-
-        if (!data.length) {
-          resolve({ "data": "No observations made for the entity" })
-        }
-        else {
-          var responseObj = await helperFunc.entityObservationReportChartObjectCreation(data)
-          responseObj.observationId = req.body.observationId;
-          resolve(responseObj);
-        }
-      })
-      .catch(function (err) {
-        res.status(400);
-        var response = {
-          result: false,
-          message: 'Data not found'
-        }
-        resolve(response);
-      })
-
-    }
-
-  })
-
-}
-
-
-//Function for entity observation report PDF generation
-exports.entityObservationReportPdfGeneration = async function (req, res) {
-
-  if (!req.query.entityId && !req.query.entityType && !req.query.observationId) {
-    res.status(400);
-    var response = {
-      result: false,
-      message: 'entityId, entityType, observationId and immediateChildEntityType are required fields'
-    };
-    res.send(response);
-
-  } else {
-      req.body = req.query;
-      var entityResponse = await entityObservationReportGeneration(req,res);
-
-      if(("observationName" in entityResponse) == true) { 
-
-      let resData = await pdfHandler.pdfGeneration(entityResponse,true);
-      let hostname = req.headers.host;
-
-      var responseObject = {
-        "status": "success",
-        "message": "report generated",
-        pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-      }
-         res.send(responseObject);
-      }
-
-      else {
-          res.send(entityResponse);
-      }
-    
-  }
-};
