@@ -1289,7 +1289,7 @@ async function entityScoreObjectCreateFunc (data) {
         order : data[0].event.questionExternalId,
         question : data[0].event.questionName,
         chart: {
-            type: "scatter",
+            type: "column",
             title: "",
             xAxis: {
                 title: {
@@ -1311,9 +1311,9 @@ async function entityScoreObjectCreateFunc (data) {
                 }
             },
             plotOptions:{
-                scatter:{
-                    lineWidth:1,
-                    lineColor:"#F6B343"
+                column: {
+                pointPadding: 0.2,
+                borderWidth: 0
                 }
             },
             credits: {

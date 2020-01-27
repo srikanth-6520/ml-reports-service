@@ -1373,14 +1373,14 @@ async function getScoreChartObject(items) {
                    question: ele.question
                };
            }
-            else if(ele.chart.type == "scatter") {
+            else if(ele.chart.type == "column") {
 
                 obj = {
                     order: ele.order,
                     type: "svg",
                     options: {
                         title: {
-                            text: ""
+                            text: ele.question
                         },
                         chart: {
                             type: ele.chart.type
@@ -1393,16 +1393,6 @@ async function getScoreChartObject(items) {
                         series: ele.chart.data
                     }
                 };
-
-                if(ele.question){
-                    obj.question = ele.question;
-                    obj.options.title.text = ele.question;
-                }
-
-                if(ele.schoolName){
-                    obj.options.title.text = ele.schoolName;
-                }
-
             }
 
             ArrayOfChartData.push(obj);
