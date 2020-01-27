@@ -2,6 +2,7 @@ let instanceController = require('./instance_observation');
 let entityController = require('./entity_observations');
 let observationController = require('./observation_controller'); 
 let entitySolutionController = require('../v2/entity_observations')
+var pdfHandler = require('../../helper/common_handler');
 var rimraf = require("rimraf");
 var fs = require('fs');
 const path = require('path');
@@ -89,6 +90,15 @@ exports.observationScorePdfReport = async function (req, res) {
 
 }
 
+//Controller function for unnati pdf generation
+exports.unnatiPdfGeneration = async function(req,res){
+
+    let response = await pdfHandler.unnatiPdfGeneration(req.body,true);
+    let hostname = req.headers.host;
+  
+    response.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+    res.send(response);
+}
 
 //COntroller function to get the pdf report from tmp folder and then delete the folder from local storage
 exports.pdftempUrl = async function (req, response) {
