@@ -29,9 +29,9 @@ async function instanceObservationData(req, res) {
     } else {
 
       bodyData = req.body;
-      var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(bodyData);
+    //  var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(bodyData);
 
-      if (dataReportIndexes == undefined) {
+    //  if (dataReportIndexes == undefined) {
         model.MyModel.findOneAsync({ qid: "instance_observation_query" }, { allow_filtering: true })
           .then(async function (result) {
 
@@ -56,7 +56,7 @@ async function instanceObservationData(req, res) {
             } else {
               var responseObj = await helperFunc.instanceReportChart(data);
               resolve(responseObj);
-              commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj);
+            //  commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj);
             }
           })
           .catch(function (err) {
@@ -66,9 +66,9 @@ async function instanceObservationData(req, res) {
             };
             resolve(response);
           });
-      } else {
-        resolve(JSON.parse(dataReportIndexes['apiresponse']));
-      }
+      // } else {
+      //   resolve(JSON.parse(dataReportIndexes['apiresponse']));
+      // }
     }
   });
 };
@@ -79,49 +79,60 @@ exports.instancePdfReport = async function (req, res) {
 
   return new Promise (async function (resolve,reject){
 
-    let reqData = req.query;
-    var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
+   // let reqData = req.query;
+   // var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
    
-    if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
+   // if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
 
-      dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
-      let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
+    //  dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
+    //  let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
 
-      var response = {
-        status: "success",
-        message: 'Observation Pdf Generated successfully',
-        pdfUrl: signedUlr
-      };
+    //  var response = {
+    //    status: "success",
+    //    message: 'Observation Pdf Generated successfully',
+     //   pdfUrl: signedUlr
+    //  };
 
-      resolve(response);
+    //  resolve(response);
 
-    } else {
+   // } else {
       
       req.body.submissionId = req.query.submissionId;
 
       var instaRes = await instanceObservationData(req,res);
 
       if (("observationName" in instaRes) == true) {
-        let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes);
+      //  let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes);
 
-        if (dataReportIndexes) {
-          var reqOptions = {
-            query: dataReportIndexes.id,
-            downloadPath: resData.downloadPath
-          }
-          commonCassandraFunc.updateInstanceDownloadPath(reqOptions);
-        } else {
-          let dataInsert = commonCassandraFunc.insertReqAndResInCassandra(reqData, instaRes, resData.downloadPath);
-        }
+       let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes,true);
+
+        // if (dataReportIndexes) {
+        //   var reqOptions = {
+        //     query: dataReportIndexes.id,
+        //     downloadPath: resData.downloadPath
+        //   }
+        //   commonCassandraFunc.updateInstanceDownloadPath(reqOptions);
+        // } else {
+        //   let dataInsert = commonCassandraFunc.insertReqAndResInCassandra(reqData, instaRes, resData.downloadPath);
+        // }
 
         // res.send(resData);
-        resolve(omit(resData, 'downloadPath'));
+
+        let hostname = req.headers.host;
+
+        var responseObject = {
+          "status": "success",
+          "message": "report generated",
+          pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        }
+        resolve(responseObject)
+        // resolve(omit(resData, 'downloadPath'));
       }
 
       else {
         resolve(instaRes);
       }
-    }
+   // }
   });
 };
 

@@ -30,8 +30,8 @@ async function assessmentReportGetChartData(req, res) {
 
     childType = req.body.immediateChildEntityType;
     reqBody = req.body
-    var dataAssessIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqBody)
-    if (dataAssessIndexes == undefined) {
+    //var dataAssessIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqBody)
+    // if (dataAssessIndexes == undefined) {
       //get domainName and level info
       model.MyModel.findOneAsync({ qid: "entity_assessment_query" }, { allow_filtering: true })
         .then(async function (result) {
@@ -138,7 +138,7 @@ async function assessmentReportGetChartData(req, res) {
                  responseObj.reportSections[0].chart.grandChildEntityType = "";
                  resolve(responseObj);
                }
-               commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
+              // commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
              
 
             }
@@ -200,7 +200,7 @@ async function assessmentReportGetChartData(req, res) {
               responseObj.reportSections[0].chart.grandChildEntityType = "";
               resolve(responseObj);
             }
-            commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
+          //  commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
           }
       })
         .catch(function (err) {
@@ -211,9 +211,9 @@ async function assessmentReportGetChartData(req, res) {
           }
           resolve(response);
         })
-    } else {
-      resolve(JSON.parse(dataAssessIndexes['apiresponse']))
-    }
+    // } else {
+    //   resolve(JSON.parse(dataAssessIndexes['apiresponse']))
+    // }
   }
 });
 }
@@ -257,54 +257,63 @@ exports.assessmentPdfReport = async function(req, res) {
   }
     else{
     reqData = req.body;
-    var dataReportIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqData);
+    //var dataReportIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqData);
    
-     if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
+    // if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
 
      
-      dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
-      let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
+    //  dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
+    //  let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
 
 
-      var response = {
-        status: "success",
-        message: 'Assessment Pdf Generated successfully',
-        pdfUrl: signedUlr
-      };
-      res.send(response);
+      // var response = {
+      //   status: "success",
+      //   message: 'Assessment Pdf Generated successfully',
+      //   pdfUrl: signedUlr
+      // };
+      // res.send(response);
 
-     } else {
-      var assessmentRes;
-      if (dataReportIndexes) {
-        assessmentRes = JSON.parse(dataReportIndexes['apiresponse']);
-      }
-      else {
+    //  } else {
+      // var assessmentRes;
+      // if (dataReportIndexes) {
+      //   assessmentRes = JSON.parse(dataReportIndexes['apiresponse']);
+      // }
+      // else {
         assessmentRes = await assessmentReportGetChartData(req, res);
-      }
+      // }
 
 
       if(assessmentRes.result == true){
       
-      let resData = await pdfHandler.assessmentPdfGeneration(assessmentRes);
+     // let resData = await pdfHandler.assessmentPdfGeneration(assessmentRes);
+     let resData = await pdfHandler.assessmentPdfGeneration(assessmentRes, true);
 
-      if (dataReportIndexes) {
-        var reqOptions = {
-          query: dataReportIndexes.id,
-          downloadPath:resData.downloadPath
+      // if (dataReportIndexes) {
+      //   var reqOptions = {
+      //     query: dataReportIndexes.id,
+      //     downloadPath:resData.downloadPath
+      //   }
+      //   commonCassandraFunc.updateEntityAssessmentDownloadPath(reqOptions);
+      // } else {
+      //   //store download url in cassandra
+      //   let dataInsert = commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqData, resData, resData.downloadPath);
+      // }
+
+        let hostname = req.headers.host;
+
+        var responseObject = {
+          "status": "success",
+          "message": "report generated",
+          pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
         }
-        commonCassandraFunc.updateEntityAssessmentDownloadPath(reqOptions);
-      } else {
-        //store download url in cassandra
-        let dataInsert = commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqData, resData, resData.downloadPath);
-      }
-
-         res.send(resData);
+       
+        res.send(responseObject);
         // res.send(omit(resData,'downloadPath'));
       }
-    else{
+    else {
       res.send(assessmentRes);
     }
    
-     }
+    // }
    }
 };
