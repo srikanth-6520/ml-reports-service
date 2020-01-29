@@ -24,7 +24,9 @@
  "assessment_datasource_name": "ASSESSMENT_DATASOURCE_NAME",
  "enrollment_datasource_name": "ENROLLMENT_DATASOURCE_NAME",
  "telemetry_datasource_name": "TELEMETRY_DATASOURCE_NAME",
- "threshold_in_content_api" : 5
+ "threshold_in_content_api" : 5,
+ "threshold_in_entity_score_api": 5
+ "threshold_in_observation_score_api": 2
 },
 
  "keycloak": {
@@ -35,9 +37,11 @@
     "sunbird_cache_store": "",
     "sunbird_cache_ttl": 1800
  },
-    "samiksha_assessment_entity_list_api": {
-       "url":"SAMIKSHA_ASSESSMENT_ENTITY_LIST_API"
+    "samiksha_api": {
+       "assessment_entity_list_api":"SAMIKSHA_ASSESSMENT_ENTITY_LIST_API",
+       "observation_details_api":"SAMIKSHA_OBSERVATION_DETAILS_API"
     },
+    
  "optionsHtmlToPdf":{ 
       "method":"POST",
       "uri":"",

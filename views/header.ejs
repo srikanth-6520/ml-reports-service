@@ -10,8 +10,12 @@
                 color: rgb(207, 207, 230);
             }
         </style>
-    
+            <% if(data.observationName) { %> 
             <h4 class="col-sm-12 observation-header">Observation Name : <%=  data.observationName %></h4>
+            <% } %>
+            <% if(data.solutionName) { %> 
+                <h4 class="col-sm-12 observation-header">Solution Name : <%=  data.solutionName %></h4>
+            <% } %>
     </head>
     
     <!-- <body>
