@@ -1071,18 +1071,18 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
                                                     // console.log("optionsHtmlToPdf", optionsHtmlToPdf.formData.files);
                                                     var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
                                                     if (responseHtmlToPdf.statusCode == 200) {
-                                                        fs.writeFile(dir + '/entityAssessmentReport.pdf', pdfBuffer, 'binary', function (err) {
+                                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
                                                             if (err) {
                                                                 return console.log(err);
                                                             }
                                                             // console.log("The PDF was saved!");
                                                             const s3 = new AWS.S3(config.s3_credentials);
                                                             const uploadFile = () => {
-                                                                fs.readFile(dir + '/entityAssessmentReport.pdf', (err, data) => {
+                                                                fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
                                                                     if (err) throw err;
                                                                     const params = {
                                                                         Bucket: config.s3_bucketName, // pass your bucket name
-                                                                        Key: 'entityAssessmentPdfReports/' + uuidv4() + 'entityAssessmentReport.pdf', // file will be saved as testBucket/contacts.csv
+                                                                        Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf', // file will be saved as testBucket/contacts.csv
                                                                         Body: Buffer.from(data, null, 2),
                                                                         Expires: 10
                                                                     };
