@@ -1334,7 +1334,7 @@ async function getScoreChartObject(items) {
                     type: "svg",
                     options: {
                         title: {
-                            text: ele.question
+                            text:''
                         },
                        // colors: ['#6c4fa1'],
 
@@ -1357,7 +1357,7 @@ async function getScoreChartObject(items) {
                    type: "svg",
                    options: {
                        title: {
-                           text: ele.question
+                           text: ''
                        },
                        chart: {
                            type: ele.chart.type
@@ -1380,7 +1380,7 @@ async function getScoreChartObject(items) {
                     type: "svg",
                     options: {
                         title: {
-                            text: ele.question
+                            text: ''
                         },
                         chart: {
                             type: ele.chart.type
@@ -1391,7 +1391,8 @@ async function getScoreChartObject(items) {
                         credits: ele.chart.credits,
                         legend: ele.chart.legend,
                         series: ele.chart.data
-                    }
+                    },
+                    question: ele.question
                 };
             }
 
