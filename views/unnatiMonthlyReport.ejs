@@ -1,0 +1,100 @@
+<html>
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <style>
+        .completed {
+            background: linear-gradient(140deg, #5BD895 32%, #45673B 71%, #1A4B00 88%) !important;
+            padding: 15px;
+            border-radius: 10px !important;
+            color: #fff;
+            padding-right: 15px;
+            padding-left: 15px;
+            margin: 10px;
+        }
+
+        .pending {
+            background: linear-gradient(140deg, #D8735B 32%, #A31919 71%, #9F0303 88%) !important;
+            /* margin-left: 10px; */
+            padding: 10px;
+            border-radius: 10px !important;
+            padding: 15px;
+            border-radius: 10px !important;
+            color: #fff;
+            padding-right: 15px;
+            padding-left: 15px;
+            margin: 10px;
+        }
+
+        .dot-pending {
+            height: 16px !important;
+            width: 16px !important;
+            background-color: #BFBFBF !important;
+            border-radius: 50% !important;
+            display: inline-block !important;
+            margin-right: 5px !important;
+        }
+
+        .dot-completed {
+            height: 16px !important;
+            width: 16px !important;
+            background-color: #20BA8D !important;
+            border-radius: 50% !important;
+            display: inline-block !important;
+            margin-right: 5px !important;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h4>Projects Completed in Last Month</h4>
+        <h5>October</h5>
+
+        <div class="row">
+            <div class="col-lg-5 col-xs-5 completed">
+                <p><b style="color:#fff !important;font-size: 20px">Completed</b></p>
+                <h3><u style="color:#fff !important; font-size:30px">05</u></h3>
+            </div>
+            <div class="col-lg-5 col-xs-5 pending">
+                <p><b style="color:#fff !important;font-size: 20px">Pending</b></p>
+                <h3><u style="color:#fff !important; font-size:30px">03</u></h3>
+                </p>
+            </div>
+        </div>
+
+
+        <div class="row" style="margin-top:20px">
+            <p style="color:blue !important;text-align: center">View Full Report</p>
+            <hr style="border-top: 1px solid #000 !important;width: 90%;margin-left: 0px;">
+            <h4>Total Tasks Completed in Last Month</h4>
+            <h5>October</h5>
+            <img src="<%=data.chartData[0].options.filename%>" />
+            <div class="col-lg-5 col-xs-5" style="text-align: center">
+                <span class="dot-pending"> &nbsp; </span> Tasks Pending <br />
+                <span style="font-size:24px; "> 10 </span>
+            </div>
+            <div class="col-lg-5 col-xs-5" style="text-align: center">
+                <span class="dot-completed"> &nbsp; </span> Tasks Completed <br />
+                <span style="font-size:24px; "> 10 </span>
+            </div>
+        </div>
+
+
+
+    </div>
+</body>
+
+</html>

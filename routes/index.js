@@ -77,6 +77,9 @@ router.post("/assessment/pdfReports",authenticate,entityAssessController.assessm
 //API for Unnati app PDF generation 
 router.post("/unnati/pdfReport",authenticate,pdfController.unnatiPdfGeneration)
 
+//API for Unnati app monthly report PDF generation 
+router.post("/unnati/monthlyReportGenerate",pdfController.unnatiMonthlyReportGeneration)
+
 
 //========= API calls for container app=============
 
