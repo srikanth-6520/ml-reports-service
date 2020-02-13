@@ -102,7 +102,14 @@
             </tbody>
         </table>
 
-        <% } %>
+        <% for (var k=0;k < chartData.length; k++) { %>
+
+            <% if(data[i].order == chartData[k].order ) {%>
+                <img src="<%= chartData[k].options.filename %>" />
+            <% } %>
+
+          <% } %>
+        
 
     </div>
 </body>

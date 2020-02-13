@@ -1391,7 +1391,7 @@ async function getScoreChartObject(items) {
                 }
 
             }
-            else if(ele.chart.type == "column") {
+            else if (ele.chart.type == "column") {
 
                 obj = {
                     order: ele.order,
@@ -1618,18 +1618,25 @@ exports.unnatiMonthlyReportPdfGeneration = async function (responseData, deleteF
 
         try {
 
+            console.log("entered");
+
             var FormData = [];
 
             //get the chart object
             let chartObj = await getTaskStatusPieChart(responseData);
 
+            console.log(chartObj);
+
             //generate the chart using highchart server
-            let highChartData = await apiCallToHighChart(chartObj, imgPath, "pie");
+            let highChartData = await apiCallToHighChart(chartObj[0], imgPath, "pie");
+
+            console.log(highChartData);
 
             FormData.push(...highChartData);
 
             let obj = {
-                projectArray: responseData
+                projectArray: chartObj[1],
+                chartData : highChartData
             }
 
             ejs.renderFile(__dirname + '/../views/unnatiMonthlyReport.ejs', {
@@ -1780,11 +1787,15 @@ exports.unnatiMonthlyReportPdfGeneration = async function (responseData, deleteF
 
 async function getTaskStatusPieChart(data) {
 
-    let seriesData = [];
-
     return new Promise(async function (resolve, reject) {
 
+        let seriesData = [];
+        let i = 1;
+
         await Promise.all(data.map(async element => {
+
+            data.order = i;
+            i++;
 
             let complete = 0, inProgress = 0, notStarted = 0;
 
@@ -1803,6 +1814,7 @@ async function getTaskStatusPieChart(data) {
 
             let chartData = {
                 type: "svg",
+                order: i,
                 options: {
                     chart: {
                         type: 'pie'
@@ -1843,7 +1855,7 @@ async function getTaskStatusPieChart(data) {
 
         }))
 
-        resolve(seriesData);
+        resolve(seriesData,data);
 
     })
 }
