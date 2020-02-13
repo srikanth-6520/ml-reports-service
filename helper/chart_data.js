@@ -1203,7 +1203,7 @@ async function scoreObjectCreateFunction(data) {
 
 
 // Chart object creation for entity observation score report
-exports.entityScoreReportChartObjectCreation = async function (data) {
+exports.entityScoreReportChartObjectCreation = async function (data, version) {
 
     let sortedData = await data.sort(sort_objects);
 
@@ -1244,7 +1244,7 @@ exports.entityScoreReportChartObjectCreation = async function (data) {
 
      await Promise.all(groupKeys.map( async ele => {
 
-        let responseObj = await entityScoreObjectCreateFunc(groupedData[ele]);
+        let responseObj = await entityScoreObjectCreateFunc(groupedData[ele], version);
        
           obj.response.push(responseObj);
         
@@ -1258,7 +1258,7 @@ exports.entityScoreReportChartObjectCreation = async function (data) {
     }
 
     
-async function entityScoreObjectCreateFunc (data) {
+async function entityScoreObjectCreateFunc (data, version) {
 
     let seriesData = [];
     let yAxisMaxValue ;
@@ -1327,6 +1327,16 @@ async function entityScoreObjectCreateFunc (data) {
                 data : seriesData
             }]
 
+        }
+    }
+
+    if (version == "v2") {
+        chartData.chart.type = "column";
+        chartData.chart.plotOptions = {
+            column: {
+                pointPadding: 0.3,
+                borderWidth: 0
+            }
         }
     }
 

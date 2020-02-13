@@ -1201,15 +1201,11 @@ async function getSelectedData(items, type) {
             if (ele.responseType && ele.responseType == type) {
                 var chartType = "bar";
                 if (type == "radio") {
-
-                    // console.log("ele",ele.chart);
-                    // console.log("ele",ele.chart.data[0]);
                     chartType = "pie";
                 } else if (type == "stackedbar") {
                     chartType = "stackedbar";
                 }
 
-                //   console.log(chartType,"ele.chart.data",ele.chart.data[0].data)
                 var obj = {
                     order: ele.order,
                     type: "svg",
@@ -1234,17 +1230,11 @@ async function getSelectedData(items, type) {
                     },
                     question: ele.question
                 };
-                //   console.log("obj.options.series",ele.chart.data[0].data[0].y);
-                // return resolve(obj);
-
 
                 if (chartType == "pie") {
-                    // obj.options.series[0].data[0].y = parseInt(obj.options.series[0].data[0].y);
 
                     let multiSelectInputs = [];
                     await Promise.all(obj.options.series[0].data.map(function (item) {
-                        // return parseInt(item, 10);
-                        // console.log("item",item);
                         let parseVal = parseInt(item.y);
                         var ex = {
                             name: item.name,
@@ -1259,8 +1249,6 @@ async function getSelectedData(items, type) {
 
                     let multiSelectInputs = [];
                     await Promise.all(obj.options.series[0].data.map(function (item) {
-                        // return parseInt(item, 10);
-                        // console.log("item",item);
                         multiSelectInputs.push(parseInt(item));
 
                     }));
@@ -1306,7 +1294,6 @@ async function getSelectedData(items, type) {
                     }
 
                 }
-                //   console.log(obj.options.series[0].data[0].y);
                 ArrayOfChartData.push(obj);
             }
         }));
@@ -1404,6 +1391,28 @@ async function getScoreChartObject(items) {
                 }
 
             }
+            else if(ele.chart.type == "column") {
+
+                obj = {
+                    order: ele.order,
+                    type: "svg",
+                    options: {
+                        title: {
+                            text: ele.question
+                        },
+                        chart: {
+                            type: ele.chart.type
+                        },
+                        xAxis: ele.chart.xAxis,
+                        yAxis: ele.chart.yAxis,
+                        plotOptions: ele.chart.plotOptions,
+                        credits: ele.chart.credits,
+                        legend: ele.chart.legend,
+                        series: ele.chart.data
+                    },
+                    question: ele.question
+                };
+            }
 
             ArrayOfChartData.push(obj);
 
@@ -1412,101 +1421,6 @@ async function getScoreChartObject(items) {
         return resolve(ArrayOfChartData);
 
     });
-}
-
-
-async function convertChartDataTofile(radioFilePath, options) {
-    try{
-    // console.log("options===", options);
-    var fileInfo = await rp(options).pipe(fs.createWriteStream(radioFilePath))
-
-    return new Promise(function (resolve, reject) {
-        fileInfo.on('finish', function () {
-            return resolve(fileInfo);
-        });
-        fileInfo.on('error', function (err) {
-            // return resolve(fileInfo);
-            console.log(err);
-            return resolve(err)
-        });
-    });
-    }
-    catch(err){
-        console.log("error while generating highchart")
-    }
-}
-
-
-
-async function copyBootStrapFile(from, to) {
-    // var fileInfo = await rp(options).pipe(fs.createWriteStream(radioFilePath))
-    var readCss = fs.createReadStream(from).pipe(fs.createWriteStream(to));
-    return new Promise(function (resolve, reject) {
-        readCss.on('finish', function () {
-            // console.log("readCss", readCss);
-            return resolve(readCss);
-        });
-        readCss.on('error', function (err) {
-            // return resolve(fileInfo);
-            // console.log("err--", err);
-            return resolve(err)
-        });
-    });
-}
-
-
-async function apiCallToHighChart(chartData, imgPath, type) {
-    return new Promise(async function (resolve, reject) {
-        var formData = [];
-        try {
-            var carrent = 0;
-            if (chartData && chartData.length > 0) {
-                let dt = await callChartApiPreparation(chartData[0], imgPath, type, chartData, carrent, formData);
-                return resolve(formData);
-            } else {
-                return resolve(formData);
-            }
-        } catch (err) {
-            console.log("error while calling", err);
-        }
-    });
-}
-
-
-async function callChartApiPreparation(ele, imgPath, type, chartData, carrent, formData) {
-    let loop = 0;
-    var options = config.high_chart;
-    var chartImage = "chartPngImage_" + loop + "_" + uuidv4() + "_.svg";
-    options.method = "POST";
-    options.body = JSON.stringify(ele);
-    let imgFilePath = imgPath + "/" + chartImage;
-    loop = loop + 1;
-    let renderImage = await convertChartDataTofile(imgFilePath, options);
-
-    let fileDat = {
-        order: ele.order,
-        value: fs.createReadStream(imgFilePath),
-        options: {
-            filename: chartImage,
-
-        }
-    }
-
-    if (ele.question) {
-        fileDat.options.question = ele.question;
-    }
-
-    formData.push(fileDat);
-    carrent = carrent + 1;
-    if (chartData.length > carrent) {
-        try {
-            let call = await callChartApiPreparation(chartData[carrent], imgPath, type, chartData, carrent, formData);
-        } catch (err) {
-            console.log("error while making api call to high chart docker", err);
-        }
-    } else {
-        return (formData);
-    }
 }
 
 
@@ -1524,65 +1438,11 @@ exports.unnatiPdfGeneration = async function (responseData, deleteFromS3 = null)
             fs.mkdirSync(imgPath);
         }
 
-        //copy images from public folder
-        let src = __dirname + '/../public/images/headerlogo.png';
-        fs.copyFileSync(src, imgPath + '/headerlogo.png');
-
-        arrowImg = __dirname + '/../public/images/arrow.png';
-        fs.copyFileSync(arrowImg, imgPath + '/arrow.png');
-
-        homeImg = __dirname + '/../public/images/home.png';
-        fs.copyFileSync(homeImg, imgPath + '/home.png');
-
-        bgImg = __dirname + '/../public/images/background.png';
-        fs.copyFileSync(bgImg, imgPath + '/background.png');
-
-        footerImg = __dirname + '/../public/images/footer.png';
-        fs.copyFileSync(footerImg, imgPath + '/footer.png');
-
-        let fileData = [{
-            value: fs.createReadStream(imgPath + '/headerlogo.png'),
-            options: {
-                filename: 'headerlogo.png',
-
-            }
-        },
-        {
-            value: fs.createReadStream(imgPath + '/arrow.png'),
-            options: {
-                filename: 'arrow.png',
-
-            }
-        },
-        {
-            value: fs.createReadStream(imgPath + '/home.png'),
-            options: {
-                filename: 'home.png',
-
-            }
-        },
-        {
-            value: fs.createReadStream(imgPath + '/background.png'),
-            options: {
-                filename: 'background.png',
-
-            }
-        },
-        {
-            value: fs.createReadStream(imgPath + '/footer.png'),
-            options: {
-                filename: 'footer.png',
-
-            }
-        }];
-
         let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
 
         try {
 
             var FormData = [];
-
-            FormData.push(...fileData);
 
             let obj = {
                 duration: responseData.duration,
@@ -1760,19 +1620,337 @@ exports.unnatiMonthlyReportPdfGeneration = async function (responseData, deleteF
 
             var FormData = [];
 
-            //select all the multiselect response objects and create a chart object
-            let chartObj = await getUnnatiMonthlyReportChartObject();
+            //get the chart object
+            let chartObj = await getTaskStatusPieChart(responseData);
 
-            let highChartData = await apiCallToHighChart(chartObj, imgPath, "solidgauge");
+            //generate the chart using highchart server
+            let highChartData = await apiCallToHighChart(chartObj, imgPath, "pie");
 
-             FormData.push(...highChartData);
+            FormData.push(...highChartData);
 
             let obj = {
-                chartData : highChartData
+                projectArray: responseData
             }
 
             ejs.renderFile(__dirname + '/../views/unnatiMonthlyReport.ejs', {
-                data : obj
+                data: obj
+
+            })
+                .then(function (dataEjsRender) {
+
+                    var dir = imgPath;
+                    if (!fs.existsSync(dir)) {
+                        fs.mkdirSync(dir);
+                    }
+
+                    fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
+                        if (errWriteFile) {
+                            throw errWriteFile;
+                        } else {
+
+                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                            optionsHtmlToPdf.formData = {
+                                files: [
+                                ]
+                            };
+                            FormData.push({
+                                value: fs.createReadStream(dir + '/index.html'),
+                                options: {
+                                    filename: 'index.html'
+                                }
+                            });
+                            optionsHtmlToPdf.formData.files = FormData;
+
+
+                            rp(optionsHtmlToPdf)
+                                .then(function (responseHtmlToPdf) {
+
+                                    var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
+                                    if (responseHtmlToPdf.statusCode == 200) {
+
+                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
+                                            if (err) {
+                                                return console.log(err);
+                                            }
+
+                                            else {
+                                                const s3 = new AWS.S3(config.s3_credentials);
+
+                                                const uploadFile = () => {
+
+                                                    fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
+                                                        if (err) throw err;
+
+                                                        const params = {
+                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                            Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
+                                                            Body: Buffer.from(data, null, 2),
+                                                            Expires: 10
+                                                        };
+
+                                                        if (deleteFromS3 == true) {
+                                                            var folderPath = Buffer.from(currentTempFolder).toString('base64')
+
+                                                            var response = {
+                                                                status: "success",
+                                                                message: 'report generated',
+                                                                pdfUrl: folderPath,
+
+                                                            };
+                                                            resolve(response);
+
+                                                        } else {
+
+
+                                                            s3.upload(params, function (s3Err, data) {
+                                                                if (s3Err) throw s3Err;
+
+                                                                console.log(`File uploaded successfully at ${data.Location}`);
+
+                                                                s3SignedUrl(data.key).then(function (signedRes) {
+
+                                                                    try {
+
+
+
+                                                                        fs.readdir(imgPath, (err, files) => {
+                                                                            if (err) throw err;
+
+                                                                            // console.log("files",files.length);
+                                                                            var i = 0;
+                                                                            for (const file of files) {
+
+                                                                                fs.unlink(path.join(imgPath, file), err => {
+                                                                                    if (err) throw err;
+                                                                                });
+
+                                                                                if (i == files.length) {
+                                                                                    fs.unlink('../../' + currentTempFolder, err => {
+                                                                                        if (err) throw err;
+
+                                                                                    });
+                                                                                    console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
+                                                                                    // fs.unlink(path.join(imgPath, ""), err => {
+                                                                                    //     if (err) throw err;
+                                                                                    // });
+                                                                                }
+
+                                                                                i = i + 1;
+
+                                                                            }
+                                                                        });
+                                                                        rimraf(imgPath, function () { console.log("done"); });
+
+                                                                    } catch (ex) {
+                                                                        console.log("ex ", ex);
+                                                                    }
+
+                                                                    var response = {
+                                                                        status: "success",
+                                                                        message: 'report generated',
+                                                                        pdfUrl: signedRes,
+                                                                        downloadPath: data.key
+                                                                    };
+                                                                    resolve(response);
+                                                                })
+                                                            });
+
+                                                        }
+
+                                                    });
+                                                }
+                                                uploadFile();
+                                            }
+                                        });
+                                    }
+
+                                }).catch(err => {
+                                    resolve(err);
+                                })
+                        }
+                    })
+                })
+        }
+        catch (err) {
+            resolve(err);
+        }
+
+    })
+}
+
+async function getTaskStatusPieChart(data) {
+
+    let seriesData = [];
+
+    return new Promise(async function (resolve, reject) {
+
+        await Promise.all(data.map(async element => {
+
+            let complete = 0, inProgress = 0, notStarted = 0;
+
+            await Promise.all(element.tasks.map(async ele => {
+
+                if (ele.status.toLowerCase() == "completed") {
+                    complete = complete + 1;
+                }
+                else if (ele.status.toLowerCase() == "in progress") {
+                    inProgress = inProgress + 1;
+                }
+                else if (ele.status.toLowerCase() == "not started yet" || ele.status.toLowerCase() == "not yet started") {
+                    notStarted = notStarted + 1;
+                }
+            }))
+
+            let chartData = {
+                type: "svg",
+                options: {
+                    chart: {
+                        type: 'pie'
+                    },
+                    title: {
+                        text: 'TASK STATUS %'
+                    },
+                    plotOptions: {
+                        pie: {
+                            dataLabels: {
+                                enabled: true,
+                                format: "{point.y}"
+                            },
+                            showInLegend: true
+                        }
+                    },
+                    series: [{
+                        data: [{
+                            name: "Complete",
+                            y: complete,
+                            color: "#6abf34"
+                        }, {
+                            name: "Not Started",
+                            y: notStarted,
+                            color: "#81d6f0"
+                        }, {
+                            name: "In Progress",
+                            y: inProgress,
+                            color: "#91d050"
+                        }
+                        ]
+                    }]
+                }
+            }
+
+            seriesData.push(chartData);
+
+
+        }))
+
+        resolve(seriesData);
+
+    })
+}
+
+
+async function getUnnatiMonthlyReportChartObject(chartData) {
+    let arrayOfData = [];
+    let data = await getUnnatiChartData(chartData);
+    arrayOfData.push(data);
+    return arrayOfData;
+}
+
+function getUnnatiChartData(data) {
+
+    return new Promise(async function (resolve, reject) {
+        try {
+            let chartValue = (data.completed / (data.pending + data.completed)) * 100;
+            chartValue = chartValue.toFixed();
+            let chartData = {
+                order: 1,
+                type: "svg",
+                options: {
+                    chart: {
+                        type: 'pie'
+                    },
+                    title: {
+                        verticalAlign: 'middle',
+                        floating: true,
+                        text: '<b>' + chartValue + ' % <br>Completed</b>'
+                    },
+                    yAxis: {
+                        min: 0,
+                        title: {
+                            text: ''
+                        }
+                    },
+                    legend: {
+                        enabled: false
+                    }, credits: {
+                        enabled: false
+                    },
+                    plotOptions: {
+                        pie: {
+                            shadow: false,
+                            center: ['50%', '50%'],
+                            colors: [
+                                '#ADAFAD',
+                                '#20BA8D',
+                            ],
+                        }
+                    },
+                    series: [{
+                        name: "Tasks",
+                        data: [["Pending", data.pending], ["Completed", data.completed]],
+                        size: '90%',
+                        innerSize: '70%',
+                        showInLegend: true,
+                        dataLabels: {
+                            enabled: false
+                        }
+                    }]
+                }
+            }
+
+            resolve(chartData);
+        }
+        catch (err) {
+            console.log(err);
+        }
+    })
+}
+
+
+
+//Unnati monthly report pdf generation function
+exports.unnatiViewFullReportPdfGeneration = async function (responseData, deleteFromS3 = null) {
+
+    return new Promise(async function (resolve, reject) {
+
+        var currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
+
+        var imgPath = __dirname + '/../' + currentTempFolder;
+
+        if (!fs.existsSync(imgPath)) {
+            fs.mkdirSync(imgPath);
+        }
+
+        let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
+
+        try {
+
+            var FormData = [];
+
+            //get the chart object
+            let chartObj = await ganttChartObject();
+
+            //generate the chart using highchart server
+            let highChartData = await apiCallToHighChart(chartObj, imgPath, "gantt");
+
+            FormData.push(...highChartData);
+
+            let obj = {
+                chartData: highChartData
+            }
+
+            ejs.renderFile(__dirname + '/../views/unnatiViewFullReport.ejs', {
+                data: obj
 
             })
                 .then(function (dataEjsRender) {
@@ -1919,63 +2097,178 @@ exports.unnatiMonthlyReportPdfGeneration = async function (responseData, deleteF
 }
 
 
-
-async function getUnnatiMonthlyReportChartObject() {
-
-    let arrayOfData = [];
-    let data = await solidGauge();
-    arrayOfData.push(data);
-    return arrayOfData;
-}
-
-function solidGauge() {
+async function ganttChartObject() {
     return new Promise(async function (resolve, reject) {
+
+        let arrayOfData = [];
+        // let chartData = {
+        //     options: {
+        //         title:{
+        //             text: ''
+        //         },
+        //         xAxis: data.data[0].xAxis,
+        //         series: data.data[0].series
+        //     }
+        // }
+
         let chartData = {
-            order:1,
+            order: 1,
             type: "svg",
             options: {
-                chart: {
-                    type: 'pie'
-                  },
-                  title: {
-                    verticalAlign: 'middle',
-                    floating: true,
-                    text: '<b>' + 10 + ' % <br>Completed</b>'
-                  },
-                  yAxis: {
-                    min: 0,
-                    title: {
-                      text: ''
+                title: {
+                    text: ""
+                },
+                xAxis: {
+                    min: 1480380161948,
+                    max: 1580380161948
+                },
+                series: [
+                    {
+                        data: [
+                            {
+                                name: "Add task",
+                                id: "5e32c887afd6505e8f2498d7",
+                                color: "#20BA8D",
+                                start: 1480380161948,
+                                end: 1580380161948
+                            },
+                            {
+                                name: "New Task",
+                                id: "5e32cd03afd6505e8f2498db",
+                                color: "#20BA8D",
+                                start: 1480380161948,
+                                end: 1580380161948
+                            },
+                            {
+                                name: "Task 12",
+                                id: "5e32cd03afd6505e8f2498da",
+                                color: "#20BA8D",
+                                start: 1480380161948,
+                                end: 1580380161948
+                            },
+                            {
+                                name: "New Created Task",
+                                id: "5e32cd03afd6505e8f2498dc",
+                                color: "#20BA8D",
+                                start: 1480380161948,
+                                end: 1580380161948
+                            },
+                            {
+                                name: "Add Task 123",
+                                id: "5e32cd03afd6505e8f2498d8",
+                                color: "#20BA8D",
+                                start: 1480380161948,
+                                end: 1580380161948
+                            }
+                        ]
                     }
-                  },
-                  legend: {
-                    enabled: false
-                  }, credits: {
-                    enabled: false
-                  },
-                  plotOptions: {
-                    pie: {
-                      shadow: false,
-                      center: ['50%', '50%'],
-                      colors: [
-                        '#20BA8D',
-                        '#ADAFAD'
-                      ],
-                    }
-                  },
-                  series: [{
-                    name: "Tasks",
-                    data: [["Pending", 10], ["Completed", 10]],
-                    size: '90%',
-                    innerSize: '70%',
-                    showInLegend: true,
-                    dataLabels: {
-                      enabled: false
-                    }
-                  }]
+                ],
             }
         }
 
-        resolve(chartData);
+        arrayOfData.push(chartData);
+
+        resolve(arrayOfData);
+
     })
+
+}
+
+async function convertChartDataTofile(radioFilePath, options) {
+    try {
+        // console.log("options===", options);
+        var fileInfo = await rp(options).pipe(fs.createWriteStream(radioFilePath))
+
+        return new Promise(function (resolve, reject) {
+            fileInfo.on('finish', function () {
+                return resolve(fileInfo);
+            });
+            fileInfo.on('error', function (err) {
+                // return resolve(fileInfo);
+                console.log(err);
+                return resolve(err)
+            });
+        });
+    }
+    catch (err) {
+        console.log("error while generating highchart")
+    }
+}
+
+
+
+async function copyBootStrapFile(from, to) {
+    // var fileInfo = await rp(options).pipe(fs.createWriteStream(radioFilePath))
+    var readCss = fs.createReadStream(from).pipe(fs.createWriteStream(to));
+    return new Promise(function (resolve, reject) {
+        readCss.on('finish', function () {
+            // console.log("readCss", readCss);
+            return resolve(readCss);
+        });
+        readCss.on('error', function (err) {
+            // return resolve(fileInfo);
+            // console.log("err--", err);
+            return resolve(err)
+        });
+    });
+}
+
+
+async function apiCallToHighChart(chartData, imgPath, type) {
+    return new Promise(async function (resolve, reject) {
+        var formData = [];
+        try {
+            var carrent = 0;
+            if (chartData && chartData.length > 0) {
+                let dt = await callChartApiPreparation(chartData[0], imgPath, type, chartData, carrent, formData);
+                return resolve(formData);
+            } else {
+                return resolve(formData);
+            }
+        } catch (err) {
+            console.log("error while calling highchart server");
+        }
+    });
+}
+
+
+async function callChartApiPreparation(ele, imgPath, type, chartData, carrent, formData) {
+    try {
+        let loop = 0;
+        var options = config.high_chart;
+        var chartImage = "chartPngImage_" + loop + "_" + uuidv4() + "_.svg";
+        options.method = "POST";
+        options.body = JSON.stringify(ele);
+        let imgFilePath = imgPath + "/" + chartImage;
+        loop = loop + 1;
+        let renderImage = await convertChartDataTofile(imgFilePath, options);
+
+        let fileDat = {
+            order: ele.order,
+            value: fs.createReadStream(imgFilePath),
+            options: {
+                filename: chartImage,
+
+            }
+        }
+
+        if (ele.question) {
+            fileDat.options.question = ele.question;
+        }
+
+        formData.push(fileDat);
+        carrent = carrent + 1;
+        if (chartData.length > carrent) {
+            try {
+                let call = await callChartApiPreparation(chartData[carrent], imgPath, type, chartData, carrent, formData);
+            } catch (err) {
+                console.log("error while making api call to high chart docker", err);
+            }
+        } else {
+            return (formData);
+        }
+    }
+    catch (err) {
+        console.log("error");
+    }
 }

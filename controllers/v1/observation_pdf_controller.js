@@ -102,9 +102,19 @@ exports.unnatiPdfGeneration = async function(req,res){
 
 
 //Controller function for unnati monthly report pdf generation
-exports.unnatiMonthlyReportGeneration = async function(req,res){
+exports.unnatiMonthlyReport = async function(req,res){
 
     let response = await pdfHandler.unnatiMonthlyReportPdfGeneration(req.body,true);
+    let hostname = req.headers.host;
+  
+    response.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+    res.send(response);
+}
+
+//Controller function for unnati view full report pdf generation
+exports.unnatiViewFullReport = async function(req,res){
+
+    let response = await pdfHandler.unnatiViewFullReportPdfGeneration(req.body,true);
     let hostname = req.headers.host;
   
     response.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + response.pdfUrl
