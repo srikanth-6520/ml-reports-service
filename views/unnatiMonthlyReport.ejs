@@ -1,0 +1,110 @@
+<html>
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <style>
+        #project td,
+        #project th {
+            border: 1px solid #b4b4b4;
+            padding: 8px;
+        }
+
+        .heading {
+            background-color: #c21a2e !important;
+            color: white !important;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h5>School Name</h5>
+        <br>
+        <h5>Project Undertaken in Last Quarter</h5>
+        <br>
+        <% for (var i=0;i < data.projectArray.length; i++) { %>
+        <p><%= data.projectArray[i].title %></p>
+        <table id="project">
+            <thead>
+                <tr>
+                    <th class="heading">TASK NAME</th>
+                    <th class="heading">No. OF SUBTASKS</th>
+                    <th class="heading">START DATE</th>
+                    <th class="heading">END DATE</th>
+                    <th class="heading">DURATION in days</th>
+                    <th class="heading">STATUS</th>
+                </tr>
+            </thead>
+            
+            <tbody>
+                <% for (var j=0;j < data.projectArray[i].tasks.length; j++) { %>
+                <tr>
+                    <td><%= data.projectArray[i].tasks[j].title %></td>
+                    <td><%= data.projectArray[i].tasks[j].subTasks.length %></td>
+
+                    <% if(data.projectArray[i].tasks[j].startDate) {%>
+                    <% var startDate = new Date(data.projectArray[i].tasks[j].startDate) %>
+                    <% var day = startDate.getDate() %>
+                    <% var month = startDate.getMonth() + 1 %>
+                    <% var year = startDate.getFullYear() %>
+                    <% startDateValue = day + '/' + month + '/' + year %>
+                    <td style="background-color: #F2F2F2 !important"><%= startDateValue %> </td>
+                    <% } else { %>
+                    <td style="background-color: #F2F2F2 !important"></td>
+                    <% } %>
+
+                    <% if(data.projectArray[i].tasks[j].endDate) {%>
+                    <% var endDate = new Date(data.projectArray[i].tasks[j].endDate) %>
+                    <% var day = endDate.getDate() %>
+                    <% var month = endDate.getMonth() + 1 %>
+                    <% var year = endDate.getFullYear() %>
+                    <% endDateValue = day + '/' + month + '/' + year %>
+                    <td style="background-color: #F2F2F2 !important"><%= endDateValue %> </td>
+                    <% } else { %>
+                    <td style="background-color: #F2F2F2 !important"></td>
+                    <% } %>
+
+                    <% if(data.projectArray[i].tasks[j].startDate && data.projectArray[i].tasks[j].endDate) { %>
+                    <% var sdate = new Date(data.projectArray[i].tasks[j].startDate) %>
+                    <% var edate = new Date(data.projectArray[i].tasks[j].endDate) %>
+                    <% var noOfDays = (sdate - edate)/(1000 * 60 * 60 * 24) %>
+                    <td style="background-color: #D8DAE0 !important"><%= noOfDays %></td>
+                    <% } else {%>
+                    <td style="background-color: #D8DAE0 !important"></td>
+                    <% } %>
+
+
+                    <% if(data.projectArray[i].tasks[j].status != "") { %>
+                    <% if(data.projectArray[i].tasks[j].status.toLowerCase() == "completed") { %>
+                    <td style="background-color:#6abf34 !important">Complete</td>
+                    <% } else if(data.projectArray[i].tasks[j].status.toLowerCase() == "in progress") {%>
+                    <td style="background-color:#91d050 !important">In Progress</td>
+                    <% } else if(data.projectArray[i].tasks[j].status.toLowerCase() == "not started yet" || data.projectArray[i].tasks[j].status.toLowerCase() == "not yet started") {%>
+                    <td style="background-color:#81d6f0 !important">Not Started</td>
+                    <% } else {%>
+                    <td></td>
+                    <% } %>
+                    <% } %>
+                </tr>
+                <% } %>
+            </tbody>
+        </table>
+
+        <% } %>
+
+    </div>
+</body>
+
+</html>

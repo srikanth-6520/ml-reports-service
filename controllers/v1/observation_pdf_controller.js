@@ -100,6 +100,28 @@ exports.unnatiPdfGeneration = async function(req,res){
     res.send(response);
 }
 
+
+//Controller function for unnati monthly report pdf generation
+exports.unnatiMonthlyReport = async function(req,res){
+
+    let response = await pdfHandler.unnatiMonthlyReportPdfGeneration(req.body,true);
+    let hostname = req.headers.host;
+  
+    response.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+    res.send(response);
+}
+
+//Controller function for unnati view full report pdf generation
+exports.unnatiViewFullReport = async function(req,res){
+
+    let response = await pdfHandler.unnatiViewFullReportPdfGeneration(req.body,true);
+    let hostname = req.headers.host;
+  
+    response.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+    res.send(response);
+}
+
+
 //COntroller function to get the pdf report from tmp folder and then delete the folder from local storage
 exports.pdftempUrl = async function (req, response) {
 

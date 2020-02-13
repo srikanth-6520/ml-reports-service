@@ -127,3 +127,106 @@ exports.entitySolutionReportPdfGeneration = async function (req, res) {
   });
   
 };
+
+
+
+
+//Controller for Entity Observation Score Report
+exports.entityObservationScoreReport = async function (req, res) {
+
+  let data = await entityScoreReport(req, res);
+
+  res.send(data);
+
+}
+
+async function entityScoreReport(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    if (!req.body.entityId && !req.body.observationId) {
+      var response = {
+        result: false,
+        message: 'entityId and observationId are required fields'
+      }
+      resolve(response);
+    }
+
+    else {
+
+      model.MyModel.findOneAsync({ qid: "entity_observation_score_query" }, { allow_filtering: true })
+        .then(async function (result) {
+
+          var bodyParam = JSON.parse(result.query);
+
+          if (config.druid.observation_datasource_name) {
+            bodyParam.dataSource = config.druid.observation_datasource_name;
+          }
+
+          bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+          bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
+
+          //pass the query as body param and get the resul from druid
+          var options = config.druid.options;
+          options.method = "POST";
+          options.body = bodyParam;
+
+          var data = await rp(options);
+
+          if (!data.length) {
+            resolve({ "data": "No observations made for the entity" })
+          }
+
+          else {
+
+            var responseObj = await helperFunc.entityScoreReportChartObjectCreation(data,"v2")
+            resolve(responseObj);
+
+          }
+        })
+
+        .catch(function (err) {
+          console.log(err);
+          var response = {
+            result: false,
+            message: 'Data not found'
+          }
+          resolve(response);
+        })
+
+    }
+
+  })
+
+}
+
+//Entity observation score pdf generation
+exports.entityObservationScorePdfFunc = async function (req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    var entityRes = await entityScoreReport(req, res);
+
+    if (entityRes.result == true) {
+
+      let obj = {
+        schoolName: entityRes.schoolName,
+        totalObservations: entityRes.totalObservations
+      }
+
+      let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, true, obj);
+
+      let hostname = req.headers.host;
+
+      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+
+      resolve(resData);
+    }
+
+    else {
+      resolve(entityRes);
+    }
+
+  });
+
+};
