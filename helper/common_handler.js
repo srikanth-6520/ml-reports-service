@@ -1617,26 +1617,23 @@ exports.unnatiMonthlyReportPdfGeneration = async function (responseData, deleteF
         let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
 
         try {
-
-            console.log("entered");
-
             var FormData = [];
 
             //get the chart object
-            let chartObj = await getTaskStatusPieChart(responseData);
-
-            console.log(chartObj);
+            let chartObj = await getTaskStatusPieChart(responseData.projectDetails);
 
             //generate the chart using highchart server
             let highChartData = await apiCallToHighChart(chartObj[0], imgPath, "pie");
 
-            console.log(highChartData);
-
             FormData.push(...highChartData);
 
+            let projectData = chartObj[1];
+
             let obj = {
-                projectArray: chartObj[1],
-                chartData : highChartData
+                schoolName: responseData.schoolName,
+                reportType: responseData.reportType,
+                projectArray: projectData,
+                chartData: highChartData
             }
 
             ejs.renderFile(__dirname + '/../views/unnatiMonthlyReport.ejs', {
@@ -1790,15 +1787,12 @@ async function getTaskStatusPieChart(data) {
     return new Promise(async function (resolve, reject) {
 
         let seriesData = [];
-        let i = 1;
+        var i = 0;
+        let projectData = [];
 
         await Promise.all(data.map(async element => {
-
-            data.order = i;
-            i++;
-
             let complete = 0, inProgress = 0, notStarted = 0;
-
+          
             await Promise.all(element.tasks.map(async ele => {
 
                 if (ele.status.toLowerCase() == "completed") {
@@ -1811,6 +1805,36 @@ async function getTaskStatusPieChart(data) {
                     notStarted = notStarted + 1;
                 }
             }))
+
+            let dataArray = [];
+
+            if (complete >= 1) {
+                let obj = {
+                    name: 'Complete',
+                    y: complete,
+                    color: "#6abf34"
+                }
+
+                dataArray.push(obj);
+            }
+            if (notStarted >= 1) {
+                let obj = {
+                    name: 'Not Started',
+                    y: notStarted,
+                    color: "#81d6f0"
+                }
+
+                dataArray.push(obj);
+            }
+            if (inProgress >= 1) {
+                let obj = {
+                    name: 'In Progress',
+                    y: inProgress,
+                    color: "#91d050"
+                }
+
+                dataArray.push(obj);
+            }
 
             let chartData = {
                 type: "svg",
@@ -1831,103 +1855,29 @@ async function getTaskStatusPieChart(data) {
                             showInLegend: true
                         }
                     },
+                    credits: {
+                        enabled: false
+                    },
                     series: [{
-                        data: [{
-                            name: "Complete",
-                            y: complete,
-                            color: "#6abf34"
-                        }, {
-                            name: "Not Started",
-                            y: notStarted,
-                            color: "#81d6f0"
-                        }, {
-                            name: "In Progress",
-                            y: inProgress,
-                            color: "#91d050"
-                        }
-                        ]
+                        data: dataArray
                     }]
                 }
             }
-
+            
             seriesData.push(chartData);
 
+            element.order = i;
+            projectData.push(element);
+
+            i++;
 
         }))
+        
+        resolve([seriesData, projectData]);
 
-        resolve(seriesData,data);
 
     })
 }
-
-
-async function getUnnatiMonthlyReportChartObject(chartData) {
-    let arrayOfData = [];
-    let data = await getUnnatiChartData(chartData);
-    arrayOfData.push(data);
-    return arrayOfData;
-}
-
-function getUnnatiChartData(data) {
-
-    return new Promise(async function (resolve, reject) {
-        try {
-            let chartValue = (data.completed / (data.pending + data.completed)) * 100;
-            chartValue = chartValue.toFixed();
-            let chartData = {
-                order: 1,
-                type: "svg",
-                options: {
-                    chart: {
-                        type: 'pie'
-                    },
-                    title: {
-                        verticalAlign: 'middle',
-                        floating: true,
-                        text: '<b>' + chartValue + ' % <br>Completed</b>'
-                    },
-                    yAxis: {
-                        min: 0,
-                        title: {
-                            text: ''
-                        }
-                    },
-                    legend: {
-                        enabled: false
-                    }, credits: {
-                        enabled: false
-                    },
-                    plotOptions: {
-                        pie: {
-                            shadow: false,
-                            center: ['50%', '50%'],
-                            colors: [
-                                '#ADAFAD',
-                                '#20BA8D',
-                            ],
-                        }
-                    },
-                    series: [{
-                        name: "Tasks",
-                        data: [["Pending", data.pending], ["Completed", data.completed]],
-                        size: '90%',
-                        innerSize: '70%',
-                        showInLegend: true,
-                        dataLabels: {
-                            enabled: false
-                        }
-                    }]
-                }
-            }
-
-            resolve(chartData);
-        }
-        catch (err) {
-            console.log(err);
-        }
-    })
-}
-
 
 
 //Unnati monthly report pdf generation function

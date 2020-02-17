@@ -21,6 +21,13 @@
         .heading {
             background-color: #c21a2e !important;
             color: white !important;
+            font-size: 14px !important;
+            text-align: center !important;
+        }
+        .heading1 {
+            background-color: #c21a2e !important;
+            color: white !important;
+            font-size: 14px !important;
         }
     </style>
 
@@ -29,17 +36,24 @@
 <body>
 
     <div class="container">
+        <% if(data.schoolName) {%> 
+        <h5>School Name : <u><%= data.schoolName %></u></h5>
+        <% } else {%>
+        <h5>School Name : <div style="border-bottom: solid 1px #000 !important;width:53% !important;margin-left: 20% !important"></div> </h5>
+        <% } %> 
 
-        <h5>School Name</h5>
         <br>
-        <h5>Project Undertaken in Last Quarter</h5>
+
+        <h5>Project Undertaken in Last <%= data.reportType %></h5>
+
         <br>
+
         <% for (var i=0;i < data.projectArray.length; i++) { %>
-        <p><%= data.projectArray[i].title %></p>
+        <p><b><%= data.projectArray[i].title %></b></p>
         <table id="project">
             <thead>
                 <tr>
-                    <th class="heading">TASK NAME</th>
+                    <th class="heading1">TASK NAME</th>
                     <th class="heading">No. OF SUBTASKS</th>
                     <th class="heading">START DATE</th>
                     <th class="heading">END DATE</th>
@@ -47,12 +61,12 @@
                     <th class="heading">STATUS</th>
                 </tr>
             </thead>
-            
-            <tbody>
+
+            <tbody style="font-size:12px !important">
                 <% for (var j=0;j < data.projectArray[i].tasks.length; j++) { %>
                 <tr>
                     <td><%= data.projectArray[i].tasks[j].title %></td>
-                    <td><%= data.projectArray[i].tasks[j].subTasks.length %></td>
+                    <td style="text-align: center !important"><%= data.projectArray[i].tasks[j].subTasks.length %></td>
 
                     <% if(data.projectArray[i].tasks[j].startDate) {%>
                     <% var startDate = new Date(data.projectArray[i].tasks[j].startDate) %>
@@ -60,9 +74,10 @@
                     <% var month = startDate.getMonth() + 1 %>
                     <% var year = startDate.getFullYear() %>
                     <% startDateValue = day + '/' + month + '/' + year %>
-                    <td style="background-color: #F2F2F2 !important"><%= startDateValue %> </td>
+                    <td style="background-color: #F2F2F2 !important;text-align:center !important"><%= startDateValue %>
+                    </td>
                     <% } else { %>
-                    <td style="background-color: #F2F2F2 !important"></td>
+                    <td style="background-color: #F2F2F2 !important;"></td>
                     <% } %>
 
                     <% if(data.projectArray[i].tasks[j].endDate) {%>
@@ -71,7 +86,8 @@
                     <% var month = endDate.getMonth() + 1 %>
                     <% var year = endDate.getFullYear() %>
                     <% endDateValue = day + '/' + month + '/' + year %>
-                    <td style="background-color: #F2F2F2 !important"><%= endDateValue %> </td>
+                    <td style="background-color: #F2F2F2 !important;text-align: center !important"><%= endDateValue %>
+                    </td>
                     <% } else { %>
                     <td style="background-color: #F2F2F2 !important"></td>
                     <% } %>
@@ -79,8 +95,8 @@
                     <% if(data.projectArray[i].tasks[j].startDate && data.projectArray[i].tasks[j].endDate) { %>
                     <% var sdate = new Date(data.projectArray[i].tasks[j].startDate) %>
                     <% var edate = new Date(data.projectArray[i].tasks[j].endDate) %>
-                    <% var noOfDays = (sdate - edate)/(1000 * 60 * 60 * 24) %>
-                    <td style="background-color: #D8DAE0 !important"><%= noOfDays %></td>
+                    <% var noOfDays = (edate - sdate)/(1000 * 60 * 60 * 24) + 'd' %>
+                    <td style="background-color: #D8DAE0 !important;text-align: center !important"><%= noOfDays %></td>
                     <% } else {%>
                     <td style="background-color: #D8DAE0 !important"></td>
                     <% } %>
@@ -102,15 +118,21 @@
             </tbody>
         </table>
 
-        <% for (var k=0;k < chartData.length; k++) { %>
+        <br>
+        <br>
 
-            <% if(data[i].order == chartData[k].order ) {%>
-                <img src="<%= chartData[k].options.filename %>" />
-            <% } %>
+        <% for (let k=0;k < data.chartData.length; k++) { %>
+        <% if(data.chartData[k].order === data.projectArray[i].order) {%>
+        <div style="text-align: center">
+            <img src="<%= data.chartData[k].options.filename %>" style="width:80%" />
+        </div>
+        <% } %>
 
-          <% } %>
-        
+        <% } %>
 
+        <div style='page-break-after:always'></div>
+
+        <% } %>
     </div>
 </body>
 
