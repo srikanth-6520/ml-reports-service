@@ -1439,18 +1439,41 @@ exports.unnatiPdfGeneration = async function (responseData, deleteFromS3 = null)
         }
 
         let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
+        
+        //copy images from public folder
+        let src = __dirname + '/../public/images/Calendar-Time.svg';
+        fs.copyFileSync(src, imgPath + '/Calendar-Time.svg');
+
+        let fileData = [{
+            value: fs.createReadStream(imgPath + '/Calendar-Time.svg'),
+            options: {
+                filename: 'Calendar-Time.svg',
+    
+            }}]
+    
+
+        let subTasksCount = 0;
+
+        responseData.tasks.forEach(element => {
+            subTasksCount = subTasksCount + element.subTasks.length;
+        });
 
         try {
 
             var FormData = [];
 
+            FormData.push(...fileData);
+
             let obj = {
+                subTasks: subTasksCount,
                 duration: responseData.duration,
                 goal: responseData.goal,
                 tasksArray: responseData.tasks,
                 projectName: responseData.title,
                 category: responseData.category,
-                status: responseData.status
+                status: responseData.status,
+                startDate: responseData.startDate,
+                endDate: responseData.endDate
             }
 
             ejs.renderFile(__dirname + '/../views/unnatiTemplate.ejs', {

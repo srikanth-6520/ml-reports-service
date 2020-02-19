@@ -86,10 +86,10 @@ router.post("/v1/assessment/pdfReports",authenticate,entityAssessController.asse
 router.post("/v1/unnati/pdfReport",authenticate,pdfController.unnatiPdfGeneration)
 
 //API for Unnati app monthly report PDF generation 
-router.post("/v1/unnati/monthlyReport",pdfController.unnatiMonthlyReport)
+router.post("/v1/unnati/monthlyReport",authenticate,pdfController.unnatiMonthlyReport)
 
 //API for Unnati view full  report PDF generation 
-router.post("/v1/unnati/viewProjectReport",pdfController.unnatiViewFullReport)
+router.post("/v1/unnati/viewProjectReport",authenticate,pdfController.unnatiViewFullReport)
 
 
 //========= API calls for container app=============
