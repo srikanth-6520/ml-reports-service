@@ -33,7 +33,7 @@ res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With,Authorizati
 app.set('views',path.join(__dirname,'controllers/views'));
 app.set('view engine','ejs');
 
-app.use('/dhiti/api/v1', indexRouter);
+app.use('/dhiti/api', indexRouter);
 
 /**
  * Get port from environment and store in Express.
