@@ -279,7 +279,7 @@ async function entityScoreReport(req, res) {
 
           else {
 
-            var responseObj = await helperFunc.entityScoreReportChartObjectCreation(data)
+            var responseObj = await helperFunc.entityScoreReportChartObjectCreation(data,"v1")
             resolve(responseObj);
 
           }
