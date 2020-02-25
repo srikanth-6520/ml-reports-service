@@ -198,7 +198,7 @@
                 <% if(data.tasksArray[i].subTasks[j].endDate) {%>
                 <% let subTaskEndDate = new Date(data.tasksArray[i].subTasks[j].endDate) %>
                 <% let day = subTaskEndDate.getDate() %>
-                <% let month = subTaskEndDate.getMonth() + 1 %>
+                <% let month = subTaskEndDate.getMonth() %>
                 <% let year = subTaskEndDate.getFullYear() %>
                 <% subEndDate = day + '/' + month + '/' + year %>
                 <% } %>
