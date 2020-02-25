@@ -1458,6 +1458,25 @@ exports.unnatiPdfGeneration = async function (responseData, deleteFromS3 = null)
             subTasksCount = subTasksCount + element.subTasks.length;
         });
 
+        let startDate,endDate;
+        let months=["January","February","March","April","May","June","July","August","September","October","November","December"];
+        
+        if(responseData.startDate){
+            let date = new Date(responseData.startDate);
+            let day = date.getDate();
+            let month = months[date.getMonth()];
+            let year = date.getFullYear();
+            startDate = day + " " + month + " " + year;
+        }
+
+        if(responseData.endDate){
+            let date = new Date(responseData.endDate);
+            let day = date.getDate();
+            let month = months[date.getMonth()];
+            let year = date.getFullYear();
+            endDate = day + " " + month + " " + year;
+        }
+
         try {
 
             var FormData = [];
@@ -1472,8 +1491,8 @@ exports.unnatiPdfGeneration = async function (responseData, deleteFromS3 = null)
                 projectName: responseData.title,
                 category: responseData.category,
                 status: responseData.status,
-                startDate: responseData.startDate,
-                endDate: responseData.endDate
+                startDate: startDate,
+                endDate: endDate
             }
 
             ejs.renderFile(__dirname + '/../views/unnatiTemplate.ejs', {
@@ -2086,69 +2105,54 @@ async function ganttChartObject() {
     return new Promise(async function (resolve, reject) {
 
         let arrayOfData = [];
-        // let chartData = {
-        //     options: {
-        //         title:{
-        //             text: ''
-        //         },
-        //         xAxis: data.data[0].xAxis,
-        //         series: data.data[0].series
-        //     }
-        // }
 
         let chartData = {
-            order: 1,
             type: "svg",
-            options: {
+            options : {
+          
+            chart: {
+                type: 'bar'
+            },
+            title: {
+                text: ''
+            },
+           
+            xAxis: {
+                categories: ['What action i have to carry out', 'What do i need to learn', 'How do i know growth has happened', 'How do i know my school is improving in choosen standards'],
                 title: {
-                    text: ""
+                    text: null
+                }
+            },
+            yAxis: {
+                categories : ['week1','week2','week3','week4'],
+                opposite: true,
+                title: {
+                    text: '',
                 },
-                xAxis: {
-                    min: 1480380161948,
-                    max: 1580380161948
-                },
-                series: [
-                    {
-                        data: [
-                            {
-                                name: "Add task",
-                                id: "5e32c887afd6505e8f2498d7",
-                                color: "#20BA8D",
-                                start: 1480380161948,
-                                end: 1580380161948
-                            },
-                            {
-                                name: "New Task",
-                                id: "5e32cd03afd6505e8f2498db",
-                                color: "#20BA8D",
-                                start: 1480380161948,
-                                end: 1580380161948
-                            },
-                            {
-                                name: "Task 12",
-                                id: "5e32cd03afd6505e8f2498da",
-                                color: "#20BA8D",
-                                start: 1480380161948,
-                                end: 1580380161948
-                            },
-                            {
-                                name: "New Created Task",
-                                id: "5e32cd03afd6505e8f2498dc",
-                                color: "#20BA8D",
-                                start: 1480380161948,
-                                end: 1580380161948
-                            },
-                            {
-                                name: "Add Task 123",
-                                id: "5e32cd03afd6505e8f2498d8",
-                                color: "#20BA8D",
-                                start: 1480380161948,
-                                end: 1580380161948
-                            }
-                        ]
+                labels: {
+                    overflow: 'justify'
+                }
+            },
+            plotOptions: {
+                bar: {
+                    dataLabels: {
+                        enabled: false
                     }
-                ],
-            }
+                }
+            },
+            legend: {
+                enabled:false
+            },
+            credits: {
+                enabled: false
+            },
+            series: [{
+                    data: [{y:3,color:"#00c983"},
+                            {y:3,color:"#F5F5F5"},
+                            {y:3,color:"#FF872F"},
+                            {y:3,color:"#FF872F"}]
+                }]
+        }
         }
 
         arrayOfData.push(chartData);
