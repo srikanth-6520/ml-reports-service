@@ -176,7 +176,7 @@
             <% if(data.tasksArray[i].endDate) { %>
             <% let months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"] %>
             <% now = new Date(data.tasksArray[i].endDate); %>
-            <% month = months[now.getMonth() + 1]; %>
+            <% month = months[now.getMonth()]; %>
             <% date = now.getDate() %>
             <% } %>
 
@@ -198,7 +198,7 @@
                 <% if(data.tasksArray[i].subTasks[j].endDate) {%>
                 <% let subTaskEndDate = new Date(data.tasksArray[i].subTasks[j].endDate) %>
                 <% let day = subTaskEndDate.getDate() %>
-                <% let month = subTaskEndDate.getMonth() %>
+                <% let month = subTaskEndDate.getMonth() + 1 %>
                 <% let year = subTaskEndDate.getFullYear() %>
                 <% subEndDate = day + '/' + month + '/' + year %>
                 <% } %>
