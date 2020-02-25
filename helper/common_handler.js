@@ -1391,7 +1391,7 @@ async function getScoreChartObject(items) {
                 }
 
             }
-            else if(ele.chart.type == "column") {
+            else if (ele.chart.type == "column") {
 
                 obj = {
                     order: ele.order,
@@ -1439,18 +1439,61 @@ exports.unnatiPdfGeneration = async function (responseData, deleteFromS3 = null)
         }
 
         let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
+        
+        //copy images from public folder
+        let src = __dirname + '/../public/images/Calendar-Time.svg';
+        fs.copyFileSync(src, imgPath + '/Calendar-Time.svg');
+
+        let fileData = [{
+            value: fs.createReadStream(imgPath + '/Calendar-Time.svg'),
+            options: {
+                filename: 'Calendar-Time.svg',
+
+            }
+    }]
+
+
+        let subTasksCount = 0;
+
+        responseData.tasks.forEach(element => {
+            subTasksCount = subTasksCount + element.subTasks.length;
+        });
+
+        let startDate, endDate;
+        let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        if (responseData.startDate) {
+            let date = new Date(responseData.startDate);
+            let day = date.getDate();
+            let month = months[date.getMonth()];
+            let year = date.getFullYear();
+            startDate = day + " " + month + " " + year;
+        }
+
+        if (responseData.endDate) {
+            let date = new Date(responseData.endDate);
+            let day = date.getDate();
+            let month = months[date.getMonth()];
+            let year = date.getFullYear();
+            endDate = day + " " + month + " " + year;
+        }
 
         try {
 
             var FormData = [];
 
+            FormData.push(...fileData);
+
             let obj = {
+                subTasks: subTasksCount,
                 duration: responseData.duration,
                 goal: responseData.goal,
                 tasksArray: responseData.tasks,
                 projectName: responseData.title,
                 category: responseData.category,
-                status: responseData.status
+                status: responseData.status,
+                startDate: startDate,
+                endDate: endDate
             }
 
             ejs.renderFile(__dirname + '/../views/unnatiTemplate.ejs', {
@@ -1617,19 +1660,23 @@ exports.unnatiMonthlyReportPdfGeneration = async function (responseData, deleteF
         let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
 
         try {
-
             var FormData = [];
 
             //get the chart object
-            let chartObj = await getTaskStatusPieChart(responseData);
+            let chartObj = await getTaskStatusPieChart(responseData.projectDetails);
 
             //generate the chart using highchart server
-            let highChartData = await apiCallToHighChart(chartObj, imgPath, "pie");
+            let highChartData = await apiCallToHighChart(chartObj[0], imgPath, "pie");
 
             FormData.push(...highChartData);
 
+            let projectData = chartObj[1];
+
             let obj = {
-                projectArray: responseData
+                schoolName: responseData.schoolName,
+                reportType: responseData.reportType,
+                projectArray: projectData,
+                chartData: highChartData
             }
 
             ejs.renderFile(__dirname + '/../views/unnatiMonthlyReport.ejs', {
@@ -1780,12 +1827,13 @@ exports.unnatiMonthlyReportPdfGeneration = async function (responseData, deleteF
 
 async function getTaskStatusPieChart(data) {
 
-    let seriesData = [];
-
     return new Promise(async function (resolve, reject) {
 
-        await Promise.all(data.map(async element => {
+        let seriesData = [];
+        var i = 0;
+        let projectData = [];
 
+        await Promise.all(data.map(async element => {
             let complete = 0, inProgress = 0, notStarted = 0;
 
             await Promise.all(element.tasks.map(async ele => {
@@ -1801,8 +1849,39 @@ async function getTaskStatusPieChart(data) {
                 }
             }))
 
+            let dataArray = [];
+
+            if (complete >= 1) {
+                let obj = {
+                    name: 'Complete',
+                    y: complete,
+                    color: "#6abf34"
+                }
+
+                dataArray.push(obj);
+            }
+            if (notStarted >= 1) {
+                let obj = {
+                    name: 'Not Started',
+                    y: notStarted,
+                    color: "#81d6f0"
+                }
+
+                dataArray.push(obj);
+            }
+            if (inProgress >= 1) {
+                let obj = {
+                    name: 'In Progress',
+                    y: inProgress,
+                    color: "#91d050"
+                }
+
+                dataArray.push(obj);
+            }
+
             let chartData = {
                 type: "svg",
+                order: i,
                 options: {
                     chart: {
                         type: 'pie'
@@ -1819,103 +1898,29 @@ async function getTaskStatusPieChart(data) {
                             showInLegend: true
                         }
                     },
+                    credits: {
+                        enabled: false
+                    },
                     series: [{
-                        data: [{
-                            name: "Complete",
-                            y: complete,
-                            color: "#6abf34"
-                        }, {
-                            name: "Not Started",
-                            y: notStarted,
-                            color: "#81d6f0"
-                        }, {
-                            name: "In Progress",
-                            y: inProgress,
-                            color: "#91d050"
-                        }
-                        ]
+                        data: dataArray
                     }]
                 }
             }
 
             seriesData.push(chartData);
 
+            element.order = i;
+            projectData.push(element);
+
+            i++;
 
         }))
 
-        resolve(seriesData);
+        resolve([seriesData, projectData]);
+
 
     })
 }
-
-
-async function getUnnatiMonthlyReportChartObject(chartData) {
-    let arrayOfData = [];
-    let data = await getUnnatiChartData(chartData);
-    arrayOfData.push(data);
-    return arrayOfData;
-}
-
-function getUnnatiChartData(data) {
-
-    return new Promise(async function (resolve, reject) {
-        try {
-            let chartValue = (data.completed / (data.pending + data.completed)) * 100;
-            chartValue = chartValue.toFixed();
-            let chartData = {
-                order: 1,
-                type: "svg",
-                options: {
-                    chart: {
-                        type: 'pie'
-                    },
-                    title: {
-                        verticalAlign: 'middle',
-                        floating: true,
-                        text: '<b>' + chartValue + ' % <br>Completed</b>'
-                    },
-                    yAxis: {
-                        min: 0,
-                        title: {
-                            text: ''
-                        }
-                    },
-                    legend: {
-                        enabled: false
-                    }, credits: {
-                        enabled: false
-                    },
-                    plotOptions: {
-                        pie: {
-                            shadow: false,
-                            center: ['50%', '50%'],
-                            colors: [
-                                '#ADAFAD',
-                                '#20BA8D',
-                            ],
-                        }
-                    },
-                    series: [{
-                        name: "Tasks",
-                        data: [["Pending", data.pending], ["Completed", data.completed]],
-                        size: '90%',
-                        innerSize: '70%',
-                        showInLegend: true,
-                        dataLabels: {
-                            enabled: false
-                        }
-                    }]
-                }
-            }
-
-            resolve(chartData);
-        }
-        catch (err) {
-            console.log(err);
-        }
-    })
-}
-
 
 
 //Unnati monthly report pdf generation function
@@ -1938,15 +1943,17 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData, delete
             var FormData = [];
 
             //get the chart object
-            let chartObj = await ganttChartObject();
+            let chartObj = await ganttChartObject(responseData.projectDetails);
 
             //generate the chart using highchart server
-            let highChartData = await apiCallToHighChart(chartObj, imgPath, "gantt");
+            let highChartData = await apiCallToHighChart(chartObj[0], imgPath, "gantt");
 
             FormData.push(...highChartData);
 
             let obj = {
-                chartData: highChartData
+                chartData: highChartData,
+                reportType:responseData.reportType,
+                projectData: chartObj[1]
             }
 
             ejs.renderFile(__dirname + '/../views/unnatiViewFullReport.ejs', {
@@ -2097,78 +2104,106 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData, delete
 }
 
 
-async function ganttChartObject() {
+async function ganttChartObject(data) {
+
     return new Promise(async function (resolve, reject) {
 
+       
+       
+        let i=1;
         let arrayOfData = [];
-        // let chartData = {
-        //     options: {
-        //         title:{
-        //             text: ''
-        //         },
-        //         xAxis: data.data[0].xAxis,
-        //         series: data.data[0].series
-        //     }
-        // }
+        let projectData = [];
+
+        await Promise.all(data.map( async element => {
+
+            let xAxisCategories = [];
+            let dataArray = [];
+
+
+        await Promise.all(element.tasks.map(ele => {
+
+                xAxisCategories.push(ele.title);
+                if (ele.status.toLowerCase() == "completed") {
+
+                    let obj = {
+                        y: 4,
+                        color: "#00c983"
+                    }
+
+                    dataArray.push(obj);
+                } else if (ele.status.toLowerCase() == "not yet started" || ele.status.toLowerCase() == "not started yet") {
+                    let obj = {
+                        y: 4,
+                        color: "#F5F5F5"
+                    }
+                    dataArray.push(obj);
+                } else if (ele.status.toLowerCase() == "in progress") {
+                    let obj = {
+                        y: 4,
+                        color: "#FF872F"
+                    }
+                    dataArray.push(obj);
+                }
+
+            }))
 
         let chartData = {
-            order: 1,
+            order:i,
             type: "svg",
             options: {
+
+                chart: {
+                    type: 'bar'
+                },
                 title: {
-                    text: ""
+                    text: ''
                 },
+
                 xAxis: {
-                    min: 1480380161948,
-                    max: 1580380161948
-                },
-                series: [
-                    {
-                        data: [
-                            {
-                                name: "Add task",
-                                id: "5e32c887afd6505e8f2498d7",
-                                color: "#20BA8D",
-                                start: 1480380161948,
-                                end: 1580380161948
-                            },
-                            {
-                                name: "New Task",
-                                id: "5e32cd03afd6505e8f2498db",
-                                color: "#20BA8D",
-                                start: 1480380161948,
-                                end: 1580380161948
-                            },
-                            {
-                                name: "Task 12",
-                                id: "5e32cd03afd6505e8f2498da",
-                                color: "#20BA8D",
-                                start: 1480380161948,
-                                end: 1580380161948
-                            },
-                            {
-                                name: "New Created Task",
-                                id: "5e32cd03afd6505e8f2498dc",
-                                color: "#20BA8D",
-                                start: 1480380161948,
-                                end: 1580380161948
-                            },
-                            {
-                                name: "Add Task 123",
-                                id: "5e32cd03afd6505e8f2498d8",
-                                color: "#20BA8D",
-                                start: 1480380161948,
-                                end: 1580380161948
-                            }
-                        ]
+                    categories: xAxisCategories,
+                    title: {
+                        text: null
                     }
-                ],
+                },
+                yAxis: {
+                    min: 1,
+                    max: 4,
+                    allowDecimals: false,
+                    opposite: true,
+                    title: {
+                        text: '',
+
+                    },
+                    labels: {
+                        format: 'Week {value}'
+                    }
+                },
+
+                plotOptions: {
+                    bar: {
+                        dataLabels: {
+                            enabled: false
+                        }
+                    }
+                },
+                legend: {
+                    enabled: false
+                },
+                credits: {
+                    enabled: false
+                },
+                series: [{
+                    data: dataArray
+                }]
             }
         }
 
         arrayOfData.push(chartData);
-
-        resolve(arrayOfData);
+        element.order = i;
+        projectData.push(element);
+        i++;
+    }))
+        resolve([arrayOfData,projectData]);
 
     })
 

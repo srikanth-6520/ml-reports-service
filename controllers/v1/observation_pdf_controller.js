@@ -104,6 +104,8 @@ exports.unnatiPdfGeneration = async function(req,res){
 //Controller function for unnati monthly report pdf generation
 exports.unnatiMonthlyReport = async function(req,res){
 
+    console.log("entered");
+
     let response = await pdfHandler.unnatiMonthlyReportPdfGeneration(req.body,true);
     let hostname = req.headers.host;
   
