@@ -1448,9 +1448,10 @@ exports.unnatiPdfGeneration = async function (responseData, deleteFromS3 = null)
             value: fs.createReadStream(imgPath + '/Calendar-Time.svg'),
             options: {
                 filename: 'Calendar-Time.svg',
-    
-            }}]
-    
+
+            }
+    }]
+
 
         let subTasksCount = 0;
 
@@ -1458,10 +1459,10 @@ exports.unnatiPdfGeneration = async function (responseData, deleteFromS3 = null)
             subTasksCount = subTasksCount + element.subTasks.length;
         });
 
-        let startDate,endDate;
-        let months=["January","February","March","April","May","June","July","August","September","October","November","December"];
-        
-        if(responseData.startDate){
+        let startDate, endDate;
+        let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        if (responseData.startDate) {
             let date = new Date(responseData.startDate);
             let day = date.getDate();
             let month = months[date.getMonth()];
@@ -1469,7 +1470,7 @@ exports.unnatiPdfGeneration = async function (responseData, deleteFromS3 = null)
             startDate = day + " " + month + " " + year;
         }
 
-        if(responseData.endDate){
+        if (responseData.endDate) {
             let date = new Date(responseData.endDate);
             let day = date.getDate();
             let month = months[date.getMonth()];
@@ -1834,7 +1835,7 @@ async function getTaskStatusPieChart(data) {
 
         await Promise.all(data.map(async element => {
             let complete = 0, inProgress = 0, notStarted = 0;
-          
+
             await Promise.all(element.tasks.map(async ele => {
 
                 if (ele.status.toLowerCase() == "completed") {
@@ -1905,7 +1906,7 @@ async function getTaskStatusPieChart(data) {
                     }]
                 }
             }
-            
+
             seriesData.push(chartData);
 
             element.order = i;
@@ -1914,7 +1915,7 @@ async function getTaskStatusPieChart(data) {
             i++;
 
         }))
-        
+
         resolve([seriesData, projectData]);
 
 
@@ -1942,15 +1943,17 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData, delete
             var FormData = [];
 
             //get the chart object
-            let chartObj = await ganttChartObject();
+            let chartObj = await ganttChartObject(responseData.projectDetails);
 
             //generate the chart using highchart server
-            let highChartData = await apiCallToHighChart(chartObj, imgPath, "gantt");
+            let highChartData = await apiCallToHighChart(chartObj[0], imgPath, "gantt");
 
             FormData.push(...highChartData);
 
             let obj = {
-                chartData: highChartData
+                chartData: highChartData,
+                reportType:responseData.reportType,
+                projectData: chartObj[1]
             }
 
             ejs.renderFile(__dirname + '/../views/unnatiViewFullReport.ejs', {
@@ -2101,63 +2104,106 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData, delete
 }
 
 
-async function ganttChartObject() {
+async function ganttChartObject(data) {
+
     return new Promise(async function (resolve, reject) {
 
+       
+       
+        let i=1;
         let arrayOfData = [];
+        let projectData = [];
+
+        await Promise.all(data.map( async element => {
+
+            let xAxisCategories = [];
+            let dataArray = [];
+
+
+        await Promise.all(element.tasks.map(ele => {
+
+                xAxisCategories.push(ele.title);
+                if (ele.status.toLowerCase() == "completed") {
+
+                    let obj = {
+                        y: 4,
+                        color: "#00c983"
+                    }
+
+                    dataArray.push(obj);
+                } else if (ele.status.toLowerCase() == "not yet started" || ele.status.toLowerCase() == "not started yet") {
+                    let obj = {
+                        y: 4,
+                        color: "#F5F5F5"
+                    }
+                    dataArray.push(obj);
+                } else if (ele.status.toLowerCase() == "in progress") {
+                    let obj = {
+                        y: 4,
+                        color: "#FF872F"
+                    }
+                    dataArray.push(obj);
+                }
+
+            }))
 
         let chartData = {
+            order:i,
             type: "svg",
-            options : {
-          
-            chart: {
-                type: 'bar'
-            },
-            title: {
-                text: ''
-            },
-           
-            xAxis: {
-                categories: ['What action i have to carry out', 'What do i need to learn', 'How do i know growth has happened', 'How do i know my school is improving in choosen standards'],
-                title: {
-                    text: null
-                }
-            },
-            yAxis: {
-                categories : ['week1','week2','week3','week4'],
-                opposite: true,
-                title: {
-                    text: '',
+            options: {
+
+                chart: {
+                    type: 'bar'
                 },
-                labels: {
-                    overflow: 'justify'
-                }
-            },
-            plotOptions: {
-                bar: {
-                    dataLabels: {
-                        enabled: false
+                title: {
+                    text: ''
+                },
+
+                xAxis: {
+                    categories: xAxisCategories,
+                    title: {
+                        text: null
                     }
-                }
-            },
-            legend: {
-                enabled:false
-            },
-            credits: {
-                enabled: false
-            },
-            series: [{
-                    data: [{y:3,color:"#00c983"},
-                            {y:3,color:"#F5F5F5"},
-                            {y:3,color:"#FF872F"},
-                            {y:3,color:"#FF872F"}]
+                },
+                yAxis: {
+                    min: 1,
+                    max: 4,
+                    allowDecimals: false,
+                    opposite: true,
+                    title: {
+                        text: '',
+
+                    },
+                    labels: {
+                        format: 'Week {value}'
+                    }
+                },
+
+                plotOptions: {
+                    bar: {
+                        dataLabels: {
+                            enabled: false
+                        }
+                    }
+                },
+                legend: {
+                    enabled: false
+                },
+                credits: {
+                    enabled: false
+                },
+                series: [{
+                    data: dataArray
                 }]
-        }
+            }
         }
 
         arrayOfData.push(chartData);
-
-        resolve(arrayOfData);
+        element.order = i;
+        projectData.push(element);
+        i++;
+    }))
+        resolve([arrayOfData,projectData]);
 
     })
 
