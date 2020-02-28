@@ -1,0 +1,58 @@
+<html>
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+
+    <div class="row" style="margin:20px;padding:20px">
+
+        <p><%= data.userName %> | <span style="margin-left:10px"><%= data.schoolName %> </span></p>
+        <hr>
+        <div class="row">
+
+            <% if(data.imgurl){ %>
+            <img src="clap.svg">
+
+            <% } else if(data.text) {%>
+            <p><%= data.text %></p>
+
+            <% } else if(data.imgurl && data.text) {%>
+
+            <div style="width:50%;float:left">
+                <p><%= data.text %></p>
+            </div>
+
+            <div style="width:50%;float:right">
+                <img src="clap.svg">
+            </div>
+            <% } %>
+            <div>
+
+                <div class="row">
+                    <div style="width:0%;float:left">
+                        <img src="clap.svg" style="height: 50px;width:50px"><span>244 Likes</span>
+                    </div>
+
+                    <div style="width:50%;float:right">
+                        <img src="clap.svg" style="height: 50px;width:50px"><span>50 Comments</span>
+                    </div>
+
+                </div>
+
+
+            </div>
+
+</body>
+
+</html>

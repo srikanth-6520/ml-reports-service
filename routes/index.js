@@ -91,6 +91,11 @@ router.post("/v1/unnati/monthlyReport",authenticate,pdfController.unnatiMonthlyR
 //API for Unnati view full  report PDF generation 
 router.post("/v1/unnati/viewProjectReport",authenticate,pdfController.unnatiViewFullReport)
 
+//API for Unnati view full  report PDF generation 
+router.post("/v1/unnati/viewProjectReport",authenticate,pdfController.unnatiViewFullReport)
+
+//API for Unnati news feed report PDF generation 
+router.post("/v1/unnati/newsFeedReport",authenticate,pdfController.unnatiNewsFeedReport)
 
 //========= API calls for container app=============
 

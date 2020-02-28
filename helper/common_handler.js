@@ -2,16 +2,16 @@
 const AWS = require('aws-sdk')
 var fs = require('fs');
 var uuidv4 = require('uuid/v4');
-
-
 var config = require('../config/config');
 var rp = require('request-promise');
 var ejs = require('ejs');
 const path = require('path');
 var rimraf = require("rimraf");
-
+var request = require('request');
+var http = require('https');
 const s3 = new AWS.S3(config.s3_credentials);
 const myBucket = config.s3_bucketName;
+var appRoot = require('app-root-path').require;
 
 // const signedUrlExpireSeconds=config.s3_signed_url_expire_seconds;
 
@@ -2107,9 +2107,6 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData, delete
 async function ganttChartObject(data) {
 
     return new Promise(async function (resolve, reject) {
-
-       
-       
         let i=1;
         let arrayOfData = [];
         let projectData = [];
@@ -2206,8 +2203,245 @@ async function ganttChartObject(data) {
         resolve([arrayOfData,projectData]);
 
     })
+}
+
+
+//Unnati monthly report pdf generation function
+exports.unnatiNewsFeedPdfGeneration = async function (responseData, deleteFromS3 = null) {
+
+    return new Promise(async function (resolve, reject) {
+
+        var currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
+
+        var imgPath = __dirname + '/../' + currentTempFolder;
+
+        if (!fs.existsSync(imgPath)) {
+            fs.mkdirSync(imgPath);
+        }
+
+        let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
+
+        // let copyImage = await downloadImage(responseData.imgurl);
+
+        // //copy images from public folder
+        // let src = __dirname + '/../public/images/school.png';
+        // fs.copyFileSync(src, imgPath + '/school.png');
+
+         //copy images from public folder
+        let src = __dirname + '/../public/images/clap.svg';
+        fs.copyFileSync(src, imgPath + '/clap.svg');
+
+        let fileData = [{
+            value: fs.createReadStream(imgPath + '/clap.svg'),
+            options: {
+                filename: 'clap.svg',
+
+            }
+        }]
+
+        try {
+
+            var FormData = [];
+
+            FormData.push(...fileData);
+
+            let obj = {
+                text: responseData.text,
+                userName: responseData.userName,
+                schoolName: responseData.schoolName
+            }
+
+            ejs.renderFile(__dirname + '/../views/unnatiNewsFeedReport.ejs', {
+                data: obj
+
+            })
+                .then(function (dataEjsRender) {
+
+                    var dir = imgPath;
+                    if (!fs.existsSync(dir)) {
+                        fs.mkdirSync(dir);
+                    }
+
+                    fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
+                        if (errWriteFile) {
+                            throw errWriteFile;
+                        } else {
+
+                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                            optionsHtmlToPdf.formData = {
+                                files: [
+                                ]
+                            };
+                            FormData.push({
+                                value: fs.createReadStream(dir + '/index.html'),
+                                options: {
+                                    filename: 'index.html'
+                                }
+                            });
+                            optionsHtmlToPdf.formData.files = FormData;
+
+
+                            rp(optionsHtmlToPdf)
+                                .then(function (responseHtmlToPdf) {
+
+                                    var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
+                                    if (responseHtmlToPdf.statusCode == 200) {
+
+                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
+                                            if (err) {
+                                                return console.log(err);
+                                            }
+
+                                            else {
+                                                const s3 = new AWS.S3(config.s3_credentials);
+
+                                                const uploadFile = () => {
+
+                                                    fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
+                                                        if (err) throw err;
+
+                                                        const params = {
+                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                            Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
+                                                            Body: Buffer.from(data, null, 2),
+                                                            Expires: 10
+                                                        };
+
+                                                        if (deleteFromS3 == true) {
+                                                            var folderPath = Buffer.from(currentTempFolder).toString('base64')
+
+                                                            var response = {
+                                                                status: "success",
+                                                                message: 'report generated',
+                                                                pdfUrl: folderPath,
+
+                                                            };
+                                                            resolve(response);
+
+                                                        } else {
+
+
+                                                            s3.upload(params, function (s3Err, data) {
+                                                                if (s3Err) throw s3Err;
+
+                                                                // console.log("data", data);
+                                                                console.log(`File uploaded successfully at ${data.Location}`);
+
+                                                                s3SignedUrl(data.key).then(function (signedRes) {
+
+                                                                    try {
+
+
+
+                                                                        fs.readdir(imgPath, (err, files) => {
+                                                                            if (err) throw err;
+
+                                                                            // console.log("files",files.length);
+                                                                            var i = 0;
+                                                                            for (const file of files) {
+
+                                                                                fs.unlink(path.join(imgPath, file), err => {
+                                                                                    if (err) throw err;
+                                                                                });
+
+                                                                                if (i == files.length) {
+                                                                                    fs.unlink('../../' + currentTempFolder, err => {
+                                                                                        if (err) throw err;
+
+                                                                                    });
+                                                                                    console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
+                                                                                    // fs.unlink(path.join(imgPath, ""), err => {
+                                                                                    //     if (err) throw err;
+                                                                                    // });
+                                                                                }
+
+                                                                                i = i + 1;
+
+                                                                            }
+                                                                        });
+                                                                        rimraf(imgPath, function () { console.log("done"); });
+
+                                                                    } catch (ex) {
+                                                                        console.log("ex ", ex);
+                                                                    }
+
+                                                                    var response = {
+                                                                        status: "success",
+                                                                        message: 'report generated',
+                                                                        pdfUrl: signedRes,
+                                                                        downloadPath: data.key
+                                                                    };
+                                                                    resolve(response);
+                                                                })
+                                                            });
+
+                                                        }
+
+                                                    });
+                                                }
+                                                uploadFile();
+                                            }
+                                        });
+                                    }
+
+                                }).catch(err => {
+                                    resolve(err);
+                                })
+                        }
+                    })
+                })
+        }
+        catch (err) {
+            resolve(err);
+        }
+
+    })
+}
+
+// async function downloadImage(imgurl){
+
+//     return new Promise(async function(resolve,reject){
+
+//     var download = async function (uri, filename, callback) {
+//         let data = await rp(uri).pipe(fs.createWriteStream(filename))
+//     };
+
+//     download(imgurl, __dirname + '/public/images/school.png', function(){
+//         console.log('done');
+//       });
+
+//     })
+// }
+
+
+async function downloadImage(imgurl) {
+
+    return new Promise(async function (resolve, reject) {
+       
+        console.log(appRoot);
+
+        var mylib = appRoot.resolve('/public/images/school.png');
+
+        console.log(mylib);
+
+
+       var f = fs.createWriteStream(mylib);
+
+
+        http.get(imgurl, function (res) {
+            res.on('data', function (chunk) {
+                f.write(chunk);
+            });
+            res.on('end', function () {
+                f.end();
+            });
+        });
+
+    resolve(imgurl);
+    })
 
 }
+
 
 async function convertChartDataTofile(radioFilePath, options) {
     try {
