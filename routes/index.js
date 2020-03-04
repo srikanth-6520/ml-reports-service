@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var authService = require('../services/autentication_service');
+var authService = require('../services/authentication_service');
 
 var instanceController = require('../controllers/v1/instance_observation');
 var entityController = require('../controllers/v1/entity_observations');
@@ -16,6 +16,8 @@ var listObservationNames = require('../controllers/v1/list_observation_names');
 var observationSubmissions = require('../controllers/v1/observation_submissions');
 var listObservationSolutions = require('../controllers/v1/list_observation_solutions');
 var entityV2Controller = require('../controllers/v2/entity_observations');
+var listObservationSolutionsV2 = require('../controllers/v2/list_observation_solutions');
+
 
 //========= API calls for samiksha observation and assessment reports=============
 
@@ -66,6 +68,12 @@ router.post("/v1/assessments/listPrograms",authenticate,listAssessmentPrograms.l
 //API router for Assessment Report 
 router.post("/v1/assessments/entity",authenticate,entityAssessController.entityAssessment);
 
+//API router for listing mysolutions
+router.post("/v2/observations/listObservationSolutions",listObservationSolutionsV2.listObservationSolutions)
+
+
+//========= API calls for observation PDF reports=============
+
 //API for observation PDF generation
 router.get("/v1/observations/pdfReports",authenticate,pdfController.observationPdfReports);
 
@@ -78,9 +86,14 @@ router.post("/v1/observations/observationScorePdfReport",authenticate,pdfControl
 //API router for observation score PDF report
 router.post("/v2/observations/observationScorePdfReport",authenticate,pdfV2Controller.observationScorePdfReport)
 
+
+//========= API calls for assessment pdf reports=============
+
 //API for Assessment PDF
 router.post("/v1/assessment/pdfReports",authenticate,entityAssessController.assessmentPdfReport);
 
+
+//========= API calls for unnati app=============
 
 //API for Unnati app PDF generation 
 router.post("/v1/unnati/pdfReport",authenticate,pdfController.unnatiPdfGeneration)

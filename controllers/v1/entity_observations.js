@@ -1,11 +1,12 @@
-var config = require('../../config/config');
-var rp = require('request-promise');
-var request = require('request');
-var model = require('../../db')
-var helperFunc = require('../../helper/chart_data');
-var pdfHandler = require('../../helper/common_handler');
-var omit = require('object.omit');
-var url = require("url");
+const config = require('../../config/config');
+const rp = require('request-promise');
+const request = require('request');
+const model = require('../../db')
+const helperFunc = require('../../helper/chart_data');
+const pdfHandler = require('../../helper/common_handler');
+const omit = require('object.omit');
+const url = require("url");
+const authService = require('../../services/authentication_service')
 
 //Controller for entity observation report
 exports.entityReport = async function (req, res) {
@@ -51,7 +52,7 @@ async function entityObservationData(req, res) {
             resolve({ "data": "No observations made for the entity" })
           }
           else {
-            var responseObj = await helperFunc.entityReportChart(data,req.body.entityId,"school")
+            var responseObj = await helperFunc.entityReportChart(data, req.body.entityId, "school")
             resolve(responseObj);
 
           }
@@ -179,7 +180,7 @@ async function entityObservationReportGeneration(req, res) {
             resolve({ "data": "No observations made for the entity" })
           }
           else {
-            var responseObj = await helperFunc.entityReportChart(data,req.body.entityId,req.body.entityType)
+            var responseObj = await helperFunc.entityReportChart(data, req.body.entityId, req.body.entityType)
             resolve(responseObj);
           }
         })
@@ -202,7 +203,7 @@ async function entityObservationReportGeneration(req, res) {
 //Function for entity observation report PDF generation
 exports.entityObservationReportPdfGeneration = async function (req, res) {
 
-  return new Promise (async function (resolve,reject){
+  return new Promise(async function (resolve, reject) {
 
     req.body = req.query;
     var entityResponse = await entityObservationReportGeneration(req, res);
@@ -224,7 +225,7 @@ exports.entityObservationReportPdfGeneration = async function (req, res) {
       resolve(entityResponse);
     }
   });
-  
+
 };
 
 
@@ -279,7 +280,7 @@ async function entityScoreReport(req, res) {
 
           else {
 
-            var responseObj = await helperFunc.entityScoreReportChartObjectCreation(data,"v1")
+            var responseObj = await helperFunc.entityScoreReportChartObjectCreation(data, "v1")
             resolve(responseObj);
 
           }
@@ -360,10 +361,10 @@ async function entitySolutionScoreReportGeneration(req, res) {
     }
 
     else if (req.body.entityType == "school") {
-      
+
       let response = await schoolSolutionScoreReport(req, res);
       resolve(response);
-    
+
     }
 
     else {
@@ -381,6 +382,15 @@ async function entitySolutionScoreReportGeneration(req, res) {
           bodyParam.filter.fields[1].fields[0].dimension = req.body.entityType;
           bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
           bodyParam.filter.fields[1].fields[1].value = req.body.solutionId;
+
+          //code for myObservation
+          if (req.body.reportType) {
+            let createdBy = await getCreatedByField(req, res);
+            let filter = { "type": "selector", "dimension": "createdBy", "value": createdBy }
+            bodyParam.filter.fields[1].fields[2].push(filter);
+          }
+
+          console.log(bodyParam);
 
           //pass the query as body param and get the result from druid
           var options = config.druid.options;
@@ -417,48 +427,57 @@ async function schoolSolutionScoreReport(req, res) {
 
   return new Promise(async function (resolve, reject) {
 
-      model.MyModel.findOneAsync({ qid: "entity_solution_score_query" }, { allow_filtering: true })
-        .then(async function (result) {
+    model.MyModel.findOneAsync({ qid: "entity_solution_score_query" }, { allow_filtering: true })
+      .then(async function (result) {
 
-          var bodyParam = JSON.parse(result.query);
+        var bodyParam = JSON.parse(result.query);
 
-          if (config.druid.observation_datasource_name) {
-            bodyParam.dataSource = config.druid.observation_datasource_name;
-          }
+        if (config.druid.observation_datasource_name) {
+          bodyParam.dataSource = config.druid.observation_datasource_name;
+        }
 
-           //Assign values to the query filter object 
-           bodyParam.filter.fields[1].fields[0].dimension = req.body.entityType;
-           bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
-           bodyParam.filter.fields[1].fields[1].value = req.body.solutionId;
-           
-          //pass the query as body param and get the resul from druid
-          var options = config.druid.options;
-          options.method = "POST";
-          options.body = bodyParam;
+        //Assign values to the query filter object 
+        bodyParam.filter.fields[1].fields[0].dimension = req.body.entityType;
+        bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+        bodyParam.filter.fields[1].fields[1].value = req.body.solutionId;
 
-          var data = await rp(options);
+        //code for myObservation
+        if (req.body.reportType) {
+          let createdBy = await getCreatedByField(req, res);
+          let filter = { "type": "selector", "dimension": "createdBy", "value": createdBy }
+          bodyParam.filter.fields[1].fields[2].push(filter);
+        }
 
-          if (!data.length) {
-            resolve({ "data": "No observations made for the entity" })
-          }
+        console.log(bodyParam);
 
-          else {
+        //pass the query as body param and get the resul from druid
+        var options = config.druid.options;
+        options.method = "POST";
+        options.body = bodyParam;
 
-            var responseObj = await helperFunc.entityScoreReportChartObjectCreation(data)
-            delete responseObj.observationName;
-            responseObj.solutionName = data[0].event.solutionName;
-            resolve(responseObj);
+        var data = await rp(options);
 
-          }
-        })
+        if (!data.length) {
+          resolve({ "data": "No observations made for the entity" })
+        }
 
-        .catch(function (err) {
-          var response = {
-            result: false,
-            message: 'Data not found'
-          }
-          resolve(response);
-        })
+        else {
+
+          var responseObj = await helperFunc.entityScoreReportChartObjectCreation(data)
+          delete responseObj.observationName;
+          responseObj.solutionName = data[0].event.solutionName;
+          resolve(responseObj);
+
+        }
+      })
+
+      .catch(function (err) {
+        var response = {
+          result: false,
+          message: 'Data not found'
+        }
+        resolve(response);
+      })
   })
 
 }
@@ -628,4 +647,18 @@ async function getObsvByentitys(req, result) {
     resolve(data);
   });
 
+}
+
+
+
+// Function for getting createdBy field from header access token
+async function getCreatedByField(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    let token = await authService.validateToken(req, res);
+
+    resolve(token.userId);
+
+  })
 }

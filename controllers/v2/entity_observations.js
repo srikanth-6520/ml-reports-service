@@ -1,18 +1,19 @@
-var config = require('../../config/config');
-var rp = require('request-promise');
-var request = require('request');
-var model = require('../../db')
-var helperFunc = require('../../helper/chart_data');
-var pdfHandler = require('../../helper/common_handler');
-var omit = require('object.omit');
-var url = require("url");
+const config = require('../../config/config');
+const rp = require('request-promise');
+const request = require('request');
+const model = require('../../db')
+const helperFunc = require('../../helper/chart_data');
+const pdfHandler = require('../../helper/common_handler');
+const omit = require('object.omit');
+const url = require("url");
+const listSolution = require('./list_observation_solutions');
 
 
 //Controller for entity solution report (cluster/block/zone/district)
 exports.entitySolutionReport = async function entitySolutionReport(req, res) {
 
     return new Promise(async function (resolve, reject) {
-  
+
       let responseData = await entitySolutionReportGeneration(req, res);
       res.send(responseData);
   
@@ -20,21 +21,21 @@ exports.entitySolutionReport = async function entitySolutionReport(req, res) {
   
   };
   
-  // Function for entity observation report generation 
-  async function entitySolutionReportGeneration(req, res) {
+// Function for entity observation report generation 
+async function entitySolutionReportGeneration(req, res) {
   
     return new Promise(async function (resolve, reject) {
   
       if (!req.body.entityId && !req.body.entityType && !req.body.solutionId) {
         var response = {
           result: false,
-          message: 'entityId, entityType, immediateChildEntityType and solution are required fields'
+          message: 'entityId, entityType, immediateChildEntityType and solutionId are required fields'
         }
         resolve(response);
       }
   
       else {
-
+        
         entityType = req.body.entityType;
         entityId = req.body.entityId;
         immediateChildEntityType = req.body.immediateChildEntityType;
@@ -48,11 +49,20 @@ exports.entitySolutionReport = async function entitySolutionReport(req, res) {
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
             }
-  
+            
             //Assign values to the query filter object 
             bodyParam.filter.fields[0].dimension = req.body.entityType;
             bodyParam.filter.fields[0].value = req.body.entityId;
             bodyParam.filter.fields[1].value = req.body.solutionId;
+
+            if(req.body.reportType){
+              let createdBy = await listSolution.getCreatedByField(req,res); 
+              let filter = {"type":"selector","dimension":"createdBy","value":createdBy}
+              console.log(filter);
+              bodyParam.filter.fields.push(filter);
+            }
+            
+            console.log(bodyParam);
 
             //Push column names dynamically to the query dimensions array 
             if (!req.body.immediateChildEntityType) {
@@ -80,7 +90,7 @@ exports.entitySolutionReport = async function entitySolutionReport(req, res) {
             }
           })
           .catch(function (err) {
-            res.status(400);
+            res.status(500);
             var response = {
               result: false,
               message: 'Data not found'
