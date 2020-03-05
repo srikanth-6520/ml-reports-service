@@ -4,10 +4,7 @@ const request = require('request');
 const model = require('../../db')
 const helperFunc = require('../../helper/chart_data');
 const pdfHandler = require('../../helper/common_handler');
-const omit = require('object.omit');
-const url = require("url");
-const listSolution = require('./list_observation_solutions');
-
+const authService = require('../../services/authentication_service');
 
 //Controller for entity solution report (cluster/block/zone/district)
 exports.entitySolutionReport = async function entitySolutionReport(req, res) {
@@ -56,13 +53,10 @@ async function entitySolutionReportGeneration(req, res) {
             bodyParam.filter.fields[1].value = req.body.solutionId;
 
             if(req.body.reportType){
-              let createdBy = await listSolution.getCreatedByField(req,res); 
+              let createdBy = await getCreatedByField(req,res); 
               let filter = {"type":"selector","dimension":"createdBy","value":createdBy}
-              console.log(filter);
               bodyParam.filter.fields.push(filter);
             }
-            
-            console.log(bodyParam);
 
             //Push column names dynamically to the query dimensions array 
             if (!req.body.immediateChildEntityType) {
@@ -240,3 +234,18 @@ exports.entityObservationScorePdfFunc = async function (req, res) {
   });
 
 };
+
+
+// Function for getting createdBy field from header access token
+async function getCreatedByField(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+      let token = await authService.validateToken(req, res);
+
+      console.log("fetched token");
+
+      resolve(token.userId);
+
+  })
+}

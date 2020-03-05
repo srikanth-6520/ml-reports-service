@@ -6,7 +6,6 @@ var pdfHandler = require('../../helper/common_handler');
 var rimraf = require("rimraf");
 var fs = require('fs');
 const path = require('path');
-var omit = require('object.omit');
 
 //COntroller function for observation pdf reports
 exports.observationPdfReports = async function (req, res) {
@@ -36,6 +35,11 @@ exports.observationPdfReports = async function (req, res) {
 
         }
         else if (req.query.entityId && req.query.entityType && req.query.solutionId) {
+
+            let resObj = await entitySolutionController.entitySolutionReportPdfGeneration(req, res);
+            res.send(resObj);
+        }
+        else if (req.query.entityId && req.query.entityType && req.query.solutionId && req.query.reportType) {
 
             let resObj = await entitySolutionController.entitySolutionReportPdfGeneration(req, res);
             res.send(resObj);
@@ -73,6 +77,12 @@ exports.observationScorePdfReport = async function (req, res) {
             res.send(resObj);
         }
         else if (req.body && req.body.solutionId && req.body.entityId && req.body.entityType) {
+
+            let resObj = await entityController.entitySolutionScorePdfFunc(req, res);
+            res.send(resObj);
+
+        }
+        else if (req.body && req.body.solutionId && req.body.entityId && req.body.entityType && req.body.reportType) {
 
             let resObj = await entityController.entitySolutionScorePdfFunc(req, res);
             res.send(resObj);

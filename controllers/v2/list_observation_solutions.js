@@ -20,10 +20,10 @@ exports.listObservationSolutions = async function (req, res) {
 
         let query;
 
-        if (req.body.solutionType) {
-            query = "list_observation_solutions_query";
-        } else {
+        if (req.body.reportType) {
             query = "list_my_solutions_query";
+        } else {
+            query = "list_observation_solutions_query";
         }
 
         //get query from cassandra
@@ -36,13 +36,11 @@ exports.listObservationSolutions = async function (req, res) {
                     bodyParam.dataSource = config.druid.observation_datasource_name;
                 }
 
+                bodyParam.filter.dimension = req.body.entityType;
+                bodyParam.filter.value = req.body.entityId;
+
                 if (req.body.reportType) {
-
-                    bodyParam.filter.dimension = req.body.entityType;
-                    bodyParam.filter.value = req.body.entityId;
-                } else {
                     let createdBy = await getCreatedByField(req, res);
-
                     bodyParam.filter.fields[0].dimension = req.body.entityType;
                     bodyParam.filter.fields[0].value = req.body.entityId;
                     bodyParam.filter.fields[1].value = createdBy;

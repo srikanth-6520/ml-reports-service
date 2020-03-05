@@ -387,7 +387,7 @@ async function entitySolutionScoreReportGeneration(req, res) {
           if (req.body.reportType) {
             let createdBy = await getCreatedByField(req, res);
             let filter = { "type": "selector", "dimension": "createdBy", "value": createdBy }
-            bodyParam.filter.fields[1].fields[2].push(filter);
+            bodyParam.filter.fields[1].fields.push(filter);
           }
 
           console.log(bodyParam);
@@ -445,7 +445,7 @@ async function schoolSolutionScoreReport(req, res) {
         if (req.body.reportType) {
           let createdBy = await getCreatedByField(req, res);
           let filter = { "type": "selector", "dimension": "createdBy", "value": createdBy }
-          bodyParam.filter.fields[1].fields[2].push(filter);
+          bodyParam.filter.fields[1].fields.push(filter);
         }
 
         console.log(bodyParam);
