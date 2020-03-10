@@ -384,7 +384,7 @@ async function entitySolutionScoreReportGeneration(req, res) {
           bodyParam.filter.fields[1].fields[1].value = req.body.solutionId;
 
           //code for myObservation
-          if (req.body.reportType) {
+          if (req.body.reportType == "my") {
             let createdBy = await getCreatedByField(req, res);
             let filter = { "type": "selector", "dimension": "createdBy", "value": createdBy }
             bodyParam.filter.fields[1].fields.push(filter);
@@ -442,7 +442,7 @@ async function schoolSolutionScoreReport(req, res) {
         bodyParam.filter.fields[1].fields[1].value = req.body.solutionId;
 
         //code for myObservation
-        if (req.body.reportType) {
+        if (req.body.reportType == "my") {
           let createdBy = await getCreatedByField(req, res);
           let filter = { "type": "selector", "dimension": "createdBy", "value": createdBy }
           bodyParam.filter.fields[1].fields.push(filter);

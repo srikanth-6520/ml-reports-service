@@ -52,7 +52,7 @@ async function entitySolutionReportGeneration(req, res) {
             bodyParam.filter.fields[0].value = req.body.entityId;
             bodyParam.filter.fields[1].value = req.body.solutionId;
 
-            if(req.body.reportType){
+            if(req.body.reportType == "my"){
               let createdBy = await getCreatedByField(req,res); 
               let filter = {"type":"selector","dimension":"createdBy","value":createdBy}
               bodyParam.filter.fields.push(filter);

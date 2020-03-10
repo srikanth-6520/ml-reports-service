@@ -20,7 +20,7 @@ exports.listObservationSolutions = async function (req, res) {
 
         let query;
 
-        if (req.body.reportType) {
+        if (req.body.reportType == "my") {
             query = "list_my_solutions_query";
         } else {
             query = "list_observation_solutions_query";
@@ -39,7 +39,7 @@ exports.listObservationSolutions = async function (req, res) {
                 bodyParam.filter.dimension = req.body.entityType;
                 bodyParam.filter.value = req.body.entityId;
 
-                if (req.body.reportType) {
+                if (req.body.reportType == "my") {
                     let createdBy = await getCreatedByField(req, res);
                     bodyParam.filter.fields[0].dimension = req.body.entityType;
                     bodyParam.filter.fields[0].value = req.body.entityId;
