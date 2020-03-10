@@ -448,8 +448,6 @@ async function schoolSolutionScoreReport(req, res) {
           bodyParam.filter.fields[1].fields.push(filter);
         }
 
-        console.log(bodyParam);
-
         //pass the query as body param and get the resul from druid
         var options = config.druid.options;
         options.method = "POST";
@@ -463,7 +461,7 @@ async function schoolSolutionScoreReport(req, res) {
 
         else {
 
-          var responseObj = await helperFunc.entityScoreReportChartObjectCreation(data)
+          var responseObj = await helperFunc.entityScoreReportChartObjectCreation(data,"v2")
           delete responseObj.observationName;
           responseObj.solutionName = data[0].event.solutionName;
           resolve(responseObj);
