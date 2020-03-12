@@ -52,25 +52,24 @@ var apiInterceptor = new ApiInterceptor(keyCloakConfig, cacheConfig);
 
 function validateToken(req, res) {
 
-        var promise = new Promise(function (resolve, reject) {
-            var token = req.headers["x-auth-token"];
-            if (req.headers["x-auth-token"]) {
-                apiInterceptor.validateToken(token, function (err, tokenData) {
+    var promise = new Promise(function (resolve, reject) {
 
-                    if(tokenData){
+        var token = req.headers["x-auth-token"];
 
-                        
-                        resolve({ status: "success",userId:tokenData.userId });
-                    }
-                    if(err){
+        if (req.headers["x-auth-token"]) {
 
-                       
-                        resolve({ status: "failed", message: err });
-                    }
-                });
-            } else {
-                resolve({ status: "failed", message: "x-auth-token not found in request" });
-            }
-        });
+            apiInterceptor.validateToken(token, function (err, tokenData) {
+
+                if (tokenData) {
+                    resolve({ status: "success", userId: tokenData.userId });
+                }
+                if (err) {
+                    resolve({ status: "failed", message: err });
+                }
+            });
+        } else {
+            resolve({ status: "failed", message: "x-auth-token not found in request" });
+        }
+    });
     return promise;
 }
