@@ -119,7 +119,7 @@ let updateEntityAssessmentDownloadPath = async function (reqBody, callback) {
     return new Promise(function (resolve, reject) {
 
         // var query_object = reqBody.query;
-        console.log("ssssssssssss", JSON.stringify(reqBody.query));
+        console.log("query", JSON.stringify(reqBody.query));
         var query_object = { id: reqBody.query };
         var downloadPdfUrl = { downloadpdfpath: reqBody.downloadPath };
         var options = { ttl: 86400, if_exists: true };
