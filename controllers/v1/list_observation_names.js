@@ -4,6 +4,19 @@ var request = require('request');
 var model = require('../../db')
 var helperFunc = require('../../helper/chart_data');
 
+/**
+   * @api {post} /dhiti/api/v1/observations/listObservationNames
+   * @apiVersion 1.0.0
+   * @apiGroup observation
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "entityId": "",
+  "entityType":""
+* }
+   * @apiUse successBody
+   * @apiUse errorBody
+   */
 
 //Controller for listing observation Names
 exports.listObservationNames = async function (req, res) {

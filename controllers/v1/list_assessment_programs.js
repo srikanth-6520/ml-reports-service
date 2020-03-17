@@ -5,6 +5,22 @@ var model = require('../../db')
 var helperFunc = require('../../helper/chart_data');
 
 
+/**
+   * @api {post} /dhiti/api/v1/assessments/listPrograms
+   * @apiVersion 1.0.0
+   * @apiGroup assessments
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "entityId": "",
+* "entityType":""
+* "immediateChildType":""
+* }
+   * @apiUse successBody
+   * @apiUse errorBody
+   */
+
+// Function for listing assement programs
 exports.listPrograms = async function (req, res) {
     if (!req.body.entityId || !req.body.entityType) {
         res.status(400);

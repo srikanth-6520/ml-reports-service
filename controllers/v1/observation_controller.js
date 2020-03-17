@@ -6,6 +6,19 @@ var helperFunc = require('../../helper/chart_data');
 var pdfHandler = require('../../helper/common_handler');
 var url = require('url');
 
+/**
+   * @api {post} /dhiti/api/v1/observations/report
+   * @apiVersion 1.0.0
+   * @apiGroup observation
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "observationId": "",
+* }
+   * @apiUse successBody
+   * @apiUse errorBody
+   */
+
 //Controller for observation report
 exports.observationReport = async function (req, res) {
     return new Promise(async function (resolve, reject) {
@@ -105,6 +118,19 @@ exports.observationGenerateReport = async function(req, res) {
 
 
 //<======================== Observation score report ========================================>
+
+/**
+   * @api {post} /dhiti/api/v1/observations/scoreReport
+   * @apiVersion 1.0.0
+   * @apiGroup observation
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "observationId": "",
+* }
+   * @apiUse successBody
+   * @apiUse errorBody
+   */
 
 //Controller for observation Score report  
 exports.scoreReport = async function (req , res){

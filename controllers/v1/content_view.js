@@ -4,6 +4,16 @@ var request = require('request');
 var model = require('../../db')
 var helperFunc = require('../../helper/chart_data');
 
+
+/**
+   * @api {get} /dhiti/v1/shikshalokam/contentView
+   * @apiVersion 1.0.0
+   * @apiGroup shikshalokam
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiUse successBody
+   * @apiUse errorBody
+   */
+
 //Controller for listing Top 5 contents viewed in platform
 exports.contentView = async function (req, res) {
     //get quey from cassandra
@@ -42,6 +52,19 @@ exports.contentView = async function (req, res) {
 
 }
 
+
+/**
+   * @api {post} /dhiti/v1/shikshalokam/contentDownloadedByUser
+   * @apiVersion 1.0.0
+   * @apiGroup shikshalokam
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "usr_id": "",
+* }
+   * @apiUse successBody
+   * @apiUse errorBody
+   */
 
 //Controller for listing Top 5 contents Downloaded by user in platform
 exports.contentDownloadedByUser = async function (req, res) {
@@ -94,7 +117,14 @@ exports.contentDownloadedByUser = async function (req, res) {
     }
 }
 
-
+/**
+   * @api {get} /dhiti/v1/shikshalokam/usageByContent
+   * @apiVersion 1.0.0
+   * @apiGroup shikshalokam
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiUse successBody
+   * @apiUse errorBody
+   */
 
 // Controller for listing usage by content 
 exports.usageByContent = async function (req, res) {

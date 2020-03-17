@@ -4,6 +4,18 @@ var request = require('request');
 var model = require('../../db')
 var helperFunc = require('../../helper/chart_data');
 
+/**
+   * @api {post} /dhiti/v1/shikshalokam/courseEnrollment
+   * @apiVersion 1.0.0
+   * @apiGroup shikshalokam
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "user_id": "",
+* }
+   * @apiUse successBody
+   * @apiUse errorBody
+   */
 
 //Controller for listing the courses enrolled by user
 exports.courseEnrollment = async function (req, res) {

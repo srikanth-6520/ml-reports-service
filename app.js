@@ -20,18 +20,39 @@ app.use(cookieParser());
 app.use(function (req, res, next) { //allow cross origin requests
   res.setHeader("Access-Control-Allow-Methods", "POST, PUT, OPTIONS, DELETE, GET");
   res.header("Access-Control-Allow-Origin", "*");
-//     var allowedOrigins = ['http://localhost:8100', 'http://192.168.1.120:8100', 'http://127.0.0.1:9000', 'http://localhost:9000'];
-//   var origin = req.headers.origin;
-//   if(allowedOrigins.indexOf(origin) > -1){
-//        res.setHeader('Access-Control-Allow-Origin', origin);
-//   }    
-res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With,Authorization, Content-Type, Accept,x-auth-token");
+  //     var allowedOrigins = ['http://localhost:8100', 'http://192.168.1.120:8100', 'http://127.0.0.1:9000', 'http://localhost:9000'];
+  //   var origin = req.headers.origin;
+  //   if(allowedOrigins.indexOf(origin) > -1){
+  //        res.setHeader('Access-Control-Allow-Origin', origin);
+  //   }    
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With,Authorization, Content-Type, Accept,x-auth-token");
   // res.header("Access-Control-Allow-Credentials", true);   
-   next();
+  next();
 });
 
-app.set('views',path.join(__dirname,'controllers/views'));
-app.set('view engine','ejs');
+app.set('views', path.join(__dirname, 'controllers/views'));
+app.set('view engine', 'ejs');
+
+
+//API documentation (apidoc)
+if (config.node_env == "development" || config.node_env == "local") {
+  app.use(express.static("apidoc"));
+  if (config.node_env == "local") {
+    app.get(config.DEFAULT_APIDOC_URL, (req, res) => {
+      let apidocPath = config.APIDOC_PATH + "/index.html";
+
+      res.sendFile(path.join(__dirname, apidocPath));
+    });
+  } else {
+    app.get(config.APIDOC_URL, (req, res) => {
+      let urlArray = req.path.split("/");
+      urlArray.splice(0, 3);
+      let apidocPath = config.APIDOC_PATH + urlArray.join("/");
+
+      res.sendFile(path.join(__dirname, apidocPath));
+    });
+  }
+}
 
 app.use('/dhiti/api', indexRouter);
 
@@ -52,10 +73,10 @@ var server = http.createServer(app);
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port,function(){
+server.listen(port, function () {
 
 
-  console.log("started and running on port:"+ port);
+  console.log("started and running on port:" + port);
 });
 server.on('error', onError);
 server.on('listening', onListening);

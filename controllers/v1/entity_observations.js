@@ -8,6 +8,21 @@ const omit = require('object.omit');
 const url = require("url");
 const authService = require('../../services/authentication_service')
 
+
+/**
+   * @api {post} /dhiti/api/v1/observations/entity 
+   * @apiVersion 1.0.0
+   * @apiGroup observation
+   * @apiHeader {String} x-auth-token Authenticity token    
+   * @apiParamExample {json} Request-Body:
+* {
+  "entityId": "",
+* "observationId": "",
+* }
+   * @apiUse successBody
+   * @apiUse errorBody
+   */
+
 //Controller for entity observation report
 exports.entityReport = async function (req, res) {
 
@@ -461,7 +476,7 @@ async function schoolSolutionScoreReport(req, res) {
 
         else {
 
-          var responseObj = await helperFunc.entityScoreReportChartObjectCreation(data,"v2")
+          var responseObj = await helperFunc.entityScoreReportChartObjectCreation(data, "v2")
           delete responseObj.observationName;
           responseObj.solutionName = data[0].event.solutionName;
           resolve(responseObj);

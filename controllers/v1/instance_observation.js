@@ -7,6 +7,19 @@ var commonCassandraFunc = require('../../common/cassandra_func');
 var pdfHandler = require('../../helper/common_handler');
 var omit = require('object.omit');
 
+/**
+   * @api {post} /dhiti/api/v1/observations/instance 
+   * @apiVersion 1.0.0
+   * @apiGroup observation
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "submissionId": "",
+* }
+   * @apiUse successBody
+   * @apiUse errorBody
+   */
+
 //Controller for instance observation report
 exports.instanceReport = async function (req, res) {
 
@@ -77,11 +90,11 @@ async function instanceObservationData(req, res) {
 //Funcion for instance observation pdf generation
 exports.instancePdfReport = async function (req, res) {
 
-  return new Promise (async function (resolve,reject){
+  return new Promise(async function (resolve, reject) {
 
     let reqData = req.query;
     var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
-   
+
     if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
 
       dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
@@ -96,10 +109,10 @@ exports.instancePdfReport = async function (req, res) {
       resolve(response);
 
     } else {
-      
+
       req.body.submissionId = req.query.submissionId;
 
-      var instaRes = await instanceObservationData(req,res);
+      var instaRes = await instanceObservationData(req, res);
 
       if (("observationName" in instaRes) == true) {
         let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes);
@@ -127,6 +140,20 @@ exports.instancePdfReport = async function (req, res) {
 
 
 //<======================== Instance observation score report ========================================>
+
+
+/**
+   * @api {post} /dhiti/api/v1/observations/instanceObservationScoreReport 
+   * @apiVersion 1.0.0
+   * @apiGroup observation
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "submissionId": "",
+* }
+   * @apiUse successBody
+   * @apiUse errorBody
+   */
 
 //Controller for instance observation score report query
 exports.instanceObservationScoreReport = async function (req, res) {
@@ -162,7 +189,7 @@ async function instanceScoreReport(req, res) {
           }
 
           bodyParam.filter.fields[0].value = req.body.submissionId;
-          
+
           //pass the query as body param and get the resul from druid
           var options = config.druid.options;
           options.method = "POST";
