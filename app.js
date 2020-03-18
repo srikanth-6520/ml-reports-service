@@ -3,9 +3,10 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-var config = require('./config/config')
-
+var config = require('./config/config');
+require('./config/globals')();
 var indexRouter = require('./routes/index');
+var router = require('./routes');
 
 var app = express();
 
@@ -49,7 +50,7 @@ if (config.node_env == "development" || config.node_env == "local") {
   }
 }
 
-app.use('/dhiti/api', indexRouter);
+// app.use('/dhiti/api', indexRouter);
 
 /**
  * Get port from environment and store in Express.
@@ -57,6 +58,7 @@ app.use('/dhiti/api', indexRouter);
 
 var port = normalizePort(process.env.PORT || config.application_port_number);
 app.set('port', port);
+router(app);
 
 /**
  * Create HTTP server.
