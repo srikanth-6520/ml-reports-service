@@ -36,14 +36,15 @@ exports.listObservationSolutions = async function (req, res) {
                     bodyParam.dataSource = config.druid.observation_datasource_name;
                 }
 
-                bodyParam.filter.dimension = req.body.entityType;
-                bodyParam.filter.value = req.body.entityId;
-
                 if (req.body.reportType == "my") {
                     let createdBy = await getCreatedByField(req, res);
                     bodyParam.filter.fields[0].dimension = req.body.entityType;
                     bodyParam.filter.fields[0].value = req.body.entityId;
                     bodyParam.filter.fields[1].value = createdBy;
+                }
+                else {
+                    bodyParam.filter.dimension = req.body.entityType;
+                    bodyParam.filter.value = req.body.entityId;
                 }
 
                 //pass the query as body param and get the result from druid
@@ -80,9 +81,9 @@ async function getCreatedByField(req, res) {
     return new Promise(async function (resolve, reject) {
 
         let token = await authService.validateToken(req, res);
-        
+
         console.log("fetched token");
-        
+
         resolve(token.userId);
 
     })

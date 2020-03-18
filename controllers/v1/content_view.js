@@ -4,11 +4,19 @@ var request = require('request');
 var model = require('../../db')
 var helperFunc = require('../../helper/chart_data');
 
+/**
+     * @apiDefine errorBody
+     * @apiError {String} status 4XX,5XX
+     * @apiError {String} message Error
+     */    /**
+     * @apiDefine successBody
+     *  @apiSuccess {String} status 200
+     * @apiSuccess {String} result Data
+     */
 
 /**
    * @api {get} /dhiti/v1/shikshalokam/contentView
    * @apiVersion 1.0.0
-   * @apiGroup shikshalokam
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiUse successBody
    * @apiUse errorBody
@@ -56,7 +64,6 @@ exports.contentView = async function (req, res) {
 /**
    * @api {post} /dhiti/v1/shikshalokam/contentDownloadedByUser
    * @apiVersion 1.0.0
-   * @apiGroup shikshalokam
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
@@ -120,7 +127,6 @@ exports.contentDownloadedByUser = async function (req, res) {
 /**
    * @api {get} /dhiti/v1/shikshalokam/usageByContent
    * @apiVersion 1.0.0
-   * @apiGroup shikshalokam
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiUse successBody
    * @apiUse errorBody

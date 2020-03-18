@@ -33,12 +33,15 @@ app.use(function (req, res, next) { //allow cross origin requests
 app.set('views', path.join(__dirname, 'controllers/views'));
 app.set('view engine', 'ejs');
 
+app.use(express.static("public"));
+
+console.log(config.node_env);
 
 //API documentation (apidoc)
 if (config.node_env == "development" || config.node_env == "local") {
   app.use(express.static("apidoc"));
   if (config.node_env == "local") {
-    app.get(config.DEFAULT_APIDOC_URL, (req, res) => {
+    app.get(config.APIDOC_URL, (req, res) => {
       let apidocPath = config.APIDOC_PATH + "/index.html";
 
       res.sendFile(path.join(__dirname, apidocPath));
