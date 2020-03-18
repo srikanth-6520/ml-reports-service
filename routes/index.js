@@ -1,7 +1,7 @@
 // var express = require('express');
 // var router = express.Router();
 // var authService = require('../services/authentication_service');
-
+const config = require('../config/config')
 // var instanceController = require('../controllers/v1/instance_observation');
 // var entityController = require('../controllers/v1/entity_observations');
 // var entitySolutionCOntroller = require('../controllers/v2/entity_observations');
@@ -142,29 +142,3 @@
 // module.exports = router;
 
 
-module.exports = function (app) {
-
-    let router = async function (req, res, next) {
-        if (!controllers[req.params.version]) {
-            next();
-        }
-        if (!controllers[req.params.version][req.params.controller]) {
-            next();
-        }
-        if (!controllers[req.params.version][req.params.controller][req.params.method]) {
-            next();
-        }
-        try {
-          let result = await controllers[req.params.version][req.params.controller][req.params.method](req,res);
-        } catch(err){
-
-        }
-    }
-
-    app.all(config.application_base_url + ":version/:controller/:method", router);
-
-    app.use((req, res, next) => {
-        res.status(404).send("Not found");
-    });
-
-}

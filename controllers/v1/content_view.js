@@ -17,16 +17,16 @@ var helperFunc = require('../../helper/chart_data');
 
 /**
    * @api {get} /dhiti/v1/shikshalokam/contentView
+   * Content view
    * @apiVersion 1.0.0
    * @apiHeader {String} x-auth-token Authenticity token 
-   * @apiName Content view
    * @apiGroup Shikshalokam 
    * @apiUse successBody
    * @apiUse errorBody
    */
 
 //Controller for listing Top 5 contents viewed in platform
-let contentView = async function (req, res) {
+exports.contentView = async function (req, res) {
     //get quey from cassandra
     model.MyModel.findOneAsync({ qid: "content_viewed_in_platform_query" }, { allow_filtering: true })
         .then(async function (result) {
@@ -66,6 +66,7 @@ let contentView = async function (req, res) {
 
 /**
    * @api {post} /dhiti/v1/shikshalokam/contentDownloadedByUser
+   * Content downloaded by user
    * @apiVersion 1.0.0
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiGroup Shikshalokam 
@@ -78,7 +79,7 @@ let contentView = async function (req, res) {
    */
 
 //Controller for listing Top 5 contents Downloaded by user in platform
-let contentDownloadedByUser = async function (req, res) {
+exports.contentDownloadedByUser = async function (req, res) {
     if (!req.body.usr_id) {
         res.status(400);
         var response = {
@@ -130,6 +131,7 @@ let contentDownloadedByUser = async function (req, res) {
 
 /**
    * @api {get} /dhiti/v1/shikshalokam/usageByContent
+   * Usage by content
    * @apiVersion 1.0.0
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiUse successBody
@@ -146,7 +148,7 @@ let contentDownloadedByUser = async function (req, res) {
       * @returns {JSON} Response with result and data. 
     */
 
-let usageByContent = async function (req, res) {
+exports.usageByContent = async function (req, res) {
     //get quey from cassandra
     model.MyModel.findOneAsync({ qid: "usage_by_content_query" }, { allow_filtering: true })
         .then(async function (result) {
@@ -185,6 +187,70 @@ let usageByContent = async function (req, res) {
 }
 
 
+/**
+   * @api {post} /dhiti/v1/shikshalokam/courseEnrollment
+   * Course enrollment
+   * @apiVersion 1.0.0
+   * @apiGroup Shikshalokam
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "user_id": "",
+* }
+   * @apiUse successBody
+   * @apiUse errorBody
+   */
+
+//Controller for listing the courses enrolled by user
+exports.courseEnrollment = async function (req, res) {
+    if (!req.body.user_id) {
+        res.status(400);
+        var response = {
+            result: false,
+            message: 'user_id is a required field',
+            data: []
+        }
+        res.send(response);
+    }
+    else {
+        //get quey from cassandra
+        model.MyModel.findOneAsync({ qid: "course_enrollment_query" }, { allow_filtering: true })
+            .then(async function (result) {
+                var bodyParam = JSON.parse(result.query);
+                if (config.druid.enrollment_datasource_name) {
+                    bodyParam.dataSource = config.druid.enrollment_datasource_name;
+                }
+
+                bodyParam.filter.value = req.body.user_id;
+                bodyParam.intervals = await getIntervals();
+                
+                //pass the query as body param and get the result from druid
+                var options = config.druid.options;
+                options.method = "POST";
+                options.body = bodyParam;
+                var data = await rp(options);
+                if (!data.length) {
+                    res.send({ "result":false,"data": []})
+                }
+                else {
+                  //call the function to get response object
+                   var responseObj = await helperFunc.courseEnrollmentResponeObj(data);
+                   res.send(responseObj);
+                }
+            })
+            .catch(function (err) {
+                res.status(400);
+                var response = {
+                    result: false,
+                    message: 'Data not found',
+                    data:[]
+                }
+                res.send(response);
+            })
+    }
+}
+
+
 
 async function getIntervals() {
     var now = new Date();
@@ -204,10 +270,3 @@ async function getIntervals() {
    return intervals;
 
 }    
-
-
-module.exports = {
-    contentView : contentView,
-    contentDownloadedByUser : contentDownloadedByUser,
-    usageByContent : usageByContent
-}
