@@ -18,7 +18,9 @@ var helperFunc = require('../../helper/chart_data');
 /**
    * @api {get} /dhiti/v1/shikshalokam/contentView
    * @apiVersion 1.0.0
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-auth-token Authenticity token 
+   * @apiName Content view
+   * @apiGroup Shikshalokam 
    * @apiUse successBody
    * @apiUse errorBody
    */
@@ -66,6 +68,7 @@ exports.contentView = async function (req, res) {
    * @api {post} /dhiti/v1/shikshalokam/contentDownloadedByUser
    * @apiVersion 1.0.0
    * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiGroup Shikshalokam 
    * @apiParamExample {json} Request-Body:
 * {
   "usr_id": "",
@@ -130,10 +133,19 @@ exports.contentDownloadedByUser = async function (req, res) {
    * @apiVersion 1.0.0
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiUse successBody
+   * @apiGroup Shikshalokam 
+   * @name Usage By Content
    * @apiUse errorBody
    */
 
-// Controller for listing usage by content 
+   /**
+      * List all the contents based on their usage. 
+      * @method
+      * @name Usage by content
+      * @param  {Request} req request body.
+      * @returns {JSON} Response with result and data. 
+    */
+
 exports.usageByContent = async function (req, res) {
     //get quey from cassandra
     model.MyModel.findOneAsync({ qid: "usage_by_content_query" }, { allow_filtering: true })

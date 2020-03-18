@@ -16,24 +16,18 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.set('views', path.join(__dirname, 'controllers/views'));
+app.set('view engine', 'ejs');
+app.use(express.static("public"));
 
 app.use(function (req, res, next) { //allow cross origin requests
   res.setHeader("Access-Control-Allow-Methods", "POST, PUT, OPTIONS, DELETE, GET");
   res.header("Access-Control-Allow-Origin", "*");
-  //     var allowedOrigins = ['http://localhost:8100', 'http://192.168.1.120:8100', 'http://127.0.0.1:9000', 'http://localhost:9000'];
-  //   var origin = req.headers.origin;
-  //   if(allowedOrigins.indexOf(origin) > -1){
-  //        res.setHeader('Access-Control-Allow-Origin', origin);
-  //   }    
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With,Authorization, Content-Type, Accept,x-auth-token");
-  // res.header("Access-Control-Allow-Credentials", true);   
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With,Authorization, Content-Type, Accept,x-auth-token");   
   next();
 });
 
-app.set('views', path.join(__dirname, 'controllers/views'));
-app.set('view engine', 'ejs');
 
-app.use(express.static("public"));
 
 //API documentation (apidoc)
 if (config.node_env == "development" || config.node_env == "local") {

@@ -7,7 +7,8 @@ var helperFunc = require('../../helper/chart_data');
 /**
    * @api {post} /dhiti/v1/shikshalokam/courseEnrollment
    * @apiVersion 1.0.0
-   * @apiGroup shikshalokam
+   * @apiGroup Shikshalokam
+   * @apiName Shikshalokam - Course enrollment
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
