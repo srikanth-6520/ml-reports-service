@@ -27,22 +27,29 @@ var helperFunc = require('../../helper/chart_data');
 
 //Controller for listing Top 5 contents viewed in platform
 exports.contentView = async function (req, res) {
+
     //get quey from cassandra
     model.MyModel.findOneAsync({ qid: "content_viewed_in_platform_query" }, { allow_filtering: true })
         .then(async function (result) {
+
             var bodyParam = JSON.parse(result.query);
+
             if (config.druid.telemetry_datasource_name) {
                 bodyParam.dataSource = config.druid.telemetry_datasource_name;
             }
+
             // get previous month date and append to intervals field
             bodyParam.intervals = await getIntervals();
+
             //Assign threshold value to restrict number of records to be shown
             bodyParam.threshold = config.druid.threshold_in_content_api;
+
             //pass the query as body param and get the result from druid
             var options = config.druid.options;
             options.method = "POST";
             options.body = bodyParam;
             var data = await rp(options);
+
             if (data[0].result.length == 0) {
                 res.send({ "result": false, "data": [] })
             }
@@ -93,21 +100,28 @@ exports.contentDownloadedByUser = async function (req, res) {
         //get quey from cassandra
         model.MyModel.findOneAsync({ qid: "content_downloaded_by_user_query" }, { allow_filtering: true })
             .then(async function (result) {
+
                 var bodyParam = JSON.parse(result.query);
+
                 if (config.druid.telemetry_datasource_name) {
                     bodyParam.dataSource = config.druid.telemetry_datasource_name;
                 }
+
                 //append user id to the filter
                  bodyParam.filter.fields[0].value = req.body.usr_id;
+
                  // get previous month date and append to intervals field
                  bodyParam.intervals = await getIntervals();
+
                 //Assign threshold value to restrict number of records to be shown
                 bodyParam.threshold = config.druid.threshold_in_content_api;
+
                 //pass the query as body param and get the result from druid
                 var options = config.druid.options;
                 options.method = "POST";
                 options.body = bodyParam;
                 var data = await rp(options);
+
                 if (data[0].result.length == 0) {
                     res.send({ "result": false, "data": [] })
                 }
@@ -149,23 +163,29 @@ exports.contentDownloadedByUser = async function (req, res) {
     */
 
 exports.usageByContent = async function (req, res) {
+
     //get quey from cassandra
     model.MyModel.findOneAsync({ qid: "usage_by_content_query" }, { allow_filtering: true })
         .then(async function (result) {
+
             var bodyParam = JSON.parse(result.query);
+
             if (config.druid.telemetry_datasource_name) {
                 bodyParam.dataSource = config.druid.telemetry_datasource_name;
             }
             
             //Assign threshold value to restrict number of records to be shown
             bodyParam.threshold = config.druid.threshold_in_content_api
+
              // get previous month date and append to intervals field
              bodyParam.intervals = await getIntervals();
+
             //pass the query as body param and get the result from druid
             var options = config.druid.options;
             options.method = "POST";
             options.body = bodyParam;
             var data = await rp(options);
+
             if (data[0].result.length == 0) {
                 res.send({ "result": false, "data": [] })
             }
@@ -213,10 +233,13 @@ exports.courseEnrollment = async function (req, res) {
         res.send(response);
     }
     else {
+
         //get quey from cassandra
         model.MyModel.findOneAsync({ qid: "course_enrollment_query" }, { allow_filtering: true })
             .then(async function (result) {
+
                 var bodyParam = JSON.parse(result.query);
+
                 if (config.druid.enrollment_datasource_name) {
                     bodyParam.dataSource = config.druid.enrollment_datasource_name;
                 }
@@ -229,10 +252,12 @@ exports.courseEnrollment = async function (req, res) {
                 options.method = "POST";
                 options.body = bodyParam;
                 var data = await rp(options);
+
                 if (!data.length) {
                     res.send({ "result":false,"data": []})
                 }
                 else {
+
                   //call the function to get response object
                    var responseObj = await helperFunc.courseEnrollmentResponeObj(data);
                    res.send(responseObj);
