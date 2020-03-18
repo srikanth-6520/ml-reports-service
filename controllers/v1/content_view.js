@@ -26,7 +26,7 @@ var helperFunc = require('../../helper/chart_data');
    */
 
 //Controller for listing Top 5 contents viewed in platform
-exports.contentView = async function (req, res) {
+let contentView = async function (req, res) {
     //get quey from cassandra
     model.MyModel.findOneAsync({ qid: "content_viewed_in_platform_query" }, { allow_filtering: true })
         .then(async function (result) {
@@ -78,7 +78,7 @@ exports.contentView = async function (req, res) {
    */
 
 //Controller for listing Top 5 contents Downloaded by user in platform
-exports.contentDownloadedByUser = async function (req, res) {
+let contentDownloadedByUser = async function (req, res) {
     if (!req.body.usr_id) {
         res.status(400);
         var response = {
@@ -146,7 +146,7 @@ exports.contentDownloadedByUser = async function (req, res) {
       * @returns {JSON} Response with result and data. 
     */
 
-exports.usageByContent = async function (req, res) {
+let usageByContent = async function (req, res) {
     //get quey from cassandra
     model.MyModel.findOneAsync({ qid: "usage_by_content_query" }, { allow_filtering: true })
         .then(async function (result) {
@@ -204,3 +204,10 @@ async function getIntervals() {
    return intervals;
 
 }    
+
+
+module.exports = {
+    contentView : contentView,
+    contentDownloadedByUser : contentDownloadedByUser,
+    usageByContent : usageByContent
+}
