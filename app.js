@@ -35,8 +35,6 @@ app.set('view engine', 'ejs');
 
 app.use(express.static("public"));
 
-console.log(config.node_env);
-
 //API documentation (apidoc)
 if (config.node_env == "development" || config.node_env == "local") {
   app.use(express.static("apidoc"));

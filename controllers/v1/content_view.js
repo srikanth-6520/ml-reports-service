@@ -4,6 +4,7 @@ var request = require('request');
 var model = require('../../db')
 var helperFunc = require('../../helper/chart_data');
 
+
 /**
      * @apiDefine errorBody
      * @apiError {String} status 4XX,5XX
