@@ -4,7 +4,7 @@ const request = require('request');
 const model = require('../../db')
 const helperFunc = require('../../helper/chart_data');
 const pdfHandler = require('../../helper/common_handler');
-const authService = require('../../services/authentication_service');
+const authService = require('../../middleware/authentication_service');
 
 //Controller for entity solution report (cluster/block/zone/district)
 exports.entitySolutionReport = async function (req, res) {

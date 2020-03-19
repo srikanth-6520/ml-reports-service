@@ -30,7 +30,7 @@ var path = require('path');
 
 var _this = this;
 var api = {};
-api.validateToken = validateToken;
+api.authenticate = authenticate;
 
 module.exports = api;
 
@@ -48,6 +48,25 @@ var cacheConfig = {
 };
 
 var apiInterceptor = new ApiInterceptor(keyCloakConfig, cacheConfig);
+
+
+function authenticate(req,res,next){
+
+    validateToken(req,res)
+    .then(function (result) {
+
+        if(result.status=="success"){
+
+            req.body.userId = result.userId;
+            next();
+        } else {
+            res.send({ status:"failed",message:result.message })
+        }
+
+
+    });
+
+}
 
 
 function validateToken(req, res) {
