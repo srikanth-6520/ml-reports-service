@@ -18,13 +18,29 @@ let observationController = require('../v2/observations');
    * @api {post} /dhiti/api/v1/observations/instance 
    * Instance observation report
    * @apiVersion 1.0.0
-   * @apiGroup observation
+   * @apiGroup Observations
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "submissionId": "",
 * }
-   * @apiUse successBody
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "entityName": "",
+       "observationName": "",
+       "observationId": "",
+       "entityType": "",
+       "entityId": "",
+       "response": [{
+         "order": "",
+         "question": "",
+         "responseType": "",
+         "answers": [],
+         "chart": {},
+         "instanceQuestions":[]
+       }]
+*     }
    * @apiUse errorBody
    */
 
@@ -95,8 +111,8 @@ exports.instance = async function (req, res) {
   };
   
   
-  //Funcion for instance observation pdf generation
-  exports.instancePdfReport = async function (req, res) {
+//Funcion for instance observation pdf generation
+exports.instancePdfReport = async function (req, res) {
   
     return new Promise(async function (resolve, reject) {
   
@@ -148,20 +164,60 @@ exports.instance = async function (req, res) {
   
 
 
-  //<======================== Instance observation score report ========================================>
+//<======================== Instance observation score report ========================================>
 
 
 /**
    * @api {post} /dhiti/api/v1/observations/instanceObservationScoreReport 
    * Instance observation score report
    * @apiVersion 1.0.0
-   * @apiGroup observation
+   * @apiGroup Observations
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "submissionId": "",
 * }
-   * @apiUse successBody
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "result": true,
+       "totalScore": "",
+       "scoreAchieved": "",
+       "observationName": "",
+       "response": [{
+          "order": "",
+          "question": "",
+          "chart": {
+            "type": "",
+            "credits": {
+                "enabled": false
+            },
+            "plotOptions": {
+                "pie": {
+                    "allowPointSelect": true,
+                    "cursor": "pointer",
+                    "dataLabels": {
+                        "enabled": false
+                    },
+                    "showInLegend": true,
+                    "borderColor": "#000000"
+                }
+            },
+            "data": [{
+                "data": [{
+                    "name": "",
+                    "y": "",
+                    "color": "#6c4fa1"
+                },{
+                    "name": "",
+                    "y": "",
+                    "color": "#fff"
+                  }
+                }
+            ]
+          }
+        }]
+*     }
    * @apiUse errorBody
    */
 
@@ -231,8 +287,8 @@ exports.instanceObservationScoreReport = async function (req, res) {
   
   
   
-  //Instance observation score pdf generation
-  exports.instanceObservationScorePdfFunc = async function (req, res) {
+//Instance observation score pdf generation
+exports.instanceObservationScorePdfFunc = async function (req, res) {
   
     return new Promise(async function (resolve, reject) {
   
@@ -270,14 +326,30 @@ exports.instanceObservationScoreReport = async function (req, res) {
    * @api {post} /dhiti/api/v1/observations/entity 
    * Entity observation report
    * @apiVersion 1.0.0
-   * @apiGroup observation
+   * @apiGroup Observations
    * @apiHeader {String} x-auth-token Authenticity token    
    * @apiParamExample {json} Request-Body:
 * {
   "entityId": "",
-* "observationId": "",
+  "observationId": "",
 * }
-   * @apiUse successBody
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "observationId": "",
+       "observationName": "",
+       "entityType": "",
+       "entityId": "",
+       "entityName": "",
+       "response": [{
+          "order": "",
+          "question": "",
+          "responseType": "",
+          "answers": "",
+          "chart": {},
+          "instanceQuestions": []
+       }]
+*     }
    * @apiUse errorBody
    */
 
@@ -343,8 +415,8 @@ exports.entity = async function (req, res) {
   }
   
   
-  //Controller for entity observation pdf generation
-  exports.entityObservationPdf = async function (req, res) {
+//Controller for entity observation pdf generation
+exports.entityObservationPdf = async function (req, res) {
   
     return new Promise(async function (resolve, reject) {
   
@@ -388,7 +460,7 @@ exports.entity = async function (req, res) {
    * @api {post} /dhiti/api/v1/observations/entityObservationReport 
    * Entity observation report(cluster/zone/district/state)
    * @apiVersion 1.0.0
-   * @apiGroup observation
+   * @apiGroup Observations
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
@@ -397,7 +469,23 @@ exports.entity = async function (req, res) {
   "immediateChildEntityType": "",
   "observationId": ""
 * }
-   * @apiUse successBody
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "solutionId": "",
+       "solutionName": "",
+       "entityType": "",
+       "entityId": "",
+       "entityName": "",
+       "response": [{
+          "order": "",
+          "question": "",
+          "responseType": "",
+          "answers": "",
+          "chart": {},
+          "instanceQuestions": []
+       }]
+*     }
    * @apiUse errorBody
    */
 
@@ -489,8 +577,8 @@ exports.entityObservationReport = async function entityObservationReport(req, re
   }
   
   
-  //Function for entity observation report PDF generation
-  exports.entityObservationReportPdfGeneration = async function (req, res) {
+//Function for entity observation report PDF generation
+exports.entityObservationReportPdfGeneration = async function (req, res) {
   
     return new Promise(async function (resolve, reject) {
   
@@ -525,14 +613,65 @@ exports.entityObservationReport = async function entityObservationReport(req, re
    * @api {post} /dhiti/api/v1/observations/entityScoreReport 
    * Entity observation score report
    * @apiVersion 1.0.0
-   * @apiGroup observation
+   * @apiGroup Observations
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "entityId": "",
   "observationId": ""
 * }
-   * @apiUse successBody
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "result": true,
+       "schoolName": "",
+       "totalObservations": "",
+       "observationName": "",
+       "response" : [{
+          "order": "",
+          "question": "",
+          "chart": {
+            "type": "scatter",
+            "title": "",
+            "xAxis": {
+                "title": {
+                    "enabled": true,
+                    "text": "observations"
+                },
+                "labels: {},
+                "categories": ["Obs1", "Obs2", "Obs3", "Obs4", "Obs5"],
+                "startOnTick": false,
+                "endOnTick": false,
+                "showLastLabel": true
+            },
+            "yAxis": {
+                "min": 0,
+                "max": "",
+                "allowDecimals": false,
+                "title": {
+                    "text": "Score"
+                }
+            },
+            "plotOptions":{
+                "scatter":{
+                    "lineWidth": 1,
+                    "lineColor": "#F6B343"
+                }
+            },
+            "credits": {
+                "enabled": false
+            },
+            "legend": {
+                "enabled": false
+            },
+            "data": [{
+                "color": "#F6B343",
+                "data": []
+            }]
+
+          }
+        }]
+*     }
    * @apiUse errorBody
    */
 
@@ -640,7 +779,7 @@ exports.entityObservationScorePdfFunc = async function (req, res) {
    * @api {post} /dhiti/api/v1/observations/entitySolutionScoreReport 
    * Entity solution score report
    * @apiVersion 1.0.0
-   * @apiGroup observation
+   * @apiGroup Observations
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
@@ -648,10 +787,61 @@ exports.entityObservationScorePdfFunc = async function (req, res) {
   "entityType": "",
   "solutionId": ""
 * }
-   * @apiUse successBody
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "result": true,
+       "solutionName": "",
+       "response": [{
+         "order": "",
+         "question": "",
+         "chart": {
+            "type": "bar",
+            "title": "",
+            "xAxis": {
+                "title": {
+                    "text": null
+                },
+                "labels": {},
+                "categories": []
+            },
+            "yAxis": {
+                "min": 0,
+                "max": "",
+                "title": {
+                    "text": "Score"
+                },
+                "labels": {
+                    "overflow": "justify"
+                },
+                "allowDecimals" : false
+            },
+            "plotOptions": {
+                "bar": {
+                    "dataLabels": {
+                        "enabled": true
+                    }
+                }
+            },
+            "legend": {
+               "enabled" : true
+            },
+            "credits": {
+                "enabled": false
+            },
+            "data": [{
+                "name": "observation1",
+                "data": []
+            }, {
+                "name": "observation2",
+                "data": []
+            }]
+
+          }
+        }]
+*     }
    * @apiUse errorBody
    */
-
 
 //Controller for entity solution score report (cluster/block/zone/district/state)
 exports.entitySolutionScoreReport = async function (req, res) {
@@ -742,6 +932,7 @@ async function entitySolutionScoreReportGeneration(req, res) {
     })
   
   }
+
   
 //School solution score report creation function
 async function schoolSolutionScoreReport(req, res) {
@@ -800,6 +991,7 @@ async function schoolSolutionScoreReport(req, res) {
     })
   
   }
+
   
 //Entity solution score pdf generation
 exports.entitySolutionScorePdfFunc = async function (req, res) {
@@ -982,17 +1174,35 @@ async function getCreatedByField(req, res) {
 }
 
 
-// ============================ Observation report API's
+// ============================ Observation report API's =============================>
 
 /**
    * @api {post} /dhiti/api/v1/observations/report
+   * Observation report
    * @apiVersion 1.0.0
-   * @apiGroup observation
+   * @apiGroup Observations
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "observationId": "",
 * }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "observationId": "",
+       "observationName": "",
+       "entityType": "",
+       "entityId": "",
+       "entityName": "",
+       "response": [{
+          "order": "",
+          "question": "",
+          "responseType": "",
+          "answers": "",
+          "chart": {},
+          "instanceQuestions": []
+       }]
+*     }
    * @apiUse successBody
    * @apiUse errorBody
    */
@@ -1099,14 +1309,67 @@ exports.observationGenerateReport = async function(req, res) {
 
 /**
    * @api {post} /dhiti/api/v1/observations/scoreReport
+   * Observation score report
    * @apiVersion 1.0.0
-   * @apiGroup observation
+   * @apiGroup Observations
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "observationId": "",
 * }
-   * @apiUse successBody
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "result": true,
+       "solutionName": "",
+       "response": [{
+         "order": "",
+         "question": "",
+         "chart": {
+            "type": "bar",
+            "title": "",
+            "xAxis": {
+                "title": {
+                    "text": null
+                },
+                "labels": {},
+                "categories": []
+            },
+            "yAxis": {
+                "min": 0,
+                "max": "",
+                "title": {
+                    "text": "Score"
+                },
+                "labels": {
+                    "overflow": "justify"
+                },
+                "allowDecimals" : false
+            },
+            "plotOptions": {
+                "bar": {
+                    "dataLabels": {
+                        "enabled": true
+                    }
+                }
+            },
+            "legend": {
+               "enabled" : true
+            },
+            "credits": {
+                "enabled": false
+            },
+            "data": [{
+                "name": "observation1",
+                "data": []
+            }, {
+                "name": "observation2",
+                "data": []
+            }]
+
+          }
+        }]
+*     }
    * @apiUse errorBody
    */
 
@@ -1244,15 +1507,24 @@ exports.observationScorePdfFunc = async function (req, res) {
 
 /**
    * @api {post} /dhiti/api/v1/observations/listObservationNames
+   * List observation names
    * @apiVersion 1.0.0
-   * @apiGroup observation
+   * @apiGroup Observations
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "entityId": "",
   "entityType":""
 * }
-   * @apiUse successBody
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "result": true,
+       "data": [{
+          "observationId": "",
+          "observationName": ""
+       }]
+*     }
    * @apiUse errorBody
    */
 
@@ -1312,15 +1584,25 @@ exports.listObservationNames = async function (req, res) {
 
 /**
    * @api {post} /dhiti/api/v1/observations/listObservationSolutions 
+   * List observation solutions
    * @apiVersion 1.0.0
-   * @apiGroup observation
+   * @apiGroup Observations
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "entityId": "",
-* "entityType": "",
+  "entityType": "",
 * }
-   * @apiUse successBody
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "result": true,
+       "data": [{
+          "solutionId": "",
+          "solutionName": "",
+          "scoring": ""
+       }]
+*     }
    * @apiUse errorBody
    */
 
@@ -1377,14 +1659,22 @@ exports.listObservationSolutions = async function (req, res) {
 
 /**
    * @api {post} /dhiti/api/v1/observations/submissionsCount 
+   * Observations submission count
    * @apiVersion 1.0.0
-   * @apiGroup observation
+   * @apiGroup Observations
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "submissionId": "",
 * }
-   * @apiUse successBody
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "result": true,
+       "data": {
+         "noOfSubmissions": ""
+       }
+*     }
    * @apiUse errorBody
    */
 
@@ -1633,3 +1923,100 @@ exports.pdfReportsUrl = async function (req, response) {
        console.log(error);
    }
 };
+
+
+
+//Controller for entity solution report (cluster/block/zone/district)
+exports.entitySolutionReport = async function (req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    let responseData = await entitySolutionReportGeneration(req, res);
+    res.send(responseData);
+
+  })
+
+};
+
+
+// Function for entity observation report generation 
+async function entitySolutionReportGeneration(req, res) {
+  
+  return new Promise(async function (resolve, reject) {
+
+    if (!req.body.entityId && !req.body.entityType && !req.body.solutionId) {
+      var response = {
+        result: false,
+        message: 'entityId, entityType, immediateChildEntityType and solutionId are required fields'
+      }
+      resolve(response);
+    }
+
+    else {
+      
+      entityType = req.body.entityType;
+      entityId = req.body.entityId;
+      immediateChildEntityType = req.body.immediateChildEntityType;
+
+      // Fetch query from cassandra
+      model.MyModel.findOneAsync({ qid: "entity_solution_report_query" }, { allow_filtering: true })
+        .then(async function (result) {
+
+          var bodyParam = JSON.parse(result.query);
+
+          if (config.druid.observation_datasource_name) {
+            bodyParam.dataSource = config.druid.observation_datasource_name;
+          }
+          
+          //Assign values to the query filter object 
+          bodyParam.filter.fields[0].dimension = req.body.entityType;
+          bodyParam.filter.fields[0].value = req.body.entityId;
+          bodyParam.filter.fields[1].value = req.body.solutionId;
+
+          if(req.body.reportType == "my"){
+            let createdBy = await getCreatedByField(req,res); 
+            let filter = {"type":"selector","dimension":"createdBy","value":createdBy}
+            bodyParam.filter.fields.push(filter);
+          }
+
+          //Push column names dynamically to the query dimensions array 
+          if (!req.body.immediateChildEntityType) {
+          bodyParam.dimensions.push(entityType, entityType + "Name");
+          }
+          else if (req.body.immediateChildEntityType == "school") {
+          bodyParam.dimensions.push(entityType, entityType + "Name", immediateChildEntityType, immediateChildEntityType + "Name");
+          }
+          else {
+          bodyParam.dimensions.push(entityType, entityType + "Name", immediateChildEntityType, immediateChildEntityType + "Name", "school", "schoolName");
+          }
+
+          //pass the query as body param and get the result from druid
+          var options = config.druid.options;
+          options.method = "POST";
+          options.body = bodyParam;
+          var data = await rp(options);
+
+          if (!data.length) {
+            resolve({ "data": "No observations made for the entity" })
+          }
+          else {
+            var responseObj = await helperFunc.entityReportChart(data,req.body.entityId,req.body.entityType)
+            resolve(responseObj);
+          }
+        })
+        .catch(function (err) {
+          res.status(500);
+          var response = {
+            result: false,
+            message: 'Data not found'
+          }
+          resolve(response);
+        })
+
+    }
+
+  })
+
+}
+
+

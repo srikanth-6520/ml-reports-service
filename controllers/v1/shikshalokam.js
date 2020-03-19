@@ -21,7 +21,15 @@ var helperFunc = require('../../helper/chart_data');
    * @apiVersion 1.0.0
    * @apiHeader {String} x-auth-token Authenticity token 
    * @apiGroup Shikshalokam 
-   * @apiUse successBody
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+*       "result": true,
+*       "data": [{
+        "content_name": "",
+        "total_views": ""
+        }]
+*     }
    * @apiUse errorBody
    */
 
@@ -81,7 +89,15 @@ exports.contentView = async function (req, res) {
 * {
   "usr_id": "",
 * }
-   * @apiUse successBody
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+*       "result": true,
+*       "data": [{
+        "content_name": "",
+        "total_downloads": ""
+        }]
+*     }
    * @apiUse errorBody
    */
 
@@ -143,24 +159,24 @@ exports.contentDownloadedByUser = async function (req, res) {
     }
 }
 
+
 /**
    * @api {get} /dhiti/v1/shikshalokam/usageByContent
    * Usage by content
    * @apiVersion 1.0.0
    * @apiHeader {String} x-auth-token Authenticity token  
-   * @apiUse successBody
    * @apiGroup Shikshalokam 
-   * @name Usage By Content
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+*       "result": true,
+*       "data": [{
+        "content_name": "",
+        "total_users_viewed": ""
+        }]
+*     }
    * @apiUse errorBody
    */
-
-   /**
-      * List all the contents based on their usage. 
-      * @method
-      * @name Usage by content
-      * @param  {Request} req request body.
-      * @returns {JSON} Response with result and data. 
-    */
 
 exports.usageByContent = async function (req, res) {
 
@@ -217,7 +233,15 @@ exports.usageByContent = async function (req, res) {
 * {
   "user_id": "",
 * }
-   * @apiUse successBody
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+*       "result": true,
+*       "data": [{
+        "course_name": "",
+        "status": ""
+        }]
+*     }
    * @apiUse errorBody
    */
 

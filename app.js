@@ -34,16 +34,16 @@ app.use(function (req, res, next) { //allow cross origin requests
 if (config.node_env == "development" || config.node_env == "local") {
   app.use(express.static("apidoc"));
   if (config.node_env == "local") {
-    app.get(config.APIDOC_URL, (req, res) => {
-      let apidocPath = config.APIDOC_PATH + "/index.html";
+    app.get(config.apidoc_url, (req, res) => {
+      let apidocPath = config.apidoc_path + "/index.html";
 
       res.sendFile(path.join(__dirname, apidocPath));
     });
   } else {
-    app.get(config.APIDOC_URL, (req, res) => {
+    app.get(config.apidoc_url, (req, res) => {
       let urlArray = req.path.split("/");
       urlArray.splice(0, 3);
-      let apidocPath = config.APIDOC_PATH + urlArray.join("/");
+      let apidocPath = config.apidoc_path + urlArray.join("/");
 
       res.sendFile(path.join(__dirname, apidocPath));
     });

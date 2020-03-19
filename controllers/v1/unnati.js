@@ -1,5 +1,33 @@
 var pdfHandler = require('../../helper/common_handler');
 
+
+/**
+   * @api {post} /dhiti/api/v1/unnati/pdfReport 
+   * Project pdf report
+   * @apiVersion 1.0.0
+   * @apiGroup Unnati
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+    "title": "",
+    "goal": "",
+    "duration": "",
+    "status":"",
+    "startDate":"",
+    "endDate":"",
+    "category":[],
+    "tasks": []
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "status": "",
+       "message": "",
+       "pdfUrl": ""
+*     }
+   * @apiUse errorBody
+   */
+
 //Controller function for unnati pdf generation
 exports.pdfReport = async function(req,res){
 
@@ -11,6 +39,30 @@ exports.pdfReport = async function(req,res){
 }
 
 
+/**
+   * @api {post} /dhiti/api/v1/unnati/monthlyReport 
+   * Monthly report
+   * @apiVersion 1.0.0
+   * @apiGroup Unnati
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+    "schoolName": "",
+    "reportType": "",
+    "projectDetails": "",
+    "title":"",
+    "tasks": []
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "status": "",
+       "message": "",
+       "pdfUrl": ""
+*     }
+   * @apiUse errorBody
+   */
+  
 //Controller function for unnati monthly report pdf generation
 exports.monthlyReport = async function(req,res){
 
@@ -21,6 +73,30 @@ exports.monthlyReport = async function(req,res){
     res.send(response);
 }
 
+
+/**
+   * @api {post} /dhiti/api/v1/unnati/viewProjectReport 
+   * View project report
+   * @apiVersion 1.0.0
+   * @apiGroup Unnati
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+   "schoolName": "",
+   "reportType": "",
+   "projectDetails": []
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "status": "",
+       "message": "",
+       "pdfUrl": ""
+*     }
+   * @apiUse errorBody
+   */
+
+   
 //Controller function for unnati view full report pdf generation
 exports.viewProjectReport = async function(req,res){
 

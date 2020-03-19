@@ -15,11 +15,24 @@ var pdfHandler = require('../../helper/common_handler');
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
-  "entityId": "",
+* "entityId": "",
 * "entityType":""
 * "immediateChildType":""
 * }
-   * @apiUse successBody
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+        "programName": "",
+        "programId": "",
+        "programDescription": "",
+        "programExternalId": "",
+        "solutions": [{
+          "solutionName": "",
+          "solutionId": "",
+          "solutionDescription": "",
+          "solutionExternalId": ""
+        }]
+*     }
    * @apiUse errorBody
    */
 
@@ -99,13 +112,60 @@ exports.listPrograms = async function (req, res) {
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
-  "entityId": "",
+* "entityId": "",
 * "entityType": ""
 * "progarmId": ""
 * "solutionId": ""
 * "immediateChildEntityType": ""
 * }
-   * @apiUse successBody
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+*       "result": true,
+*       "title": "",
+*       "reportSections":[
+        {
+          "order": "",
+          "chart": {
+             "type": "",
+             "nextChildEntityType": "",
+             "stacking": "",
+             "title": "",
+             "xAxis": {
+               "categories": [],
+               "title": "",
+             },
+             "yAxis": {
+                "title": {
+                    "text": ""
+                }
+             },
+             "data": [{
+                 "name": "",
+                 "data": []
+             }]
+          }
+        },
+        {
+         "order": "",
+         "chart": {
+            "type": "",
+            "title": "",
+            "entities": [{
+                "entityName": "",
+                "entityId": "",
+                "domains": [{
+                    "domainName": "",
+                    "domainId": "",
+                    "criterias":[{
+                        "name": "",
+                        "level": ""
+                    }]
+                }]
+            }]
+         }
+        }
+*    }
    * @apiUse errorBody
    */
 
