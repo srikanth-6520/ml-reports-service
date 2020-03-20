@@ -5,7 +5,6 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var config = require('./config/config');
 require('./config/globals')();
-//var indexRouter = require('./routes/index');
 var router = require('./routes');
 
 var app = express();
@@ -50,7 +49,6 @@ if (config.node_env == "development" || config.node_env == "local") {
   }
 }
 
-// app.use('/dhiti/api', indexRouter);
 
 /**
  * Get port from environment and store in Express.

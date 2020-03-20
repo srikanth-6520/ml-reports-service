@@ -1101,32 +1101,7 @@ exports.byEntity = async function (req, res) {
             let observationData = await getObsvByentitys(req, result);
             res.send(observationData);
   
-            // var bodyParam = JSON.parse(result.query);
-            // if (config.druid.observation_datasource_name) {
-            //   bodyParam.dataSource = config.druid.observation_datasource_name;
-            // }
-            // var query = bodyParam;
-            // var fieldsArray = [];
-  
-  
-            // await Promise.all(req.body.entityIds.map(async ele => {
-            //   let objSelecter = { "type": "selector", "dimension": "entityId", "value": ele };
-            //   fieldsArray.push(objSelecter);
-            // }
-            // ));
-  
-  
-            // query.filter.fields.push(...fieldsArray);
-  
-            // var options = config.druid.options;
-            // options.method = "POST";
-            // options.body = query;
-            // var data = await rp(options);
-  
-  
-            // res.send(data);
-  
-          }
+           }
         });
     }
   
@@ -1885,21 +1860,13 @@ exports.pdfReportsUrl = async function (req, response) {
             try{
                 fs.readdir(__dirname + '/../../' + folderPath, (err, files) => {
                     if (err) throw err;
-    
-                    // console.log("files",files.length);
+  
                     var i = 0;
                     for (const file of files) {
                         i = i +1;
                         fs.unlink(path.join(__dirname + '/../../' + folderPath, file), err => {
                             if (err) throw err;
                         });
-                        // if(i==files.length){
-                        //     // fs.unlink(__dirname + '/../../'+folderPath);
-                        //     // console.log("path.dirname(filename).split(path.sep).pop()",path.dirname(file).split(path.sep).pop());
-                        //     // fs.unlink(path.join(imgPath, ""), err => {
-                        //     //     if (err) throw err;
-                        //     // });
-                        // }
                         
                     }
                 });
@@ -1911,7 +1878,7 @@ exports.pdfReportsUrl = async function (req, response) {
 
             }
             response.end();
-            // fs.unlink(__dirname+'/instanceLevelReport.pdf');
+          
         } else {
             response.send("File Not Found");
             console.log(err);
@@ -1925,6 +1892,39 @@ exports.pdfReportsUrl = async function (req, response) {
 };
 
 
+
+/**
+   * @api {post} /dhiti/api/v1/observations/entitySolutionReport 
+   * Entity solution report
+   * @apiVersion 1.0.0
+   * @apiGroup Observations
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "entityId": "",
+  "entityType": "",
+  "immediateChildEntityType": "",
+  "solutionId": ""
+* }
+    * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "solutionId": "",
+       "solutionName": "",
+       "entityType": "",
+       "entityId": "",
+       "entityName": "",
+       "response": [{
+          "order": "",
+          "question": "",
+          "responseType": "",
+          "answers": "",
+          "chart": {},
+          "instanceQuestions": []
+       }]
+*     }
+   * @apiUse errorBody
+   */
 
 //Controller for entity solution report (cluster/block/zone/district)
 exports.entitySolutionReport = async function (req, res) {

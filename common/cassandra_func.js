@@ -118,7 +118,6 @@ db.reportIndexes.update(query_object, update_values_object,options, function(err
 let updateEntityAssessmentDownloadPath = async function (reqBody, callback) {
     return new Promise(function (resolve, reject) {
 
-        // var query_object = reqBody.query;
         console.log("query", JSON.stringify(reqBody.query));
         var query_object = { id: reqBody.query };
         var downloadPdfUrl = { downloadpdfpath: reqBody.downloadPath };

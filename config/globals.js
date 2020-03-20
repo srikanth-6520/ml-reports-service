@@ -6,6 +6,4 @@ module.exports = function () {
             return Controller
         }
     });
-    console.log()
-
 }
