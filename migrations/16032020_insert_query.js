@@ -27,7 +27,7 @@ let insertQueryToCassandra = async function () {
                 message: "failed to insert queries",
             }
 
-            logMigrationStatus(obj);
+           // logMigrationStatus(obj);
         }
         else {
             let obj = {
@@ -36,25 +36,25 @@ let insertQueryToCassandra = async function () {
                 message: "Successfully inserted the queries",
             }
 
-            logMigrationStatus(obj);
+            //logMigrationStatus(obj);
         }
     })
 }
 
 //Function for logging the status of migration
-let logMigrationStatus = async function (reqBody) {
-    return new Promise(function (resolve, reject) {
+// let logMigrationStatus = async function (reqBody) {
+//     return new Promise(function (resolve, reject) {
 
-        var insertData = new db.migrationModel(reqBody);
-        insertData.saveAsync()
-            .then(function (result) {
-                console.log('migration status logged successfully');
-            })
-            .catch(function (err) {
-                console.log('error in logging migration status');
-            })
-    })
-}
+//         var insertData = new db.migrationModel(reqBody);
+//         insertData.saveAsync()
+//             .then(function (result) {
+//                 console.log('migration status logged successfully');
+//             })
+//             .catch(function (err) {
+//                 console.log('error in logging migration status');
+//             })
+//     })
+// }
 
 
 insertQueryToCassandra();
