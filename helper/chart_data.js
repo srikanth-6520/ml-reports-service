@@ -8,6 +8,7 @@ exports.instanceReportChart = async function (data) {
     var multiSelectArray = [];
     var matrixArray = [];
     var order;
+    let actualData = data;
 
     try {
         // obj is the response object which we are sending as a API response   
@@ -118,8 +119,12 @@ exports.instanceReportChart = async function (data) {
         
         //sort the response objects based on questionExternalId field
         await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
-        
-        
+
+
+        // Get the questions array
+        let questionArray = await questionListObjectCreation(actualData);
+        obj.allQuestions = questionArray;
+
         //return final response object
         return obj;
      }
@@ -180,6 +185,7 @@ exports.entityReportChart = async function (data,entityId,entityName) {
     var dateArray = [];
     var noOfSubmissions = [];
     var matrixArray = [];
+    let actualData = data;
 
     try {
 
@@ -327,6 +333,11 @@ exports.entityReportChart = async function (data,entityId,entityName) {
 
         //sort the response objects based on questionExternalId field
          await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
+
+
+        // Get the questions array
+        let questionArray = await questionListObjectCreation(actualData);
+        obj.allQuestions = questionArray;
 
          return obj;
     
@@ -1114,6 +1125,7 @@ exports.instanceScoreReportChartObjectCreation = async function (data) {
         totalScore: data[0].event.totalScore,
         scoreAchieved: data[0].event.scoreAchieved,
         observationName: data[0].event.observationName,
+        schoolName: data[0].event.schoolName,
         response: []
     }
 
@@ -1132,6 +1144,10 @@ exports.instanceScoreReportChartObjectCreation = async function (data) {
 
      //sort the response objects based on questionExternalId field
      await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
+
+     // Get the question array
+     let questionArray = await questionListObjectCreation(data);
+     obj.allQuestions = questionArray;
 
     return obj;
 }
@@ -1253,6 +1269,12 @@ exports.entityScoreReportChartObjectCreation = async function (data, version) {
       //sort the response objects using questionExternalId field
       await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
 
+
+     // Get the question array
+      let questionArray = await questionListObjectCreation(data);
+      obj.allQuestions = questionArray;
+
+
       return obj;
 
     }
@@ -1373,6 +1395,12 @@ exports.observationScoreReportChart = async function (data) {
 
     //sort the response objects using questionExternalId field
     await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
+
+
+    // Get the question array
+    let questionArray = await questionListObjectCreation(data);
+    obj.allQuestions = questionArray;
+
 
 
     return obj;
@@ -1620,3 +1648,27 @@ async function sequenceNumberTypeConvertion(data){
 
 
 
+// question list response object creation
+var questionListObjectCreation = async function(data){
+    let questionArray = [];
+    
+    //group the questions based on their questionExternalId
+    let result = await groupArrayByGivenField(data,"questionExternalId");
+
+    let groupKeys = Object.keys(result);
+
+    await Promise.all(groupKeys.map(async element => {
+          let obj = {};
+         
+          obj.questionName = result[element][0].event.questionName;
+          obj.questionExternalId = result[element][0].event.questionExternalId;
+          obj.questionId = result[element][0].event.questionId;
+
+          questionArray.push(obj);
+    }))
+
+    await questionArray.sort(getSortOrder("questionExternalId"));
+
+  return questionArray;
+
+}
