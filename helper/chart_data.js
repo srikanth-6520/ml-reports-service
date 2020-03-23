@@ -18,6 +18,7 @@ exports.instanceReportChart = async function (data) {
             observationId: data[0].event.observationId,
             entityType: data[0].event.entityType,
             entityId: data[0].event.school,
+            districtName: data[0].event.districtName,
             response: []
         }
         
@@ -210,6 +211,7 @@ exports.entityReportChart = async function (data,entityId,entityName) {
                 entityType: data[0].event.entityType,
                 entityId: entityId,
                 entityName:  data[0].event[entityName + "Name"],
+                districtName: data[0].event.districtName,
                 response: []
             }
         }
@@ -1126,6 +1128,7 @@ exports.instanceScoreReportChartObjectCreation = async function (data) {
         scoreAchieved: data[0].event.scoreAchieved,
         observationName: data[0].event.observationName,
         schoolName: data[0].event.schoolName,
+        districtName: data[0].event.districtName,
         response: []
     }
 
@@ -1241,6 +1244,7 @@ exports.entityScoreReportChartObjectCreation = async function (data, version) {
         schoolName : data[0].event.schoolName,
         totalObservations : submissionId.length,
         observationName: data[0].event.observationName,
+        districtName: data[0].event.districtName,
         response : []
     }
 
