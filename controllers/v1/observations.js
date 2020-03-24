@@ -268,9 +268,24 @@ exports.instanceObservationScoreReport = async function (req, res) {
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
             }
-  
-            bodyParam.filter.fields[0].value = req.body.submissionId;
-  
+
+             //if filter is given
+             if (req.body.filter) {
+              if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
+                let filter = {};
+                questionFilter = await filterCreate(req.body.filter.questionId);
+                filter =  { "type": "or", "fields": questionFilter };
+                bodyParam.filter.fields[0].value = req.body.submissionId;
+                bodyParam.filter.fields.push(filter);
+              }
+              else {
+                bodyParam.filter.fields[0].value = req.body.submissionId;
+              }
+            }
+            else {
+              bodyParam.filter.fields[0].value = req.body.submissionId;
+            }
+        
             //pass the query as body param and get the resul from druid
             var options = config.druid.options;
             options.method = "POST";
@@ -282,7 +297,7 @@ exports.instanceObservationScoreReport = async function (req, res) {
                 "data": "SUBMISSION_ID_NOT_FOUND"
               });
             } else {
-  
+              console.log(data);
               var responseObj = await helperFunc.instanceScoreReportChartObjectCreation(data);
               resolve(responseObj);
             }
@@ -738,10 +753,28 @@ exports.entityScoreReport = async function (req, res) {
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
             }
-  
-            bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
-            bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
-  
+
+
+             //if filter is given
+             if (req.body.filter) {
+              if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
+                let filter = {};
+                questionFilter = await filterCreate(req.body.filter.questionId);
+                filter =  { "type": "or", "fields": questionFilter };
+                bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+                bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
+                bodyParam.filter.fields.push(filter);
+              }
+              else {
+                bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+                bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
+              }
+            }
+            else {
+              bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+              bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
+            }
+
             //pass the query as body param and get the resul from druid
             var options = config.druid.options;
             options.method = "POST";
@@ -1429,8 +1462,23 @@ async function observationScoreReport(req, res) {
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
             }
-  
-            bodyParam.filter.fields[0].value = req.body.observationId;
+            
+             //if filter is given
+             if (req.body.filter) {
+              if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
+                let filter = {};
+                questionFilter = await filterCreate(req.body.filter.questionId);
+                filter =  { "type": "or", "fields": questionFilter };
+                bodyParam.filter.fields[0].value = req.body.observationId;
+                bodyParam.filter.fields.push(filter);
+              }
+              else {
+                bodyParam.filter.fields[0].value = req.body.observationId;
+              }
+            }
+            else {
+              bodyParam.filter.fields[0].value = req.body.observationId;
+            }
   
             //pass the query as body param and get the resul from druid
             var options = config.druid.options;
@@ -2070,12 +2118,13 @@ async function entitySolutionReportGeneration(req, res) {
 
 // Function for preparing filter
 async function filterCreate(questions) {
+
   let fieldsArray = [];
 
   await Promise.all(questions.map(element => {
     let filterObj = { "type": "selector", "dimension": "questionExternalId", "value": element };
     fieldsArray.push(filterObj);
   }))
-  
+    
   return fieldsArray;
 }
