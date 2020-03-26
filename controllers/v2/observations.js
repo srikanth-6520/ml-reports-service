@@ -5,6 +5,7 @@ const model = require('../../db')
 const helperFunc = require('../../helper/chart_data');
 const pdfHandler = require('../../helper/common_handler');
 const authService = require('../../middleware/authentication_service');
+const observationController = require('../v1/observations');
 
 //Controller for entity solution report (cluster/block/zone/district)
 exports.entitySolutionReport = async function (req, res) {
@@ -339,4 +340,49 @@ exports.observationScorePdfReport = async function (req, res) {
         }
 
     })
+}
+
+
+//=========================> Observation pdf API ===============
+
+//Controller function for observation pdf reports
+exports.pdfReports = async function (req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+     if (req.body.observationId && req.body.entityId) {
+
+          let resObj = await observationController.entityObservationPdf(req, res);
+          res.send(resObj);
+      }
+      else if (req.body.submissionId) {
+
+          let resObj = await observationCOntroller.instancePdfReport(req, res);
+          res.send(resObj);
+
+      } 
+      else if (req.body.observationId) {
+
+          let resObj = await observationController.observationGenerateReport(req, res);
+          res.send(resObj);
+
+      }
+      else if (req.body.entityId && req.body.entityType && req.body.solutionId) {
+
+          let resObj = await observationController.entitySolutionReportPdfGeneration(req, res);
+          res.send(resObj);
+      }
+      else if (req.body.entityId && req.body.entityType && req.body.solutionId && req.body.reportType) {
+
+          let resObj = await observationController.entitySolutionReportPdfGeneration(req, res);
+          res.send(resObj);
+      }
+      else {
+          res.send({
+              status: "failure",
+              message: "Invalid input"
+          });
+      }
+  })
+
 }

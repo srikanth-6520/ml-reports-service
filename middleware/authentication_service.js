@@ -50,21 +50,21 @@ var cacheConfig = {
 var apiInterceptor = new ApiInterceptor(keyCloakConfig, cacheConfig);
 
 
-function authenticate(req,res,next){
+function authenticate(req, res, next) {
 
-    validateToken(req,res)
-    .then(function (result) {
+    validateToken(req, res)
+        .then(function (result) {
 
-        if(result.status=="success"){
+            if (result.status == "success") {
 
-            req.body.userId = result.userId;
-            next();
-        } else {
-            res.send({ status:"failed",message:result.message })
-        }
+                req.body.userId = result.userId;
+                next();
+            } else {
+                res.send({ status: "failed", message: result.message })
+            }
 
 
-    });
+        });
 
 }
 
@@ -75,7 +75,7 @@ function validateToken(req, res) {
 
         var token = req.headers["x-auth-token"];
 
-        if (req.headers["x-auth-token"]) {
+        if (req.headers["x-auth-token"] && !req.path.includes("pdfReportsUrl")) {
 
             apiInterceptor.validateToken(token, function (err, tokenData) {
 
@@ -86,9 +86,16 @@ function validateToken(req, res) {
                     resolve({ status: "failed", message: err });
                 }
             });
+
+        } else if (req.path.includes("pdfReportsUrl")) {
+
+            resolve({ status: "success" });
+
         } else {
+            
             resolve({ status: "failed", message: "x-auth-token not found in request" });
         }
+
     });
     return promise;
 }

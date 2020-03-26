@@ -127,7 +127,7 @@ async function instanceObservationData(req, res) {
   
   
 //Funcion for instance observation pdf generation
-exports.instancePdfReport = async function (req, res) {
+async function instancePdfReport(req, res) {
   
     return new Promise(async function (resolve, reject) {
   
@@ -318,7 +318,7 @@ exports.instanceObservationScoreReport = async function (req, res) {
   
   
 //Instance observation score pdf generation
-exports.instanceObservationScorePdfFunc = async function (req, res) {
+async function instanceObservationScorePdfFunc(req, res) {
   
     return new Promise(async function (resolve, reject) {
   
@@ -463,7 +463,7 @@ exports.entity = async function (req, res) {
   
   
 //Controller for entity observation pdf generation
-exports.entityObservationPdf = async function (req, res) {
+async function entityObservationPdf(req, res) {
   
     return new Promise(async function (resolve, reject) {
   
@@ -625,7 +625,7 @@ exports.entityObservationReport = async function entityObservationReport(req, re
   
   
 //Function for entity observation report PDF generation
-exports.entityObservationReportPdfGeneration = async function (req, res) {
+async function entityObservationReportPdfGeneration(req, res) {
   
     return new Promise(async function (resolve, reject) {
   
@@ -809,7 +809,7 @@ exports.entityScoreReport = async function (req, res) {
   }
   
 //Entity observation score pdf generation
-exports.entityObservationScorePdfFunc = async function (req, res) {
+async function entityObservationScorePdfFunc(req, res) {
   
     return new Promise(async function (resolve, reject) {
   
@@ -1327,7 +1327,7 @@ async function observationReportData(req, res) {
 
 
 //Controller for observation pdf report
-exports.observationGenerateReport = async function(req, res) {
+async function observationGenerateReport(req, res) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -1548,7 +1548,7 @@ async function getTotalSchools(observationId,token) {
   
 
 //Observation score pdf generation 
-exports.observationScorePdfFunc = async function (req, res) {
+async function observationScorePdfFunc(req, res) {
 
     return new Promise (async function (resolve,reject){
   
