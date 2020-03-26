@@ -53,7 +53,7 @@ exports.instance = async function (req, res) {
   }
   
   
-  async function instanceObservationData(req, res) {
+async function instanceObservationData(req, res) {
   
     return new Promise(async function (resolve, reject) {
   
@@ -77,9 +77,24 @@ exports.instance = async function (req, res) {
               if (config.druid.observation_datasource_name) {
                 bodyParam.dataSource = config.druid.observation_datasource_name;
               }
-  
-              bodyParam.filter.value = req.body.submissionId;
-  
+              
+
+              //if filter is given
+              if (req.body.filter) {
+                if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
+                  let filter = {};
+                  questionFilter = await filterCreate(req.body.filter.questionId);
+                  filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "observationSubmissionId", "value": req.body.submissionId }, { "type": "or", "fields": questionFilter }] };
+                  bodyParam.filter = filter;
+                }
+                else {
+                  bodyParam.filter.value = req.body.submissionId;
+                }
+              }
+              else {
+                bodyParam.filter.value = req.body.submissionId;
+              }
+
               //pass the query as body param and get the resul from druid
               var options = config.druid.options;
               options.method = "POST";
@@ -112,7 +127,7 @@ exports.instance = async function (req, res) {
   
   
 //Funcion for instance observation pdf generation
-exports.instancePdfReport = async function (req, res) {
+async function instancePdfReport(req, res) {
   
     return new Promise(async function (resolve, reject) {
   
@@ -253,9 +268,24 @@ exports.instanceObservationScoreReport = async function (req, res) {
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
             }
-  
-            bodyParam.filter.fields[0].value = req.body.submissionId;
-  
+
+             //if filter is given
+             if (req.body.filter) {
+              if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
+                let filter = {};
+                questionFilter = await filterCreate(req.body.filter.questionId);
+                filter =  { "type": "or", "fields": questionFilter };
+                bodyParam.filter.fields[0].value = req.body.submissionId;
+                bodyParam.filter.fields.push(filter);
+              }
+              else {
+                bodyParam.filter.fields[0].value = req.body.submissionId;
+              }
+            }
+            else {
+              bodyParam.filter.fields[0].value = req.body.submissionId;
+            }
+        
             //pass the query as body param and get the resul from druid
             var options = config.druid.options;
             options.method = "POST";
@@ -267,7 +297,7 @@ exports.instanceObservationScoreReport = async function (req, res) {
                 "data": "SUBMISSION_ID_NOT_FOUND"
               });
             } else {
-  
+              console.log(data);
               var responseObj = await helperFunc.instanceScoreReportChartObjectCreation(data);
               resolve(responseObj);
             }
@@ -288,7 +318,7 @@ exports.instanceObservationScoreReport = async function (req, res) {
   
   
 //Instance observation score pdf generation
-exports.instanceObservationScorePdfFunc = async function (req, res) {
+async function instanceObservationScorePdfFunc(req, res) {
   
     return new Promise(async function (resolve, reject) {
   
@@ -383,9 +413,26 @@ exports.entity = async function (req, res) {
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
             }
-  
-            bodyParam.filter.fields[0].value = req.body.entityId;
-            bodyParam.filter.fields[1].value = req.body.observationId;
+
+             //if filter is given
+             if (req.body.filter) {
+              if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
+
+                let filter = {};
+                questionFilter = await filterCreate(req.body.filter.questionId);
+                filter = { "type": "and", "fields": [{"type":"and","fields":[{"type": "selector", "dimension": "school", "value": req.body.entityId },{"type": "selector", "dimension": "observationId", "value": req.body.observationId }]}, { "type": "or", "fields": questionFilter }] };
+                bodyParam.filter = filter;
+                
+              }
+              else {
+                bodyParam.filter.fields[0].value = req.body.entityId;
+                bodyParam.filter.fields[1].value = req.body.observationId;
+              }
+            }
+            else {
+              bodyParam.filter.fields[0].value = req.body.entityId;
+              bodyParam.filter.fields[1].value = req.body.observationId;
+            }
   
             //pass the query as body param and get the resul from druid
             var options = config.druid.options;
@@ -416,7 +463,7 @@ exports.entity = async function (req, res) {
   
   
 //Controller for entity observation pdf generation
-exports.entityObservationPdf = async function (req, res) {
+async function entityObservationPdf(req, res) {
   
     return new Promise(async function (resolve, reject) {
   
@@ -578,7 +625,7 @@ exports.entityObservationReport = async function entityObservationReport(req, re
   
   
 //Function for entity observation report PDF generation
-exports.entityObservationReportPdfGeneration = async function (req, res) {
+async function entityObservationReportPdfGeneration(req, res) {
   
     return new Promise(async function (resolve, reject) {
   
@@ -706,10 +753,28 @@ exports.entityScoreReport = async function (req, res) {
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
             }
-  
-            bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
-            bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
-  
+
+
+             //if filter is given
+             if (req.body.filter) {
+              if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
+                let filter = {};
+                questionFilter = await filterCreate(req.body.filter.questionId);
+                filter =  { "type": "or", "fields": questionFilter };
+                bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+                bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
+                bodyParam.filter.fields.push(filter);
+              }
+              else {
+                bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+                bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
+              }
+            }
+            else {
+              bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+              bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
+            }
+
             //pass the query as body param and get the resul from druid
             var options = config.druid.options;
             options.method = "POST";
@@ -744,7 +809,7 @@ exports.entityScoreReport = async function (req, res) {
   }
   
 //Entity observation score pdf generation
-exports.entityObservationScorePdfFunc = async function (req, res) {
+async function entityObservationScorePdfFunc(req, res) {
   
     return new Promise(async function (resolve, reject) {
   
@@ -1206,17 +1271,34 @@ async function observationReportData(req, res) {
             model.MyModel.findOneAsync({ qid: "observation_report_query" }, { allow_filtering: true })
                 .then(async function (result) {
 
-                    var bodyParam = JSON.parse(result.query);
-                    if (config.druid.observation_datasource_name) {
-                        bodyParam.dataSource = config.druid.observation_datasource_name;
-                    }
-                    bodyParam.filter.value = req.body.observationId;
+                  var bodyParam = JSON.parse(result.query);
+                  if (config.druid.observation_datasource_name) {
+                    bodyParam.dataSource = config.druid.observation_datasource_name;
+                  }
 
-                    //pass the query as body param and get the resul from druid
-                    var options = config.druid.options;
-                    options.method = "POST";
-                    options.body = bodyParam;
-                    var data = await rp(options);
+                  //if filter is given
+                  if (req.body.filter) {
+                    if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
+
+                      let filter = {};
+                      questionFilter = await filterCreate(req.body.filter.questionId);
+                      filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "or", "fields": questionFilter }] };
+                      bodyParam.filter = filter;
+
+                    }
+                    else {
+                      bodyParam.filter.value = req.body.observationId;
+                    }
+                  }
+                  else {
+                    bodyParam.filter.value = req.body.observationId;
+                  }
+
+                  //pass the query as body param and get the resul from druid
+                  var options = config.druid.options;
+                  options.method = "POST";
+                  options.body = bodyParam;
+                  var data = await rp(options);
 
                     //if no data throw error message
                     if (!data.length) {
@@ -1245,7 +1327,7 @@ async function observationReportData(req, res) {
 
 
 //Controller for observation pdf report
-exports.observationGenerateReport = async function(req, res) {
+async function observationGenerateReport(req, res) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -1380,8 +1462,23 @@ async function observationScoreReport(req, res) {
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
             }
-  
-            bodyParam.filter.fields[0].value = req.body.observationId;
+            
+             //if filter is given
+             if (req.body.filter) {
+              if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
+                let filter = {};
+                questionFilter = await filterCreate(req.body.filter.questionId);
+                filter =  { "type": "or", "fields": questionFilter };
+                bodyParam.filter.fields[0].value = req.body.observationId;
+                bodyParam.filter.fields.push(filter);
+              }
+              else {
+                bodyParam.filter.fields[0].value = req.body.observationId;
+              }
+            }
+            else {
+              bodyParam.filter.fields[0].value = req.body.observationId;
+            }
   
             //pass the query as body param and get the resul from druid
             var options = config.druid.options;
@@ -1451,7 +1548,7 @@ async function getTotalSchools(observationId,token) {
   
 
 //Observation score pdf generation 
-exports.observationScorePdfFunc = async function (req, res) {
+async function observationScorePdfFunc(req, res) {
 
     return new Promise (async function (resolve,reject){
   
@@ -2019,4 +2116,15 @@ async function entitySolutionReportGeneration(req, res) {
 
 }
 
+// Function for preparing filter
+async function filterCreate(questions) {
 
+  let fieldsArray = [];
+
+  await Promise.all(questions.map(element => {
+    let filterObj = { "type": "selector", "dimension": "questionExternalId", "value": element };
+    fieldsArray.push(filterObj);
+  }))
+    
+  return fieldsArray;
+}
