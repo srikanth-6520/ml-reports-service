@@ -4,8 +4,11 @@ const request = require('request');
 const model = require('../../db')
 const helperFunc = require('../../helper/chart_data');
 const pdfHandler = require('../../helper/common_handler');
+var commonCassandraFunc = require('../../common/cassandra_func');
 const authService = require('../../middleware/authentication_service');
 const observationController = require('../v1/observations');
+const url = require("url");
+const omit = require('object.omit');
 
 //Controller for entity solution report (cluster/block/zone/district)
 exports.entitySolutionReport = async function (req, res) {
@@ -106,7 +109,6 @@ exports.entitySolutionReportPdfGeneration = async function (req, res) {
 
   return new Promise (async function (resolve,reject){
 
-    req.body = req.query;
     var entityResponse = await entitySolutionReportGeneration(req, res);
 
     if (("solutionName" in entityResponse) == true) {
@@ -352,29 +354,29 @@ exports.pdfReports = async function (req, res) {
 
      if (req.body.observationId && req.body.entityId) {
 
-          let resObj = await observationController.entityObservationPdf(req, res);
+          let resObj = await entityObservationPdf(req, res);
           res.send(resObj);
       }
       else if (req.body.submissionId) {
 
-          let resObj = await observationCOntroller.instancePdfReport(req, res);
+          let resObj = await instancePdfReport(req, res);
           res.send(resObj);
 
       } 
       else if (req.body.observationId) {
 
-          let resObj = await observationController.observationGenerateReport(req, res);
+          let resObj = await observationGenerateReport(req, res);
           res.send(resObj);
 
       }
       else if (req.body.entityId && req.body.entityType && req.body.solutionId) {
 
-          let resObj = await observationController.entitySolutionReportPdfGeneration(req, res);
+          let resObj = await entitySolutionReportPdfGeneration(req, res);
           res.send(resObj);
       }
       else if (req.body.entityId && req.body.entityType && req.body.solutionId && req.body.reportType) {
 
-          let resObj = await observationController.entitySolutionReportPdfGeneration(req, res);
+          let resObj = await entitySolutionReportPdfGeneration(req, res);
           res.send(resObj);
       }
       else {
@@ -385,4 +387,127 @@ exports.pdfReports = async function (req, res) {
       }
   })
 
+}
+
+
+//Funcion for instance observation pdf generation
+async function instancePdfReport(req, res) {
+  
+  return new Promise(async function (resolve, reject) {
+
+    let reqData = req.body;
+    var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
+
+    if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
+
+      dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
+      let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
+
+      var response = {
+        status: "success",
+        message: 'Observation Pdf Generated successfully',
+        pdfUrl: signedUlr
+      };
+
+      resolve(response);
+
+    } else {
+
+      var instaRes = await observationController.instanceObservationData(req, res);
+
+      if (("observationName" in instaRes) == true) {
+        let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes);
+
+        if (dataReportIndexes) {
+          var reqOptions = {
+            query: dataReportIndexes.id,
+            downloadPath: resData.downloadPath
+          }
+          commonCassandraFunc.updateInstanceDownloadPath(reqOptions);
+        } else {
+          let dataInsert = commonCassandraFunc.insertReqAndResInCassandra(reqData, instaRes, resData.downloadPath);
+        }
+
+        // res.send(resData);
+        resolve(omit(resData, 'downloadPath'));
+      }
+
+      else {
+        resolve(instaRes);
+      }
+    }
+  });
+};
+
+
+
+//Controller for entity observation pdf generation
+async function entityObservationPdf(req, res) {
+  
+  return new Promise(async function (resolve, reject) {
+
+    let responseData = await observationController.entityObservationData(req, res);
+
+    if (("observationName" in responseData) == true) {
+
+      let resData = await pdfHandler.pdfGeneration(responseData, true);
+
+      if (resData.status && resData.status == "success") {
+
+        var hostname = req.headers.host;
+        var pathname = url.parse(req.url).pathname;
+
+        console.log(pathname, "responseData", hostname);
+
+        var obj = {
+          status: "success",
+          message: 'Observation Pdf Generated successfully',
+          pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        }
+
+        resolve(obj);
+
+      } else {
+        resolve(resData);
+      }
+    }
+    else {
+      resolve(responseData);
+    }
+
+  });
+}
+
+//Controller for observation pdf report
+async function observationGenerateReport(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+      let responseData = await observationController.observationReportData(req, res);
+
+      if (("observationName" in responseData) == true) {
+
+          let resData = await pdfHandler.pdfGeneration(responseData, true);
+
+          if (resData.status && resData.status == "success") {
+              var hostname = req.headers.host;
+              var pathname = url.parse(req.url).pathname;
+              console.log(pathname, "responseData", hostname);
+              var obj = {
+                  status: "success",
+                  message: 'Observation Pdf Generated successfully',
+                  pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+              }
+
+              resolve(obj);
+          } else {
+              resolve(resData);
+          }
+      }
+      else {
+          resolve(responseData);
+      }
+
+
+  });
 }
