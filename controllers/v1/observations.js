@@ -11,7 +11,6 @@ var authService = require('../../middleware/authentication_service');
 var rimraf = require("rimraf");
 var fs = require('fs');
 const path = require('path');
-let observationController = require('../v2/observations');
 
 
 /**
@@ -297,7 +296,6 @@ exports.instanceObservationScoreReport = async function (req, res) {
                 "data": "SUBMISSION_ID_NOT_FOUND"
               });
             } else {
-              console.log(data);
               var responseObj = await helperFunc.instanceScoreReportChartObjectCreation(data);
               resolve(responseObj);
             }
@@ -480,8 +478,7 @@ async function entityObservationPdf(req, res) {
   
           var hostname = req.headers.host;
           var pathname = url.parse(req.url).pathname;
-  
-          console.log(pathname, "responseData", hostname);
+
   
           var obj = {
             status: "success",
@@ -966,8 +963,6 @@ async function entitySolutionScoreReportGeneration(req, res) {
               bodyParam.filter.fields[1].fields.push(filter);
             }
   
-            console.log(bodyParam);
-  
             //pass the query as body param and get the result from druid
             var options = config.druid.options;
             options.method = "POST";
@@ -1341,7 +1336,7 @@ async function observationGenerateReport(req, res) {
             if (resData.status && resData.status == "success") {
                 var hostname = req.headers.host;
                 var pathname = url.parse(req.url).pathname;
-                console.log(pathname, "responseData", hostname);
+               
                 var obj = {
                     status: "success",
                     message: 'Observation Pdf Generated successfully',
@@ -1874,12 +1869,12 @@ exports.pdfReports = async function (req, res) {
         }
         else if (req.query.entityId && req.query.entityType && req.query.solutionId) {
 
-            let resObj = await observationController.entitySolutionReportPdfGeneration(req, res);
+            let resObj = await entitySolutionReportPdfGeneration(req, res);
             res.send(resObj);
         }
         else if (req.query.entityId && req.query.entityType && req.query.solutionId && req.query.reportType) {
 
-            let resObj = await observationController.entitySolutionReportPdfGeneration(req, res);
+            let resObj = await entitySolutionReportPdfGeneration(req, res);
             res.send(resObj);
         }
         else {
@@ -1945,7 +1940,7 @@ exports.pdfReportsUrl = async function (req, response) {
     try {
 
     var folderPath = Buffer.from(req.query.id, 'base64').toString('ascii')
-    console.log(folderPath, "req", __dirname + '../' + req.query.id);
+   
     fs.readFile(__dirname + '/../../' + folderPath + '/pdfReport.pdf', function (err, data) {
         if (!err) {
 
@@ -1971,14 +1966,13 @@ exports.pdfReportsUrl = async function (req, response) {
     
             }catch(exp){
 
-                console.log("error",exp)
+                
 
             }
             response.end();
           
         } else {
             response.send("File Not Found");
-            console.log(err);
         }
 
     });
@@ -2116,6 +2110,40 @@ async function entitySolutionReportGeneration(req, res) {
 
 }
 
+//Function for entity solution report PDF generation
+exports.entitySolutionReportPdfGeneration = async function (req, res) {
+
+  return new Promise (async function (resolve,reject){
+
+    req.body = req.query;
+    var entityResponse = await entitySolutionReportGeneration(req, res);
+
+    if (("solutionName" in entityResponse) == true) {
+
+      let obj = {
+        solutionName: entityResponse.solutionName
+      }
+
+      let resData = await pdfHandler.pdfGeneration(entityResponse, true, obj);
+      let hostname = req.headers.host;
+
+      var responseObject = {
+        "status": "success",
+        "message": "report generated",
+        pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      }
+      resolve(responseObject);
+    }
+
+    else {
+      resolve(entityResponse);
+    }
+  });
+  
+};
+
+
+
 // Function for preparing filter
 async function filterCreate(questions) {
 
@@ -2128,3 +2156,8 @@ async function filterCreate(questions) {
     
   return fieldsArray;
 }
+
+
+module.exports.instanceObservationData = instanceObservationData;
+module.exports.entityObservationData = entityObservationData;
+module.exports.observationReportData = observationReportData;
