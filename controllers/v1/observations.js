@@ -2143,6 +2143,101 @@ exports.entitySolutionReportPdfGeneration = async function (req, res) {
 };
 
 
+//Controller for entity solution report (cluster/block/zone/district)
+exports.allEvidences = async function (req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    let responseData = await allevidencesList(req, res);
+    res.send(responseData);
+
+  })
+
+};
+
+
+// async function allevidencesList(req, res) {
+//   return new Promise(async function (resolve, reject) {
+
+//     if (!req.body.submissionId && !req.body.questionId) {
+//       var response = {
+//         result: false,
+//         message: 'submissionId and questionId are required fields'
+//       }
+//       resolve(response);
+
+//     } else if (!req.body.entityId && !req.body.observationId && !req.body.questionId) {
+//       var response = {
+//         result: false,
+//         message: 'entityId, observationId and questionId are required fields'
+//       }
+//       resolve(response);
+
+//     } else if (!req.body.observationId && !req.body.questionId) {
+//       var response = {
+//         result: false,
+//         message: 'observationId and questionId are required fields'
+//       }
+//       resolve(response);
+
+//     } else {
+
+//       model.MyModel.findOneAsync({ qid: "list_all_evidence_query" }, { allow_filtering: true })
+//       .then(async function (result) {
+
+//         var bodyParam = JSON.parse(result.query);
+
+//         if (config.druid.observation_datasource_name) {
+//           bodyParam.dataSource = config.druid.observation_datasource_name;
+//         }
+        
+//         let filter = {};
+
+//         if(req.body.submissionId && req.body.questionId){
+//          filter = {"type":"and",fields:[{"type":"selector","dimension":"observationSubmissionId","value":req.body.submissionId},{"type":"selector","dimension":"questionExternalId","value":req.body.questionId}]};
+//         }
+//         else if(req.body.entityId && req.body.observationId && req.body.questionId){
+//          filter = {"type":"and",fields:[{"type":"selector","dimension":"school","value":req.body.entityId},{"type":"selector","dimension":"observationId","value":req.body.observationId},{"type":"selector","dimension":"questionExternalId","value":req.body.questionId}]};
+//         }
+//         else if(req.body.observationId && req.body.questionId){
+//          filter = {"type":"and",fields:[{"type":"selector","dimension":"observationId","value":req.body.observationId},{"type":"selector","dimension":"questionExternalId","value":req.body.questionId}]};
+//         }
+
+//         bodyParam.filter = filter ;
+
+//         //pass the query as body param and get the resul from druid
+//         var options = config.druid.options;
+//         options.method = "POST";
+//         options.body = bodyParam;
+//         var data = await rp(options);
+
+//         if (!data.length) {
+//           resolve({
+//              "data": "Evidence_NOT_FOUND"
+//            });
+//          } else {
+
+//            var responseObj = await helperFunc.evidenceResponseCreateFunc(data);
+//            resolve(responseObj);
+//          }
+
+//       })
+//       .catch (err => {
+//         var response = {
+//           result: false,
+//           message: 'Data not found'
+//         };
+//         resolve(response);
+
+//       })
+
+
+//     }
+
+
+//   })
+
+// }
 
 // Function for preparing filter
 async function filterCreate(questions) {

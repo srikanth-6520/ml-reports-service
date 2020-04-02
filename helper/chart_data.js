@@ -1676,3 +1676,15 @@ var questionListObjectCreation = async function(data){
   return questionArray;
 
 }
+
+
+
+// exports.evidenceResponseCreateFunc = async function(data){
+//     let evidenceList = [];
+//     await Promise.all(data.map(element => {
+      
+//         if(!evidenceList.includes(element.event.fileSourcePath))
+
+
+//     }))
+// }
