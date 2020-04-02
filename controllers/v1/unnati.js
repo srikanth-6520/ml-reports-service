@@ -106,3 +106,48 @@ exports.viewProjectReport = async function(req,res){
     response.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + response.pdfUrl
     res.send(response);
 }
+
+
+/**
+   * @api {post} /dhiti/api/v1/unnati/addTaskReport 
+   * Add task report
+   * @apiVersion 1.0.0
+   * @apiGroup Unnati
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+   "projectName": "",
+   "goal": "",
+   "duration": "",
+   "startDate": "",
+   "assigneeName": "",
+   "tasks": {
+      "title": "",
+      "endDate": "",
+      "attachments": [
+         {
+           "name": ""
+         }
+      ]
+   }
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "status": "",
+       "message": "",
+       "pdfUrl": ""
+*     }
+   * @apiUse errorBody
+   */
+
+   
+//Controller function for unnati add task pdf generation
+exports.addTaskReport = async function(req,res){
+
+   let response = await pdfHandler.addTaskPdfGeneration(req.body,true);
+   let hostname = req.headers.host;
+ 
+   response.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+   res.send(response);
+}
