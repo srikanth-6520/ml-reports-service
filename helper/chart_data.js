@@ -1745,7 +1745,7 @@ async function getEvidenceData(questionExternalId, evidenceData, token) {
     //loop the array, split the fileSourcePath and push it into array
     await Promise.all(filteredData.map (fileData => {
       
-        files = fileData.fileSourcePath.split("#");
+        files = fileData.fileSourcePath.split(",");
         filePath.push(files);
 
     }));
