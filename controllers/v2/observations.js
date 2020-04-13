@@ -316,8 +316,6 @@ async function getCreatedByField(req, res) {
   
         let token = await authService.validateToken(req, res);
   
-        console.log("fetched token");
-  
         resolve(token.userId);
   
     })

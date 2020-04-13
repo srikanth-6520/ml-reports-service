@@ -1,6 +1,9 @@
 const moment = require("moment");
 let obsScoreOrder = 0;
 const config = require('../config/config');
+const path = require("path");
+const filesHelper = require('../common/files_helper');
+const kendraService = require('./kendra_service');
 
 //function for instance observation final response creation
 exports.instanceReportChart = async function (data) {
@@ -1679,12 +1682,149 @@ var questionListObjectCreation = async function(data){
 
 
 
-// exports.evidenceResponseCreateFunc = async function(data){
-//     let evidenceList = [];
-//     await Promise.all(data.map(element => {
+// Create evidenceList
+exports.getEvidenceList = async function(data){
+    
+    let evidenceList = [];
+    let filePath;
+
+    await Promise.all(data.map(element => {
+        
+        filePath = element.event.fileSourcePath;
+
+        if(!evidenceList.includes(filePath)){
+            evidenceList.push(filePath);
+        }
+    }));
+    
+    return evidenceList;
+}
+
+
+
+//evidence chart object creation
+exports.evidenceChartObjectCreation = async function (chartData, evidenceData, token) {
+
+    let i = 0;
+    let j = 0;
+
+    await Promise.all(chartData.response.map(async element => {
+        if (element.instanceQuestions.length == 0) {
+
+            if (element.totalCount >= 1) {
+                let evidence = await getEvidenceData([element.order], evidenceData, token);
+                chartData.response[i].push(evidence);
+            }
+
+            i++;
+
+        } else {
+
+            await Promise.all(element.instanceQuestions.map(async ele => {
+
+                if (ele.totalCount >= 1) {
+                    let evidence = await getEvidenceData([ele.order], evidenceData, token);
+                    chartData.response[i].instanceQuestions[j].push(evidence);
+                }
+              
+              j++ ;
+            }));
+        }
+
+    }));
+}
+
+
+// Extract fileSourcePath, get the downloadable url from kendra service
+async function getEvidenceData(questionExternalId, evidenceData, token) {
+
+    let filteredData = evidenceData.filter(data => questionExternalId.includes(data.questionExternalId));
+    
+    let filePath = [];
+    
+    //loop the array, split the fileSourcePath and push it into array
+    await Promise.all(filteredData.map (fileData => {
       
-//         if(!evidenceList.includes(element.event.fileSourcePath))
+        files = fileData.fileSourcePath.split("#");
+        filePath.push(files);
+
+    }));
+
+    let filePaths = Array.prototype.concat(...filePath);
+     
+    let filesArray;
+
+    if (filePaths.length > config.evidence.evidence_threshold) {
+        filesArray = filePaths.slice(0, config.evidence.evidence_threshold);
+    } else {
+        filesArray = filePaths;
+    }
+
+    let downloadableUrl = await kendraService.getDownloadableUrl(filesArray, token);
+
+    let evidenceArray = [];
+
+    await Promise.all(downloadableUrl.map(element => {
+
+        let ext = path.extname(element.filePath);
+
+        let obj = {};
+        obj.url = element.url;
+        obj.extension = ext
+
+        evidenceArray.push(obj);
+
+    }))
+
+    return evidenceArray;
+}
 
 
-//     }))
-// }
+// Response object creation for allEvidences API
+exports.evidenceResponseCreateFunc = async function (result) {
+
+    let evidenceList = {
+        images: [],
+        videos: [],
+        documents: [],
+        remarks: []
+    };
+
+    await Promise.all(result.map(element => {
+        
+        let obj = {};
+        let filePath = element.filePath;
+
+        let extension = path.extname(filePath);
+
+        let ext = extension.split('.').join("");
+
+
+        if (filesHelper.imageFormats.includes(ext)) {
+
+           obj.filePath = filePath;
+           obj.url = element.url;
+           obj.extension =  ext;
+           evidenceList.images.push(obj);
+
+        } else if ( filesHelper.videoFormats.includes(ext)){
+
+           obj.filePath = filePath;
+           obj.url = element.url;
+           obj.extension =  ext;
+           evidenceList.videos.push(obj);
+
+        } else if ( filesHelper.documentFormats.includes(ext)){
+
+            obj.filePath = element.filePath;
+            obj.url = element.url;
+            obj.extension =  ext;
+            evidenceList.documents.push(obj);
+ 
+         }
+
+
+    }))
+
+    return evidenceList;
+}

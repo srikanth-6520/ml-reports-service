@@ -34,6 +34,11 @@
  "threshold_in_entity_score_api": 5
  "threshold_in_observation_score_api": 2
 },
+ 
+  "evidence" : {
+        "evidence_threshold": 3,
+        "gcp_bucket_name": "GCP_STORAGE_NAME"
+    },
 
  "keycloak": {
     "sunbird_keycloak_auth_server_url": "",
@@ -48,6 +53,10 @@
        "observation_details_api":"SAMIKSHA_OBSERVATION_DETAILS_API"
     },
     
+     "kendra" : {
+        "getDownloadableUrl_api": "KENDRA_GETDOWNLOADABLE_API"
+    },
+
  "optionsHtmlToPdf":{ 
       "method":"POST",
       "uri":"",
