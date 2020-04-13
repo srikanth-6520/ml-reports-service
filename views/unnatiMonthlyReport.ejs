@@ -65,8 +65,12 @@
             <tbody style="font-size:12px !important">
                 <% for (var j=0;j < data.projectArray[i].tasks.length; j++) { %>
                 <tr>
+                    <% if(data.projectArray[i].tasks[j]["title"]) {%>
                     <td><%= data.projectArray[i].tasks[j].title %></td>
+                    <% } %>
+                    <% if(data.projectArray[i].tasks[j]["subTasks"]) {%>
                     <td style="text-align: center !important"><%= data.projectArray[i].tasks[j].subTasks.length %></td>
+                    <% } %>
 
                     <% if(data.projectArray[i].tasks[j].startDate) {%>
                     <% var startDate = new Date(data.projectArray[i].tasks[j].startDate) %>
@@ -102,7 +106,7 @@
                     <% } %>
 
 
-                    <% if(data.projectArray[i].tasks[j].status != "") { %>
+                    <% if(data.projectArray[i].tasks[j]["status"] && data.projectArray[i].tasks[j].status != "") { %>
                     <% if(data.projectArray[i].tasks[j].status.toLowerCase() == "completed") { %>
                     <td style="background-color:#6abf34 !important">Complete</td>
                     <% } else if(data.projectArray[i].tasks[j].status.toLowerCase() == "in progress") {%>

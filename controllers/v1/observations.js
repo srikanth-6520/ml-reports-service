@@ -38,7 +38,10 @@ const kendraService = require('../../helper/kendra_service');
          "responseType": "",
          "answers": [],
          "chart": {},
-         "instanceQuestions":[]
+         "instanceQuestions":[],
+         "evidences":[
+              {url:"", extension:""},
+            ]
        }]
 *     }
    * @apiUse errorBody
@@ -247,7 +250,11 @@ async function instancePdfReport(req, res) {
                 }
             ]
           }
-        }]
+        },
+        "evidences":[
+              {url:"", extension:""},
+          ]
+      ]
 *     }
    * @apiUse errorBody
    */
@@ -409,7 +416,10 @@ async function instanceObservationScorePdfFunc(req, res) {
           "responseType": "",
           "answers": "",
           "chart": {},
-          "instanceQuestions": []
+          "instanceQuestions": [],
+          "evidences":[
+              {url:"", extension:""}
+          ]
        }]
 *     }
    * @apiUse errorBody
@@ -1289,7 +1299,10 @@ async function getCreatedByField(req, res) {
           "responseType": "",
           "answers": "",
           "chart": {},
-          "instanceQuestions": []
+          "instanceQuestions": [],
+          "evidences":[
+              {url:"", extension:""},
+          ]
        }]
 *     }
    * @apiUse successBody
@@ -1491,7 +1504,11 @@ async function observationGenerateReport(req, res) {
             }]
 
           }
-        }]
+        },
+        "evidences":[
+            {url:"", extension:""},
+        ]
+      ]
 *     }
    * @apiUse errorBody
    */
@@ -2231,13 +2248,37 @@ exports.entitySolutionReportPdfGeneration = async function (req, res) {
 };
 
 
+/**
+   * @api {post} /dhiti/api/v1/observations/listAllEvidences 
+   * List all evidence 
+   * @apiVersion 1.0.0
+   * @apiGroup Observations
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "entityId": "",
+  "observationId": ""
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "result": true,
+       "data": [{
+          "images":[{"url":"", "extension":""}],
+          "videos":[{"url":"", "extension":""}],
+          "documents":[{"url":"", "extension":""}],
+          "remarks":[]
+        }]
+*     }
+   * @apiUse errorBody
+   */
 
 //controller for all evidence API
-exports.allEvidences = async function (req, res) {
+exports.listAllEvidences = async function (req, res) {
 
   return new Promise(async function (resolve, reject) {
 
-    let responseData = await allevidencesList(req, res);
+    let responseData = await allEvidencesList(req, res);
     res.send(responseData);
 
   })
@@ -2245,7 +2286,8 @@ exports.allEvidences = async function (req, res) {
 };
 
 
-async function allevidencesList(req, res) {
+//Function for getting all the evidences of a question
+async function allEvidencesList(req, res) {
   return new Promise(async function (resolve, reject) {
 
     if (!req.body.submissionId && !req.body.questionId) {
