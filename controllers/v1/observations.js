@@ -118,14 +118,14 @@ async function instanceObservationData(req, res) {
                 }
 
                 let evidenceData = await getEvidenceData(inputObj);
-                
                 let responseObj;
 
                 if(evidenceData.result) {
-                    responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData,req.headers["x-auth-token"]);
+                    responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-auth-token"]);
                 } else {
                     responseObj = chartData;
                 }
+
                 resolve(responseObj);
                 commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj);
               }
@@ -2318,8 +2318,8 @@ async function allEvidencesList(req, res) {
 
           var bodyParam = JSON.parse(result.query);
 
-          if (config.druid.observation_datasource_name) {
-            bodyParam.dataSource = config.druid.observation_datasource_name;
+          if (config.druid.evidence_datasource_name) {
+            bodyParam.dataSource = config.druid.evidence_datasource_name;
           }
 
           let filter = {};
@@ -2394,21 +2394,25 @@ async function getEvidenceData(inputObj) {
     model.MyModel.findOneAsync({ qid: "get_evidence_query" }, { allow_filtering: true })
       .then(async function (result) {
 
+        let submissionId = inputObj.submissionId;
+        let entityId = inputObj.entity;
+        let observationId = inputObj.observationId;
+
         var bodyParam = JSON.parse(result.query);
         
         //based on the given input change the filter
         let filter = {};
 
-        if (inputObj.submissionId) {
+        if (submissionId) {
           filter = { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }
-        } else if(inputObj.entityId && inputObj.observationId) {
+        } else if(entityId && observationId) {
           filter = {"type":"and","fileds":[{"type": "selector", "dimension": "school", "value": entityId},{"type": "selector", "dimension": "observationId", "value": observationId}]}
-        } else if(inputObj.observationId) {
+        } else if(observationId) {
           filter = { "type": "selector", "dimension": "observationId", "value": observationId }
         }
 
-        if (config.druid.observation_datasource_name) {
-          bodyParam.dataSource = config.druid.observation_datasource_name;
+        if (config.druid.evidence_datasource_name) {
+          bodyParam.dataSource = config.druid.evidence_datasource_name;
         }
          
         bodyParam.filter = filter;
@@ -2425,7 +2429,7 @@ async function getEvidenceData(inputObj) {
             "data": "EVIDENCE_NOT_FOUND"
           });
         } else {
-          resolve(data);
+          resolve({"result":true,"data":data});
         }
       })
       .catch(function (err) {
@@ -2437,6 +2441,7 @@ async function getEvidenceData(inputObj) {
       });
   })
 }
+
 
 module.exports.instanceObservationData = instanceObservationData;
 module.exports.entityObservationData = entityObservationData;

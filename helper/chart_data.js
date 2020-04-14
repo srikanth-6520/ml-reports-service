@@ -10,7 +10,7 @@ exports.instanceReportChart = async function (data) {
     var obj;
     var multiSelectArray = [];
     var matrixArray = [];
-    var order;
+    var order = "questionExternalId";
     let actualData = data;
 
     try {
@@ -25,20 +25,8 @@ exports.instanceReportChart = async function (data) {
             response: []
         }
         
-        //If questionSequenceByEcm is not null, then convert ecm number from string to int
-        if(data[0].event.questionSequenceByEcm != null){
-           data = await sequenceNumberTypeConvertion(data);
-        }
-           
 
         await Promise.all(data.map(element => {
-
-            if (element.event.questionSequenceByEcm != null) {
-                order = "questionSequenceByEcm";
-            } else {
-                order = "questionExternalId";
-            }
-
 
             // Response object creation for text, slider, number and date type of questions
             if (element.event.questionResponseType == "text" && element.event.instanceParentResponsetype != "matrix" || element.event.questionResponseType == "slider" && element.event.instanceParentResponsetype != "matrix" || element.event.questionResponseType == "number" && element.event.instanceParentResponsetype != "matrix" || element.event.questionResponseType == "date" && element.event.instanceParentResponsetype != "matrix") {
@@ -154,11 +142,8 @@ async function instanceMultiselectFunc(data) {
 
         labelArray.push(element.event.questionResponseLabel);
     
-        if (element.event.questionSequenceByEcm != null) {
-            order = element.event.questionSequenceByEcm;
-        } else {
-            order = element.event.questionExternalId;
-        }
+        order = element.event.questionExternalId;
+    
         question = element.event.questionName;
         responseType = element.event.questionResponseType;
     }))
@@ -220,9 +205,9 @@ exports.entityReportChart = async function (data,entityId,entityName) {
         }
 
         //If questionSequenceByEcm is not null, then convert ecm number from string to int
-        if (data[0].event.questionSequenceByEcm != null) {
-            data = await sequenceNumberTypeConvertion(data);
-        }
+        // if (data[0].event.questionSequenceByEcm != null) {
+        //     data = await sequenceNumberTypeConvertion(data);
+        // }
 
         //filter all the objects whose questionResponseType is multiselect
         await Promise.all(data.map(element => {
@@ -359,11 +344,11 @@ async function matrixResponseObjectCreateFunc(data){
     var noOfInstances = [];
     let order;
 
-    if(data[0].event.instanceParentEcmSequence != null){
-        order = "instanceParentEcmSequence";
-    } else {
+    // if(data[0].event.instanceParentEcmSequence != null){
+    //     order = "instanceParentEcmSequence";
+    // } else {
         order = "instanceParentExternalId";
-    }
+    // }
     
      //To get the latest edited question
      let questionObject = data.sort(custom_sort);
@@ -467,12 +452,12 @@ async function responseObjectCreateFunc(data) {
          }
         dataArray.push(data[i].event.questionAnswer);
 
-        if(data[i].event.questionSequenceByEcm != null){
+        // if(data[i].event.questionSequenceByEcm != null){
 
-            order = data[i].event.questionSequenceByEcm;
-        } else {
+        //     order = data[i].event.questionSequenceByEcm;
+        // } else {
             order = data[i].event.questionExternalId;
-        } 
+        // } 
 
         responseType = data[i].event.questionResponseType;
      }
@@ -522,12 +507,12 @@ async function radioObjectCreateFunc(data,noOfSubmissions) {
             labelArray.push(data[i].event.questionResponseLabel);
         }
         
-        if(data[i].event.questionSequenceByEcm != null){
+        // if(data[i].event.questionSequenceByEcm != null){
 
-            order = data[i].event.questionSequenceByEcm;
-        } else {
+        //     order = data[i].event.questionSequenceByEcm;
+        // } else {
             order = data[i].event.questionExternalId;
-        } 
+        // } 
         
         
         responseType = data[i].event.questionResponseType;
@@ -620,12 +605,12 @@ async function multiSelectObjectCreateFunc(data,noOfSubmissions) {
         chartdata.push(value);
     }
 
-    if(data[0].event.questionSequenceByEcm != null){
+    // if(data[0].event.questionSequenceByEcm != null){
 
-        order = data[0].event.questionSequenceByEcm;
-    } else {
+    //     order = data[0].event.questionSequenceByEcm;
+    // } else {
         order = data[0].event.questionExternalId;
-    } 
+    // } 
 
     //To get the latest edited question
     let questionObject = data.sort(custom_sort);
@@ -1685,98 +1670,180 @@ var questionListObjectCreation = async function(data){
 // Create evidenceList
 exports.getEvidenceList = async function(data){
     
-    let evidenceList = [];
-    let filePath;
+    let filePath = [];
 
     await Promise.all(data.map(element => {
         
-        filePath = element.event.fileSourcePath;
+        files = element.event.fileSourcePath.split(",");
+        filePath.push(files);
 
-        if(!evidenceList.includes(filePath)){
-            evidenceList.push(filePath);
-        }
     }));
+
+    let evidenceList = Array.prototype.concat(...filePath);
     
     return evidenceList;
 }
 
 
+//Evidence array creation function
+exports.evidenceChartObjectCreation = async function(chartData, evidenceData, token){
 
-//evidence chart object creation
-exports.evidenceChartObjectCreation = async function (chartData, evidenceData, token) {
 
-    let i = 0;
-    let j = 0;
-
+    let filesArray = [];
+    let questionData = [];
+   
     await Promise.all(chartData.response.map(async element => {
-        if (element.instanceQuestions.length == 0) {
+        
+        let filteredData = evidenceData.filter(data => element.order.includes(data.event.questionExternalId));
+   
+        if(filteredData.length > 0) {
+        let result = await evidenceArrayCreation(element.order, evidenceData);
+    
+        filesArray.push(result[0]);
+        questionData.push(result[1]);
 
-            if (element.totalCount >= 1) {
-                let evidence = await getEvidenceData([element.order], evidenceData, token);
-                chartData.response[i].push(evidence);
-            }
-
-            i++;
-
-        } else {
-
+        if(element.instanceQuestions.length > 0){
+          
             await Promise.all(element.instanceQuestions.map(async ele => {
+            
+            let filteredData = evidenceData.filter(data => ele.order.includes(data.event.questionExternalId));
+            
+            if(filteredData.length > 0) {
+            let response = await evidenceArrayCreation(ele.order, evidenceData);
 
-                if (ele.totalCount >= 1) {
-                    let evidence = await getEvidenceData([ele.order], evidenceData, token);
-                    chartData.response[i].instanceQuestions[j].push(evidence);
-                }
-              
-              j++ ;
+            filesArray.push(response[0]);
+            questionData.push(response[1]);
+
+            }
+ 
             }));
+
+        }
+
+      }
+
+    }));
+
+    //merge multiple arrays into single array
+    let fileSoucePaths = Array.prototype.concat(...filesArray);
+    fileSoucePaths = Array.prototype.concat(...fileSoucePaths);
+
+    let questionArray = Array.prototype.concat(...questionData);
+   
+    //get the downloadable url from kendra service    
+    let downloadableUrls = await getDownloadableUrlFromKendra(fileSoucePaths,token);
+  
+    let result = await insertEvidenceArrayToChartObject(chartData,downloadableUrls,questionArray);
+
+    return result;
+
+}
+
+// create filepaths array 
+async function evidenceArrayCreation(questionExternalId, evidenceData) {
+
+    let filteredData = evidenceData.filter(data => questionExternalId.includes(data.event.questionExternalId));
+   
+    let filePath = [];
+    let questionData = [];
+    let filesArray = [];
+
+    //loop the array, split the fileSourcePath and push it into array
+    await Promise.all(filteredData.map(fileData => {
+
+       // let files = fileData.event.fileSourcePath.split(",");
+       // filePath.push(files);
+       filePath.push(fileData.event.fileSourcePath.split(","));
+
+    }));
+    
+    let filePaths = Array.prototype.concat(...filePath);
+
+    if (filePaths.length > config.evidence.evidence_threshold) {
+        filesArray.push(filePaths.slice(0, config.evidence.evidence_threshold));
+    } else {
+        filesArray.push(filePaths);
+    }
+
+    let obj = {
+        questionExternalId: questionExternalId,
+        filePathsArray: filePaths
+    }
+
+    questionData.push(obj);
+
+    return [filesArray,questionData];
+
+}
+
+// Insert evidence array to the corrousponding questions
+async function insertEvidenceArrayToChartObject (chartData,downloadableUrls,questionData){
+
+    await Promise.all(chartData.response.map(async ele => {
+         
+        let filteredData = questionData.filter(data => ele.order.includes(data.questionExternalId));
+
+        if(filteredData.length > 0){
+
+        let evidenceData = downloadableUrls.result.filter(evidence => filteredData[0].filePathsArray.includes(evidence.filePath));
+
+        await Promise.all(evidenceData.map( async element => {
+
+            let ext = path.extname(element.filePath);
+            ele.evidences = [{
+            url : element.url,
+            extension : ext
+            }];
+           
+        }));
+        
+        }
+
+        if(ele.instanceQuestions.length > 0){
+
+            await Promise.all(chartData.response.instanceQuestions.map(async value => {
+
+                let filteredData = questionData.filter(data => value.order.includes(data.questionExternalId));
+                if(filteredData.length > 0){
+                let evidenceData = downloadableUrls.result.filter(evidence => filteredData[0].filePathsArray.includes(evidence.filePath));
+        
+                await Promise.all(evidenceData.map(element => {
+        
+                    let ext = path.extname(element.filePath);
+        
+                    value.evidences = [{
+                    url : element.url,
+                    extension : ext
+                    }];
+            
+                }));
+
+              }
+
+            }));
+
         }
 
     }));
+
+    return chartData;
 }
 
 
 // Extract fileSourcePath, get the downloadable url from kendra service
-async function getEvidenceData(questionExternalId, evidenceData, token) {
+async function getDownloadableUrlFromKendra(filesArray, token) {
 
-    let filteredData = evidenceData.filter(data => questionExternalId.includes(data.questionExternalId));
-    
-    let filePath = [];
-    
-    //loop the array, split the fileSourcePath and push it into array
-    await Promise.all(filteredData.map (fileData => {
-      
-        files = fileData.fileSourcePath.split(",");
-        filePath.push(files);
+    return new Promise(async function (resolve, reject) {
 
-    }));
+        try {
+            let downloadableUrl = await kendraService.getDownloadableUrl(filesArray, token);
 
-    let filePaths = Array.prototype.concat(...filePath);
-     
-    let filesArray;
+            return resolve(downloadableUrl);
 
-    if (filePaths.length > config.evidence.evidence_threshold) {
-        filesArray = filePaths.slice(0, config.evidence.evidence_threshold);
-    } else {
-        filesArray = filePaths;
-    }
-
-    let downloadableUrl = await kendraService.getDownloadableUrl(filesArray, token);
-
-    let evidenceArray = [];
-
-    await Promise.all(downloadableUrl.map(element => {
-
-        let ext = path.extname(element.filePath);
-
-        let obj = {};
-        obj.url = element.url;
-        obj.extension = ext
-
-        evidenceArray.push(obj);
-
-    }))
-
-    return evidenceArray;
+        } catch (error) {
+            return reject(error);
+        }
+    })
 }
 
 
@@ -1814,7 +1881,7 @@ exports.evidenceResponseCreateFunc = async function (result) {
            obj.extension =  ext;
            evidenceList.videos.push(obj);
 
-        } else if ( filesHelper.documentFormats.includes(ext)){
+        } else {
 
             obj.filePath = element.filePath;
             obj.url = element.url;
