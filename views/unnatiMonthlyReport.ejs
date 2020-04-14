@@ -49,6 +49,7 @@
         <br>
 
         <% for (var i=0;i < data.projectArray.length; i++) { %>
+        <% if(data.projectArray[i].title != "") {%>
         <p><b><%= data.projectArray[i].title %></b></p>
         <table id="project">
             <thead>
@@ -136,6 +137,7 @@
 
         <div style='page-break-after:always'></div>
 
+        <% } %>
         <% } %>
     </div>
 </body>

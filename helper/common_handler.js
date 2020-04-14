@@ -2321,6 +2321,7 @@ async function ganttChartObject(data) {
         await Promise.all(element.tasks.map(ele => {
 
                 xAxisCategories.push(ele.title);
+                if(ele.status){
                 if (ele.status.toLowerCase() == "completed") {
 
                     let obj = {
@@ -2342,7 +2343,7 @@ async function ganttChartObject(data) {
                     }
                     dataArray.push(obj);
                 }
-
+              }
             }))
 
         let chartData = {
