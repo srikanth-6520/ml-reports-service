@@ -1,12 +1,18 @@
 { 
    "application_port_number":4700,
+   "application_base_url":"/dhiti/api/",
+   "node_env": "local",
+   "apidoc_url": "/apidoc",
+   "apidoc_path":"/public/apidoc",
+   
    "cassandra":{ 
       "host":"CASSANDR_HOST_IP_ADDRESS",
       "keyspace":"CASSANDRA_KEYSPACE_NAME",
       "port":"CASSANDRA_PORT",
       "table":"CASSANDRA_TABLE",
       "apiReqAndResTable":"OBSERVATION_API_REQUEST_RESPONSE_TABLE",
-      "assessmentTable": "ASSESSMENT_API_REQUEST_RESPONSE_TABLE"
+      "assessmentTable": "ASSESSMENT_API_REQUEST_RESPONSE_TABLE",
+      "migrationTable": "MIGRATION_TABLE_NAME"
   },
 
   "druid": {
