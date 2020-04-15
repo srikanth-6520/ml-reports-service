@@ -1837,7 +1837,7 @@ async function getTaskStatusPieChart(data) {
             let complete = 0, inProgress = 0, notStarted = 0;
 
             await Promise.all(element.tasks.map(async ele => {
-
+                if (ele.status) {
                 if (ele.status.toLowerCase() == "completed") {
                     complete = complete + 1;
                 }
@@ -1847,6 +1847,7 @@ async function getTaskStatusPieChart(data) {
                 else if (ele.status.toLowerCase() == "not started yet" || ele.status.toLowerCase() == "not yet started") {
                     notStarted = notStarted + 1;
                 }
+              }
             }))
 
             let dataArray = [];
@@ -2317,6 +2318,7 @@ async function ganttChartObject(data) {
         await Promise.all(element.tasks.map(ele => {
 
                 xAxisCategories.push(ele.title);
+                if(ele.status){
                 if (ele.status.toLowerCase() == "completed") {
 
                     let obj = {
@@ -2338,6 +2340,7 @@ async function ganttChartObject(data) {
                     }
                     dataArray.push(obj);
                 }
+            }
 
             }))
 

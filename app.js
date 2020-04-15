@@ -11,10 +11,13 @@ var app = express();
 
 var debug = require('debug')('nodejs-druid-query-app:server');
 var http = require('http');
+var bodyParser = require('body-parser');
 
 app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+//app.use(express.json());
+//app.use(express.urlencoded({ extended: false }));
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 app.use(cookieParser());
 app.set('views', path.join(__dirname, 'controllers/views'));
 app.set('view engine', 'ejs');
