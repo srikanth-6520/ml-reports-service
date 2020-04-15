@@ -333,7 +333,7 @@ exports.instanceObservationScoreReport = async function (req, res) {
               let responseObj;
 
               if(evidenceData.result) {
-                responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData,req.headers["x-auth-token"]);
+                responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-auth-token"]);
 
               } else {
                 responseObj = chartData;
@@ -500,7 +500,7 @@ exports.entity = async function (req, res) {
               let responseObj;
 
               if(evidenceData.result) {
-                responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData,req.headers["x-auth-token"]);
+                responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-auth-token"]);
 
               } else {
                 responseObj = chartData;
@@ -1382,7 +1382,7 @@ async function observationReportData(req, res) {
                     let responseObj;
 
                     if (evidenceData.result) {
-                      responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData, req.headers["x-auth-token"]);
+                      responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
 
                     } else {
                       responseObj = chartData;
@@ -1595,7 +1595,7 @@ async function observationScoreReport(req, res) {
               let responseObj;
 
               if (evidenceData.result) {
-                responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData, req.headers["x-auth-token"]);
+                responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
 
               } else {
                 responseObj = chartData;

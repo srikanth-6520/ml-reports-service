@@ -1765,9 +1765,11 @@ async function evidenceArrayCreation(questionExternalId, evidenceData) {
         filesArray.push(filePaths);
     }
 
+    filesArray = Array.prototype.concat(...filesArray);
+
     let obj = {
         questionExternalId: questionExternalId,
-        filePathsArray: filePaths
+        filePathsArray: filesArray
     }
 
     questionData.push(obj);
@@ -1783,20 +1785,23 @@ async function insertEvidenceArrayToChartObject (chartData,downloadableUrls,ques
          
         let filteredData = questionData.filter(data => ele.order.includes(data.questionExternalId));
 
-        if(filteredData.length > 0){
+        if (filteredData.length > 0) {
 
-        let evidenceData = downloadableUrls.result.filter(evidence => filteredData[0].filePathsArray.includes(evidence.filePath));
+            let evidenceData = downloadableUrls.result.filter(evidence => filteredData[0].filePathsArray.includes(evidence.filePath));
+            
+            evidenceData = evidenceData.reduce((unique, o) => {if(!unique.some(obj => obj.filePath === o.filePath)) {unique.push(o);}return unique;},[]);
+            ele.evidences = [];
 
-        await Promise.all(evidenceData.map( async element => {
+            await Promise.all(evidenceData.map(async element => {
 
-            let ext = path.extname(element.filePath);
-            ele.evidences = [{
-            url : element.url,
-            extension : ext
-            }];
-           
-        }));
-        
+                let ext = path.extname(element.filePath);
+                let obj = {};
+                obj.url = element.url;
+                obj.extension = ext;
+                ele.evidences.push(obj);
+
+            }));
+
         }
 
         if(ele.instanceQuestions.length > 0){
@@ -1804,21 +1809,25 @@ async function insertEvidenceArrayToChartObject (chartData,downloadableUrls,ques
             await Promise.all(chartData.response.instanceQuestions.map(async value => {
 
                 let filteredData = questionData.filter(data => value.order.includes(data.questionExternalId));
-                if(filteredData.length > 0){
-                let evidenceData = downloadableUrls.result.filter(evidence => filteredData[0].filePathsArray.includes(evidence.filePath));
-        
-                await Promise.all(evidenceData.map(element => {
-        
-                    let ext = path.extname(element.filePath);
-        
-                    value.evidences = [{
-                    url : element.url,
-                    extension : ext
-                    }];
-            
-                }));
+                if (filteredData.length > 0) {
 
-              }
+                    let evidenceData = downloadableUrls.result.filter(evidence => filteredData[0].filePathsArray.includes(evidence.filePath));
+                    
+                    evidenceData = evidenceData.reduce((unique, o) => { if (!unique.some(obj => obj.filePath === o.filePath)) { unique.push(o); } return unique; }, []);
+                    
+                    ele.evidences = [];
+
+                    await Promise.all(evidenceData.map(async element => {
+
+                        let ext = path.extname(element.filePath);
+                        let obj = {};
+                        obj.url = element.url;
+                        obj.extension = ext;
+                        ele.evidences.push(obj);
+
+                    }));
+
+                }
 
             }));
 
