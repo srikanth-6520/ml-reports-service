@@ -3,9 +3,9 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-var config = require('./config/config')
-
-var indexRouter = require('./routes/index');
+var config = require('./config/config');
+require('./config/globals')();
+var router = require('./routes');
 
 var app = express();
 
@@ -16,24 +16,39 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.set('views', path.join(__dirname, 'controllers/views'));
+app.set('view engine', 'ejs');
+app.use(express.static("public"));
 
 app.use(function (req, res, next) { //allow cross origin requests
   res.setHeader("Access-Control-Allow-Methods", "POST, PUT, OPTIONS, DELETE, GET");
   res.header("Access-Control-Allow-Origin", "*");
-//     var allowedOrigins = ['http://localhost:8100', 'http://192.168.1.120:8100', 'http://127.0.0.1:9000', 'http://localhost:9000'];
-//   var origin = req.headers.origin;
-//   if(allowedOrigins.indexOf(origin) > -1){
-//        res.setHeader('Access-Control-Allow-Origin', origin);
-//   }    
-res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With,Authorization, Content-Type, Accept,x-auth-token");
-  // res.header("Access-Control-Allow-Credentials", true);   
-   next();
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With,Authorization, Content-Type, Accept,x-auth-token");   
+  next();
 });
 
-app.set('views',path.join(__dirname,'controllers/views'));
-app.set('view engine','ejs');
 
-app.use('/dhiti/api/v1', indexRouter);
+
+//API documentation (apidoc)
+if (config.node_env == "development" || config.node_env == "local") {
+  app.use(express.static("apidoc"));
+  if (config.node_env == "local") {
+    app.get(config.apidoc_url, (req, res) => {
+      let apidocPath = config.apidoc_path + "/index.html";
+
+      res.sendFile(path.join(__dirname, apidocPath));
+    });
+  } else {
+    app.get(config.apidoc_url, (req, res) => {
+      let urlArray = req.path.split("/");
+      urlArray.splice(0, 3);
+      let apidocPath = config.apidoc_path + urlArray.join("/");
+
+      res.sendFile(path.join(__dirname, apidocPath));
+    });
+  }
+}
+
 
 /**
  * Get port from environment and store in Express.
@@ -41,6 +56,7 @@ app.use('/dhiti/api/v1', indexRouter);
 
 var port = normalizePort(process.env.PORT || config.application_port_number);
 app.set('port', port);
+router(app);
 
 /**
  * Create HTTP server.
@@ -52,10 +68,10 @@ var server = http.createServer(app);
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port,function(){
+server.listen(port, function () {
 
 
-  console.log("started and running on port:"+ port);
+  console.log("started and running on port:" + port);
 });
 server.on('error', onError);
 server.on('listening', onListening);

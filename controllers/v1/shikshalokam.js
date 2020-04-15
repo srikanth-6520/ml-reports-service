@@ -4,24 +4,60 @@ var request = require('request');
 var model = require('../../db')
 var helperFunc = require('../../helper/chart_data');
 
+
+/**
+     * @apiDefine errorBody
+     * @apiError {String} status 4XX,5XX
+     * @apiError {String} message Error
+     */    /**
+     * @apiDefine successBody
+     *  @apiSuccess {String} status 200
+     * @apiSuccess {String} result Data
+     */
+
+/**
+   * @api {get} /dhiti/v1/shikshalokam/contentView
+   * Content view
+   * @apiVersion 1.0.0
+   * @apiHeader {String} x-auth-token Authenticity token 
+   * @apiGroup Shikshalokam 
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+*       "result": true,
+*       "data": [{
+        "content_name": "",
+        "total_views": ""
+        }]
+*     }
+   * @apiUse errorBody
+   */
+
 //Controller for listing Top 5 contents viewed in platform
 exports.contentView = async function (req, res) {
+
     //get quey from cassandra
     model.MyModel.findOneAsync({ qid: "content_viewed_in_platform_query" }, { allow_filtering: true })
         .then(async function (result) {
+
             var bodyParam = JSON.parse(result.query);
+
             if (config.druid.telemetry_datasource_name) {
                 bodyParam.dataSource = config.druid.telemetry_datasource_name;
             }
+
             // get previous month date and append to intervals field
             bodyParam.intervals = await getIntervals();
+
             //Assign threshold value to restrict number of records to be shown
             bodyParam.threshold = config.druid.threshold_in_content_api;
+
             //pass the query as body param and get the result from druid
             var options = config.druid.options;
             options.method = "POST";
             options.body = bodyParam;
             var data = await rp(options);
+
             if (data[0].result.length == 0) {
                 res.send({ "result": false, "data": [] })
             }
@@ -31,7 +67,6 @@ exports.contentView = async function (req, res) {
             }
         })
         .catch(function (err) {
-            console.log(err);
             res.status(400);
             var response = {
                 result: false,
@@ -43,6 +78,28 @@ exports.contentView = async function (req, res) {
 
 }
 
+
+/**
+   * @api {post} /dhiti/v1/shikshalokam/contentDownloadedByUser
+   * Content downloaded by user
+   * @apiVersion 1.0.0
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiGroup Shikshalokam 
+   * @apiParamExample {json} Request-Body:
+* {
+  "usr_id": "",
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+*       "result": true,
+*       "data": [{
+        "content_name": "",
+        "total_downloads": ""
+        }]
+*     }
+   * @apiUse errorBody
+   */
 
 //Controller for listing Top 5 contents Downloaded by user in platform
 exports.contentDownloadedByUser = async function (req, res) {
@@ -59,21 +116,28 @@ exports.contentDownloadedByUser = async function (req, res) {
         //get quey from cassandra
         model.MyModel.findOneAsync({ qid: "content_downloaded_by_user_query" }, { allow_filtering: true })
             .then(async function (result) {
+
                 var bodyParam = JSON.parse(result.query);
+
                 if (config.druid.telemetry_datasource_name) {
                     bodyParam.dataSource = config.druid.telemetry_datasource_name;
                 }
+
                 //append user id to the filter
                  bodyParam.filter.fields[0].value = req.body.usr_id;
+
                  // get previous month date and append to intervals field
                  bodyParam.intervals = await getIntervals();
+
                 //Assign threshold value to restrict number of records to be shown
                 bodyParam.threshold = config.druid.threshold_in_content_api;
+
                 //pass the query as body param and get the result from druid
                 var options = config.druid.options;
                 options.method = "POST";
                 options.body = bodyParam;
                 var data = await rp(options);
+
                 if (data[0].result.length == 0) {
                     res.send({ "result": false, "data": [] })
                 }
@@ -96,26 +160,48 @@ exports.contentDownloadedByUser = async function (req, res) {
 }
 
 
+/**
+   * @api {get} /dhiti/v1/shikshalokam/usageByContent
+   * Usage by content
+   * @apiVersion 1.0.0
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiGroup Shikshalokam 
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+*       "result": true,
+*       "data": [{
+        "content_name": "",
+        "total_users_viewed": ""
+        }]
+*     }
+   * @apiUse errorBody
+   */
 
-// Controller for listing usage by content 
 exports.usageByContent = async function (req, res) {
+
     //get quey from cassandra
     model.MyModel.findOneAsync({ qid: "usage_by_content_query" }, { allow_filtering: true })
         .then(async function (result) {
+
             var bodyParam = JSON.parse(result.query);
+
             if (config.druid.telemetry_datasource_name) {
                 bodyParam.dataSource = config.druid.telemetry_datasource_name;
             }
             
             //Assign threshold value to restrict number of records to be shown
             bodyParam.threshold = config.druid.threshold_in_content_api
+
              // get previous month date and append to intervals field
              bodyParam.intervals = await getIntervals();
+
             //pass the query as body param and get the result from druid
             var options = config.druid.options;
             options.method = "POST";
             options.body = bodyParam;
             var data = await rp(options);
+
             if (data[0].result.length == 0) {
                 res.send({ "result": false, "data": [] })
             }
@@ -134,6 +220,83 @@ exports.usageByContent = async function (req, res) {
             res.send(response);
         })
 
+}
+
+
+/**
+   * @api {post} /dhiti/v1/shikshalokam/courseEnrollment
+   * Course enrollment
+   * @apiVersion 1.0.0
+   * @apiGroup Shikshalokam
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "user_id": "",
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+*       "result": true,
+*       "data": [{
+        "course_name": "",
+        "status": ""
+        }]
+*     }
+   * @apiUse errorBody
+   */
+
+//Controller for listing the courses enrolled by user
+exports.courseEnrollment = async function (req, res) {
+    if (!req.body.user_id) {
+        res.status(400);
+        var response = {
+            result: false,
+            message: 'user_id is a required field',
+            data: []
+        }
+        res.send(response);
+    }
+    else {
+
+        //get quey from cassandra
+        model.MyModel.findOneAsync({ qid: "course_enrollment_query" }, { allow_filtering: true })
+            .then(async function (result) {
+
+                var bodyParam = JSON.parse(result.query);
+
+                if (config.druid.enrollment_datasource_name) {
+                    bodyParam.dataSource = config.druid.enrollment_datasource_name;
+                }
+
+                bodyParam.filter.value = req.body.user_id;
+                bodyParam.intervals = await getIntervals();
+                
+                //pass the query as body param and get the result from druid
+                var options = config.druid.options;
+                options.method = "POST";
+                options.body = bodyParam;
+                var data = await rp(options);
+
+                if (!data.length) {
+                    res.send({ "result":false,"data": []})
+                }
+                else {
+
+                  //call the function to get response object
+                   var responseObj = await helperFunc.courseEnrollmentResponeObj(data);
+                   res.send(responseObj);
+                }
+            })
+            .catch(function (err) {
+                res.status(400);
+                var response = {
+                    result: false,
+                    message: 'Data not found',
+                    data:[]
+                }
+                res.send(response);
+            })
+    }
 }
 
 

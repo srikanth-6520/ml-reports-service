@@ -52,8 +52,21 @@ var assessmentModel = models.loadSchema(config.cassandra.assessmentTable, {
     key:['id']
 });
 
+// var migrationModel = models.loadSchema(config.cassandra.migrationTable, {
+//     fields:{
+//         id : {
+//             type: "uuid",
+//             default: {"$db_function": "uuid()"}
+//         },
+//         filename : 'text',
+//         appliedat : 'timestamp',
+//         message : 'text'
+//     },
+//     key:['id']
+// });
+
 // MyModel or models.instance.Person can now be used as the model instance
-// console.log(models.instance.druidqueries === MyModel);
+
 
 // sync the schema definition with the cassandra database table
 // if the schema has not changed, the callback will fire immediately
@@ -73,9 +86,14 @@ assessmentModel.syncDB(function(err, result) {
     if (err) throw err;
 });
 
+// migrationModel.syncDB(function(err, result) {
+//     if (err) throw err;
+// });
+
 
 module.exports = {
     MyModel : MyModel,
     reportIndexes : reportIndexes,
     assessmentModel : assessmentModel
+    // migrationModel : migrationModel
 }

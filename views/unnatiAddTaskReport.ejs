@@ -1,0 +1,116 @@
+<html>
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <style>
+
+        hr.new1 {
+            border-top: 1px solid #c0192d;
+        }
+
+        hr {
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background-color: red;
+            color: white;
+            text-align: center;
+        }
+
+    </style>
+
+
+</head>
+
+<body class="container">
+
+    <h5><%= data.response.projectName %></h5>
+
+    <hr class="new1">
+
+    <div class="" style=" background: #eee !important;padding: 15px 40px;">
+
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>GOAL</b></p>
+            </div>
+            <div style="width:50%; float:left;">
+                <p><%= data.response.goal %></p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>DURATION</b></p>
+            </div>
+            <div style="width:50%; float:left;">
+                <p><%= data.response.duration %></p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>START DATE</b></p>
+            </div>
+            <div style="width:50%; float:left;">
+                <p><%= data.startDate %></p>
+            </div>
+        </div>
+
+    </div>
+
+    <hr class="new1">
+
+    <div style="margin-top:50px !important">
+
+        <div class="row" style="text-align: center">
+        <p>For &nbsp&nbsp<span style="background-color:#eee !important;border-radius: 27px;padding: 20px;padding-left: 50px;padding-right: 50px"><%= data.response.assigneeName %></span></p>
+        </div>
+
+        <div class="row" style="background-color: #eee !important;padding: 12px;margin-top: 24px;margin-right: 16px !important;margin-left: 16px !important">
+          <p><%= data.response.tasks.title %></p>
+        </div>
+
+        <div class="row" style="border:solid 1px #eee !important;padding: 15px;margin-top: 24px;margin-right: 16px !important;margin-left: 16px !important">
+        </div>
+
+        <div class="row" style="background-color: #eee !important;padding: 12px;margin-top: 24px;margin-right: 16px !important;margin-left: 16px !important">
+           <p><%= data.taskEndDate %></p>
+        </div>
+        
+        
+        <div class="row" style="padding: 15px;margin-top: 24px;margin-right: 16px !important;margin-left: 16px !important">
+           <p>Attachments</p>
+            <% for (var i=0;i < data.response.tasks.attachments.length; i++){  %>
+            <h6><%= data.response.tasks.attachments[i].name %></h6>
+            <% } %>
+        </div>
+       
+
+    </div>
+
+   
+
+  
+
+
+   
+</body>
+
+</html>
