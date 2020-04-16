@@ -1716,8 +1716,8 @@ exports.evidenceChartObjectCreation = async function(chartData, evidenceData, to
     
         filesArray.push(result[0]);
         questionData.push(result[1]);
-
-        if(element.instanceQuestions.length > 0){
+        
+        if(element["instanceQuestions"] && element.instanceQuestions.length > 0){
           
             await Promise.all(element.instanceQuestions.map(async ele => {
             
@@ -1822,7 +1822,7 @@ async function insertEvidenceArrayToChartObject (chartData,downloadableUrls,ques
 
         }
 
-        if(ele.instanceQuestions.length > 0){
+        if(ele["instanceQuestions"] && ele.instanceQuestions.length > 0){
 
             await Promise.all(chartData.response.instanceQuestions.map(async value => {
 
