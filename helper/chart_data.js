@@ -1747,17 +1747,18 @@ async function evidenceArrayCreation(questionExternalId, evidenceData) {
     let filePath = [];
     let questionData = [];
     let filesArray = [];
+    let evidence_count;
 
     //loop the array, split the fileSourcePath and push it into array
     await Promise.all(filteredData.map(fileData => {
 
-       // let files = fileData.event.fileSourcePath.split(",");
-       // filePath.push(files);
        filePath.push(fileData.event.fileSourcePath.split(","));
 
     }));
     
     let filePaths = Array.prototype.concat(...filePath);
+    
+    evidence_count = filePaths.length;
 
     if (filePaths.length > config.evidence.evidence_threshold) {
         filesArray.push(filePaths.slice(0, config.evidence.evidence_threshold));
@@ -1769,6 +1770,7 @@ async function evidenceArrayCreation(questionExternalId, evidenceData) {
 
     let obj = {
         questionExternalId: questionExternalId,
+        evidence_count : evidence_count,
         filePathsArray: filesArray
     }
 
@@ -1791,6 +1793,7 @@ async function insertEvidenceArrayToChartObject (chartData,downloadableUrls,ques
             
             evidenceData = evidenceData.reduce((unique, o) => {if(!unique.some(obj => obj.filePath === o.filePath)) {unique.push(o);}return unique;},[]);
             ele.evidences = [];
+            ele.evidence_count = filteredData[0].evidence_count;
 
             await Promise.all(evidenceData.map(async element => {
 
@@ -1816,6 +1819,7 @@ async function insertEvidenceArrayToChartObject (chartData,downloadableUrls,ques
                     evidenceData = evidenceData.reduce((unique, o) => { if (!unique.some(obj => obj.filePath === o.filePath)) { unique.push(o); } return unique; }, []);
                     
                     ele.evidences = [];
+                    ele.evidence_count = filteredData[0].evidence_count;
 
                     await Promise.all(evidenceData.map(async element => {
 
