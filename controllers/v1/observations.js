@@ -2334,9 +2334,11 @@ async function allEvidencesList(req, res) {
 
             let evidenceList = await helperFunc.getEvidenceList(data);
 
-            let downloadableUrl = await kendraService.getDownloadableUrl(evidenceList, req.headers["x-auth-token"]);
+            let downloadableUrl = await kendraService.getDownloadableUrl(evidenceList[0], req.headers["x-auth-token"]);
 
             let response = await helperFunc.evidenceResponseCreateFunc(downloadableUrl.result);
+
+            response.remarks = evidenceList[1];
             
             resolve({"result" : true, "data" : response});
           }

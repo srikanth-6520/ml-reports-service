@@ -50,9 +50,9 @@ exports.instanceReportChart = async function (data) {
                     instanceQuestions:[]
                 }
 
-                if(element.event.remarks != null){
-                    resp.remarks = [element.event.remarks]
-                }
+                // if(element.event.remarks != null){
+                //     resp.remarks = [element.event.remarks]
+                // }
 
                
                 obj.response.push(resp);
@@ -75,9 +75,9 @@ exports.instanceReportChart = async function (data) {
                     instanceQuestions: []
                 }
 
-                if(element.event.remarks != null){
-                    resp.remarks = [element.event.remarks]
-                }
+                // if(element.event.remarks != null){
+                //     resp.remarks = [element.event.remarks]
+                // }
 
                 obj.response.push(resp);
 
@@ -138,8 +138,6 @@ exports.instanceReportChart = async function (data) {
 async function instanceMultiselectFunc(data) {
     var labelArray = [];
     var question;
-    var responseType;
-    var order;
 
     await Promise.all(data.map(element => {
 
@@ -151,22 +149,21 @@ async function instanceMultiselectFunc(data) {
         labelArray.push(element.event.questionResponseLabel);
     
         question = element.event.questionName;
-        responseType = element.event.questionResponseType;
     }))
 
     //response object for multiselect questions
     var resp = {
         order: data[0].event.questionExternalId,
         question: question,
-        responseType: "text",
+        responseType: data[0].event.questionResponseType,
         answers: labelArray,
         chart: {},
         instanceQuestions:[]
     }
 
-    if(data[0].event.remarks != null){
-        resp.remarks = [data[0].event.remarks];
-    }
+    // if(data[0].event.remarks != null){
+    //     resp.remarks = [data[0].event.remarks];
+    // }
 
     return resp;
 
@@ -453,7 +450,7 @@ async function responseObjectCreateFunc(data) {
     let dataArray = [];
     let question;
     let order;
-    let remarks = [];
+    //let remarks = [];
       
     //loop the data and push answers to array
      for (i = 0; i < data.length; i++) {
@@ -469,9 +466,9 @@ async function responseObjectCreateFunc(data) {
             order = data[i].event.questionExternalId;
         // } 
 
-           if(data[i].event.remarks != null){
-            remarks.push(data[i].event.remarks);
-        }
+        //    if(data[i].event.remarks != null){
+        //     remarks.push(data[i].event.remarks);
+        // }
      }
       
      //To get the latest edited question
@@ -485,8 +482,7 @@ async function responseObjectCreateFunc(data) {
         responseType: data[0].event.questionResponseType,
         answers: dataArray,
         chart: {},
-        instanceQuestions:[],
-        remarks: remarks
+        instanceQuestions:[]
     }
     return resp;
 
@@ -500,7 +496,7 @@ async function radioObjectCreateFunc(data,noOfSubmissions) {
     var chartdata = [];
     var answerArray = [];
     var question;
-    let remarks = [];
+    //let remarks = [];
 
     for (var i = 0; i < data.length; i++) {
 
@@ -519,9 +515,9 @@ async function radioObjectCreateFunc(data,noOfSubmissions) {
             labelArray.push(data[i].event.questionResponseLabel);
         }
 
-        if(data[i].event.remarks != null){
-            remarks.push(data[i].event.remarks);
-        }
+        // if(data[i].event.remarks != null){
+        //     remarks.push(data[i].event.remarks);
+        // }
         
     }
 
@@ -572,8 +568,7 @@ async function radioObjectCreateFunc(data,noOfSubmissions) {
                 }
             ]
         },
-        instanceQuestions:[],
-        remarks : remarks
+        instanceQuestions:[]
     }
     
     if("instanceParentResponsetype" in data[0].event != null){
@@ -590,7 +585,7 @@ async function multiSelectObjectCreateFunc(data,noOfSubmissions) {
     let answerArray = [];
     let labelArray = [];
     let chartdata = [];
-    let remarks = [];
+    //let remarks = [];
    
     await Promise.all(data.map(ele => {
         dataArray.push(ele.event.questionAnswer);
@@ -651,15 +646,15 @@ async function multiSelectObjectCreateFunc(data,noOfSubmissions) {
 
     let submissionKeysArray = Object.keys(groupArrayBySubmissions);
 
-    await Promise.all(submissionKeysArray.map(async element => {
+    // await Promise.all(submissionKeysArray.map(async element => {
 
-        if(groupArrayBySubmissions[element][0].event.remarks != null){
-            remarks.push(groupArrayBySubmissions[element][0].event.remarks);
-        }
+    //     if(groupArrayBySubmissions[element][0].event.remarks != null){
+    //         remarks.push(groupArrayBySubmissions[element][0].event.remarks);
+    //     }
 
-    }));
+    // }));
 
-     resp.remarks = remarks ;
+    // resp.remarks = remarks ;
 
     // Constructing answer array for matrix questions
     if ("instanceParentResponsetype" in data[0].event != null) {
@@ -1216,9 +1211,9 @@ async function scoreObjectCreateFunction(data) {
     }
     
     // If remarks is not null then add it to reponse object
-    if(data[0].event.remarks != null){
-        resp.remarks = [data[0].event.remarks];
-    }
+    // if(data[0].event.remarks != null){
+    //     resp.remarks = [data[0].event.remarks];
+    // }
 
     return resp;
 
@@ -1688,17 +1683,20 @@ var questionListObjectCreation = async function(data){
 exports.getEvidenceList = async function(data){
     
     let filePath = [];
+    let remarks = [];
 
     await Promise.all(data.map(element => {
         
         files = element.event.fileSourcePath.split(",");
         filePath.push(files);
 
+        remarks.push(element.event.remarks);
+
     }));
 
     let evidenceList = Array.prototype.concat(...filePath);
     
-    return evidenceList;
+    return [evidenceList,remarks];
 }
 
 
