@@ -169,9 +169,27 @@ exports.entityScoreReport = async function (req, res) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
             }
   
-            bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
-            bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
-  
+             //if filter is given
+             if (req.body.filter) {
+              if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
+                let filter = {};
+                questionFilter = await filterCreate(req.body.filter.questionId);
+                filter =  { "type": "or", "fields": questionFilter };
+                bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+                bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
+                bodyParam.filter.fields.push(filter);
+              }
+              else {
+                bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+                bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
+              }
+            }
+            else {
+              bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+              bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
+            }
+
+
             //pass the query as body param and get the resul from druid
             var options = config.druid.options;
             options.method = "POST";
@@ -185,14 +203,29 @@ exports.entityScoreReport = async function (req, res) {
   
             else {
   
-              var responseObj = await helperFunc.entityScoreReportChartObjectCreation(data,"v2")
+              let chartData = await helperFunc.entityScoreReportChartObjectCreation(data,"v2")
+
+              //Get evidence data from evidence datasource
+               let inputObj = {
+                entityId : req.body.entityId,
+                observationId: req.body.observationId
+              }
+
+              let evidenceData = await getEvidenceData(inputObj);
+              let responseObj;
+
+              if(evidenceData.result) {
+                  responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-auth-token"]);
+              } else {
+                  responseObj = chartData;
+              }
+
               resolve(responseObj);
   
             }
           })
   
           .catch(function (err) {
-            console.log(err);
             var response = {
               result: false,
               message: 'Data not found'
@@ -509,3 +542,74 @@ async function observationGenerateReport(req, res) {
 
   });
 }
+
+// Function for preparing filter
+async function filterCreate(questions) {
+
+  let fieldsArray = [];
+
+  await Promise.all(questions.map(element => {
+    let filterObj = { "type": "selector", "dimension": "questionExternalId", "value": element };
+    fieldsArray.push(filterObj);
+  }))
+    
+  return fieldsArray;
+}
+
+
+// Get the evidence data
+async function getEvidenceData(inputObj) {
+
+  return new Promise(async function (resolve, reject) {
+
+    model.MyModel.findOneAsync({ qid: "get_evidence_query" }, { allow_filtering: true })
+      .then(async function (result) {
+
+        let submissionId = inputObj.submissionId;
+        let entityId = inputObj.entity;
+        let observationId = inputObj.observationId;
+
+        var bodyParam = JSON.parse(result.query);
+        
+        //based on the given input change the filter
+        let filter = {};
+
+        if (submissionId) {
+          filter = { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }
+        } else if(entityId && observationId) {
+          filter = {"type":"and","fileds":[{"type": "selector", "dimension": "school", "value": entityId},{"type": "selector", "dimension": "observationId", "value": observationId}]}
+        } else if(observationId) {
+          filter = { "type": "selector", "dimension": "observationId", "value": observationId }
+        }
+
+        if (config.druid.evidence_datasource_name) {
+          bodyParam.dataSource = config.druid.evidence_datasource_name;
+        }
+         
+        bodyParam.filter = filter;
+
+        //pass the query as body param and get the resul from druid
+        var options = config.druid.options;
+        options.method = "POST";
+        options.body = bodyParam;
+        var data = await rp(options);
+
+        if (!data.length) {
+          resolve({
+            "result": false,
+            "data": "EVIDENCE_NOT_FOUND"
+          });
+        } else {
+          resolve({"result":true,"data":data});
+        }
+      })
+      .catch(function (err) {
+        var response = {
+          result: false,
+          message: "Internal server error"
+        };
+        resolve(response);
+      });
+  })
+}
+

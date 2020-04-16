@@ -50,6 +50,10 @@ exports.instanceReportChart = async function (data) {
                     instanceQuestions:[]
                 }
 
+                if(element.event.remarks != null){
+                    resp.remarks = [element.event.remarks]
+                }
+
                
                 obj.response.push(resp);
             }
@@ -69,6 +73,10 @@ exports.instanceReportChart = async function (data) {
                     answers: [element.event.questionResponseLabel],
                     chart: {},
                     instanceQuestions: []
+                }
+
+                if(element.event.remarks != null){
+                    resp.remarks = [element.event.remarks]
                 }
 
                 obj.response.push(resp);
@@ -142,20 +150,22 @@ async function instanceMultiselectFunc(data) {
 
         labelArray.push(element.event.questionResponseLabel);
     
-        order = element.event.questionExternalId;
-    
         question = element.event.questionName;
         responseType = element.event.questionResponseType;
     }))
 
     //response object for multiselect questions
     var resp = {
-        order:order,
+        order: data[0].event.questionExternalId,
         question: question,
         responseType: "text",
         answers: labelArray,
         chart: {},
         instanceQuestions:[]
+    }
+
+    if(data[0].event.remarks != null){
+        resp.remarks = [data[0].event.remarks];
     }
 
     return resp;
@@ -442,8 +452,8 @@ async function matrixResponseObject(data,noOfInstances){
 async function responseObjectCreateFunc(data) {
     let dataArray = [];
     let question;
-    let responseType;
     let order;
+    let remarks = [];
       
     //loop the data and push answers to array
      for (i = 0; i < data.length; i++) {
@@ -459,7 +469,9 @@ async function responseObjectCreateFunc(data) {
             order = data[i].event.questionExternalId;
         // } 
 
-        responseType = data[i].event.questionResponseType;
+           if(data[i].event.remarks != null){
+            remarks.push(data[i].event.remarks);
+        }
      }
       
      //To get the latest edited question
@@ -470,10 +482,11 @@ async function responseObjectCreateFunc(data) {
     let resp = {
         order: order,
         question: question,
-        responseType: responseType,
+        responseType: data[0].event.questionResponseType,
         answers: dataArray,
         chart: {},
-        instanceQuestions:[]
+        instanceQuestions:[],
+        remarks: remarks
     }
     return resp;
 
@@ -487,8 +500,7 @@ async function radioObjectCreateFunc(data,noOfSubmissions) {
     var chartdata = [];
     var answerArray = [];
     var question;
-    var responseType;
-    var order;
+    let remarks = [];
 
     for (var i = 0; i < data.length; i++) {
 
@@ -506,17 +518,11 @@ async function radioObjectCreateFunc(data,noOfSubmissions) {
         } else {
             labelArray.push(data[i].event.questionResponseLabel);
         }
-        
-        // if(data[i].event.questionSequenceByEcm != null){
 
-        //     order = data[i].event.questionSequenceByEcm;
-        // } else {
-            order = data[i].event.questionExternalId;
-        // } 
+        if(data[i].event.remarks != null){
+            remarks.push(data[i].event.remarks);
+        }
         
-        
-        responseType = data[i].event.questionResponseType;
-
     }
 
     var responseArray = count(dataArray)   //call count function to count occurences of elements in the array
@@ -544,9 +550,9 @@ async function radioObjectCreateFunc(data,noOfSubmissions) {
     question = questionObject[questionObject.length-1].event.questionName;
 
     var resp = {
-        order: order,
+        order: data[0].event.questionExternalId,
         question: question,
-        responseType: responseType,
+        responseType:  data[0].event.questionResponseType,
         answers: [],
         chart: {
             type: "pie",
@@ -566,10 +572,11 @@ async function radioObjectCreateFunc(data,noOfSubmissions) {
                 }
             ]
         },
-        instanceQuestions:[]
+        instanceQuestions:[],
+        remarks : remarks
     }
     
-    if("instanceParentResponsetype" in data[0].event){
+    if("instanceParentResponsetype" in data[0].event != null){
         resp.answers = answerArray;
     }
 
@@ -583,7 +590,7 @@ async function multiSelectObjectCreateFunc(data,noOfSubmissions) {
     let answerArray = [];
     let labelArray = [];
     let chartdata = [];
-    let order;
+    let remarks = [];
    
     await Promise.all(data.map(ele => {
         dataArray.push(ele.event.questionAnswer);
@@ -605,20 +612,13 @@ async function multiSelectObjectCreateFunc(data,noOfSubmissions) {
         chartdata.push(value);
     }
 
-    // if(data[0].event.questionSequenceByEcm != null){
-
-    //     order = data[0].event.questionSequenceByEcm;
-    // } else {
-        order = data[0].event.questionExternalId;
-    // } 
-
     //To get the latest edited question
     let questionObject = data.sort(custom_sort);
     let question = questionObject[questionObject.length-1].event.questionName;
     
 
     var resp = {
-        order: order,
+        order: data[0].event.questionExternalId,
         question: question,
         responseType: data[0].event.questionResponseType,
         answers: [],
@@ -646,14 +646,26 @@ async function multiSelectObjectCreateFunc(data,noOfSubmissions) {
         instanceQuestions:[]
     }
 
-    // Constructing answer array for matrix questions
-    if ("instanceParentResponsetype" in data[0].event) {
+    // loop through objects and find remarks
+    let groupArrayBySubmissions = await groupArrayByGivenField(data, "observationSubmissionId");
 
-        var groupBySubmissionId = await groupArrayByGivenField(data, "observationSubmissionId");
-        var submissionKeys = Object.keys(groupBySubmissionId);
+    let submissionKeysArray = Object.keys(groupArrayBySubmissions);
+
+    await Promise.all(submissionKeysArray.map(async element => {
+
+        if(groupArrayBySubmissions[element][0].event.remarks != null){
+            remarks.push(groupArrayBySubmissions[element][0].event.remarks);
+        }
+
+    }));
+
+     resp.remarks = remarks ;
+
+    // Constructing answer array for matrix questions
+    if ("instanceParentResponsetype" in data[0].event != null) {
         
-        await Promise.all(submissionKeys.map(async ele => {
-            var groupByInstanceId = await groupArrayByGivenField(groupBySubmissionId[ele], "instanceId")
+        await Promise.all(submissionKeysArray.map(async ele => {
+            var groupByInstanceId = await groupArrayByGivenField(groupArrayBySubmissions[ele], "instanceId")
             var instanceKeys = Object.keys(groupByInstanceId)
             
             await Promise.all(instanceKeys.map(async element => {
@@ -1201,6 +1213,11 @@ async function scoreObjectCreateFunction(data) {
                 }
             ]
         }
+    }
+    
+    // If remarks is not null then add it to reponse object
+    if(data[0].event.remarks != null){
+        resp.remarks = [data[0].event.remarks];
     }
 
     return resp;
@@ -1838,6 +1855,8 @@ async function insertEvidenceArrayToChartObject (chartData,downloadableUrls,ques
         }
 
     }));
+
+    await chartData.response.sort(getSortOrder("order"));
 
     return chartData;
 }

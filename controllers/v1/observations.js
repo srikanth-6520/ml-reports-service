@@ -814,26 +814,9 @@ exports.entityScoreReport = async function (req, res) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
             }
 
-
-             //if filter is given
-             if (req.body.filter) {
-              if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
-                let filter = {};
-                questionFilter = await filterCreate(req.body.filter.questionId);
-                filter =  { "type": "or", "fields": questionFilter };
-                bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
-                bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
-                bodyParam.filter.fields.push(filter);
-              }
-              else {
-                bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
-                bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
-              }
-            }
-            else {
               bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
               bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
-            }
+            
 
             //pass the query as body param and get the resul from druid
             var options = config.druid.options;
