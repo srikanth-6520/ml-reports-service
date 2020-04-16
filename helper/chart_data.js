@@ -1797,7 +1797,7 @@ async function insertEvidenceArrayToChartObject (chartData,downloadableUrls,ques
 
             await Promise.all(evidenceData.map(async element => {
 
-                let ext = path.extname(element.filePath);
+                let ext = path.extname(element.filePath).split('.').join("");
                 let obj = {};
                 obj.url = element.url;
                 obj.extension = ext;
@@ -1875,10 +1875,7 @@ exports.evidenceResponseCreateFunc = async function (result) {
         let obj = {};
         let filePath = element.filePath;
 
-        let extension = path.extname(filePath);
-
-        let ext = extension.split('.').join("");
-
+        let ext = path.extname(filePath).split('.').join("");
 
         if (filesHelper.imageFormats.includes(ext)) {
 
