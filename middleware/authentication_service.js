@@ -31,6 +31,7 @@ var path = require('path');
 var _this = this;
 var api = {};
 api.authenticate = authenticate;
+api.validateToken = validateToken;
 
 module.exports = api;
 
@@ -99,3 +100,5 @@ function validateToken(req, res) {
     });
     return promise;
 }
+
+
