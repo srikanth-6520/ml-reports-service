@@ -1,16 +1,17 @@
-var config = require('../../config/config');
-var rp = require('request-promise');
-var request = require('request');
-var model = require('../../db');
-var helperFunc = require('../../helper/chart_data');
-var commonCassandraFunc = require('../../common/cassandra_func');
-var pdfHandler = require('../../helper/common_handler');
-var omit = require('object.omit');
-var url = require("url");
-var authService = require('../../middleware/authentication_service');
-var rimraf = require("rimraf");
-var fs = require('fs');
+const config = require('../../config/config');
+const rp = require('request-promise');
+const request = require('request');
+const model = require('../../db');
+const helperFunc = require('../../helper/chart_data');
+const commonCassandraFunc = require('../../common/cassandra_func');
+const pdfHandler = require('../../helper/common_handler');
+const omit = require('object.omit');
+const url = require("url");
+const authService = require('../../middleware/authentication_service');
+const rimraf = require("rimraf");
+const fs = require('fs');
 const path = require('path');
+const kendraService = require('../../helper/kendra_service');
 
 
 /**
@@ -37,7 +38,10 @@ const path = require('path');
          "responseType": "",
          "answers": [],
          "chart": {},
-         "instanceQuestions":[]
+         "instanceQuestions":[],
+         "evidences":[
+              {url:"", extension:""},
+            ]
        }]
 *     }
    * @apiUse errorBody
@@ -63,11 +67,11 @@ async function instanceObservationData(req, res) {
         };
         resolve(response);
       } else {
-
+          let submissionId = req.body.submissionId;
         bodyData = req.body;
         var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(bodyData);
   
-        if (dataReportIndexes == undefined) {
+       if (dataReportIndexes == undefined) {
           model.MyModel.findOneAsync({ qid: "instance_observation_query" }, { allow_filtering: true })
             .then(async function (result) {
   
@@ -83,15 +87,15 @@ async function instanceObservationData(req, res) {
                 if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
                   let filter = {};
                   questionFilter = await filterCreate(req.body.filter.questionId);
-                  filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "observationSubmissionId", "value": req.body.submissionId }, { "type": "or", "fields": questionFilter }] };
+                  filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }, { "type": "or", "fields": questionFilter }] };
                   bodyParam.filter = filter;
                 }
                 else {
-                  bodyParam.filter.value = req.body.submissionId;
+                  bodyParam.filter.value = submissionId;
                 }
               }
               else {
-                bodyParam.filter.value = req.body.submissionId;
+                bodyParam.filter.value = submissionId;
               }
 
               //pass the query as body param and get the resul from druid
@@ -105,7 +109,23 @@ async function instanceObservationData(req, res) {
                   "data": "SUBMISSION_ID_NOT_FOUND"
                 });
               } else {
-                var responseObj = await helperFunc.instanceReportChart(data);
+                
+                let chartData = await helperFunc.instanceReportChart(data);
+
+                //Get evidence data from evidence datasource
+                 let inputObj = {
+                  submissionId : submissionId
+                }
+
+                let evidenceData = await getEvidenceData(inputObj);
+                let responseObj;
+
+                if(evidenceData.result) {
+                    responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-auth-token"]);
+                } else {
+                    responseObj = chartData;
+                }
+
                 resolve(responseObj);
                 commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj);
               }
@@ -230,7 +250,11 @@ async function instancePdfReport(req, res) {
                 }
             ]
           }
-        }]
+        },
+        "evidences":[
+              {url:"", extension:""},
+          ]
+      ]
 *     }
    * @apiUse errorBody
    */
@@ -296,7 +320,24 @@ exports.instanceObservationScoreReport = async function (req, res) {
                 "data": "SUBMISSION_ID_NOT_FOUND"
               });
             } else {
-              var responseObj = await helperFunc.instanceScoreReportChartObjectCreation(data);
+
+              let chartData = await helperFunc.instanceScoreReportChartObjectCreation(data);
+
+              //Get evidence data from evidence datasource
+              let inputObj = {
+                submissionId : req.body.submissionId
+              }
+
+              let evidenceData = await getEvidenceData(inputObj);
+              
+              let responseObj;
+
+              if(evidenceData.result) {
+                responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-auth-token"]);
+
+              } else {
+                responseObj = chartData;
+              }
               resolve(responseObj);
             }
           })
@@ -375,7 +416,10 @@ async function instanceObservationScorePdfFunc(req, res) {
           "responseType": "",
           "answers": "",
           "chart": {},
-          "instanceQuestions": []
+          "instanceQuestions": [],
+          "evidences":[
+              {url:"", extension:""}
+          ]
        }]
 *     }
    * @apiUse errorBody
@@ -442,7 +486,26 @@ exports.entity = async function (req, res) {
               resolve({ "data": "No observations made for the entity" })
             }
             else {
-              var responseObj = await helperFunc.entityReportChart(data, req.body.entityId, "school")
+
+              let chartData = await helperFunc.entityReportChart(data, req.body.entityId, "school")
+
+               //Get evidence data from evidence datasource
+               let inputObj = {
+                entityId : req.body.entityId,
+                observationId : req.body.observationId
+              }
+
+              let evidenceData = await getEvidenceData(inputObj);
+              
+              let responseObj;
+
+              if(evidenceData.result) {
+                responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-auth-token"]);
+
+              } else {
+                responseObj = chartData;
+              }
+            
               resolve(responseObj);
   
             }
@@ -751,26 +814,9 @@ exports.entityScoreReport = async function (req, res) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
             }
 
-
-             //if filter is given
-             if (req.body.filter) {
-              if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
-                let filter = {};
-                questionFilter = await filterCreate(req.body.filter.questionId);
-                filter =  { "type": "or", "fields": questionFilter };
-                bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
-                bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
-                bodyParam.filter.fields.push(filter);
-              }
-              else {
-                bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
-                bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
-              }
-            }
-            else {
               bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
               bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
-            }
+            
 
             //pass the query as body param and get the resul from druid
             var options = config.druid.options;
@@ -785,7 +831,8 @@ exports.entityScoreReport = async function (req, res) {
   
             else {
   
-              var responseObj = await helperFunc.entityScoreReportChartObjectCreation(data, "v1")
+              let responseObj = await helperFunc.entityScoreReportChartObjectCreation(data, "v1");
+
               resolve(responseObj);
   
             }
@@ -1235,7 +1282,10 @@ async function getCreatedByField(req, res) {
           "responseType": "",
           "answers": "",
           "chart": {},
-          "instanceQuestions": []
+          "instanceQuestions": [],
+          "evidences":[
+              {url:"", extension:""},
+          ]
        }]
 *     }
    * @apiUse successBody
@@ -1299,16 +1349,33 @@ async function observationReportData(req, res) {
                     if (!data.length) {
                         resolve({ "data": "No entities are observed" })
                     }
-                    else {
-                        entityId = "";
-                        entityType = "";
-                        var responseObj = await helperFunc.entityReportChart(data,entityId,entityType)
-                        //send the responseObj as API output
-                        resolve(responseObj);
-                       
+                  else {
+                    entityId = "";
+                    entityType = "";
+
+                    let chartData = await helperFunc.entityReportChart(data, entityId, entityType);
+
+                    //Get evidence data from evidence datasource
+                    let inputObj = {
+                      observationId: req.body.observationId
                     }
+
+                    let evidenceData = await getEvidenceData(inputObj);
+
+                    let responseObj;
+
+                    if (evidenceData.result) {
+                      responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+
+                    } else {
+                      responseObj = chartData;
+                    }
+
+                    resolve(responseObj);
+
+                  }
                 })
-                .catch(function (err) {
+              .catch(function (err) {
                     res.status(400);
                     var response = {
                         result: false,
@@ -1420,7 +1487,11 @@ async function observationGenerateReport(req, res) {
             }]
 
           }
-        }]
+        },
+        "evidences":[
+            {url:"", extension:""},
+        ]
+      ]
 *     }
    * @apiUse errorBody
    */
@@ -1488,15 +1559,32 @@ async function observationScoreReport(req, res) {
   
             else {
 
-              var responseObj = await helperFunc.observationScoreReportChart(data);
+              let chartData = await helperFunc.observationScoreReportChart(data);
 
                 //Call samiksha API to get total schools count for the given observationId
                 let totalSchools = await getTotalSchools(req.body.observationId,req.headers["x-auth-token"]);
 
-                if (totalSchools.result) {
-                    responseObj.totalSchools = totalSchools.result.count;
-                }
-                resolve(responseObj);
+              if (totalSchools.result) {
+                chartData.totalSchools = totalSchools.result.count;
+              }
+
+              //Get evidence data from evidence datasource
+              let inputObj = {
+                observationId: req.body.observationId
+              }
+
+              let evidenceData = await getEvidenceData(inputObj);
+
+              let responseObj;
+
+              if (evidenceData.result) {
+                responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+
+              } else {
+                responseObj = chartData;
+              }
+
+              resolve(responseObj);
 
             }
           })
@@ -2143,12 +2231,39 @@ exports.entitySolutionReportPdfGeneration = async function (req, res) {
 };
 
 
-//Controller for entity solution report (cluster/block/zone/district)
-exports.allEvidences = async function (req, res) {
+/**
+   * @api {post} /dhiti/api/v1/observations/listAllEvidences 
+   * List all evidence 
+   * @apiVersion 1.0.0
+   * @apiGroup Observations
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "submissionId": "",
+  "entityId": "",
+  "observationId": "",
+  "questionId": ""
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "result": true,
+       "data": [{
+          "images":[{"url":"", "extension":""}],
+          "videos":[{"url":"", "extension":""}],
+          "documents":[{"url":"", "extension":""}],
+          "remarks":[]
+        }]
+*     }
+   * @apiUse errorBody
+   */
+
+//controller for all evidence API
+exports.listAllEvidences = async function (req, res) {
 
   return new Promise(async function (resolve, reject) {
 
-    let responseData = await allevidencesList(req, res);
+    let responseData = await allEvidencesList(req, res);
     res.send(responseData);
 
   })
@@ -2156,88 +2271,93 @@ exports.allEvidences = async function (req, res) {
 };
 
 
-// async function allevidencesList(req, res) {
-//   return new Promise(async function (resolve, reject) {
+//Function for getting all the evidences of a question
+async function allEvidencesList(req, res) {
+  return new Promise(async function (resolve, reject) {
 
-//     if (!req.body.submissionId && !req.body.questionId) {
-//       var response = {
-//         result: false,
-//         message: 'submissionId and questionId are required fields'
-//       }
-//       resolve(response);
+    if (!req.body.submissionId && !req.body.questionId) {
+      var response = {
+        result: false,
+        message: 'submissionId and questionId are required fields'
+      }
+      resolve(response);
 
-//     } else if (!req.body.entityId && !req.body.observationId && !req.body.questionId) {
-//       var response = {
-//         result: false,
-//         message: 'entityId, observationId and questionId are required fields'
-//       }
-//       resolve(response);
+    } else if (!req.body.entityId && !req.body.observationId && !req.body.questionId) {
+      var response = {
+        result: false,
+        message: 'entityId, observationId and questionId are required fields'
+      }
+      resolve(response);
 
-//     } else if (!req.body.observationId && !req.body.questionId) {
-//       var response = {
-//         result: false,
-//         message: 'observationId and questionId are required fields'
-//       }
-//       resolve(response);
+    } else if (!req.body.observationId && !req.body.questionId) {
+      var response = {
+        result: false,
+        message: 'observationId and questionId are required fields'
+      }
+      resolve(response);
 
-//     } else {
+    } else {
 
-//       model.MyModel.findOneAsync({ qid: "list_all_evidence_query" }, { allow_filtering: true })
-//       .then(async function (result) {
+      model.MyModel.findOneAsync({ qid: "list_all_evidence_query" }, { allow_filtering: true })
+        .then(async function (result) {
 
-//         var bodyParam = JSON.parse(result.query);
+          var bodyParam = JSON.parse(result.query);
 
-//         if (config.druid.observation_datasource_name) {
-//           bodyParam.dataSource = config.druid.observation_datasource_name;
-//         }
-        
-//         let filter = {};
+          if (config.druid.evidence_datasource_name) {
+            bodyParam.dataSource = config.druid.evidence_datasource_name;
+          }
 
-//         if(req.body.submissionId && req.body.questionId){
-//          filter = {"type":"and",fields:[{"type":"selector","dimension":"observationSubmissionId","value":req.body.submissionId},{"type":"selector","dimension":"questionExternalId","value":req.body.questionId}]};
-//         }
-//         else if(req.body.entityId && req.body.observationId && req.body.questionId){
-//          filter = {"type":"and",fields:[{"type":"selector","dimension":"school","value":req.body.entityId},{"type":"selector","dimension":"observationId","value":req.body.observationId},{"type":"selector","dimension":"questionExternalId","value":req.body.questionId}]};
-//         }
-//         else if(req.body.observationId && req.body.questionId){
-//          filter = {"type":"and",fields:[{"type":"selector","dimension":"observationId","value":req.body.observationId},{"type":"selector","dimension":"questionExternalId","value":req.body.questionId}]};
-//         }
+          let filter = {};
 
-//         bodyParam.filter = filter ;
+          if (req.body.submissionId && req.body.questionId) {
+            filter = { "type": "and", fields: [{ "type": "selector", "dimension": "observationSubmissionId", "value": req.body.submissionId }, { "type": "selector", "dimension": "questionExternalId", "value": req.body.questionId }] };
+          }
+          else if (req.body.entityId && req.body.observationId && req.body.questionId) {
+            filter = { "type": "and", fields: [{ "type": "selector", "dimension": "school", "value": req.body.entityId }, { "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "selector", "dimension": "questionExternalId", "value": req.body.questionId }] };
+          }
+          else if (req.body.observationId && req.body.questionId) {
+            filter = { "type": "and", fields: [{ "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "selector", "dimension": "questionExternalId", "value": req.body.questionId }] };
+          }
 
-//         //pass the query as body param and get the resul from druid
-//         var options = config.druid.options;
-//         options.method = "POST";
-//         options.body = bodyParam;
-//         var data = await rp(options);
+          bodyParam.filter = filter;
 
-//         if (!data.length) {
-//           resolve({
-//              "data": "Evidence_NOT_FOUND"
-//            });
-//          } else {
+          //pass the query as body param and get the resul from druid
+          var options = config.druid.options;
+          options.method = "POST";
+          options.body = bodyParam;
+          var data = await rp(options);
 
-//            var responseObj = await helperFunc.evidenceResponseCreateFunc(data);
-//            resolve(responseObj);
-//          }
+          if (!data.length) {
+            resolve({
+              "result": false,
+              "data": "Evidence_NOT_FOUND"
+            });
+          } else {
 
-//       })
-//       .catch (err => {
-//         var response = {
-//           result: false,
-//           message: 'Data not found'
-//         };
-//         resolve(response);
+            let evidenceList = await helperFunc.getEvidenceList(data);
 
-//       })
+            let downloadableUrl = await kendraService.getDownloadableUrl(evidenceList[0], req.headers["x-auth-token"]);
 
+            let response = await helperFunc.evidenceResponseCreateFunc(downloadableUrl.result);
 
-//     }
+            response.remarks = evidenceList[1];
+            
+            resolve({"result" : true, "data" : response});
+          }
 
+        })
+        .catch(err => {
+          var response = {
+            result: false,
+            message: 'Data not found'
+          };
+          resolve(response);
 
-//   })
+        })
+    }
+  })
 
-// }
+}
 
 // Function for preparing filter
 async function filterCreate(questions) {
@@ -2250,6 +2370,63 @@ async function filterCreate(questions) {
   }))
     
   return fieldsArray;
+}
+
+
+// Get the evidence data
+async function getEvidenceData(inputObj) {
+
+  return new Promise(async function (resolve, reject) {
+
+    model.MyModel.findOneAsync({ qid: "get_evidence_query" }, { allow_filtering: true })
+      .then(async function (result) {
+
+        let submissionId = inputObj.submissionId;
+        let entityId = inputObj.entityId;
+        let observationId = inputObj.observationId;
+
+        var bodyParam = JSON.parse(result.query);
+        
+        //based on the given input change the filter
+        let filter = {};
+
+        if (submissionId) {
+          filter = { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }
+        } else if(entityId && observationId) {
+          filter = {"type":"and","fields":[{"type": "selector", "dimension": "school", "value": entityId},{"type": "selector", "dimension": "observationId", "value": observationId}]}
+        } else if(observationId) {
+          filter = { "type": "selector", "dimension": "observationId", "value": observationId }
+        }
+
+        if (config.druid.evidence_datasource_name) {
+          bodyParam.dataSource = config.druid.evidence_datasource_name;
+        }
+         
+        bodyParam.filter = filter;
+
+        //pass the query as body param and get the resul from druid
+        var options = config.druid.options;
+        options.method = "POST";
+        options.body = bodyParam;
+        var data = await rp(options);
+
+        if (!data.length) {
+          resolve({
+            "result": false,
+            "data": "EVIDENCE_NOT_FOUND"
+          });
+        } else {
+          resolve({"result":true,"data":data});
+        }
+      })
+      .catch(function (err) {
+        var response = {
+          result: false,
+          message: "Internal server error"
+        };
+        resolve(response);
+      });
+  })
 }
 
 

@@ -1,13 +1,16 @@
 const moment = require("moment");
 let obsScoreOrder = 0;
 const config = require('../config/config');
+const path = require("path");
+const filesHelper = require('../common/files_helper');
+const kendraService = require('./kendra_service');
 
 //function for instance observation final response creation
 exports.instanceReportChart = async function (data) {
     var obj;
     var multiSelectArray = [];
     var matrixArray = [];
-    var order;
+    var order = "questionExternalId";
     let actualData = data;
 
     try {
@@ -22,20 +25,8 @@ exports.instanceReportChart = async function (data) {
             response: []
         }
         
-        //If questionSequenceByEcm is not null, then convert ecm number from string to int
-        if(data[0].event.questionSequenceByEcm != null){
-           data = await sequenceNumberTypeConvertion(data);
-        }
-           
 
         await Promise.all(data.map(element => {
-
-            if (element.event.questionSequenceByEcm != null) {
-                order = "questionSequenceByEcm";
-            } else {
-                order = "questionExternalId";
-            }
-
 
             // Response object creation for text, slider, number and date type of questions
             if (element.event.questionResponseType == "text" && element.event.instanceParentResponsetype != "matrix" || element.event.questionResponseType == "slider" && element.event.instanceParentResponsetype != "matrix" || element.event.questionResponseType == "number" && element.event.instanceParentResponsetype != "matrix" || element.event.questionResponseType == "date" && element.event.instanceParentResponsetype != "matrix") {
@@ -59,6 +50,10 @@ exports.instanceReportChart = async function (data) {
                     instanceQuestions:[]
                 }
 
+                // if(element.event.remarks != null){
+                //     resp.remarks = [element.event.remarks]
+                // }
+
                
                 obj.response.push(resp);
             }
@@ -79,6 +74,10 @@ exports.instanceReportChart = async function (data) {
                     chart: {},
                     instanceQuestions: []
                 }
+
+                // if(element.event.remarks != null){
+                //     resp.remarks = [element.event.remarks]
+                // }
 
                 obj.response.push(resp);
 
@@ -139,8 +138,6 @@ exports.instanceReportChart = async function (data) {
 async function instanceMultiselectFunc(data) {
     var labelArray = [];
     var question;
-    var responseType;
-    var order;
 
     await Promise.all(data.map(element => {
 
@@ -151,24 +148,22 @@ async function instanceMultiselectFunc(data) {
 
         labelArray.push(element.event.questionResponseLabel);
     
-        if (element.event.questionSequenceByEcm != null) {
-            order = element.event.questionSequenceByEcm;
-        } else {
-            order = element.event.questionExternalId;
-        }
         question = element.event.questionName;
-        responseType = element.event.questionResponseType;
     }))
 
     //response object for multiselect questions
     var resp = {
-        order:order,
+        order: data[0].event.questionExternalId,
         question: question,
-        responseType: "text",
+        responseType: data[0].event.questionResponseType,
         answers: labelArray,
         chart: {},
         instanceQuestions:[]
     }
+
+    // if(data[0].event.remarks != null){
+    //     resp.remarks = [data[0].event.remarks];
+    // }
 
     return resp;
 
@@ -217,9 +212,9 @@ exports.entityReportChart = async function (data,entityId,entityName) {
         }
 
         //If questionSequenceByEcm is not null, then convert ecm number from string to int
-        if (data[0].event.questionSequenceByEcm != null) {
-            data = await sequenceNumberTypeConvertion(data);
-        }
+        // if (data[0].event.questionSequenceByEcm != null) {
+        //     data = await sequenceNumberTypeConvertion(data);
+        // }
 
         //filter all the objects whose questionResponseType is multiselect
         await Promise.all(data.map(element => {
@@ -356,11 +351,11 @@ async function matrixResponseObjectCreateFunc(data){
     var noOfInstances = [];
     let order;
 
-    if(data[0].event.instanceParentEcmSequence != null){
-        order = "instanceParentEcmSequence";
-    } else {
+    // if(data[0].event.instanceParentEcmSequence != null){
+    //     order = "instanceParentEcmSequence";
+    // } else {
         order = "instanceParentExternalId";
-    }
+    // }
     
      //To get the latest edited question
      let questionObject = data.sort(custom_sort);
@@ -454,8 +449,8 @@ async function matrixResponseObject(data,noOfInstances){
 async function responseObjectCreateFunc(data) {
     let dataArray = [];
     let question;
-    let responseType;
     let order;
+    //let remarks = [];
       
     //loop the data and push answers to array
      for (i = 0; i < data.length; i++) {
@@ -464,14 +459,16 @@ async function responseObjectCreateFunc(data) {
          }
         dataArray.push(data[i].event.questionAnswer);
 
-        if(data[i].event.questionSequenceByEcm != null){
+        // if(data[i].event.questionSequenceByEcm != null){
 
-            order = data[i].event.questionSequenceByEcm;
-        } else {
+        //     order = data[i].event.questionSequenceByEcm;
+        // } else {
             order = data[i].event.questionExternalId;
-        } 
+        // } 
 
-        responseType = data[i].event.questionResponseType;
+        //    if(data[i].event.remarks != null){
+        //     remarks.push(data[i].event.remarks);
+        // }
      }
       
      //To get the latest edited question
@@ -482,7 +479,7 @@ async function responseObjectCreateFunc(data) {
     let resp = {
         order: order,
         question: question,
-        responseType: responseType,
+        responseType: data[0].event.questionResponseType,
         answers: dataArray,
         chart: {},
         instanceQuestions:[]
@@ -499,8 +496,7 @@ async function radioObjectCreateFunc(data,noOfSubmissions) {
     var chartdata = [];
     var answerArray = [];
     var question;
-    var responseType;
-    var order;
+    //let remarks = [];
 
     for (var i = 0; i < data.length; i++) {
 
@@ -518,17 +514,11 @@ async function radioObjectCreateFunc(data,noOfSubmissions) {
         } else {
             labelArray.push(data[i].event.questionResponseLabel);
         }
-        
-        if(data[i].event.questionSequenceByEcm != null){
 
-            order = data[i].event.questionSequenceByEcm;
-        } else {
-            order = data[i].event.questionExternalId;
-        } 
+        // if(data[i].event.remarks != null){
+        //     remarks.push(data[i].event.remarks);
+        // }
         
-        
-        responseType = data[i].event.questionResponseType;
-
     }
 
     var responseArray = count(dataArray)   //call count function to count occurences of elements in the array
@@ -556,9 +546,9 @@ async function radioObjectCreateFunc(data,noOfSubmissions) {
     question = questionObject[questionObject.length-1].event.questionName;
 
     var resp = {
-        order: order,
+        order: data[0].event.questionExternalId,
         question: question,
-        responseType: responseType,
+        responseType:  data[0].event.questionResponseType,
         answers: [],
         chart: {
             type: "pie",
@@ -581,7 +571,7 @@ async function radioObjectCreateFunc(data,noOfSubmissions) {
         instanceQuestions:[]
     }
     
-    if("instanceParentResponsetype" in data[0].event){
+    if("instanceParentResponsetype" in data[0].event != null){
         resp.answers = answerArray;
     }
 
@@ -595,7 +585,7 @@ async function multiSelectObjectCreateFunc(data,noOfSubmissions) {
     let answerArray = [];
     let labelArray = [];
     let chartdata = [];
-    let order;
+    //let remarks = [];
    
     await Promise.all(data.map(ele => {
         dataArray.push(ele.event.questionAnswer);
@@ -617,20 +607,13 @@ async function multiSelectObjectCreateFunc(data,noOfSubmissions) {
         chartdata.push(value);
     }
 
-    if(data[0].event.questionSequenceByEcm != null){
-
-        order = data[0].event.questionSequenceByEcm;
-    } else {
-        order = data[0].event.questionExternalId;
-    } 
-
     //To get the latest edited question
     let questionObject = data.sort(custom_sort);
     let question = questionObject[questionObject.length-1].event.questionName;
     
 
     var resp = {
-        order: order,
+        order: data[0].event.questionExternalId,
         question: question,
         responseType: data[0].event.questionResponseType,
         answers: [],
@@ -658,14 +641,26 @@ async function multiSelectObjectCreateFunc(data,noOfSubmissions) {
         instanceQuestions:[]
     }
 
-    // Constructing answer array for matrix questions
-    if ("instanceParentResponsetype" in data[0].event) {
+    // loop through objects and find remarks
+    let groupArrayBySubmissions = await groupArrayByGivenField(data, "observationSubmissionId");
 
-        var groupBySubmissionId = await groupArrayByGivenField(data, "observationSubmissionId");
-        var submissionKeys = Object.keys(groupBySubmissionId);
+    let submissionKeysArray = Object.keys(groupArrayBySubmissions);
+
+    // await Promise.all(submissionKeysArray.map(async element => {
+
+    //     if(groupArrayBySubmissions[element][0].event.remarks != null){
+    //         remarks.push(groupArrayBySubmissions[element][0].event.remarks);
+    //     }
+
+    // }));
+
+    // resp.remarks = remarks ;
+
+    // Constructing answer array for matrix questions
+    if ("instanceParentResponsetype" in data[0].event != null) {
         
-        await Promise.all(submissionKeys.map(async ele => {
-            var groupByInstanceId = await groupArrayByGivenField(groupBySubmissionId[ele], "instanceId")
+        await Promise.all(submissionKeysArray.map(async ele => {
+            var groupByInstanceId = await groupArrayByGivenField(groupArrayBySubmissions[ele], "instanceId")
             var instanceKeys = Object.keys(groupByInstanceId)
             
             await Promise.all(instanceKeys.map(async element => {
@@ -1214,6 +1209,11 @@ async function scoreObjectCreateFunction(data) {
             ]
         }
     }
+    
+    // If remarks is not null then add it to reponse object
+    // if(data[0].event.remarks != null){
+    //     resp.remarks = [data[0].event.remarks];
+    // }
 
     return resp;
 
@@ -1679,12 +1679,266 @@ var questionListObjectCreation = async function(data){
 
 
 
-// exports.evidenceResponseCreateFunc = async function(data){
-//     let evidenceList = [];
-//     await Promise.all(data.map(element => {
-      
-//         if(!evidenceList.includes(element.event.fileSourcePath))
+// Create evidenceList
+exports.getEvidenceList = async function(data){
+    
+    let filePath = [];
+    let remarks = [];
+
+    await Promise.all(data.map(element => {
+        
+        files = element.event.fileSourcePath.split(",");
+        filePath.push(files);
+        
+        if(element.event.remarks != null){
+        remarks.push(element.event.remarks);
+        }
+
+    }));
+
+    let evidenceList = Array.prototype.concat(...filePath);
+    
+    return [evidenceList,remarks];
+}
 
 
-//     }))
-// }
+//Evidence array creation function
+exports.evidenceChartObjectCreation = async function(chartData, evidenceData, token){
+
+
+    let filesArray = [];
+    let questionData = [];
+   
+    await Promise.all(chartData.response.map(async element => {
+        
+        let filteredData = evidenceData.filter(data => element.order.includes(data.event.questionExternalId));
+   
+        if(filteredData.length > 0) {
+        let result = await evidenceArrayCreation(element.order, evidenceData);
+    
+        filesArray.push(result[0]);
+        questionData.push(result[1]);
+        
+        if(element["instanceQuestions"] && element.instanceQuestions.length > 0){
+          
+            await Promise.all(element.instanceQuestions.map(async ele => {
+            
+            let filteredData = evidenceData.filter(data => ele.order.includes(data.event.questionExternalId));
+            
+            if(filteredData.length > 0) {
+            let response = await evidenceArrayCreation(ele.order, evidenceData);
+
+            filesArray.push(response[0]);
+            questionData.push(response[1]);
+
+            }
+ 
+            }));
+
+        }
+
+      }
+
+    }));
+
+    //merge multiple arrays into single array
+    let fileSoucePaths = Array.prototype.concat(...filesArray);
+    fileSoucePaths = Array.prototype.concat(...fileSoucePaths);
+
+    let questionArray = Array.prototype.concat(...questionData);
+
+    uniqueFilePaths = fileSoucePaths.filter(function(elem, index, self) {return index == self.indexOf(elem); })
+   
+    //get the downloadable url from kendra service    
+    let downloadableUrls = await getDownloadableUrlFromKendra(uniqueFilePaths,token);
+  
+    let result = await insertEvidenceArrayToChartObject(chartData,downloadableUrls,questionArray);
+
+    return result;
+
+}
+
+// create filepaths array 
+async function evidenceArrayCreation(questionExternalId, evidenceData) {
+
+    let filteredData = evidenceData.filter(data => questionExternalId.includes(data.event.questionExternalId));
+   
+    let filePath = [];
+    let questionData = [];
+    let filesArray = [];
+    let evidence_count;
+
+    //loop the array, split the fileSourcePath and push it into array
+    await Promise.all(filteredData.map(fileData => {
+
+       filePath.push(fileData.event.fileSourcePath.split(","));
+
+    }));
+    
+    let filePaths = Array.prototype.concat(...filePath);
+    
+    evidence_count = filePaths.length;
+
+    if (filePaths.length > config.evidence.evidence_threshold) {
+        filesArray.push(filePaths.slice(0, config.evidence.evidence_threshold));
+    } else {
+        filesArray.push(filePaths);
+    }
+
+    filesArray = Array.prototype.concat(...filesArray);
+
+    let obj = {
+        questionExternalId: questionExternalId,
+        evidence_count : evidence_count,
+        filePathsArray: filesArray
+    }
+
+    questionData.push(obj);
+
+    return [filesArray,questionData];
+
+}
+
+// Insert evidence array to the corrousponding questions
+async function insertEvidenceArrayToChartObject (chartData,downloadableUrls,questionData){
+
+    await Promise.all(chartData.response.map(async ele => {
+         
+        let filteredData = questionData.filter(data => ele.order.includes(data.questionExternalId));
+
+        if (filteredData.length > 0) {
+
+            let evidenceData = [];
+
+            await Promise.all(filteredData[0].filePathsArray.map(filePath => {
+             
+               let data = downloadableUrls.result.filter(evidence => [filePath].includes(evidence.filePath));
+               evidenceData.push(data);
+            
+            }))
+            
+            evidenceData = Array.prototype.concat(...evidenceData);
+           
+            ele.evidences = [];
+            ele.evidence_count = filteredData[0].evidence_count;
+
+            await Promise.all(evidenceData.map(async element => {
+
+                let ext = path.extname(element.filePath).split('.').join("");
+                let obj = {};
+                obj.url = element.url;
+                obj.extension = ext;
+                ele.evidences.push(obj);
+
+            }));
+
+        }
+
+        if(ele["instanceQuestions"] && ele.instanceQuestions.length > 0){
+
+            await Promise.all(chartData.response.instanceQuestions.map(async value => {
+
+                let filteredData = questionData.filter(data => value.order.includes(data.questionExternalId));
+
+                if (filteredData.length > 0) {
+
+                    let evidenceData = [];
+
+                    await Promise.all(filteredData[0].filePathsArray.map(filePath => {
+                     
+                       let data = downloadableUrls.result.filter(evidence => [filePath].includes(evidence.filePath));
+                       evidenceData.push(data);
+                    
+                    }));
+                    
+                    evidenceData = Array.prototype.concat(...evidenceData);
+                    
+                    value.evidences = [];
+                    value.evidence_count = filteredData[0].evidence_count;
+
+                    await Promise.all(evidenceData.map(async element => {
+
+                        let ext = path.extname(element.filePath);
+                        let obj = {};
+                        obj.url = element.url;
+                        obj.extension = ext;
+                        value.evidences.push(obj);
+
+                    }));
+
+                }
+
+            }));
+
+        }
+
+    }));
+
+    await chartData.response.sort(getSortOrder("order"));
+
+    return chartData;
+}
+
+
+// Extract fileSourcePath, get the downloadable url from kendra service
+async function getDownloadableUrlFromKendra(filesArray, token) {
+
+    return new Promise(async function (resolve, reject) {
+
+        try {
+            let downloadableUrl = await kendraService.getDownloadableUrl(filesArray, token);
+
+            return resolve(downloadableUrl);
+
+        } catch (error) {
+            return reject(error);
+        }
+    })
+}
+
+
+// Response object creation for allEvidences API
+exports.evidenceResponseCreateFunc = async function (result) {
+
+    let evidenceList = {
+        images: [],
+        videos: [],
+        documents: [],
+        remarks: []
+    };
+
+    await Promise.all(result.map(element => {
+        
+        let obj = {};
+        let filePath = element.filePath;
+
+        let ext = path.extname(filePath).split('.').join("");
+
+        if (filesHelper.imageFormats.includes(ext)) {
+
+           obj.filePath = filePath;
+           obj.url = element.url;
+           obj.extension =  ext;
+           evidenceList.images.push(obj);
+
+        } else if ( filesHelper.videoFormats.includes(ext)){
+
+           obj.filePath = filePath;
+           obj.url = element.url;
+           obj.extension =  ext;
+           evidenceList.videos.push(obj);
+
+        } else {
+
+            obj.filePath = element.filePath;
+            obj.url = element.url;
+            obj.extension =  ext;
+            evidenceList.documents.push(obj);
+ 
+         }
+
+
+    }))
+
+    return evidenceList;
+}
