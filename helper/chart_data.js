@@ -1689,8 +1689,10 @@ exports.getEvidenceList = async function(data){
         
         files = element.event.fileSourcePath.split(",");
         filePath.push(files);
-
+        
+        if(element.event.remarks != null){
         remarks.push(element.event.remarks);
+        }
 
     }));
 
