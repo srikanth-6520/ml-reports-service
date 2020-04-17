@@ -2239,8 +2239,10 @@ exports.entitySolutionReportPdfGeneration = async function (req, res) {
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
+  "submissionId": "",
   "entityId": "",
-  "observationId": ""
+  "observationId": "",
+  "questionId": ""
 * }
    * @apiSuccessExample {json} Success-Response:
 *     HTTP/1.1 200 OK
