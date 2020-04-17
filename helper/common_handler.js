@@ -1834,19 +1834,23 @@ async function getTaskStatusPieChart(data) {
         let projectData = [];
 
         await Promise.all(data.map(async element => {
+
             let complete = 0, inProgress = 0, notStarted = 0;
 
             await Promise.all(element.tasks.map(async ele => {
+
                 if (ele.status) {
-                if (ele.status.toLowerCase() == "completed") {
-                    complete = complete + 1;
-                }
-                else if (ele.status.toLowerCase() == "in progress") {
-                    inProgress = inProgress + 1;
-                }
-                else if (ele.status.toLowerCase() == "not started yet" || ele.status.toLowerCase() == "not yet started") {
-                    notStarted = notStarted + 1;
-                }
+                    if (ele.status.toLowerCase() == "completed") {
+                        complete = complete + 1;
+                    }
+                    else if (ele.status.toLowerCase() == "in progress") {
+                        inProgress = inProgress + 1;
+                    }
+                    else if (ele.status.toLowerCase() == "not started yet" || ele.status.toLowerCase() == "not yet started") {
+                        notStarted = notStarted + 1;
+                    }
+
+                
               }
             }))
 
@@ -2340,8 +2344,7 @@ async function ganttChartObject(data) {
                     }
                     dataArray.push(obj);
                 }
-            }
-
+              }
             }))
 
         let chartData = {
