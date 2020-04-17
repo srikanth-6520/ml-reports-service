@@ -1746,9 +1746,11 @@ exports.evidenceChartObjectCreation = async function(chartData, evidenceData, to
     fileSoucePaths = Array.prototype.concat(...fileSoucePaths);
 
     let questionArray = Array.prototype.concat(...questionData);
+
+    uniqueFilePaths = fileSoucePaths.filter(function(elem, index, self) {return index == self.indexOf(elem); })
    
     //get the downloadable url from kendra service    
-    let downloadableUrls = await getDownloadableUrlFromKendra(fileSoucePaths,token);
+    let downloadableUrls = await getDownloadableUrlFromKendra(uniqueFilePaths,token);
   
     let result = await insertEvidenceArrayToChartObject(chartData,downloadableUrls,questionArray);
 
@@ -1806,9 +1808,17 @@ async function insertEvidenceArrayToChartObject (chartData,downloadableUrls,ques
 
         if (filteredData.length > 0) {
 
-            let evidenceData = downloadableUrls.result.filter(evidence => filteredData[0].filePathsArray.includes(evidence.filePath));
+            let evidenceData = [];
+
+            await Promise.all(filteredData[0].filePathsArray.map(filePath => {
+             
+               let data = downloadableUrls.result.filter(evidence => [filePath].includes(evidence.filePath));
+               evidenceData.push(data);
             
-            evidenceData = evidenceData.reduce((unique, o) => {if(!unique.some(obj => obj.filePath === o.filePath)) {unique.push(o);}return unique;},[]);
+            }))
+            
+            evidenceData = Array.prototype.concat(...evidenceData);
+           
             ele.evidences = [];
             ele.evidence_count = filteredData[0].evidence_count;
 
@@ -1829,14 +1839,22 @@ async function insertEvidenceArrayToChartObject (chartData,downloadableUrls,ques
             await Promise.all(chartData.response.instanceQuestions.map(async value => {
 
                 let filteredData = questionData.filter(data => value.order.includes(data.questionExternalId));
+
                 if (filteredData.length > 0) {
 
-                    let evidenceData = downloadableUrls.result.filter(evidence => filteredData[0].filePathsArray.includes(evidence.filePath));
+                    let evidenceData = [];
+
+                    await Promise.all(filteredData[0].filePathsArray.map(filePath => {
+                     
+                       let data = downloadableUrls.result.filter(evidence => [filePath].includes(evidence.filePath));
+                       evidenceData.push(data);
                     
-                    evidenceData = evidenceData.reduce((unique, o) => { if (!unique.some(obj => obj.filePath === o.filePath)) { unique.push(o); } return unique; }, []);
+                    }));
                     
-                    ele.evidences = [];
-                    ele.evidence_count = filteredData[0].evidence_count;
+                    evidenceData = Array.prototype.concat(...evidenceData);
+                    
+                    value.evidences = [];
+                    value.evidence_count = filteredData[0].evidence_count;
 
                     await Promise.all(evidenceData.map(async element => {
 
@@ -1844,7 +1862,7 @@ async function insertEvidenceArrayToChartObject (chartData,downloadableUrls,ques
                         let obj = {};
                         obj.url = element.url;
                         obj.extension = ext;
-                        ele.evidences.push(obj);
+                        value.evidences.push(obj);
 
                     }));
 
