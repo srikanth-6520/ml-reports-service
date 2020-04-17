@@ -2380,7 +2380,7 @@ async function getEvidenceData(inputObj) {
       .then(async function (result) {
 
         let submissionId = inputObj.submissionId;
-        let entityId = inputObj.entity;
+        let entityId = inputObj.entityId;
         let observationId = inputObj.observationId;
 
         var bodyParam = JSON.parse(result.query);
@@ -2391,7 +2391,7 @@ async function getEvidenceData(inputObj) {
         if (submissionId) {
           filter = { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }
         } else if(entityId && observationId) {
-          filter = {"type":"and","fileds":[{"type": "selector", "dimension": "school", "value": entityId},{"type": "selector", "dimension": "observationId", "value": observationId}]}
+          filter = {"type":"and","fields":[{"type": "selector", "dimension": "school", "value": entityId},{"type": "selector", "dimension": "observationId", "value": observationId}]}
         } else if(observationId) {
           filter = { "type": "selector", "dimension": "observationId", "value": observationId }
         }
