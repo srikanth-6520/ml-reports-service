@@ -44,29 +44,34 @@
 
         <br>
 
-        <h5>Project Undertaken in Last <%= data.reportType %></h5>
+        <h5>Project Undertaken In Last <%= data.reportType %></h5>
 
         <br>
 
         <% for (var i=0;i < data.projectArray.length; i++) { %>
+        <% if(data.projectArray[i].title != "") {%>
         <p><b><%= data.projectArray[i].title %></b></p>
         <table id="project">
             <thead>
                 <tr>
-                    <th class="heading1">TASK NAME</th>
-                    <th class="heading">No. OF SUBTASKS</th>
-                    <th class="heading">START DATE</th>
-                    <th class="heading">END DATE</th>
-                    <th class="heading">DURATION in days</th>
-                    <th class="heading">STATUS</th>
+                    <th class="heading1">Task Name</th>
+                    <th class="heading">No. Of Subtasks</th>
+                    <th class="heading">Start Date</th>
+                    <th class="heading">End Date</th>
+                    <th class="heading">Duration <br>(in days)</th>
+                    <th class="heading">Status</th>
                 </tr>
             </thead>
 
             <tbody style="font-size:12px !important">
                 <% for (var j=0;j < data.projectArray[i].tasks.length; j++) { %>
                 <tr>
+                    <% if(data.projectArray[i].tasks[j]["title"]) {%>
                     <td><%= data.projectArray[i].tasks[j].title %></td>
+                    <% } %>
+                    <% if(data.projectArray[i].tasks[j]["subTasks"]) {%>
                     <td style="text-align: center !important"><%= data.projectArray[i].tasks[j].subTasks.length %></td>
+                    <% } %>
 
                     <% if(data.projectArray[i].tasks[j].startDate) {%>
                     <% var startDate = new Date(data.projectArray[i].tasks[j].startDate) %>
@@ -102,7 +107,7 @@
                     <% } %>
 
 
-                    <% if(data.projectArray[i].tasks[j].status != "") { %>
+                    <% if(data.projectArray[i].tasks[j]["status"] && data.projectArray[i].tasks[j].status != "") { %>
                     <% if(data.projectArray[i].tasks[j].status.toLowerCase() == "completed") { %>
                     <td style="background-color:#6abf34 !important">Complete</td>
                     <% } else if(data.projectArray[i].tasks[j].status.toLowerCase() == "in progress") {%>
@@ -132,6 +137,7 @@
 
         <div style='page-break-after:always'></div>
 
+        <% } %>
         <% } %>
     </div>
 </body>
