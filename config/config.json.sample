@@ -1,12 +1,18 @@
 { 
    "application_port_number":4700,
+   "application_base_url":"/dhiti/api/",
+   "node_env": "local",
+   "apidoc_url": "/apidoc",
+   "apidoc_path":"/public/apidoc",
+   
    "cassandra":{ 
       "host":"CASSANDR_HOST_IP_ADDRESS",
       "keyspace":"CASSANDRA_KEYSPACE_NAME",
       "port":"CASSANDRA_PORT",
       "table":"CASSANDRA_TABLE",
       "apiReqAndResTable":"OBSERVATION_API_REQUEST_RESPONSE_TABLE",
-      "assessmentTable": "ASSESSMENT_API_REQUEST_RESPONSE_TABLE"
+      "assessmentTable": "ASSESSMENT_API_REQUEST_RESPONSE_TABLE",
+      "migrationTable": "MIGRATION_TABLE_NAME"
   },
 
   "druid": {
@@ -24,10 +30,16 @@
  "assessment_datasource_name": "ASSESSMENT_DATASOURCE_NAME",
  "enrollment_datasource_name": "ENROLLMENT_DATASOURCE_NAME",
  "telemetry_datasource_name": "TELEMETRY_DATASOURCE_NAME",
+ "evidence_datasource_name": "EVIDENCE_DATASOURCE_NAME",
  "threshold_in_content_api" : 5,
  "threshold_in_entity_score_api": 5
  "threshold_in_observation_score_api": 2
 },
+ 
+  "evidence" : {
+        "evidence_threshold": 3,
+        "gcp_bucket_name": "GCP_BUCKET_NAME"
+    },
 
  "keycloak": {
     "sunbird_keycloak_auth_server_url": "",
@@ -42,6 +54,10 @@
        "observation_details_api":"SAMIKSHA_OBSERVATION_DETAILS_API"
     },
     
+     "kendra" : {
+        "getDownloadableUrl_api": "KENDRA_GETDOWNLOADABLE_API"
+    },
+
  "optionsHtmlToPdf":{ 
       "method":"POST",
       "uri":"",
