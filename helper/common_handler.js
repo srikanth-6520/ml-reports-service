@@ -2127,32 +2127,9 @@ exports.addTaskPdfGeneration = async function (responseData, deleteFromS3 = null
         try {
 
             var FormData = [];
-
-            let startDate, endDate;
-            let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
-
-            if (responseData.startDate) {
-                let date = new Date(responseData.startDate);
-                let day = date.getDate();
-                let month = months[date.getMonth()];
-                let year = date.getFullYear();
-                startDate = day + " " + month + " " + year;
-            }
-    
-            if (responseData.tasks.endDate) {
-                let date = new Date(responseData.tasks.endDate);
-                let day = date.getDate();
-                let month = months[date.getMonth()];
-                let year = date.getFullYear();
-                endDate = day + " " + month + " " + year;
-            }
             
             let obj = {
-
-                response: responseData,
-                startDate: startDate,
-                taskEndDate: endDate
+              response: responseData
             }
 
             ejs.renderFile(__dirname + '/../views/unnatiAddTaskReport.ejs', {
