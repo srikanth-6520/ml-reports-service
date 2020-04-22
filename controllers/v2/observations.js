@@ -9,6 +9,7 @@ const authService = require('../../middleware/authentication_service');
 const observationController = require('../v1/observations');
 const url = require("url");
 const omit = require('object.omit');
+const assessmentService = require('../../helper/assessment_service');
 
 //Controller for entity solution report (cluster/block/zone/district)
 exports.entitySolutionReport = async function (req, res) {
@@ -28,7 +29,7 @@ async function entitySolutionReportGeneration(req, res) {
     return new Promise(async function (resolve, reject) {
   
       if (!req.body.entityId && !req.body.entityType && !req.body.solutionId) {
-        var response = {
+        let response = {
           result: false,
           message: 'entityId, entityType, immediateChildEntityType and solutionId are required fields'
         }
@@ -56,11 +57,24 @@ async function entitySolutionReportGeneration(req, res) {
             bodyParam.filter.fields[0].value = req.body.entityId;
             bodyParam.filter.fields[1].value = req.body.solutionId;
 
+             //get the createdBy field
+             let createdBy = await getCreatedByField(req, res);
+
             if(req.body.reportType == "my"){
-              let createdBy = await getCreatedByField(req,res); 
               let filter = {"type":"selector","dimension":"createdBy","value":createdBy}
               bodyParam.filter.fields.push(filter);
             }
+
+             //get the acl data from samiksha service
+             let userProfile = await assessmentService.getUserProfile(createdBy, req.headers["x-auth-token"]);
+             let aclLength = Object.keys(userProfile.result.acl);
+             if (userProfile.result && userProfile.result.acl && aclLength > 0) {
+               let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
+
+               bodyParam.filter.fields.push({"type":"or","fields":[{"type": "in", "dimension": "schoolType", "values": tagsArray },
+                                            { "type": "in", "dimension": "administrationType", "values": tagsArray }]});
+             }
+
 
             //Push column names dynamically to the query dimensions array 
             if (!req.body.immediateChildEntityType) {
@@ -74,22 +88,21 @@ async function entitySolutionReportGeneration(req, res) {
             }
   
             //pass the query as body param and get the result from druid
-            var options = config.druid.options;
+            let options = config.druid.options;
             options.method = "POST";
             options.body = bodyParam;
-            var data = await rp(options);
+            let data = await rp(options);
   
             if (!data.length) {
               resolve({ "data": "No observations made for the entity" })
             }
             else {
-              var responseObj = await helperFunc.entityReportChart(data,req.body.entityId,req.body.entityType)
+              let responseObj = await helperFunc.entityReportChart(data,req.body.entityId,req.body.entityType)
               resolve(responseObj);
             }
           })
           .catch(function (err) {
-            res.status(500);
-            var response = {
+            let response = {
               result: false,
               message: 'Data not found'
             }
@@ -297,28 +310,42 @@ exports.listObservationSolutions = async function (req, res) {
         model.MyModel.findOneAsync({ qid: query }, { allow_filtering: true })
             .then(async function (result) {
 
-                var bodyParam = JSON.parse(result.query);
+              let bodyParam = JSON.parse(result.query);
 
-                if (config.druid.observation_datasource_name) {
-                    bodyParam.dataSource = config.druid.observation_datasource_name;
-                }
+              if (config.druid.observation_datasource_name) {
+                bodyParam.dataSource = config.druid.observation_datasource_name;
+              }
+              
+              //get the createdBy field
+              let createdBy = await getCreatedByField(req, res);
 
                 if (req.body.reportType == "my") {
-                    let createdBy = await getCreatedByField(req, res);
+
                     bodyParam.filter.fields[0].dimension = req.body.entityType;
                     bodyParam.filter.fields[0].value = req.body.entityId;
                     bodyParam.filter.fields[1].value = createdBy;
+                    
                 }
                 else {
-                    bodyParam.filter.dimension = req.body.entityType;
-                    bodyParam.filter.value = req.body.entityId;
+                    let filter = {"type":"and","fields":[{"type":"selector","dimension":req.body.entityType,"value":req.body.entityId}]}
+                    bodyParam.filter = filter;
                 }
 
+                //get the acl data from samiksha service
+              let userProfile = await assessmentService.getUserProfile(createdBy, req.headers["x-auth-token"]);
+              let aclLength = Object.keys(userProfile.result.acl);
+              if (userProfile.result && userProfile.result.acl && aclLength > 0) {
+                let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
+
+                bodyParam.filter.fields.push({"type":"or","fields":[{"type": "in", "dimension": "schoolType", "values": tagsArray },
+                                             { "type": "in", "dimension": "administrationType", "values": tagsArray }]});
+              }
+                
                 //pass the query as body param and get the result from druid
-                var options = config.druid.options;
+                let options = config.druid.options;
                 options.method = "POST";
                 options.body = bodyParam;
-                var data = await rp(options);
+                let data = await rp(options);
 
                 if (!data.length) {
                     res.send({ "result": false, "data": [] })
@@ -326,15 +353,14 @@ exports.listObservationSolutions = async function (req, res) {
                 else {
 
                     //call the function listObservationNamesObjectCreate to create response object
-                    var responseObj = await helperFunc.listSolutionNamesObjectCreate(data);
+                    let responseObj = await helperFunc.listSolutionNamesObjectCreate(data);
                     res.send({ "result": true, "data": responseObj });
                 }
             })
             .catch(function (err) {
-                res.status(500);
-                var response = {
+                let response = {
                     result: false,
-                    message: 'Internal server error'
+                    message: 'INTERNAL SERVER ERROR'
                 }
                 res.send(response);
             })
@@ -485,12 +511,9 @@ async function entityObservationPdf(req, res) {
 
       if (resData.status && resData.status == "success") {
 
-        var hostname = req.headers.host;
-        var pathname = url.parse(req.url).pathname;
+        let hostname = req.headers.host;
 
-        console.log(pathname, "responseData", hostname);
-
-        var obj = {
+        let obj = {
           status: "success",
           message: 'Observation Pdf Generated successfully',
           pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
@@ -521,10 +544,9 @@ async function observationGenerateReport(req, res) {
           let resData = await pdfHandler.pdfGeneration(responseData, true);
 
           if (resData.status && resData.status == "success") {
-              var hostname = req.headers.host;
-              var pathname = url.parse(req.url).pathname;
-              console.log(pathname, "responseData", hostname);
-              var obj = {
+              let hostname = req.headers.host;
+             
+              let obj = {
                   status: "success",
                   message: 'Observation Pdf Generated successfully',
                   pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
@@ -569,7 +591,7 @@ async function getEvidenceData(inputObj) {
         let entityId = inputObj.entity;
         let observationId = inputObj.observationId;
 
-        var bodyParam = JSON.parse(result.query);
+        let bodyParam = JSON.parse(result.query);
         
         //based on the given input change the filter
         let filter = {};
@@ -589,10 +611,10 @@ async function getEvidenceData(inputObj) {
         bodyParam.filter = filter;
 
         //pass the query as body param and get the resul from druid
-        var options = config.druid.options;
+        let options = config.druid.options;
         options.method = "POST";
         options.body = bodyParam;
-        var data = await rp(options);
+        let data = await rp(options);
 
         if (!data.length) {
           resolve({
@@ -604,7 +626,7 @@ async function getEvidenceData(inputObj) {
         }
       })
       .catch(function (err) {
-        var response = {
+        let response = {
           result: false,
           message: "Internal server error"
         };
@@ -613,3 +635,30 @@ async function getEvidenceData(inputObj) {
   })
 }
 
+//Function to get the school type and administration type from samiksha
+async function getSchoolTypeFromSamiksha(createdBy,token){
+  
+  return new Promise(async function(resolve,reject){
+
+    let options = {
+      method: "POST",
+      json: true,
+      headers: {
+        "x-authenticated-user-token": token,
+        "Content-Type": "application/json",
+      },
+      uri: config.samiksha.get_user_profile + "/" + createdBy
+    }
+
+    rp(options)
+      .then(result => {
+        return resolve(result);
+      })
+      .catch(err => {
+        return reject(err);
+      })
+
+  });
+
+
+}

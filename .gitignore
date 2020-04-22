@@ -63,3 +63,4 @@ typings/
 #application specific ignores
 config/config.json
 tmp/*
+package-lock.json

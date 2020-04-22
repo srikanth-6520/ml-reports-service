@@ -12,6 +12,7 @@ const rimraf = require("rimraf");
 const fs = require('fs');
 const path = require('path');
 const kendraService = require('../../helper/kendra_service');
+const assessmentService = require('../../helper/assessment_service');
 
 
 /**
@@ -61,7 +62,7 @@ async function instanceObservationData(req, res) {
     return new Promise(async function (resolve, reject) {
   
       if (!req.body.submissionId) {
-        var response = {
+        let response = {
           result: false,
           message: 'submissionId is a required field'
         };
@@ -69,13 +70,13 @@ async function instanceObservationData(req, res) {
       } else {
           let submissionId = req.body.submissionId;
         bodyData = req.body;
-        var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(bodyData);
+        let dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(bodyData);
   
        if (dataReportIndexes == undefined) {
           model.MyModel.findOneAsync({ qid: "instance_observation_query" }, { allow_filtering: true })
             .then(async function (result) {
   
-              var bodyParam = JSON.parse(result.query);
+              let bodyParam = JSON.parse(result.query);
   
               if (config.druid.observation_datasource_name) {
                 bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -103,13 +104,13 @@ async function instanceObservationData(req, res) {
               options.method = "POST";
               options.body = bodyParam;
               var data = await rp(options);
-  
+
               if (!data.length) {
                 resolve({
                   "data": "SUBMISSION_ID_NOT_FOUND"
                 });
               } else {
-                
+               
                 let chartData = await helperFunc.instanceReportChart(data);
 
                 //Get evidence data from evidence datasource
@@ -131,9 +132,9 @@ async function instanceObservationData(req, res) {
               }
             })
             .catch(function (err) {
-              var response = {
+              let response = {
                 result: false,
-                message: 'Data not found'
+                message: 'INTERNAL_SERVER_ERROR'
               };
               resolve(response);
             });
@@ -151,14 +152,14 @@ async function instancePdfReport(req, res) {
     return new Promise(async function (resolve, reject) {
   
       let reqData = req.query;
-      var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
+      let dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
   
       if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
   
         dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
         let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
   
-        var response = {
+        let response = {
           status: "success",
           message: 'Observation Pdf Generated successfully',
           pdfUrl: signedUlr
@@ -176,7 +177,7 @@ async function instancePdfReport(req, res) {
           let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes);
   
           if (dataReportIndexes) {
-            var reqOptions = {
+            let reqOptions = {
               query: dataReportIndexes.id,
               downloadPath: resData.downloadPath
             }
@@ -274,7 +275,7 @@ exports.instanceObservationScoreReport = async function (req, res) {
     return new Promise(async function (resolve, reject) {
   
       if (!req.body.submissionId) {
-        var response = {
+        let response = {
           result: false,
           message: 'submissionId is a required field'
         };
@@ -286,7 +287,7 @@ exports.instanceObservationScoreReport = async function (req, res) {
         model.MyModel.findOneAsync({ qid: "instance_observation_score_query" }, { allow_filtering: true })
           .then(async function (result) {
   
-            var bodyParam = JSON.parse(result.query);
+            let bodyParam = JSON.parse(result.query);
   
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -310,10 +311,10 @@ exports.instanceObservationScoreReport = async function (req, res) {
             }
         
             //pass the query as body param and get the resul from druid
-            var options = config.druid.options;
+            let options = config.druid.options;
             options.method = "POST";
             options.body = bodyParam;
-            var data = await rp(options);
+            let data = await rp(options);
   
             if (!data.length) {
               resolve({
@@ -342,7 +343,7 @@ exports.instanceObservationScoreReport = async function (req, res) {
             }
           })
           .catch(function (err) {
-            var response = {
+            let response = {
               result: false,
               message: 'Data not found'
             };
@@ -361,7 +362,7 @@ async function instanceObservationScorePdfFunc(req, res) {
   
     return new Promise(async function (resolve, reject) {
   
-      var instaRes = await instanceScoreReport(req, res);
+      let instaRes = await instanceScoreReport(req, res);
   
       if (instaRes.result == true) {
   
@@ -439,7 +440,7 @@ exports.entity = async function (req, res) {
     return new Promise(async function (resolve, reject) {
   
       if (!req.body.entityId && !req.body.observationId) {
-        var response = {
+        let response = {
           result: false,
           message: 'entityId and observationId are required fields'
         }
@@ -450,7 +451,7 @@ exports.entity = async function (req, res) {
         model.MyModel.findOneAsync({ qid: "entity_observation_query" }, { allow_filtering: true })
           .then(async function (result) {
   
-            var bodyParam = JSON.parse(result.query);
+            let bodyParam = JSON.parse(result.query);
   
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -1002,12 +1003,23 @@ async function entitySolutionScoreReportGeneration(req, res) {
             bodyParam.filter.fields[1].fields[0].dimension = req.body.entityType;
             bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
             bodyParam.filter.fields[1].fields[1].value = req.body.solutionId;
-  
+            
+            let createdBy = await getCreatedByField(req, res);
+
             //code for myObservation
             if (req.body.reportType == "my") {
-              let createdBy = await getCreatedByField(req, res);
               let filter = { "type": "selector", "dimension": "createdBy", "value": createdBy }
               bodyParam.filter.fields[1].fields.push(filter);
+            }
+
+            //get the acl data from samiksha service
+            let userProfile = await assessmentService.getUserProfile(createdBy, req.headers["x-auth-token"]);
+            let aclLength = Object.keys(userProfile.result.acl);
+            if (userProfile.result && userProfile.result.acl && aclLength > 0) {
+              let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
+
+              bodyParam.filter.fields[1].fields.push({"type":"or","fields":[{"type": "in", "dimension": "schoolType", "values": tagsArray },
+                                           { "type": "in", "dimension": "administrationType", "values": tagsArray }]});
             }
   
             //pass the query as body param and get the result from druid
@@ -1049,7 +1061,7 @@ async function schoolSolutionScoreReport(req, res) {
       model.MyModel.findOneAsync({ qid: "entity_solution_score_query" }, { allow_filtering: true })
         .then(async function (result) {
   
-          var bodyParam = JSON.parse(result.query);
+          let bodyParam = JSON.parse(result.query);
   
           if (config.druid.observation_datasource_name) {
             bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -1059,20 +1071,31 @@ async function schoolSolutionScoreReport(req, res) {
           bodyParam.filter.fields[1].fields[0].dimension = req.body.entityType;
           bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
           bodyParam.filter.fields[1].fields[1].value = req.body.solutionId;
+
+          let createdBy = await getCreatedByField(req, res);
   
           //code for myObservation
           if (req.body.reportType == "my") {
-            let createdBy = await getCreatedByField(req, res);
             let filter = { "type": "selector", "dimension": "createdBy", "value": createdBy }
             bodyParam.filter.fields[1].fields.push(filter);
           }
+
+          //get the acl data from samiksha service
+          let userProfile = await assessmentService.getUserProfile(createdBy, req.headers["x-auth-token"]);
+          let aclLength = Object.keys(userProfile.result.acl);
+          if (userProfile.result && userProfile.result.acl && aclLength > 0) {
+            let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
+
+            bodyParam.filter.fields[1].fields.push({"type":"or","fields":[{"type": "in", "dimension": "schoolType", "values": tagsArray },
+                                         { "type": "in", "dimension": "administrationType", "values": tagsArray }]});
+          }
   
           //pass the query as body param and get the resul from druid
-          var options = config.druid.options;
+          let options = config.druid.options;
           options.method = "POST";
           options.body = bodyParam;
   
-          var data = await rp(options);
+          let data = await rp(options);
   
           if (!data.length) {
             resolve({ "data": "No observations made for the entity" })
@@ -1080,7 +1103,7 @@ async function schoolSolutionScoreReport(req, res) {
   
           else {
   
-            var responseObj = await helperFunc.entityScoreReportChartObjectCreation(data, "v2")
+            let responseObj = await helperFunc.entityScoreReportChartObjectCreation(data, "v2")
             delete responseObj.observationName;
             responseObj.solutionName = data[0].event.solutionName;
             resolve(responseObj);
@@ -1089,7 +1112,7 @@ async function schoolSolutionScoreReport(req, res) {
         })
   
         .catch(function (err) {
-          var response = {
+          let response = {
             result: false,
             message: 'Data not found'
           }
@@ -1687,7 +1710,7 @@ async function observationScorePdfFunc(req, res) {
 exports.listObservationNames = async function (req, res) {
     if (!req.body.entityId || !req.body.entityType) {
         res.status(400);
-        var response = {
+        let response = {
             result: false,
             message: 'entityId,entityType are required fields'
         }
@@ -1699,7 +1722,7 @@ exports.listObservationNames = async function (req, res) {
         model.MyModel.findOneAsync({ qid: "list_observation_names_query" }, { allow_filtering: true })
             .then(async function (result) {
 
-                var bodyParam = JSON.parse(result.query);
+                let bodyParam = JSON.parse(result.query);
 
                 if (config.druid.observation_datasource_name) {
                     bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -1709,10 +1732,10 @@ exports.listObservationNames = async function (req, res) {
                 bodyParam.filter.value = req.body.entityId;
 
                 //pass the query as body param and get the result from druid
-                var options = config.druid.options;
+                let options = config.druid.options;
                 options.method = "POST";
                 options.body = bodyParam;
-                var data = await rp(options);
+                let data = await rp(options);
 
                 if (!data.length) {
                     res.send({ "result": false, "data": [] })
@@ -1720,13 +1743,13 @@ exports.listObservationNames = async function (req, res) {
                 else {
 
                     //call the function listObservationNamesObjectCreate to create response object
-                    var responseObj = await helperFunc.listObservationNamesObjectCreate(data);
+                    let responseObj = await helperFunc.listObservationNamesObjectCreate(data);
                     res.send({ "result": true, "data": responseObj });
                 }
             })
             .catch(function (err) {
                 res.status(400);
-                var response = {
+                let response = {
                     result: false,
                     message: 'Data not found'
                 }
@@ -1776,7 +1799,7 @@ exports.listObservationSolutions = async function (req, res) {
         //get query from cassandra
         model.MyModel.findOneAsync({ qid: "list_observation_solutions_query" }, { allow_filtering: true })
             .then(async function (result) {
-                var bodyParam = JSON.parse(result.query);
+                let bodyParam = JSON.parse(result.query);
                 if (config.druid.observation_datasource_name) {
                     bodyParam.dataSource = config.druid.observation_datasource_name;
                 }
@@ -1785,23 +1808,23 @@ exports.listObservationSolutions = async function (req, res) {
                 bodyParam.filter.value = req.body.entityId;
 
                 //pass the query as body param and get the result from druid
-                var options = config.druid.options;
+                let options = config.druid.options;
                 options.method = "POST";
                 options.body = bodyParam;
-                var data = await rp(options);
+                let data = await rp(options);
 
                 if (!data.length) {
                     res.send({ "result": false, "data": [] })
                 }
                 else {
                     //call the function listObservationNamesObjectCreate to create response object
-                    var responseObj = await helperFunc.listSolutionNamesObjectCreate(data);
+                    let responseObj = await helperFunc.listSolutionNamesObjectCreate(data);
                     res.send({ "result": true, "data": responseObj });
                 }
             })
             .catch(function (err) {
                 res.status(400);
-                var response = {
+                let response = {
                     result: false,
                     message: 'Data not found'
                 }
