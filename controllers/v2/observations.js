@@ -168,6 +168,12 @@ exports.entityScoreReport = async function (req, res) {
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
             }
+
+            let entityType = "school";
+
+            if(req.body.entityType){
+              entityType = req.body.entityType;
+            }
   
              //if filter is given
              if (req.body.filter) {
@@ -175,16 +181,19 @@ exports.entityScoreReport = async function (req, res) {
                 let filter = {};
                 questionFilter = await filterCreate(req.body.filter.questionId);
                 filter =  { "type": "or", "fields": questionFilter };
+                bodyParam.filter.fields[1].fields[0].dimension = req.body.entityType;
                 bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
                 bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
                 bodyParam.filter.fields.push(filter);
               }
               else {
+                bodyParam.filter.fields[1].fields[0].dimension = req.body.entityType;
                 bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
                 bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
               }
             }
             else {
+              bodyParam.filter.fields[1].fields[0].dimension = req.body.entityType;
               bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
               bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
             }

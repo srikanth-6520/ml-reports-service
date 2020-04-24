@@ -456,22 +456,30 @@ exports.entity = async function (req, res) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
             }
 
+            let entityType = "school";
+            
+            if(req.body.entityType){
+              entityType = req.body.entityType;
+            }
+
              //if filter is given
              if (req.body.filter) {
               if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
 
                 let filter = {};
                 questionFilter = await filterCreate(req.body.filter.questionId);
-                filter = { "type": "and", "fields": [{"type":"and","fields":[{"type": "selector", "dimension": "school", "value": req.body.entityId },{"type": "selector", "dimension": "observationId", "value": req.body.observationId }]}, { "type": "or", "fields": questionFilter }] };
+                filter = { "type": "and", "fields": [{"type":"and","fields":[{"type": "selector", "dimension": entityType, "value": req.body.entityId },{"type": "selector", "dimension": "observationId", "value": req.body.observationId }]}, { "type": "or", "fields": questionFilter }] };
                 bodyParam.filter = filter;
                 
               }
               else {
+                bodyParam.filter.fields[0].dimension = entityType;
                 bodyParam.filter.fields[0].value = req.body.entityId;
                 bodyParam.filter.fields[1].value = req.body.observationId;
               }
             }
             else {
+              bodyParam.filter.fields[0].dimension = entityType;
               bodyParam.filter.fields[0].value = req.body.entityId;
               bodyParam.filter.fields[1].value = req.body.observationId;
             }
