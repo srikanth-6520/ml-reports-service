@@ -2063,8 +2063,10 @@ exports.improvementProjectsObjectCreate = async function(data){
         await Promise.all(groupByCriteria[element].map(ele => {
 
             let projectObj = {
-                projectName : ele.event.imp_project_name,
-                projectId : ele.event.imp_project_id
+                projectName : ele.event.imp_project_title,
+                projectId : ele.event.imp_project_id,
+                projectGoal:ele.event.imp_project_goal,
+                projectExternalId: ele.event.imp_project_externalId
             }
 
             criteriaObj.improvementProjects.push(projectObj);
