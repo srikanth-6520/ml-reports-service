@@ -521,11 +521,10 @@ exports.listAssessmentPrograms = async function (req, res) {
 exports.listEntities = async function (req, res) {
 
     let filter;
-    let dimensionArray = [];
-
     let getUserProfile = await getUserProfileFunc(req, res);
     let userProfile = getUserProfile[0];
     let filterData = getUserProfile[1];
+    let dimensionArray = getUserProfile[2];
 
     let aclLength = Object.keys(userProfile.result.acl);
 
@@ -563,6 +562,7 @@ exports.listEntities = async function (req, res) {
             bodyParam.filter = filter;
             bodyParam.dimensions = [...bodyParam.dimensions, ...dimensionArray];
             bodyParam.dimensions = [...new Set(bodyParam.dimensions)];
+            bodyParam.dimensions.push("entityType");
 
             //pass the query as body param and get the result from druid
             let options = config.druid.options;
@@ -613,7 +613,9 @@ exports.listEntities = async function (req, res) {
            "level" : "",
            "improvementProjects" : [{
                "projectName" : "",
-               "projectId" : ""
+               "projectId" : "",
+               "projectGoal": "",
+               "projectExternalId": ""
            }]
        }] 
 *     }
@@ -784,6 +786,7 @@ async function getUserProfileFunc(req,res){
     try {
 
     let filterData = [];
+    let dimensionArray = [];
 
     //get userid from access token 
     let createdBy = await getCreatedByField(req, res);
@@ -796,13 +799,14 @@ async function getUserProfileFunc(req,res){
         await Promise.all(userProfile.result.roles.map(async data => {
 
             await Promise.all(data.entities.map(entityData => {
+                dimensionArray.push(entityData.entityType, entityData.entityType + "Name");
                 let filterField = { "type": "selector", "dimension": entityData.entityType, "value": entityData._id };
                 filterData.push(filterField);
             }));
 
         }));
 
-        return resolve([userProfile,filterData]);
+        return resolve([userProfile,filterData,dimensionArray]);
     } else {
         res.send({"result":false,"data":[]});
     }
