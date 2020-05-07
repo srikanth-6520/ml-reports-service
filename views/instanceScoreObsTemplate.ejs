@@ -6,21 +6,21 @@
 
 <body>
   
-  <%if(data.schoolName) {%>
+  <%if(data.entityName) {%>
     <div style="border: solid 1px #A9A9A9;margin-top:15px;padding: 10px">
-        <h4><%=data.schoolName %></h4>
+        <h4><%=data.entityName %></h4>
     </div>
     <div style="margin-top:20px">
     <h4>Total Observations : <%= data.totalObservations %></h4>
   </div>
   <% } %>
 
-  <%if(data.schoolsObserved) {%>
+  <%if(data.totalEntities) {%>
     <div style="width:50%;float:left;margin-top:15px">
-      <h4>Total Schools : <%= data.totalSchools %></h4>
+      <h4>Total <%= data.entityType %>s : <%= data.totalEntities %></h4>
     </div>
     <div style="width:50%;float:right;margin-top:15px">
-      <h4>Schools Observed : <%= data.schoolsObserved %></h4>
+      <h4><%= data.entityType %>s Observed : <%= data.entitiesObserved %></h4>
     </div>
   <% } %>
 
