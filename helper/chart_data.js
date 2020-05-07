@@ -6,7 +6,7 @@ const kendraService = require('./kendra_service');
 let obsScoreOrder = 0;
 
 //function for instance observation final response creation
-exports.instanceReportChart = async function (data) {
+exports.instanceReportChart = async function (data,reportType) {
     var obj;
     var multiSelectArray = [];
     var matrixArray = [];
@@ -47,7 +47,9 @@ exports.instanceReportChart = async function (data) {
                     responseType: element.event.questionResponseType,
                     answers: [element.event.questionAnswer],
                     chart: {},
-                    instanceQuestions:[]
+                    instanceQuestions:[],
+                    criteriaName: element.event.criteriaName,
+                    criteriaId: element.event.criteriaId
                 }
 
                 // if(element.event.remarks != null){
@@ -72,7 +74,9 @@ exports.instanceReportChart = async function (data) {
                     responseType: "text",
                     answers: [element.event.questionResponseLabel],
                     chart: {},
-                    instanceQuestions: []
+                    instanceQuestions: [],
+                    criteriaName: element.event.criteriaName,
+                    criteriaId: element.event.criteriaId
                 }
 
                 // if(element.event.remarks != null){
@@ -120,10 +124,11 @@ exports.instanceReportChart = async function (data) {
         //sort the response objects based on questionExternalId field
         await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
 
-
+        if(reportType != "criteria"){
         // Get the questions array
         let questionArray = await questionListObjectCreation(actualData);
         obj.allQuestions = questionArray;
+        }
 
         //return final response object
         return obj;
@@ -158,7 +163,9 @@ async function instanceMultiselectFunc(data) {
         responseType: data[0].event.questionResponseType,
         answers: labelArray,
         chart: {},
-        instanceQuestions:[]
+        instanceQuestions:[],
+        criteriaName: data[0].event.criteriaName,
+        criteriaId: element.event.criteriaId
     }
 
     // if(data[0].event.remarks != null){
@@ -348,7 +355,9 @@ async function matrixResponseObjectCreateFunc(data){
         responseType: data[0].event.instanceParentResponsetype,
         answers: [],
         chart: {},
-        instanceQuestions:[]
+        instanceQuestions:[],
+        criteriaName: data[0].event.instanceParentCriteriaName,
+        criteriaId: data[0].event.instanceParentCriteriaId
     }
    
     let groupBySubmissionId = await groupArrayByGivenField(data, "observationSubmissionId");
@@ -477,7 +486,8 @@ async function responseObjectCreateFunc(data) {
         responseType: data[0].event.questionResponseType,
         answers: dataArray,
         chart: {},
-        instanceQuestions:[]
+        instanceQuestions:[],
+        criteriaName: data[0].event.criteriaName
     }
 
     return resp;
@@ -563,7 +573,8 @@ async function radioObjectCreateFunc(data,noOfSubmissions) {
                 }
             ]
         },
-        instanceQuestions:[]
+        instanceQuestions:[],
+        criteriaName: data[0].event.criteriaName
     }
     
     if("instanceParentResponsetype" in data[0].event != null){
@@ -633,7 +644,8 @@ async function multiSelectObjectCreateFunc(data,noOfSubmissions) {
                 }
             }
         },
-        instanceQuestions:[]
+        instanceQuestions:[],
+        criteriaName: data[0].event.criteriaName
     }
 
     // loop through objects and find remarks
@@ -2063,8 +2075,10 @@ exports.improvementProjectsObjectCreate = async function(data){
         await Promise.all(groupByCriteria[element].map(ele => {
 
             let projectObj = {
-                projectName : ele.event.imp_project_name,
-                projectId : ele.event.imp_project_id
+                projectName : ele.event.imp_project_title,
+                projectId : ele.event.imp_project_id,
+                projectGoal:ele.event.imp_project_goal,
+                projectExternalId: ele.event.imp_project_externalId
             }
 
             criteriaObj.improvementProjects.push(projectObj);
@@ -2073,4 +2087,64 @@ exports.improvementProjectsObjectCreate = async function(data){
     }));
 
     return response;
+}
+
+
+//Function to create a report based on criteria
+exports.getCriteriawiseReport = async function(responseObj){
+    
+    let responseArray = [];
+    let finalResponseArray = []
+    
+    await Promise.all(responseObj.response.map(element => {
+
+        let instanceQuestions = element.instanceQuestions;
+
+        element.instanceQuestions = [];
+
+        responseArray.push(element);
+        
+        if(instanceQuestions.length > 0) {
+
+            responseArray = [...responseArray, ...instanceQuestions];
+        }
+
+    }));
+
+    let groupByCriteria = await groupDataByEntityId(responseArray,"criteriaName");
+
+    let criteriaKeys = Object.keys(groupByCriteria);
+
+    await Promise.all(criteriaKeys.map(ele => {
+         
+        let criteriaObj = {
+            
+            criteriaId : groupByCriteria[ele][0].criteriaId,
+            criteriaName : groupByCriteria[ele][0].criteriaName,
+            questionArray : groupByCriteria[ele]
+
+        }
+
+        finalResponseArray.push(criteriaObj);
+
+    }));
+
+    responseObj.response = finalResponseArray;
+
+    let allCriterias =  responseArray.map(({criteriaId,criteriaName}) => ({criteriaId,criteriaName}));
+
+    allCriterias = allCriterias.reduce((acc, current) => {
+        const x = acc.find(item => item.criteriaName === current.criteriaName);
+        if (!x) {
+          return acc.concat([current]);
+        } else {
+          return acc;
+        }
+      }, []);
+      
+    
+    responseObj.allCriterias = allCriterias;
+
+    return responseObj;
+
 }

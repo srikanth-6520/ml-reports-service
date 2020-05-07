@@ -409,7 +409,6 @@ async function assessmentReportGetChartData(req, res) {
    * @apiVersion 1.0.0
    * @apiGroup Assessments
    * @apiHeader {String} x-auth-token Authenticity token  
-   * @apiParamExample {json} Request-Body:
    * @apiSuccessExample {json} Success-Response:
 *     HTTP/1.1 200 OK
 *     {
@@ -614,7 +613,9 @@ exports.listEntities = async function (req, res) {
            "level" : "",
            "improvementProjects" : [{
                "projectName" : "",
-               "projectId" : ""
+               "projectId" : "",
+               "projectGoal": "",
+               "projectExternalId": ""
            }]
        }] 
 *     }
