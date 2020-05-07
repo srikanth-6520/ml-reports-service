@@ -77,15 +77,29 @@ async function instanceObservationData(req, res) {
                         bodyParam.dataSource = config.druid.observation_datasource_name;
                     }
 
-                    bodyParam.dimensions.push("criteriaName");
-                    bodyParam.filter.value = submissionId;
+                    bodyParam.dimensions.push("criteriaName", "criteriaId","instanceParentCriteriaName","instanceParentCriteriaId");
+
+                    //if filter is given
+                    if (req.body.filter) {
+                        if (req.body.filter.criteriaId && req.body.filter.criteriaId.length > 0) {
+                            let filter = {};
+                            filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }, { "type": "in", "dimension":"criteriaId","values":req.body.filter.criteriaId }] };
+                            bodyParam.filter = filter;
+                        }
+                        else {
+                            bodyParam.filter.value = submissionId;
+                        }
+                    }
+                    else {
+                        bodyParam.filter.value = submissionId;
+                    }
 
                     //pass the query as body param and get the resul from druid
                     let options = config.druid.options;
                     options.method = "POST";
                     options.body = bodyParam;
                     let data = await rp(options);
-                   
+
                     if (!data.length) {
                         resolve({
                             "data": "SUBMISSION_ID_NOT_FOUND"
@@ -93,18 +107,18 @@ async function instanceObservationData(req, res) {
                     } else {
 
                         let reportType = "criteria";
-                        let chartData = await helperFunc.instanceReportChart(data,reportType);
+                        let chartData = await helperFunc.instanceReportChart(data, reportType);
 
                         //Get evidence data from evidence datasource
-                         let inputObj = {
-                          submissionId : submissionId
+                        let inputObj = {
+                            submissionId: submissionId
                         }
 
                         let evidenceData = await getEvidenceData(inputObj);
                         let responseObj;
 
-                        if(evidenceData.result) {
-                            responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-auth-token"]);
+                        if (evidenceData.result) {
+                            responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
                         } else {
                             responseObj = chartData;
                         }
@@ -112,7 +126,7 @@ async function instanceObservationData(req, res) {
                         responseObj = await helperFunc.getCriteriawiseReport(responseObj);
 
                         resolve(responseObj);
-                       
+
                     }
                 })
                 .catch(function (err) {
@@ -130,59 +144,218 @@ async function instanceObservationData(req, res) {
 
 
 
+//<======================== Instance observation score report ========================================>
+
+
+/**
+   * @api {post} /dhiti/api/v1/criteria/instanceObservationScoreReport 
+   * Instance observation score report
+   * @apiVersion 1.0.0
+   * @apiGroup Criteria
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "submissionId": "",
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "result": true,
+       "totalScore": "",
+       "scoreAchieved": "",
+       "observationName": "",
+       "response": [{
+          "order": "",
+          "question": "",
+          "chart": {
+            "type": "",
+            "credits": {
+                "enabled": false
+            },
+            "plotOptions": {
+                "pie": {
+                    "allowPointSelect": true,
+                    "cursor": "pointer",
+                    "dataLabels": {
+                        "enabled": false
+                    },
+                    "showInLegend": true,
+                    "borderColor": "#000000"
+                }
+            },
+            "data": [{
+                "data": [{
+                    "name": "",
+                    "y": "",
+                    "color": "#6c4fa1"
+                },{
+                    "name": "",
+                    "y": "",
+                    "color": "#fff"
+                  }
+                }
+            ]
+          }
+        },
+        "evidences":[
+              {url:"", extension:""},
+          ]
+      ]
+*     }
+   * @apiUse errorBody
+   */
+
+//Controller for instance observation score report query
+exports.instanceObservationScoreReport = async function (req, res) {
+
+    let data = await instanceScoreReport(req, res);
+  
+    res.send(data);
+  }
+  
+  
+  //Controller for instance observation score report chart object creation
+  async function instanceScoreReport(req, res) {
+  
+    return new Promise(async function (resolve, reject) {
+  
+      if (!req.body.submissionId) {
+        let response = {
+          result: false,
+          message: 'submissionId is a required field'
+        };
+  
+        resolve(response);
+  
+      } else {
+  
+        model.MyModel.findOneAsync({ qid: "instance_observation_score_query" }, { allow_filtering: true })
+          .then(async function (result) {
+  
+            let bodyParam = JSON.parse(result.query);
+  
+            if (config.druid.observation_datasource_name) {
+              bodyParam.dataSource = config.druid.observation_datasource_name;
+            }
+           
+            bodyParam.dimensions.push("criteriaName", "criteriaId");
+
+             //if filter is given
+             if (req.body.filter) {
+              if (req.body.filter.criteriaId && req.body.filter.criteriaId.length > 0) {
+                
+                bodyParam.filter.fields[0].value = req.body.submissionId;
+                bodyParam.filter.fields.push({"type":"in","dimension":"criteriaId","values":req.body.filter.criteriaId});
+              }
+              else {
+                bodyParam.filter.fields[0].value = req.body.submissionId;
+              }
+            }
+            else {
+              bodyParam.filter.fields[0].value = req.body.submissionId;
+            }
+        
+            //pass the query as body param and get the resul from druid
+            let options = config.druid.options;
+            options.method = "POST";
+            options.body = bodyParam;
+            let data = await rp(options);
+  
+            if (!data.length) {
+              resolve({
+                "data": "SUBMISSION_ID_NOT_FOUND"
+              });
+            } else {
+                
+              let reportType = "criteria";
+              let chartData = await helperFunc.instanceScoreReportChartObjectCreation(data,reportType);
+
+              //Get evidence data from evidence datasource
+              let inputObj = {
+                submissionId : req.body.submissionId
+              }
+
+              let evidenceData = await getEvidenceData(inputObj);
+              
+              let responseObj;
+
+              if(evidenceData.result) {
+                responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-auth-token"]);
+
+              } else {
+                responseObj = chartData;
+              }
+
+              responseObj = await helperFunc.getCriteriawiseReport(responseObj);
+
+              resolve(responseObj);
+            }
+          })
+          .catch(function (err) {
+            console.log(err);
+            let response = {
+              result: false,
+              message: 'INTERNAL_SERVER_ERROR'
+            };
+            resolve(response);
+          });
+  
+      }
+    })
+  };
+
 // Get the evidence data
 async function getEvidenceData(inputObj) {
 
     return new Promise(async function (resolve, reject) {
-  
-      model.MyModel.findOneAsync({ qid: "get_evidence_query" }, { allow_filtering: true })
-        .then(async function (result) {
-  
-          let submissionId = inputObj.submissionId;
-          let entityId = inputObj.entityId;
-          let observationId = inputObj.observationId;
-  
-          var bodyParam = JSON.parse(result.query);
-          
-          //based on the given input change the filter
-          let filter = {};
-  
-          if (submissionId) {
-            filter = { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }
-          } else if(entityId && observationId) {
-            filter = {"type":"and","fields":[{"type": "selector", "dimension": "school", "value": entityId},{"type": "selector", "dimension": "observationId", "value": observationId}]}
-          } else if(observationId) {
-            filter = { "type": "selector", "dimension": "observationId", "value": observationId }
-          }
-  
-          if (config.druid.evidence_datasource_name) {
-            bodyParam.dataSource = config.druid.evidence_datasource_name;
-          }
-           
-          bodyParam.filter = filter;
-  
-          //pass the query as body param and get the resul from druid
-          var options = config.druid.options;
-          options.method = "POST";
-          options.body = bodyParam;
-          var data = await rp(options);
-  
-          if (!data.length) {
-            resolve({
-              "result": false,
-              "data": "EVIDENCE_NOT_FOUND"
+
+        model.MyModel.findOneAsync({ qid: "get_evidence_query" }, { allow_filtering: true })
+            .then(async function (result) {
+
+                let submissionId = inputObj.submissionId;
+                let entityId = inputObj.entityId;
+                let observationId = inputObj.observationId;
+
+                var bodyParam = JSON.parse(result.query);
+
+                //based on the given input change the filter
+                let filter = {};
+
+                if (submissionId) {
+                    filter = { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }
+                } else if (entityId && observationId) {
+                    filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "school", "value": entityId }, { "type": "selector", "dimension": "observationId", "value": observationId }] }
+                } else if (observationId) {
+                    filter = { "type": "selector", "dimension": "observationId", "value": observationId }
+                }
+
+                if (config.druid.evidence_datasource_name) {
+                    bodyParam.dataSource = config.druid.evidence_datasource_name;
+                }
+
+                bodyParam.filter = filter;
+
+                //pass the query as body param and get the resul from druid
+                var options = config.druid.options;
+                options.method = "POST";
+                options.body = bodyParam;
+                var data = await rp(options);
+
+                if (!data.length) {
+                    resolve({
+                        "result": false,
+                        "data": "EVIDENCE_NOT_FOUND"
+                    });
+                } else {
+                    resolve({ "result": true, "data": data });
+                }
+            })
+            .catch(function (err) {
+                var response = {
+                    result: false,
+                    message: "INTERNAL_SERVER_ERROR"
+                };
+                resolve(response);
             });
-          } else {
-            resolve({"result":true,"data":data});
-          }
-        })
-        .catch(function (err) {
-          var response = {
-            result: false,
-            message: "Internal server error"
-          };
-          resolve(response);
-        });
     })
-  }
-  
+}

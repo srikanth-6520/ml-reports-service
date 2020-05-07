@@ -165,7 +165,7 @@ async function instanceMultiselectFunc(data) {
         chart: {},
         instanceQuestions:[],
         criteriaName: data[0].event.criteriaName,
-        criteriaId: element.event.criteriaId
+        criteriaId: data[0].event.criteriaId
     }
 
     // if(data[0].event.remarks != null){
@@ -487,7 +487,8 @@ async function responseObjectCreateFunc(data) {
         answers: dataArray,
         chart: {},
         instanceQuestions:[],
-        criteriaName: data[0].event.criteriaName
+        criteriaName: data[0].event.criteriaName,
+        criteriaId: data[0].event.criteriaId
     }
 
     return resp;
@@ -574,7 +575,8 @@ async function radioObjectCreateFunc(data,noOfSubmissions) {
             ]
         },
         instanceQuestions:[],
-        criteriaName: data[0].event.criteriaName
+        criteriaName: data[0].event.criteriaName,
+        criteriaId: data[0].event.criteriaId
     }
     
     if("instanceParentResponsetype" in data[0].event != null){
@@ -645,7 +647,8 @@ async function multiSelectObjectCreateFunc(data,noOfSubmissions) {
             }
         },
         instanceQuestions:[],
-        criteriaName: data[0].event.criteriaName
+        criteriaName: data[0].event.criteriaName,
+        criteriaId: data[0].event.criteriaId
     }
 
     // loop through objects and find remarks
@@ -1122,7 +1125,7 @@ async function domainCriteriaCreateFunc (data){
 //===================================== chart object creation for observation scoring reports =========================
 
 // Chart object creation for instance observation score report
-exports.instanceScoreReportChartObjectCreation = async function (data) {
+exports.instanceScoreReportChartObjectCreation = async function (data,reportType) {
 
     let obj = {
         result : true,
@@ -1149,10 +1152,12 @@ exports.instanceScoreReportChartObjectCreation = async function (data) {
 
      //sort the response objects based on questionExternalId field
      await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
-
+     
+     if(reportType != "criteria"){
      // Get the question array
      let questionArray = await questionListObjectCreation(data);
      obj.allQuestions = questionArray;
+     }
 
     return obj;
 }
@@ -1214,7 +1219,9 @@ async function scoreObjectCreateFunction(data) {
                     data: dataObj
                 }
             ]
-        }
+        },
+        criteriaName: data[0].event.criteriaName,
+        criteriaId: data[0].event.criteriaId
     }
     
     // If remarks is not null then add it to reponse object
@@ -2098,9 +2105,12 @@ exports.getCriteriawiseReport = async function(responseObj){
     
     await Promise.all(responseObj.response.map(element => {
 
-        let instanceQuestions = element.instanceQuestions;
+        let instanceQuestions = [];
 
-        element.instanceQuestions = [];
+        if(element["instanceQuestions"]){
+            instanceQuestions = element.instanceQuestions;
+            element.instanceQuestions = [];
+        }
 
         responseArray.push(element);
         
