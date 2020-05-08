@@ -1988,10 +1988,10 @@ exports.listEntitesObjectCreation = async function(data){
     await Promise.all(data.map(element => {
 
         let obj = {};
-           
-        obj.entityId = element.event[element.entityType];
-        obj.entityName = element.event[element.entityType + "Name"];
-        obj.entityType = element.event[element.entityType];
+        let entity = element.event.entityType;
+        obj.entityId = element.event[entity];
+        obj.entityName = element.event[entity + "Name"];
+        obj.entityType = element.event.entityType;
         obj.solutionId = element.event.solutionId;
         obj.solutionName = element.event.solutionName;
 
