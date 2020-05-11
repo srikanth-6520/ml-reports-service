@@ -359,3 +359,146 @@ async function getEvidenceData(inputObj) {
             });
     })
 }
+
+
+
+/**
+   * @api {post} /dhiti/api/v1/criteria/entity 
+   * Entity observation report
+   * @apiVersion 1.0.0
+   * @apiGroup Criteria
+   * @apiHeader {String} x-auth-token Authenticity token    
+   * @apiParamExample {json} Request-Body:
+* {
+  "entityId": "",
+  "observationId": "",
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "observationId": "",
+       "observationName": "",
+       "entityType": "",
+       "entityId": "",
+       "entityName": "",
+       "response": [{
+          "order": "",
+          "question": "",
+          "responseType": "",
+          "answers": "",
+          "chart": {},
+          "instanceQuestions": [],
+          "evidences":[
+              {url:"", extension:""}
+          ]
+       }]
+*     }
+   * @apiUse errorBody
+   */
+
+//Controller for entity observation report
+exports.entity = async function (req, res) {
+
+  let data = await entityObservationData(req, res);
+
+  res.send(data);
+}
+
+
+async function entityObservationData(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    if (!req.body.entityId && !req.body.observationId) {
+      let response = {
+        result: false,
+        message: 'entityId and observationId are required fields'
+      }
+      resolve(response);
+    }
+    else {
+
+      model.MyModel.findOneAsync({ qid: "entity_observation_query" }, { allow_filtering: true })
+        .then(async function (result) {
+
+          let bodyParam = JSON.parse(result.query);
+
+          if (config.druid.observation_datasource_name) {
+            bodyParam.dataSource = config.druid.observation_datasource_name;
+          }
+
+          let entityType = "school";
+          
+          if(req.body.entityType){
+            entityType = req.body.entityType;
+          }
+
+          bodyParam.dimensions.push("criteriaName", "criteriaId","instanceParentCriteriaName","instanceParentCriteriaId");
+
+           //if filter is given
+           if (req.body.filter) {
+            if (req.body.filter.criteriaId && req.body.filter.criteriaId.length > 0) {
+              filter = { "type": "and", "fields": [{"type":"and","fields":[{"type": "selector", "dimension": entityType, "value": req.body.entityId },{"type": "selector", "dimension": "observationId", "value": req.body.observationId }]}, { "type": "in", "dimension":"criteriaId","values":req.body.filter.criteriaId }] };
+              bodyParam.filter = filter;
+              
+            }
+            else {
+              bodyParam.filter.fields[0].dimension = entityType;
+              bodyParam.filter.fields[0].value = req.body.entityId;
+              bodyParam.filter.fields[1].value = req.body.observationId;
+            }
+          }
+          else {
+            bodyParam.filter.fields[0].dimension = entityType;
+            bodyParam.filter.fields[0].value = req.body.entityId;
+            bodyParam.filter.fields[1].value = req.body.observationId;
+          }
+
+          //pass the query as body param and get the resul from druid
+          var options = config.druid.options;
+          options.method = "POST";
+          options.body = bodyParam;
+          var data = await rp(options);
+
+          if (!data.length) {
+            resolve({ "data": "No observations made for the entity" })
+          }
+          else {
+
+            let reportType = "criteria";
+            let chartData = await helperFunc.entityReportChart(data, req.body.entityId, "school",reportType)
+
+             //Get evidence data from evidence datasource
+             let inputObj = {
+              entityId : req.body.entityId,
+              observationId : req.body.observationId
+            }
+
+            let evidenceData = await getEvidenceData(inputObj);
+            
+            let responseObj;
+
+            if(evidenceData.result) {
+              responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-auth-token"]);
+
+            } else {
+              responseObj = chartData;
+            }
+          
+            responseObj = await helperFunc.getCriteriawiseReport(responseObj);
+
+            resolve(responseObj);
+
+          }
+        })
+        .catch(function (err) {
+          res.status(400);
+          var response = {
+            result: false,
+            message: 'Data not found'
+          }
+          resolve(response);
+        })
+    }
+  });
+}

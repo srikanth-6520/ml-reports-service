@@ -160,7 +160,7 @@ async function instanceMultiselectFunc(data) {
     var resp = {
         order: data[0].event.questionExternalId,
         question: question,
-        responseType: data[0].event.questionResponseType,
+        responseType: "text",
         answers: labelArray,
         chart: {},
         instanceQuestions:[],
@@ -178,7 +178,7 @@ async function instanceMultiselectFunc(data) {
 
 
 //Function for entity Observation and observation report's response creation
-exports.entityReportChart = async function (data,entityId,entityName) {
+exports.entityReportChart = async function (data,entityId,entityName,reportType) {
     var obj;
     var multiSelectArray = [];
     var textArray = [];
@@ -325,12 +325,13 @@ exports.entityReportChart = async function (data,entityId,entityName) {
         //sort the response objects based on questionExternalId field
          await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
 
-
+        if(reportType != "criteria"){
         // Get the questions array
         let questionArray = await questionListObjectCreation(actualData);
         obj.allQuestions = questionArray;
+        }
 
-         return obj;
+        return obj;
     
   }
     catch (err) {
