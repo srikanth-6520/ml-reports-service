@@ -46,7 +46,7 @@ const path = require('path');
    */
 
 //Controller for instance observation report
-exports.instance = async function (req, res) {
+exports.instanceReport = async function (req, res) {
 
     let data = await instanceObservationData(req, res);
 
@@ -206,7 +206,7 @@ async function instanceObservationData(req, res) {
    */
 
 //Controller for instance observation score report query
-exports.instanceObservationScoreReport = async function (req, res) {
+exports.instanceScoreReport = async function (req, res) {
 
     let data = await instanceScoreReport(req, res);
   
@@ -341,7 +341,7 @@ exports.instanceObservationScoreReport = async function (req, res) {
    */
 
 //Controller for entity observation report
-exports.entity = async function (req, res) {
+exports.entityReport = async function (req, res) {
 
   let data = await entityObservationData(req, res);
 
@@ -486,7 +486,7 @@ async function entityObservationData(req, res) {
    */
 
 //Controller for observation report
-exports.report = async function (req, res) {
+exports.observationReport = async function (req, res) {
   return new Promise(async function (resolve, reject) {
       let data = await observationReportData(req, res);
       res.send(data);
