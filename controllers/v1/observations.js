@@ -41,7 +41,7 @@ const assessmentService = require('../../helper/assessment_service');
          "chart": {},
          "instanceQuestions":[],
          "evidences":[
-              {url:"", extension:""},
+              {"url":"", "extension":""},
             ]
        }]
 *     }
@@ -86,9 +86,7 @@ async function instanceObservationData(req, res) {
               //if filter is given
               if (req.body.filter) {
                 if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
-                  let filter = {};
-                  questionFilter = await filterCreate(req.body.filter.questionId);
-                  filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }, { "type": "or", "fields": questionFilter }] };
+                  let filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }, { "type": "in","dimension":"questionExternalId","values": req.body.filter.questionId }] };
                   bodyParam.filter = filter;
                 }
                 else {
@@ -247,15 +245,13 @@ async function instancePdfReport(req, res) {
                     "name": "",
                     "y": "",
                     "color": "#fff"
-                  }
-                }
-            ]
-          }
-        },
-        "evidences":[
-              {url:"", extension:""},
+                }]
+            }]
+          },
+          "evidences":[
+              {"url":"", "extension":""}
           ]
-      ]
+        }]
 *     }
    * @apiUse errorBody
    */
@@ -296,11 +292,8 @@ exports.instanceObservationScoreReport = async function (req, res) {
              //if filter is given
              if (req.body.filter) {
               if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
-                let filter = {};
-                questionFilter = await filterCreate(req.body.filter.questionId);
-                filter =  { "type": "or", "fields": questionFilter };
                 bodyParam.filter.fields[0].value = req.body.submissionId;
-                bodyParam.filter.fields.push(filter);
+                bodyParam.filter.fields.push({"type":"in","dimension":"questionExternalId","values":req.body.filter.questionId});
               }
               else {
                 bodyParam.filter.fields[0].value = req.body.submissionId;
@@ -343,6 +336,7 @@ exports.instanceObservationScoreReport = async function (req, res) {
             }
           })
           .catch(function (err) {
+            console.log(err);
             let response = {
               result: false,
               message: 'Data not found'
@@ -466,10 +460,7 @@ exports.entity = async function (req, res) {
              //if filter is given
              if (req.body.filter) {
               if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
-
-                let filter = {};
-                questionFilter = await filterCreate(req.body.filter.questionId);
-                filter = { "type": "and", "fields": [{"type":"and","fields":[{"type": "selector", "dimension": entityType, "value": req.body.entityId },{"type": "selector", "dimension": "observationId", "value": req.body.observationId }]}, { "type": "or", "fields": questionFilter }] };
+                let filter = { "type": "and", "fields": [{"type": "selector", "dimension": entityType, "value": req.body.entityId },{"type": "selector", "dimension": "observationId", "value": req.body.observationId },{ "type": "in","dimension":"questionExternalId","values":req.body.filter.questionId}]};
                 bodyParam.filter = filter;
                 
               }
@@ -1355,10 +1346,7 @@ async function observationReportData(req, res) {
                   //if filter is given
                   if (req.body.filter) {
                     if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
-
-                      let filter = {};
-                      questionFilter = await filterCreate(req.body.filter.questionId);
-                      filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "or", "fields": questionFilter }] };
+                      let filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "in","dimension":"questionExternalId","values":req.body.filter.questionId}] };
                       bodyParam.filter = filter;
 
                     }
@@ -1563,11 +1551,8 @@ async function observationScoreReport(req, res) {
              //if filter is given
              if (req.body.filter) {
               if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
-                let filter = {};
-                questionFilter = await filterCreate(req.body.filter.questionId);
-                filter =  { "type": "or", "fields": questionFilter };
                 bodyParam.filter.fields[0].value = req.body.observationId;
-                bodyParam.filter.fields.push(filter);
+                bodyParam.filter.fields.push({"type":"in","dimension":"questionExternalId","values":req.body.filter.questionId});
               }
               else {
                 bodyParam.filter.fields[0].value = req.body.observationId;

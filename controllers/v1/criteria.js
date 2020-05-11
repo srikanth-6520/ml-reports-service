@@ -31,15 +31,20 @@ const path = require('path');
        "entityType": "",
        "entityId": "",
        "response": [{
-         "order": "",
-         "question": "",
-         "responseType": "",
-         "answers": [],
-         "chart": {},
-         "instanceQuestions":[],
-         "evidences":[
-              {url:"", extension:""},
+         "criteriaName": "",
+         "criteriaId": "",
+         "questionArray": [{
+            "order": "",
+            "question": "",
+            "responseType": "",
+            "answers": [],
+            "chart": {},
+            "instanceQuestions":[],
+            "evidences":[
+              {"url":"", "extension":""},
             ]
+         }]
+         
        }]
 *     }
    * @apiUse errorBody
@@ -143,10 +148,6 @@ async function instanceObservationData(req, res) {
 
 
 
-
-//<======================== Instance observation score report ========================================>
-
-
 /**
    * @api {post} /dhiti/api/v1/criteria/instanceScoreReport 
    * Instance score report
@@ -165,26 +166,29 @@ async function instanceObservationData(req, res) {
        "scoreAchieved": "",
        "observationName": "",
        "response": [{
-          "order": "",
-          "question": "",
-          "chart": {
-            "type": "",
-            "credits": {
-                "enabled": false
-            },
-            "plotOptions": {
-                "pie": {
-                    "allowPointSelect": true,
-                    "cursor": "pointer",
-                    "dataLabels": {
-                        "enabled": false
-                    },
+          "criteriaName": "",
+          "criteriaId": "",
+          "questionArray": [{
+              "order": "",
+              "question": "",
+              "chart": {
+                 "type": "",
+                 "credits": {
+                    "enabled": false
+                  },
+                 "plotOptions": {
+                    "pie": {
+                       "allowPointSelect": true,
+                       "cursor": "pointer",
+                       "dataLabels": {
+                          "enabled": false
+                        },
                     "showInLegend": true,
                     "borderColor": "#000000"
-                }
-            },
-            "data": [{
+                  }
+                },
                 "data": [{
+                  "data": [{
                     "name": "",
                     "y": "",
                     "color": "#6c4fa1"
@@ -192,15 +196,14 @@ async function instanceObservationData(req, res) {
                     "name": "",
                     "y": "",
                     "color": "#fff"
-                  }
-                }
-            ]
-          }
-        },
-        "evidences":[
-              {url:"", extension:""},
-          ]
-      ]
+                  }]
+                }]
+              },
+              "evidences":[
+                 {"url":"", "extension":""},
+              ]
+          }]
+        }]
 *     }
    * @apiUse errorBody
    */
@@ -285,21 +288,20 @@ exports.instanceScoreReport = async function (req, res) {
               } else {
                 responseObj = chartData;
               }
-
+              
+              // get criteria wise report
               responseObj = await helperFunc.getCriteriawiseReport(responseObj);
 
               resolve(responseObj);
             }
           })
           .catch(function (err) {
-            console.log(err);
             let response = {
               result: false,
               message: 'INTERNAL_SERVER_ERROR'
             };
             resolve(response);
           });
-  
       }
     })
   };
@@ -317,6 +319,7 @@ exports.instanceScoreReport = async function (req, res) {
 * {
   "entityId": "",
   "observationId": "",
+  "entityType": ""
 * }
    * @apiSuccessExample {json} Success-Response:
 *     HTTP/1.1 200 OK
@@ -327,16 +330,20 @@ exports.instanceScoreReport = async function (req, res) {
        "entityId": "",
        "entityName": "",
        "response": [{
-          "order": "",
-          "question": "",
-          "responseType": "",
-          "answers": "",
-          "chart": {},
-          "instanceQuestions": [],
-          "evidences":[
-              {url:"", extension:""}
-          ]
-       }]
+          "criteriaName": "",
+          "criteriaId": "",
+          "questionArray": [{
+              "order": "",
+              "question": "",
+              "responseType": "",
+              "answers": "",
+              "chart": {},
+              "instanceQuestions": [],
+              "evidences":[
+                  {"url":"", "extension":""}
+              ]
+            }]  
+        }]
 *     }
    * @apiUse errorBody
    */
@@ -400,10 +407,10 @@ async function entityReportData(req, res) {
           }
 
           //pass the query as body param and get the resul from druid
-          var options = config.druid.options;
+          let options = config.druid.options;
           options.method = "POST";
           options.body = bodyParam;
-          var data = await rp(options);
+          let data = await rp(options);
 
           if (!data.length) {
             resolve({ 
@@ -439,8 +446,7 @@ async function entityReportData(req, res) {
           }
         })
         .catch(function (err) {
-          res.status(400);
-          var response = {
+          let response = {
             result: false,
             message: 'INTERNAL_SERVER_ERROR'
           }
@@ -471,48 +477,51 @@ async function entityReportData(req, res) {
        "totalObservations": "",
        "observationName": "",
        "response" : [{
-          "order": "",
-          "question": "",
-          "chart": {
-            "type": "scatter",
-            "title": "",
-            "xAxis": {
-                "title": {
-                    "enabled": true,
-                    "text": "observations"
-                },
-                "labels: {},
-                "categories": ["Obs1", "Obs2", "Obs3", "Obs4", "Obs5"],
-                "startOnTick": false,
-                "endOnTick": false,
-                "showLastLabel": true
-            },
-            "yAxis": {
-                "min": 0,
-                "max": "",
-                "allowDecimals": false,
-                "title": {
-                    "text": "Score"
-                }
-            },
-            "plotOptions":{
-                "scatter":{
-                    "lineWidth": 1,
-                    "lineColor": "#F6B343"
-                }
-            },
-            "credits": {
-                "enabled": false
-            },
-            "legend": {
-                "enabled": false
-            },
-            "data": [{
-                "color": "#F6B343",
-                "data": []
+          "criteriaName": "",
+          "criteriaId": "",
+          "questionArray": [{
+              "order": "",
+              "question": "",
+              "chart": {
+                  "type": "scatter",
+                  "title": "",
+                  "xAxis": {
+                     "title": {
+                     "enabled": true,
+                     "text": "observations"
+                    },
+                     "labels": {},
+                     "categories": ["Obs1", "Obs2", "Obs3", "Obs4", "Obs5"],
+                     "startOnTick": false,
+                     "endOnTick": false,
+                     "showLastLabel": true
+                  },
+                  "yAxis": {
+                     "min": 0,
+                     "max": "",
+                     "allowDecimals": false,
+                     "title": {
+                        "text": "Score"
+                     }
+                  },
+                  "plotOptions":{
+                     "scatter":{
+                     "lineWidth": 1,
+                     "lineColor": "#F6B343"
+                     }
+                  },
+                  "credits": {
+                     "enabled": false
+                  },
+                  "legend": {
+                     "enabled": false
+                  },
+                  "data": [{
+                    "color": "#F6B343",
+                    "data": []
+                  }]
+              }
             }]
-
-          }
         }]
 *     }
    * @apiUse errorBody
@@ -635,10 +644,10 @@ async function entityScoreReportData(req, res) {
 // ============================ Observation report API's =============================>
 
 /**
-   * @api {post} /dhiti/api/v1/observations/report
+   * @api {post} /dhiti/api/v1/observations/observationReport
    * Observation report
    * @apiVersion 1.0.0
-   * @apiGroup Observations
+   * @apiGroup Criteria
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
@@ -653,15 +662,19 @@ async function entityScoreReportData(req, res) {
        "entityId": "",
        "entityName": "",
        "response": [{
-          "order": "",
-          "question": "",
-          "responseType": "",
-          "answers": "",
-          "chart": {},
-          "instanceQuestions": [],
-          "evidences":[
-              {url:"", extension:""},
-          ]
+          "criteriaName": "",
+          "criteriaId": "",
+          "questionArray":[{
+             "order": "",
+             "question": "",
+             "responseType": "",
+             "answers": "",
+             "chart": {},
+             "instanceQuestions": [],
+             "evidences":[
+                {"url":"", "extension":""},
+            ]
+          }]
        }]
 *     }
    * @apiUse successBody
@@ -691,7 +704,7 @@ async function observationReportData(req, res) {
           model.MyModel.findOneAsync({ qid: "observation_report_query" }, { allow_filtering: true })
               .then(async function (result) {
 
-                var bodyParam = JSON.parse(result.query);
+                let bodyParam = JSON.parse(result.query);
                 if (config.druid.observation_datasource_name) {
                   bodyParam.dataSource = config.druid.observation_datasource_name;
                 }
@@ -714,10 +727,10 @@ async function observationReportData(req, res) {
                 }
 
                 //pass the query as body param and get the resul from druid
-                var options = config.druid.options;
+                let options = config.druid.options;
                 options.method = "POST";
                 options.body = bodyParam;
-                var data = await rp(options);
+                let data = await rp(options);
 
                   //if no data throw error message
                   if (!data.length) {
@@ -783,56 +796,58 @@ async function observationReportData(req, res) {
        "result": true,
        "solutionName": "",
        "response": [{
-         "order": "",
-         "question": "",
-         "chart": {
-            "type": "bar",
-            "title": "",
-            "xAxis": {
-                "title": {
-                    "text": null
+         "criteriaName": "",
+         "criteriaId": "",
+         "questionArray": [{
+            "order": "",
+            "question": "",
+            "chart": {
+               "type": "bar",
+               "title": "",
+               "xAxis": {
+                  "title": {
+                     "text": null
+                  },
+                  "labels": {},
+                  "categories": []
                 },
-                "labels": {},
-                "categories": []
-            },
-            "yAxis": {
-                "min": 0,
-                "max": "",
-                "title": {
-                    "text": "Score"
+                "yAxis": {
+                   "min": 0,
+                   "max": "",
+                   "title": {
+                     "text": "Score"
+                    },
+                   "labels": {
+                      "overflow": "justify"
+                    },
+                   "allowDecimals" : false
                 },
-                "labels": {
-                    "overflow": "justify"
-                },
-                "allowDecimals" : false
-            },
-            "plotOptions": {
-                "bar": {
+                "plotOptions": {
+                  "bar": {
                     "dataLabels": {
                         "enabled": true
                     }
-                }
+                  } 
+                },
+                "legend": {
+                  "enabled" : true
+                },
+                "credits": {
+                  "enabled": false
+                },
+                "data": [{
+                  "name": "observation1",
+                  "data": []
+                }, {
+                  "name": "observation2",
+                  "data": []
+                }]
             },
-            "legend": {
-               "enabled" : true
-            },
-            "credits": {
-                "enabled": false
-            },
-            "data": [{
-                "name": "observation1",
-                "data": []
-            }, {
-                "name": "observation2",
-                "data": []
-            }]
-
-          }
-        },
-        "evidences":[
-            {url:"", extension:""},
-        ]
-      ]
+            "evidences":[
+              {"url":"", "extension":""}
+            ]
+          }]
+        }]
 *     }
    * @apiUse errorBody
    */
@@ -887,11 +902,11 @@ async function observationScoreReportData(req, res) {
           }
 
           //pass the query as body param and get the resul from druid
-          var options = config.druid.options;
+          let options = config.druid.options;
           options.method = "POST";
           options.body = bodyParam;
 
-          var data = await rp(options);
+          let data = await rp(options);
 
           if (!data.length) {
             resolve({
@@ -925,7 +940,8 @@ async function observationScoreReportData(req, res) {
             } else {
               responseObj = chartData;
             }
-
+            
+            //get criteria wise report
             responseObj = await helperFunc.getCriteriawiseReport(responseObj);
             resolve(responseObj);
 
@@ -933,7 +949,7 @@ async function observationScoreReportData(req, res) {
         })
 
         .catch(function (err) {
-          var response = {
+          let response = {
             result: false,
             message: 'INTERNAL_SERVER_ERROR'
           }

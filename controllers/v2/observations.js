@@ -191,22 +191,19 @@ exports.entityScoreReport = async function (req, res) {
              //if filter is given
              if (req.body.filter) {
               if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
-                let filter = {};
-                questionFilter = await filterCreate(req.body.filter.questionId);
-                filter =  { "type": "or", "fields": questionFilter };
-                bodyParam.filter.fields[1].fields[0].dimension = req.body.entityType;
+                bodyParam.filter.fields[1].fields[0].dimension = entityType;
                 bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
                 bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
-                bodyParam.filter.fields.push(filter);
+                bodyParam.filter.fields.push({"type":"in","dimension":"questionExternalId","values":req.body.filter.questionId});
               }
               else {
-                bodyParam.filter.fields[1].fields[0].dimension = req.body.entityType;
+                bodyParam.filter.fields[1].fields[0].dimension = entityType;
                 bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
                 bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
               }
             }
             else {
-              bodyParam.filter.fields[1].fields[0].dimension = req.body.entityType;
+              bodyParam.filter.fields[1].fields[0].dimension = entityType;
               bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
               bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
             }
