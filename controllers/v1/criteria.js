@@ -243,7 +243,6 @@ exports.instanceObservationScoreReport = async function (req, res) {
              //if filter is given
              if (req.body.filter) {
               if (req.body.filter.criteriaId && req.body.filter.criteriaId.length > 0) {
-                
                 bodyParam.filter.fields[0].value = req.body.submissionId;
                 bodyParam.filter.fields.push({"type":"in","dimension":"criteriaId","values":req.body.filter.criteriaId});
               }
@@ -304,61 +303,6 @@ exports.instanceObservationScoreReport = async function (req, res) {
     })
   };
 
-// Get the evidence data
-async function getEvidenceData(inputObj) {
-
-    return new Promise(async function (resolve, reject) {
-
-        model.MyModel.findOneAsync({ qid: "get_evidence_query" }, { allow_filtering: true })
-            .then(async function (result) {
-
-                let submissionId = inputObj.submissionId;
-                let entityId = inputObj.entityId;
-                let observationId = inputObj.observationId;
-
-                var bodyParam = JSON.parse(result.query);
-
-                //based on the given input change the filter
-                let filter = {};
-
-                if (submissionId) {
-                    filter = { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }
-                } else if (entityId && observationId) {
-                    filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "school", "value": entityId }, { "type": "selector", "dimension": "observationId", "value": observationId }] }
-                } else if (observationId) {
-                    filter = { "type": "selector", "dimension": "observationId", "value": observationId }
-                }
-
-                if (config.druid.evidence_datasource_name) {
-                    bodyParam.dataSource = config.druid.evidence_datasource_name;
-                }
-
-                bodyParam.filter = filter;
-
-                //pass the query as body param and get the resul from druid
-                var options = config.druid.options;
-                options.method = "POST";
-                options.body = bodyParam;
-                var data = await rp(options);
-
-                if (!data.length) {
-                    resolve({
-                        "result": false,
-                        "data": "EVIDENCE_NOT_FOUND"
-                    });
-                } else {
-                    resolve({ "result": true, "data": data });
-                }
-            })
-            .catch(function (err) {
-                var response = {
-                    result: false,
-                    message: "INTERNAL_SERVER_ERROR"
-                };
-                resolve(response);
-            });
-    })
-}
 
 
 
@@ -438,7 +382,7 @@ async function entityObservationData(req, res) {
            //if filter is given
            if (req.body.filter) {
             if (req.body.filter.criteriaId && req.body.filter.criteriaId.length > 0) {
-              filter = { "type": "and", "fields": [{"type":"and","fields":[{"type": "selector", "dimension": entityType, "value": req.body.entityId },{"type": "selector", "dimension": "observationId", "value": req.body.observationId }]}, { "type": "in", "dimension":"criteriaId","values":req.body.filter.criteriaId }] };
+              let filter = { "type": "and", "fields": [{"type":"and","fields":[{"type": "selector", "dimension": entityType, "value": req.body.entityId },{"type": "selector", "dimension": "observationId", "value": req.body.observationId }]}, { "type": "in", "dimension":"criteriaId","values":req.body.filter.criteriaId }] };
               bodyParam.filter = filter;
               
             }
@@ -495,10 +439,200 @@ async function entityObservationData(req, res) {
           res.status(400);
           var response = {
             result: false,
-            message: 'Data not found'
+            message: 'INTERNAL_SERVER_ERROR'
           }
           resolve(response);
         })
     }
   });
+}
+
+
+
+// ============================ Observation report API's =============================>
+
+/**
+   * @api {post} /dhiti/api/v1/observations/report
+   * Observation report
+   * @apiVersion 1.0.0
+   * @apiGroup Observations
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "observationId": "",
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "observationId": "",
+       "observationName": "",
+       "entityType": "",
+       "entityId": "",
+       "entityName": "",
+       "response": [{
+          "order": "",
+          "question": "",
+          "responseType": "",
+          "answers": "",
+          "chart": {},
+          "instanceQuestions": [],
+          "evidences":[
+              {url:"", extension:""},
+          ]
+       }]
+*     }
+   * @apiUse successBody
+   * @apiUse errorBody
+   */
+
+//Controller for observation report
+exports.report = async function (req, res) {
+  return new Promise(async function (resolve, reject) {
+      let data = await observationReportData(req, res);
+      res.send(data);
+  })
+}
+
+async function observationReportData(req, res) {
+  return new Promise(async function (resolve, reject) {
+
+      if (!req.body.observationId) {
+          res.status(400);
+          var response = {
+              result: false,
+              message: 'observationId is a required field'
+          }
+          resolve(response);
+      }
+      else {
+          
+          model.MyModel.findOneAsync({ qid: "observation_report_query" }, { allow_filtering: true })
+              .then(async function (result) {
+
+                var bodyParam = JSON.parse(result.query);
+                if (config.druid.observation_datasource_name) {
+                  bodyParam.dataSource = config.druid.observation_datasource_name;
+                }
+                 
+                bodyParam.dimensions.push("criteriaName", "criteriaId","instanceParentCriteriaName","instanceParentCriteriaId");
+
+                //if filter is given
+                if (req.body.filter) {
+                  if (req.body.filter.criteriaId && req.body.filter.criteriaId.length > 0) {
+                    let filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "in", "dimension": "criteriaId", "values": req.body.filter.criteriaId }] };
+                    bodyParam.filter = filter;
+
+                  }
+                  else {
+                    bodyParam.filter.value = req.body.observationId;
+                  }
+                }
+                else {
+                  bodyParam.filter.value = req.body.observationId;
+                }
+
+                //pass the query as body param and get the resul from druid
+                var options = config.druid.options;
+                options.method = "POST";
+                options.body = bodyParam;
+                var data = await rp(options);
+
+                  //if no data throw error message
+                  if (!data.length) {
+                      resolve({ "data": "No entities are observed" })
+                  }
+                else {
+                  let entityId = "";
+                  let entityType = "";
+                  let reportType = "criteria";
+                  let chartData = await helperFunc.entityReportChart(data, entityId, entityType, reportType);
+
+                  //Get evidence data from evidence datasource
+                  let inputObj = {
+                    observationId: req.body.observationId
+                  }
+
+                  let evidenceData = await getEvidenceData(inputObj);
+
+                  let responseObj;
+
+                  if (evidenceData.result) {
+                    responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+
+                  } else {
+                    responseObj = chartData;
+                  }
+                  
+                  responseObj = await helperFunc.getCriteriawiseReport(responseObj);
+                  resolve(responseObj);
+
+                }
+              })
+            .catch(function (err) {
+                  res.status(400);
+                  var response = {
+                      result: false,
+                      message: 'INTERNAL_SERVER_ERROR'
+                  }
+                  resolve(response);
+              })
+      }
+  });
+}
+
+
+// Get the evidence data
+async function getEvidenceData(inputObj) {
+
+  return new Promise(async function (resolve, reject) {
+
+      model.MyModel.findOneAsync({ qid: "get_evidence_query" }, { allow_filtering: true })
+          .then(async function (result) {
+
+              let submissionId = inputObj.submissionId;
+              let entityId = inputObj.entityId;
+              let observationId = inputObj.observationId;
+
+              var bodyParam = JSON.parse(result.query);
+
+              //based on the given input change the filter
+              let filter = {};
+
+              if (submissionId) {
+                  filter = { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }
+              } else if (entityId && observationId) {
+                  filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "school", "value": entityId }, { "type": "selector", "dimension": "observationId", "value": observationId }] }
+              } else if (observationId) {
+                  filter = { "type": "selector", "dimension": "observationId", "value": observationId }
+              }
+
+              if (config.druid.evidence_datasource_name) {
+                  bodyParam.dataSource = config.druid.evidence_datasource_name;
+              }
+
+              bodyParam.filter = filter;
+
+              //pass the query as body param and get the resul from druid
+              var options = config.druid.options;
+              options.method = "POST";
+              options.body = bodyParam;
+              var data = await rp(options);
+
+              if (!data.length) {
+                  resolve({
+                      "result": false,
+                      "data": "EVIDENCE_NOT_FOUND"
+                  });
+              } else {
+                  resolve({ "result": true, "data": data });
+              }
+          })
+          .catch(function (err) {
+              var response = {
+                  result: false,
+                  message: "INTERNAL_SERVER_ERROR"
+              };
+              resolve(response);
+          });
+  })
 }
