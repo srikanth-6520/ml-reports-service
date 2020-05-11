@@ -53,13 +53,13 @@ const path = require('path');
 //Controller for instance observation report
 exports.instanceReport = async function (req, res) {
 
-    let data = await instanceObservationData(req, res);
+    let data = await instanceReportData(req, res);
 
     res.send(data);
 }
 
 
-async function instanceObservationData(req, res) {
+async function instanceReportData(req, res) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -144,6 +144,33 @@ async function instanceObservationData(req, res) {
                 });
         }
     });
+};
+
+
+
+//Funcion for instance observation pdf generation
+async function instancePdfReport(req, res) {
+  
+  return new Promise(async function (resolve, reject) {
+
+    let instaRes = await instanceReportData(req, res);
+  
+    if (("observationName" in instaRes) == true) {
+
+      let resData = await pdfHandler.instanceCriteriaReportPdfGeneration(instaRes, true);
+
+      let hostname = req.headers.host;
+
+      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+
+      resolve(resData);
+    }
+
+    else {
+      resolve(instaRes);
+    }
+
+  });
 };
 
 
@@ -1042,4 +1069,40 @@ async function getTotalSchools(observationId,token) {
   })
 
 });
+}
+
+
+
+//Controller function for observation pdf reports
+exports.pdfReports = async function (req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    if (req.body.submissionId) {
+
+      let resObj = await instancePdfReport(req, res);
+      res.send(resObj);
+
+    }
+
+    else if (req.body.entityId && req.body.observationId) {
+
+      let resObj = await entityObservationPdf(req, res);
+      res.send(resObj);
+    }
+
+    else if (req.body.observationId) {
+
+      let resObj = await observationGenerateReport(req, res);
+      res.send(resObj);
+
+    }
+    else {
+      res.send({
+        status: "failure",
+        message: "INVALID_INPUT"
+      });
+    }
+  })
+
 }

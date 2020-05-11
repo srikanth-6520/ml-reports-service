@@ -2280,6 +2280,218 @@ exports.addTaskPdfGeneration = async function (responseData, deleteFromS3 = null
 }
 
 
+
+//PDF generation for observation score report
+exports.instanceCriteriaReportPdfGeneration = async function (instanceResponse, deleteFromS3 = null) {
+
+   
+    return new Promise(async function (resolve, reject) {
+
+        var currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
+
+        var imgPath = __dirname + '/../' + currentTempFolder;
+
+
+        try {
+
+            if (!fs.existsSync(imgPath)) {
+                fs.mkdirSync(imgPath);
+            }
+
+            let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
+
+            // let headerFile = await copyBootStrapFile(__dirname + '/../views/header.html', imgPath + '/header.html');
+            let footerFile = await copyBootStrapFile(__dirname + '/../views/footer.html', imgPath + '/footer.html');
+            
+            let formData = [];
+
+            let params = {
+                observationName: instanceResponse.observationName
+            }
+            ejs.renderFile(__dirname + '/../views/header.ejs', {
+                data: params
+            })
+                .then(function (headerHtml) {
+
+                    var dir = imgPath;
+
+                    fs.writeFile(dir + '/header.html', headerHtml, async function (err, dataWr) {
+                        if (err) {
+                            throw err;
+                        } else {
+
+                            var obj = {
+                                response: instanceResponse.response
+                            };
+                            ejs.renderFile(__dirname + '/../views/instanceCriteriaTemplate.ejs', {
+                                data: obj
+                            })
+                                .then(function (dataEjsRender) {
+
+                                    var dir = imgPath;
+                                    if (!fs.existsSync(dir)) {
+                                        fs.mkdirSync(dir);
+                                    }
+                                    fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
+                                        if (errWriteFile) {
+                                            throw errWriteFile;
+                                        } else {
+
+                                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                                            optionsHtmlToPdf.formData = {
+                                                files: [
+                                                ]
+                                            };
+                                            formData.push({
+                                                value: fs.createReadStream(dir + '/index.html'),
+                                                options: {
+                                                    filename: 'index.html'
+                                                }
+                                            });
+                                            formData.push({
+                                                value: fs.createReadStream(dir + '/style.css'),
+                                                options: {
+                                                    filename: 'style.css'
+                                                }
+                                            });
+                                            formData.push({
+                                                value: fs.createReadStream(dir + '/header.html'),
+                                                options: {
+                                                    filename: 'header.html'
+                                                }
+                                            });
+                                            formData.push({
+                                                value: fs.createReadStream(dir + '/footer.html'),
+                                                options: {
+                                                    filename: 'footer.html'
+                                                }
+                                            });
+                                            optionsHtmlToPdf.formData.files = formData;
+
+                                            rp(optionsHtmlToPdf)
+                                                .then(function (responseHtmlToPdf) {
+
+                                                    // console.log("optionsHtmlToPdf", optionsHtmlToPdf.formData.files);
+                                                    var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
+                                                    if (responseHtmlToPdf.statusCode == 200) {
+                                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
+                                                            if (err) {
+                                                                return console.log(err);
+                                                            }
+                                                            // console.log("The PDF was saved!");
+                                                            const s3 = new AWS.S3(config.s3_credentials);
+                                                            const uploadFile = () => {
+                                                                fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
+                                                                    if (err) throw err;
+                                                                    const params = {
+                                                                        Bucket: config.s3_bucketName, // pass your bucket name
+                                                                        Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf', // file will be saved as testBucket/contacts.csv
+                                                                        Body: Buffer.from(data, null, 2),
+                                                                        Expires: 10
+                                                                    };
+
+                                                                    if (deleteFromS3 == true) {
+                                                                        var folderPath = Buffer.from(currentTempFolder).toString('base64')
+
+                                                                        var response = {
+                                                                            status: "success",
+                                                                            message: 'report generated',
+                                                                            pdfUrl: folderPath,
+
+                                                                        };
+                                                                        resolve(response);
+
+                                                                    } else {
+
+
+                                                                        s3.upload(params, function (s3Err, data) {
+                                                                            if (s3Err) throw s3Err;
+
+                                                                            // console.log("data", data);
+                                                                            console.log(`File uploaded successfully at ${data.Location}`);
+
+                                                                            s3SignedUrl(data.key).then(function (signedRes) {
+
+                                                                                try {
+
+
+
+                                                                                    fs.readdir(imgPath, (err, files) => {
+                                                                                        if (err) throw err;
+
+
+                                                                                        var i = 0;
+                                                                                        for (const file of files) {
+
+                                                                                            fs.unlink(path.join(imgPath, file), err => {
+                                                                                                if (err) throw err;
+                                                                                            });
+
+                                                                                            if (i == files.length) {
+                                                                                                fs.unlink('../../' + currentTempFolder, err => {
+                                                                                                    if (err) throw err;
+
+                                                                                                });
+                                                                                                console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
+                                                                                                // fs.unlink(path.join(imgPath, ""), err => {
+                                                                                                //     if (err) throw err;
+                                                                                                // });
+                                                                                            }
+
+                                                                                            i = i + 1;
+
+                                                                                        }
+                                                                                    });
+                                                                                    rimraf(imgPath, function () { console.log("done"); });
+
+                                                                                } catch (ex) {
+                                                                                    console.log("ex ", ex);
+                                                                                }
+
+                                                                                var response = {
+                                                                                    status: "success",
+                                                                                    message: 'report generated',
+                                                                                    pdfUrl: signedRes,
+                                                                                    downloadPath: data.key
+                                                                                };
+                                                                                resolve(response);
+                                                                            })
+                                                                        });
+
+                                                                    }
+                                                                });
+                                                            };
+                                                            uploadFile();
+                                                        });
+                                                    }
+                                                })
+                                                .catch(function (err) {
+                                                    console.log("error in converting HtmlToPdf", err);
+                                                    resolve(err);
+                                                    throw err;
+                                                });
+                                        }
+                                    });
+                                })
+                                .catch(function (errEjsRender) {
+                                    console.log("errEjsRender : ", errEjsRender);
+
+                                    reject(errEjsRender);
+                                });
+
+                        }
+
+                    });
+                });
+
+        } catch (exp) {
+
+        }
+    })
+}
+
+
+
 async function ganttChartObject(data) {
 
     return new Promise(async function (resolve, reject) {
