@@ -1237,7 +1237,7 @@ async function scoreObjectCreateFunction(data) {
 
 
 // Chart object creation for entity observation score report
-exports.entityScoreReportChartObjectCreation = async function (data, version) {
+exports.entityScoreReportChartObjectCreation = async function (data, version, reportType) {
 
     let sortedData = await data.sort(sort_objects);
 
@@ -1288,11 +1288,11 @@ exports.entityScoreReportChartObjectCreation = async function (data, version) {
       //sort the response objects using questionExternalId field
       await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
 
-
-     // Get the question array
+      if(reportType != "criteria"){
+      // Get the question array
       let questionArray = await questionListObjectCreation(data);
       obj.allQuestions = questionArray;
-
+      }
 
       return obj;
 
@@ -1368,7 +1368,9 @@ async function entityScoreObjectCreateFunc (data, version) {
                 data : seriesData
             }]
 
-        }
+        },
+        criteriaName: data[0].event.criteriaName,
+        criteriaId: data[0].event.criteriaId
     }
 
     if (version == "v2") {
@@ -1387,7 +1389,7 @@ async function entityScoreObjectCreateFunc (data, version) {
 
 
 // Chart object creation for observation score report
-exports.observationScoreReportChart = async function (data) {
+exports.observationScoreReportChart = async function (data,reportType) {
 
     let obj = {
         result: true,
@@ -1415,12 +1417,11 @@ exports.observationScoreReportChart = async function (data) {
     //sort the response objects using questionExternalId field
     await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
 
-
+    if(reportType != "criteria"){
     // Get the question array
     let questionArray = await questionListObjectCreation(data);
     obj.allQuestions = questionArray;
-
-
+    }
 
     return obj;
 }
@@ -1512,7 +1513,9 @@ async function observationScoreResponseObj(data){
                 data: obsArray2
             }]
 
-        }
+        },
+        criteriaName: data[0].event.criteriaName,
+        criteriaId: data[0].event.criteriaId
     }
 
     return chartData;
