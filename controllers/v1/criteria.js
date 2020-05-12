@@ -334,6 +334,36 @@ exports.instanceScoreReport = async function (req, res) {
   };
 
 
+//Instance observation score pdf generation
+async function instanceScorePdfReprt(req, res) {
+  
+  return new Promise(async function (resolve, reject) {
+
+    let instaRes = await instanceScoreReportData(req, res);
+
+    if (instaRes.result == true) {
+
+      let obj = {
+        totalScore: instaRes.totalScore,
+        scoreAchieved: instaRes.scoreAchieved
+      }
+
+      let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(instaRes, true, obj);
+
+      let hostname = req.headers.host;
+
+      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+
+      resolve(resData);
+    }
+
+    else {
+      resolve(instaRes);
+    }
+
+  });
+
+};
 
 
 /**
@@ -1157,6 +1187,40 @@ exports.pdfReports = async function (req, res) {
 
 }
 
+
+//Controller function for criteria score pdf reports
+exports.scorePdfReports = async function (req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    if (req.body.submissionId) {
+
+      let resObj = await instanceScorePdfReprt(req, res);
+      res.send(resObj);
+
+    }
+
+    else if (req.body.entityId && req.body.observationId && req.body.entityType) {
+
+      let resObj = await entityScorePdfReport(req, res);
+      res.send(resObj);
+    }
+
+    else if (req.body.observationId) {
+
+      let resObj = await observationScorePdfReport(req, res);
+      res.send(resObj);
+
+    }
+    else {
+      res.send({
+        status: "failure",
+        message: "INVALID_INPUT"
+      });
+    }
+  })
+
+}
 
 
 //COntroller function to get the pdf report from tmp folder and then delete the folder from local storage
