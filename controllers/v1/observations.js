@@ -41,7 +41,7 @@ const assessmentService = require('../../helper/assessment_service');
          "chart": {},
          "instanceQuestions":[],
          "evidences":[
-              {"url":"", "extension":""},
+              {"url":"", "extension":""}
             ]
        }]
 *     }
@@ -413,7 +413,7 @@ async function instanceObservationScorePdfFunc(req, res) {
           "chart": {},
           "instanceQuestions": [],
           "evidences":[
-              {url:"", extension:""}
+              {"url":"", "extension":""}
           ]
        }]
 *     }
@@ -745,7 +745,7 @@ async function entityObservationReportPdfGeneration(req, res) {
                     "enabled": true,
                     "text": "observations"
                 },
-                "labels: {},
+                "labels": {},
                 "categories": ["Obs1", "Obs2", "Obs3", "Obs4", "Obs5"],
                 "startOnTick": false,
                 "endOnTick": false,
@@ -1306,7 +1306,7 @@ async function getCreatedByField(req, res) {
           "chart": {},
           "instanceQuestions": [],
           "evidences":[
-              {url:"", extension:""},
+              {"url":"", "extension":""}
           ]
        }]
 *     }
@@ -1504,13 +1504,11 @@ async function observationGenerateReport(req, res) {
                 "name": "observation2",
                 "data": []
             }]
-
-          }
         },
         "evidences":[
-            {url:"", extension:""},
+            {"url":"", "extension":""}
         ]
-      ]
+      }]
 *     }
    * @apiUse errorBody
    */

@@ -6,7 +6,6 @@ const helperFunc = require('../../helper/chart_data');
 const pdfHandler = require('../../helper/common_handler');
 const omit = require('object.omit');
 const url = require("url");
-const authService = require('../../middleware/authentication_service');
 const rimraf = require("rimraf");
 const fs = require('fs');
 const path = require('path');
