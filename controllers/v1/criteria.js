@@ -492,8 +492,8 @@ async function entityPdfReport(req, res) {
     let entityRes = await entityReportData(req, res);
   
     if (("observationName" in entityRes) == true) {
-
-      let resData = await pdfHandler.instanceCriteriaReportPdfGeneration(instaRes, true);
+     
+      let resData = await pdfHandler.entityCriteriaPdfReportGeneration(entityRes, true);
 
       let hostname = req.headers.host;
 
@@ -830,6 +830,30 @@ async function observationReportData(req, res) {
 }
 
 
+//Funcion for observation pdf generation
+async function observationPdfReport(req, res) {
+  
+  return new Promise(async function (resolve, reject) {
+
+    let observeRes = await observationReportData(req, res);
+  
+    if (("observationName" in observeRes) == true) {
+     
+      let resData = await pdfHandler.entityCriteriaPdfReportGeneration(observeRes, true);
+
+      let hostname = req.headers.host;
+
+      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/criteria/pdfReportsUrl?id=" + resData.pdfUrl
+
+      resolve(resData);
+    }
+
+    else {
+      resolve(observeRes);
+    }
+
+  });
+};
 
 //<======================== Observation score report ========================================>
 

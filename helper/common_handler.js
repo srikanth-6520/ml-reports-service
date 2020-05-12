@@ -2492,8 +2492,7 @@ exports.instanceCriteriaReportPdfGeneration = async function (instanceResponse, 
 
 
 // PDF generation function for entity report
-exports.entityPdfReportGeneration = async function (response, deleteFromS3 = null) {
-
+exports.entityCriteriaPdfReportGeneration = async function (responseData, deleteFromS3 = null) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -2515,43 +2514,21 @@ exports.entityPdfReportGeneration = async function (response, deleteFromS3 = nul
 
             let formData = [];
 
-            let matrixMultiSelectArray = [];
-            let matrixRadioArray = [];
-
             //Prepare chart object before sending it to highchart server
-            var multiSelectData = await getSelectedData(instaRes.response, "multiselect");
-            var radioQuestions = await getSelectedData(instaRes.response, "radio");
-
-            // Prepare chart object before sending it to highchart server (Matrix questions)
-            let matrixMultiSelectChartObj = await getSelectedData(matrixMultiSelectArray, "multiselect");
-            let matrixRadioChartObj = await getSelectedData(matrixRadioArray, "radio");
-
+            let multiSelectData = await getCriteriaChartData(responseData.response, "multiselect");
+            let radioData = await getCriteriaChartData(responseData.response, "radio");
 
             //send chart objects to highchart server and get the charts
-            let formDataMultiSelect = await apiCallToHighChart(multiSelectData, imgPath, "multiselect");
-            let radioFormData = await apiCallToHighChart(radioQuestions, imgPath, "radio");
+            let multiselectFormData = await apiCallToHighChart(multiSelectData, imgPath, "multiselect");
+            let radioFormData = await apiCallToHighChart(radioData, imgPath, "radio");
 
-            //send chart objects to highchart server and get the charts (Matrix questions)
-            let formDataMatrixMultiSelect = await apiCallToHighChart(matrixMultiSelectChartObj, imgPath, "multiselect");
-            let matrixRadioFormData = await apiCallToHighChart(matrixRadioChartObj, imgPath, "radio");
+            formData.push(...multiselectFormData);
+            formData.push(...radioFormData);
 
-            FormData.push(...formDataMultiSelect);
-            FormData.push(...radioFormData);
-            FormData.push(...formDataMatrixMultiSelect);
-            FormData.push(...matrixRadioFormData);
-
-            var params;
-
-            if (instaRes.solutionName) {
-                params = {
-                    solutionName: instaRes.solutionName
+            let params = {
+                    observationName: responseData.observationName
                 }
-            }
-            else {
-                params = {
-                    observationName: instaRes.observationName
-                }
-            }
+
             ejs.renderFile(__dirname + '/../views/header.ejs', {
                 data: params
             })
@@ -2566,89 +2543,12 @@ exports.entityPdfReportGeneration = async function (response, deleteFromS3 = nul
                             throw errWr;
                         } else {
 
-                            var arrOfData = [];
-                            var matrixData = [];
-
-                            await Promise.all(instaRes.response.map(async ele => {
-
-                                if (ele.responseType === "text" || ele.responseType === "date" || ele.responseType === "number" || ele.responseType === "slider") {
-
-                                    arrOfData.push(ele);
-
-                                } else if (ele.responseType === "multiselect") {
-
-                                    let dt = formDataMultiSelect.filter(or => {
-
-                                        if (or.order == ele.order) {
-                                            return or;
-                                        }
-                                    })
-
-                                    dt.responseType = "multiselect";
-                                    arrOfData.push(dt);
-
-                                } else if (ele.responseType === "radio") {
-                                    let dt = radioFormData.filter(or => {
-
-                                        if (or.order == ele.order) {
-                                            return or;
-                                        }
-                                    })
-
-                                    dt.responseType = "radio";
-                                    arrOfData.push(dt);
-
-                                } else if (ele.responseType === "matrix") {
-                                    //push main matrix question object into array
-                                    arrOfData.push(ele);
-                                    let obj = {
-                                        order: ele.order,
-                                        data: []
-                                    }
-
-                                    await Promise.all(ele.instanceQuestions.map(element => {
-                                        //push the instance questions to the array
-                                        if (element.responseType == "text" || element.responseType == "date" || element.responseType == "number" || ele.responseType == "slider") {
-                                            obj.data.push(element);
-                                        }
-                                        else if (element.responseType == "radio") {
-                                            let dt = matrixRadioFormData.filter(or => {
-                                                if (or.order == element.order) {
-                                                    return or;
-                                                }
-                                            })
-
-                                            dt[0].options.responseType = "radio";
-                                            dt[0].options.answers = element.answers;
-                                            obj.data.push(dt);
-
-                                        }
-                                        else if (element.responseType == "multiselect") {
-                                            let dt = formDataMatrixMultiSelect.filter(or => {
-                                                if (or.order == element.order) {
-                                                    return or;
-                                                }
-                                            })
-
-                                            dt[0].options.responseType = "multiselect";
-                                            dt[0].options.answers = element.answers;
-
-                                            obj.data.push(dt);
-
-                                        }
-                                    }))
-                                    matrixData.push(obj);
-                                }
-                            }));
-
-                            var obj = {
-                                path: formDataMultiSelect,
-                                instaRes: instaRes.response,
-                                radioOptionsData: radioFormData,
-                                orderData: arrOfData,
-                                matrixRes: matrixData
+                            let obj = {
+                                response: responseData.response,
+                                radioData: radioFormData,
+                                multiselectData: multiselectFormData
                             };
-                            ejs.renderFile(__dirname + '/../views/mainTemplate.ejs', {
+                            ejs.renderFile(__dirname + '/../views/entityCriteriaTemplate.ejs', {
                                 data: obj
                             })
                                 .then(function (dataEjsRender) {
@@ -2667,31 +2567,31 @@ exports.entityPdfReportGeneration = async function (response, deleteFromS3 = nul
                                                 files: [
                                                 ]
                                             };
-                                            FormData.push({
+                                            formData.push({
                                                 value: fs.createReadStream(dir + '/index.html'),
                                                 options: {
                                                     filename: 'index.html'
                                                 }
                                             });
-                                            FormData.push({
+                                            formData.push({
                                                 value: fs.createReadStream(dir + '/style.css'),
                                                 options: {
                                                     filename: 'style.css'
                                                 }
                                             });
-                                            FormData.push({
+                                            formData.push({
                                                 value: fs.createReadStream(dir + '/header.html'),
                                                 options: {
                                                     filename: 'header.html'
                                                 }
                                             });
-                                            FormData.push({
+                                            formData.push({
                                                 value: fs.createReadStream(dir + '/footer.html'),
                                                 options: {
                                                     filename: 'footer.html'
                                                 }
                                             });
-                                            optionsHtmlToPdf.formData.files = FormData;
+                                            optionsHtmlToPdf.formData.files = formData;
 
                                             rp(optionsHtmlToPdf)
                                                 .then(function (responseHtmlToPdf) {
@@ -2809,16 +2709,73 @@ exports.entityPdfReportGeneration = async function (response, deleteFromS3 = nul
                 });
 
         } catch (exp) {
-
-
-        } finally {
-
-
-
-            // fs.unlink(imgPath);
-        }
+         console.log(exp);
+    } 
     })
 
+}
+
+
+
+
+//Prepare chart object to send it to highchart server
+async function getCriteriaChartData(items, type) {
+    return new Promise(async function (resolve, reject) {
+
+        let arrayOfChartData = [];
+
+        await Promise.all(items.map(async element => {
+
+            await Promise.all(element.questionArray.map(async ele => {
+
+            if (ele.responseType && ele.responseType == type) {
+                let chartType = "bar";
+                if (type == "radio") {
+                    chartType = "pie";
+                } 
+
+                let obj = {
+                    order: ele.order,
+                    type: "svg",
+                    options: {
+                        title: {
+                            text: ele.question
+                        },
+                        colors: ['#D35400', '#F1C40F', '#3498DB', '#8E44AD', '#154360', '#145A32'],
+
+                        chart: {
+                            type: chartType
+
+
+                        },
+                        plotOptions: ele.chart.plotOptions,
+                        xAxis: ele.chart.xAxis,
+                        yAxis: ele.chart.yAxis,
+                        credits: {
+                            enabled: false
+                        },
+                        series: ele.chart.data
+                    },
+                    question: ele.question
+                };
+
+                // if (chartType == "pie") {
+
+                //     obj.options.series[0].data = ele.chart.data;
+
+                // } else if (chartType == "bar") {
+
+                //     obj.options.series[0].data = ele.chart.data;
+
+                // }
+
+                arrayOfChartData.push(obj);
+            }
+
+           }));
+        }));
+        return resolve(arrayOfChartData);
+    });
 }
 
 
@@ -3024,6 +2981,7 @@ async function callChartApiPreparation(ele, imgPath, type, chartData, carrent, f
         }
     }
     catch (err) {
+        console.log(err);
         console.log("error");
     }
 }
