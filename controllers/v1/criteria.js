@@ -161,7 +161,7 @@ async function instancePdfReport(req, res) {
 
       let hostname = req.headers.host;
 
-      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/criteria/pdfReportsUrl?id=" + resData.pdfUrl
 
       resolve(resData);
     }
@@ -482,6 +482,32 @@ async function entityReportData(req, res) {
     }
   });
 }
+
+
+//Funcion for instance observation pdf generation
+async function entityPdfReport(req, res) {
+  
+  return new Promise(async function (resolve, reject) {
+
+    let entityRes = await entityReportData(req, res);
+  
+    if (("observationName" in entityRes) == true) {
+
+      let resData = await pdfHandler.instanceCriteriaReportPdfGeneration(instaRes, true);
+
+      let hostname = req.headers.host;
+
+      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/criteria/pdfReportsUrl?id=" + resData.pdfUrl
+
+      resolve(resData);
+    }
+
+    else {
+      resolve(entityRes);
+    }
+
+  });
+};
 
 
 
@@ -1085,15 +1111,15 @@ exports.pdfReports = async function (req, res) {
 
     }
 
-    else if (req.body.entityId && req.body.observationId) {
+    else if (req.body.entityId && req.body.observationId && req.body.entityType) {
 
-      let resObj = await entityObservationPdf(req, res);
+      let resObj = await entityPdfReport(req, res);
       res.send(resObj);
     }
 
     else if (req.body.observationId) {
 
-      let resObj = await observationGenerateReport(req, res);
+      let resObj = await observationPdfReport(req, res);
       res.send(resObj);
 
     }
@@ -1106,3 +1132,51 @@ exports.pdfReports = async function (req, res) {
   })
 
 }
+
+
+
+//COntroller function to get the pdf report from tmp folder and then delete the folder from local storage
+exports.pdfReportsUrl = async function (req, response) {
+
+  try {
+
+  var folderPath = Buffer.from(req.query.id, 'base64').toString('ascii')
+ 
+  fs.readFile(__dirname + '/../../' + folderPath + '/pdfReport.pdf', function (err, data) {
+      if (!err) {
+
+         
+          response.writeHead(200, { 'Content-Type': 'application/pdf' });
+          response.write(data);
+
+
+          try{
+              fs.readdir(__dirname + '/../../' + folderPath, (err, files) => {
+                  if (err) throw err;
+
+                  var i = 0;
+                  for (const file of files) {
+                      i = i +1;
+                      fs.unlink(path.join(__dirname + '/../../' + folderPath, file), err => {
+                          if (err) throw err;
+                      });
+                      
+                  }
+              });
+              rimraf(__dirname + '/../../' + folderPath, function () { console.log("done"); });
+  
+          }catch(exp){
+            console.log(exp);
+          }
+          response.end();
+        
+      } else {
+          response.send({"result": false,"data":"File_Not_Found"});
+      }
+
+  });
+
+ } catch(error){
+     console.log(error);
+ }
+};
