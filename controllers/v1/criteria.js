@@ -352,7 +352,7 @@ async function instanceScorePdfReprt(req, res) {
 
       let hostname = req.headers.host;
 
-      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/criteria/pdfReportsUrl?id=" + resData.pdfUrl
 
       resolve(resData);
     }
@@ -724,6 +724,39 @@ async function entityScoreReportData(req, res) {
 
 }
 
+
+//Entity observation score pdf generation
+async function entityScorePdfReport(req, res) {
+  
+  return new Promise(async function (resolve, reject) {
+
+    var entityRes = await entityScoreReportData(req, res);
+
+    if (entityRes.result == true) {
+
+      let obj = {
+        schoolName: entityRes.schoolName,
+        totalObservations: entityRes.totalObservations
+      }
+
+      let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(entityRes, true, obj);
+
+      let hostname = req.headers.host;
+
+      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/criteria/pdfReportsUrl?id=" + resData.pdfUrl
+
+      resolve(resData);
+    }
+
+    else {
+      resolve(entityRes);
+    }
+
+  });
+
+};
+
+
 // ============================ Observation report API's =============================>
 
 /**
@@ -1069,6 +1102,35 @@ async function observationScoreReportData(req, res) {
 
 }
 
+
+//Observation score pdf generation 
+async function observationScorePdfReport(req, res) {
+
+  return new Promise (async function (resolve,reject){
+
+  let observationRes = await observationScoreReportData(req, res);
+
+  if (observationRes.result == true) {
+
+    let obj = {
+        totalSchools : observationRes.totalSchools,
+        schoolsObserved : observationRes.schoolsObserved
+    }
+
+    let resData = await pdfHandler.instanceCriteriaReportPdfGeneration(observationRes, true, obj);
+
+    let hostname = req.headers.host;
+
+    resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/criteria?id=" + resData.pdfUrl
+
+    res.send(resData);
+  }
+
+  else {
+    res.send(observationRes);
+  }
+});
+};
 
 // Get the evidence data
 async function getEvidenceData(inputObj) {
