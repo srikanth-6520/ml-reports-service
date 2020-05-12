@@ -1117,11 +1117,11 @@ async function observationScorePdfReport(req, res) {
         schoolsObserved : observationRes.schoolsObserved
     }
 
-    let resData = await pdfHandler.instanceCriteriaReportPdfGeneration(observationRes, true, obj);
+    let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(observationRes, true, obj);
 
     let hostname = req.headers.host;
 
-    resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/criteria?id=" + resData.pdfUrl
+    resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/criteria/pdfReportsUrl?id=" + resData.pdfUrl
 
     res.send(resData);
   }
