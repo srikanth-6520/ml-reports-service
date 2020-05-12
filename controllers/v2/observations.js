@@ -260,7 +260,7 @@ exports.entityScoreReport = async function (req, res) {
   
 
   //Entity observation score pdf generation
-  exports.entityObservationScorePdfFunc = async function (req, res) {
+  async function entityObservationScorePdfFunc (req, res) {
   
     return new Promise(async function (resolve, reject) {
   
