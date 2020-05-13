@@ -72,7 +72,7 @@ async function instanceReportData(req, res) {
 
             let submissionId = req.body.submissionId;
 
-            model.MyModel.findOneAsync({ qid: "instance_observation_query" }, { allow_filtering: true })
+            model.MyModel.findOneAsync({ qid: "instance_criteria_report_query" }, { allow_filtering: true })
                 .then(async function (result) {
 
                     let bodyParam = JSON.parse(result.query);
@@ -80,8 +80,6 @@ async function instanceReportData(req, res) {
                     if (config.druid.observation_datasource_name) {
                         bodyParam.dataSource = config.druid.observation_datasource_name;
                     }
-
-                    bodyParam.dimensions.push("criteriaName", "criteriaId","instanceParentCriteriaName","instanceParentCriteriaId");
 
                     //if filter is given
                     if (req.body.filter) {
@@ -258,7 +256,7 @@ exports.instanceScoreReport = async function (req, res) {
   
       } else {
   
-        model.MyModel.findOneAsync({ qid: "instance_observation_score_query" }, { allow_filtering: true })
+        model.MyModel.findOneAsync({ qid: "instance_score_criteria_report_query" }, { allow_filtering: true })
           .then(async function (result) {
   
             let bodyParam = JSON.parse(result.query);
@@ -267,8 +265,6 @@ exports.instanceScoreReport = async function (req, res) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
             }
            
-            bodyParam.dimensions.push("criteriaName", "criteriaId");
-
              //if filter is given
              if (req.body.filter) {
               if (req.body.filter.criteriaId && req.body.filter.criteriaId.length > 0) {
@@ -426,7 +422,7 @@ async function entityReportData(req, res) {
     }
     else {
 
-      model.MyModel.findOneAsync({ qid: "entity_observation_query" }, { allow_filtering: true })
+      model.MyModel.findOneAsync({ qid: "entity_criteria_report_query" }, { allow_filtering: true })
         .then(async function (result) {
 
           let bodyParam = JSON.parse(result.query);
@@ -440,8 +436,6 @@ async function entityReportData(req, res) {
           if(req.body.entityType){
             entityType = req.body.entityType;
           }
-
-          bodyParam.dimensions.push("criteriaName", "criteriaId","instanceParentCriteriaName","instanceParentCriteriaId");
 
            //if filter is given
            if (req.body.filter) {
@@ -632,7 +626,7 @@ async function entityScoreReportData(req, res) {
 
     else {
 
-      model.MyModel.findOneAsync({ qid: "entity_observation_score_query" }, { allow_filtering: true })
+      model.MyModel.findOneAsync({ qid: "entity_score_criteria_report_query" }, { allow_filtering: true })
         .then(async function (result) {
 
           var bodyParam = JSON.parse(result.query);
@@ -640,8 +634,6 @@ async function entityScoreReportData(req, res) {
           if (config.druid.observation_datasource_name) {
             bodyParam.dataSource = config.druid.observation_datasource_name;
           }
-
-          bodyParam.dimensions.push("criteriaName","criteriaId");
 
           let entityType = "school";
 
@@ -816,15 +808,13 @@ async function observationReportData(req, res) {
       }
       else {
           
-          model.MyModel.findOneAsync({ qid: "observation_report_query" }, { allow_filtering: true })
+          model.MyModel.findOneAsync({ qid: "observation_criteria_report_query" }, { allow_filtering: true })
               .then(async function (result) {
 
                 let bodyParam = JSON.parse(result.query);
                 if (config.druid.observation_datasource_name) {
                   bodyParam.dataSource = config.druid.observation_datasource_name;
                 }
-                 
-                bodyParam.dimensions.push("criteriaName", "criteriaId","instanceParentCriteriaName","instanceParentCriteriaId");
 
                 //if filter is given
                 if (req.body.filter) {
@@ -1015,7 +1005,7 @@ async function observationScoreReportData(req, res) {
 
     else {
 
-      model.MyModel.findOneAsync({ qid: "observation_score_report_query" }, { allow_filtering: true })
+      model.MyModel.findOneAsync({ qid: "observation_score_criteria_report_query" }, { allow_filtering: true })
         .then(async function (result) {
 
           var bodyParam = JSON.parse(result.query);
@@ -1023,9 +1013,7 @@ async function observationScoreReportData(req, res) {
           if (config.druid.observation_datasource_name) {
             bodyParam.dataSource = config.druid.observation_datasource_name;
           }
-          
-          bodyParam.dimensions.push("criteriaName", "criteriaId");
-
+  
            //if filter is given
            if (req.body.filter) {
             if (req.body.filter.criteriaId && req.body.filter.criteriaId.length > 0) {
