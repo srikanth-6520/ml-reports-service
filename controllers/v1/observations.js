@@ -43,6 +43,7 @@ const assessmentService = require('../../helper/assessment_service');
          "evidences":[
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
               {"url":"", "extension":""}
 =======
               {"url":"", "extension":""},
@@ -50,6 +51,9 @@ const assessmentService = require('../../helper/assessment_service');
 =======
               {"url":"", "extension":""}
 >>>>>>> cad312c... modified apidoc
+=======
+              {"url":"", "extension":""}
+>>>>>>> 4a2a175db7ea37768ef584db76f3b52e99a07cce
             ]
        }]
 *     }
