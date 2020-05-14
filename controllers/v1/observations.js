@@ -41,7 +41,19 @@ const assessmentService = require('../../helper/assessment_service');
          "chart": {},
          "instanceQuestions":[],
          "evidences":[
-              {url:"", extension:""},
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+              {"url":"", "extension":""}
+=======
+              {"url":"", "extension":""},
+>>>>>>> a6e381d... added apidoc for criteria API's
+=======
+              {"url":"", "extension":""}
+>>>>>>> cad312c... modified apidoc
+=======
+              {"url":"", "extension":""}
+>>>>>>> 4a2a175db7ea37768ef584db76f3b52e99a07cce
             ]
        }]
 *     }
@@ -86,9 +98,7 @@ async function instanceObservationData(req, res) {
               //if filter is given
               if (req.body.filter) {
                 if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
-                  let filter = {};
-                  questionFilter = await filterCreate(req.body.filter.questionId);
-                  filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }, { "type": "or", "fields": questionFilter }] };
+                  let filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }, { "type": "in","dimension":"questionExternalId","values": req.body.filter.questionId }] };
                   bodyParam.filter = filter;
                 }
                 else {
@@ -247,15 +257,13 @@ async function instancePdfReport(req, res) {
                     "name": "",
                     "y": "",
                     "color": "#fff"
-                  }
-                }
-            ]
-          }
-        },
-        "evidences":[
-              {url:"", extension:""},
+                }]
+            }]
+          },
+          "evidences":[
+              {"url":"", "extension":""}
           ]
-      ]
+        }]
 *     }
    * @apiUse errorBody
    */
@@ -296,11 +304,8 @@ exports.instanceObservationScoreReport = async function (req, res) {
              //if filter is given
              if (req.body.filter) {
               if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
-                let filter = {};
-                questionFilter = await filterCreate(req.body.filter.questionId);
-                filter =  { "type": "or", "fields": questionFilter };
                 bodyParam.filter.fields[0].value = req.body.submissionId;
-                bodyParam.filter.fields.push(filter);
+                bodyParam.filter.fields.push({"type":"in","dimension":"questionExternalId","values":req.body.filter.questionId});
               }
               else {
                 bodyParam.filter.fields[0].value = req.body.submissionId;
@@ -343,6 +348,7 @@ exports.instanceObservationScoreReport = async function (req, res) {
             }
           })
           .catch(function (err) {
+            console.log(err);
             let response = {
               result: false,
               message: 'Data not found'
@@ -375,7 +381,7 @@ async function instanceObservationScorePdfFunc(req, res) {
   
         let hostname = req.headers.host;
   
-        resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
   
         resolve(resData);
       }
@@ -419,7 +425,7 @@ async function instanceObservationScorePdfFunc(req, res) {
           "chart": {},
           "instanceQuestions": [],
           "evidences":[
-              {url:"", extension:""}
+              {"url":"", "extension":""}
           ]
        }]
 *     }
@@ -466,10 +472,7 @@ exports.entity = async function (req, res) {
              //if filter is given
              if (req.body.filter) {
               if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
-
-                let filter = {};
-                questionFilter = await filterCreate(req.body.filter.questionId);
-                filter = { "type": "and", "fields": [{"type":"and","fields":[{"type": "selector", "dimension": entityType, "value": req.body.entityId },{"type": "selector", "dimension": "observationId", "value": req.body.observationId }]}, { "type": "or", "fields": questionFilter }] };
+                let filter = { "type": "and", "fields": [{"type": "selector", "dimension": entityType, "value": req.body.entityId },{"type": "selector", "dimension": "observationId", "value": req.body.observationId },{ "type": "in","dimension":"questionExternalId","values":req.body.filter.questionId}]};
                 bodyParam.filter = filter;
                 
               }
@@ -501,7 +504,8 @@ exports.entity = async function (req, res) {
                //Get evidence data from evidence datasource
                let inputObj = {
                 entityId : req.body.entityId,
-                observationId : req.body.observationId
+                observationId : req.body.observationId,
+                entityType : entityType
               }
 
               let evidenceData = await getEvidenceData(inputObj);
@@ -555,7 +559,7 @@ async function entityObservationPdf(req, res) {
           var obj = {
             status: "success",
             message: 'Observation Pdf Generated successfully',
-            pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+            pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
           }
   
           resolve(obj);
@@ -709,7 +713,7 @@ async function entityObservationReportPdfGeneration(req, res) {
         var responseObject = {
           "status": "success",
           "message": "report generated",
-          pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+          pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
         }
         resolve(responseObject);
       }
@@ -754,7 +758,7 @@ async function entityObservationReportPdfGeneration(req, res) {
                     "enabled": true,
                     "text": "observations"
                 },
-                "labels: {},
+                "labels": {},
                 "categories": ["Obs1", "Obs2", "Obs3", "Obs4", "Obs5"],
                 "startOnTick": false,
                 "endOnTick": false,
@@ -879,7 +883,7 @@ async function entityObservationScorePdfFunc(req, res) {
   
         let hostname = req.headers.host;
   
-        resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
   
         resolve(resData);
       }
@@ -1148,7 +1152,7 @@ exports.entitySolutionScorePdfFunc = async function (req, res) {
   
         let hostname = req.headers.host;
   
-        resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
   
         resolve(resData);
       }
@@ -1315,7 +1319,7 @@ async function getCreatedByField(req, res) {
           "chart": {},
           "instanceQuestions": [],
           "evidences":[
-              {url:"", extension:""},
+              {"url":"", "extension":""}
           ]
        }]
 *     }
@@ -1355,10 +1359,7 @@ async function observationReportData(req, res) {
                   //if filter is given
                   if (req.body.filter) {
                     if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
-
-                      let filter = {};
-                      questionFilter = await filterCreate(req.body.filter.questionId);
-                      filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "or", "fields": questionFilter }] };
+                      let filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "in","dimension":"questionExternalId","values":req.body.filter.questionId}] };
                       bodyParam.filter = filter;
 
                     }
@@ -1438,7 +1439,7 @@ async function observationGenerateReport(req, res) {
                 var obj = {
                     status: "success",
                     message: 'Observation Pdf Generated successfully',
-                    pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+                    pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
                 }
 
                 resolve(obj);
@@ -1516,13 +1517,11 @@ async function observationGenerateReport(req, res) {
                 "name": "observation2",
                 "data": []
             }]
-
-          }
         },
         "evidences":[
-            {url:"", extension:""},
+            {"url":"", "extension":""}
         ]
-      ]
+      }]
 *     }
    * @apiUse errorBody
    */
@@ -1560,14 +1559,19 @@ async function observationScoreReport(req, res) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
             }
             
+            let entityType = "school";
+
+            if(req.body.entityType){
+               entityType = req.body.entityType;
+            }
+            
+            bodyParam.dimensions.push(entityType,entityType + "Name");
+            
              //if filter is given
              if (req.body.filter) {
               if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
-                let filter = {};
-                questionFilter = await filterCreate(req.body.filter.questionId);
-                filter =  { "type": "or", "fields": questionFilter };
                 bodyParam.filter.fields[0].value = req.body.observationId;
-                bodyParam.filter.fields.push(filter);
+                bodyParam.filter.fields.push({"type":"in","dimension":"questionExternalId","values":req.body.filter.questionId});
               }
               else {
                 bodyParam.filter.fields[0].value = req.body.observationId;
@@ -1590,13 +1594,13 @@ async function observationScoreReport(req, res) {
   
             else {
 
-              let chartData = await helperFunc.observationScoreReportChart(data);
+              let chartData = await helperFunc.observationScoreReportChart(data,entityType);
 
                 //Call samiksha API to get total schools count for the given observationId
-                let totalSchools = await getTotalSchools(req.body.observationId,req.headers["x-auth-token"]);
+                let totalEntities = await getTotalEntities(req.body.observationId,req.headers["x-auth-token"]);
 
-              if (totalSchools.result) {
-                chartData.totalSchools = totalSchools.result.count;
+              if (totalEntities.result) {
+                chartData.totalEntities = totalEntities.result.count;
               }
 
               //Get evidence data from evidence datasource
@@ -1621,6 +1625,7 @@ async function observationScoreReport(req, res) {
           })
   
           .catch(function (err) {
+            console.log(err);
             var response = {
               result: false,
               message: 'Data not found'
@@ -1636,7 +1641,7 @@ async function observationScoreReport(req, res) {
   
 
 //Function to make a call to samiksha assessment entities list API
-async function getTotalSchools(observationId,token) {
+async function getTotalEntities(observationId,token) {
 
     return new Promise(async function(resolve){
     var options = {
@@ -1671,15 +1676,16 @@ async function observationScorePdfFunc(req, res) {
     if (observationRes.result == true) {
 
       let obj = {
-          totalSchools : observationRes.totalSchools,
-          schoolsObserved : observationRes.schoolsObserved
+        totalEntities : observationRes.totalEntities,
+        entitiesObserved : observationRes.entitiesObserved,
+        entityType: observationRes.entityType
       }
 
       let resData = await pdfHandler.instanceObservationScorePdfGeneration(observationRes, true, obj);
   
       let hostname = req.headers.host;
   
-      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
   
       res.send(resData);
     }
@@ -2249,7 +2255,7 @@ exports.entitySolutionReportPdfGeneration = async function (req, res) {
       var responseObject = {
         "status": "success",
         "message": "report generated",
-        pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
       }
       resolve(responseObject);
     }
@@ -2260,6 +2266,1220 @@ exports.entitySolutionReportPdfGeneration = async function (req, res) {
   });
   
 };
+
+
+
+//<====================  Criteria wise report ========================================
+
+/**
+   * @api {post} /dhiti/api/v1/observations/instanceReportByCriteria
+   * Instance report by criteria
+   * @apiVersion 1.0.0
+   * @apiGroup observations
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "submissionId": "",
+  "filter": {
+    "criteria" : []
+  }
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "entityName": "",
+       "observationName": "",
+       "observationId": "",
+       "entityType": "",
+       "entityId": "",
+       "response": [{
+         "criteriaName": "",
+         "criteriaId": "",
+         "questionArray": [{
+            "order": "",
+            "question": "",
+            "responseType": "",
+            "answers": [],
+            "chart": {},
+            "instanceQuestions":[],
+            "evidences":[
+              {"url":"", "extension":""},
+            ]
+         }]
+         
+       }]
+*     }
+   * @apiUse errorBody
+   */
+
+//Controller for instance observation report
+exports.instanceReportByCriteria = async function (req, res) {
+
+  let data = await instanceCriteriaReportData(req, res);
+
+  res.send(data);
+}
+
+
+async function instanceCriteriaReportData(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+      if (!req.body.submissionId) {
+          let response = {
+              result: false,
+              message: 'submissionId is a required field'
+          };
+          resolve(response);
+      } else {
+
+          let submissionId = req.body.submissionId;
+
+          model.MyModel.findOneAsync({ qid: "instance_criteria_report_query" }, { allow_filtering: true })
+              .then(async function (result) {
+
+                  let bodyParam = JSON.parse(result.query);
+
+                  if (config.druid.observation_datasource_name) {
+                      bodyParam.dataSource = config.druid.observation_datasource_name;
+                  }
+
+                  //if filter is given
+                  if (req.body.filter) {
+                      if (req.body.filter.criteria && req.body.filter.criteria.length > 0) {
+                          let filter = {};
+                          filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }, { "type": "in", "dimension":"criteriaId","values":req.body.filter.criteria }] };
+                          bodyParam.filter = filter;
+                      }
+                      else {
+                          bodyParam.filter.value = submissionId;
+                      }
+                  }
+                  else {
+                      bodyParam.filter.value = submissionId;
+                  }
+
+                  //pass the query as body param and get the resul from druid
+                  let options = config.druid.options;
+                  options.method = "POST";
+                  options.body = bodyParam;
+                  let data = await rp(options);
+
+                  if (!data.length) {
+                      resolve({
+                          "result": false,
+                          "data": "SUBMISSION_ID_NOT_FOUND"
+                      });
+                  } else {
+
+                      let reportType = "criteria";
+                      let chartData = await helperFunc.instanceReportChart(data, reportType);
+
+                      //Get evidence data from evidence datasource
+                      let inputObj = {
+                          submissionId: submissionId
+                      }
+
+                      let evidenceData = await getEvidenceData(inputObj);
+                      let responseObj;
+
+                      if (evidenceData.result) {
+                          responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                      } else {
+                          responseObj = chartData;
+                      }
+
+                      responseObj = await helperFunc.getCriteriawiseReport(responseObj);
+
+                      resolve(responseObj);
+
+                  }
+              })
+              .catch(function (err) {
+                  let response = {
+                      result: false,
+                      message: 'INTERNAL_SERVER_ERROR'
+                  };
+                  resolve(response);
+              });
+      }
+  });
+};
+
+
+
+//Funcion for instance observation pdf generation
+async function instancePdfReportByCriteria(req, res) {
+
+return new Promise(async function (resolve, reject) {
+
+  let instaRes = await instanceCriteriaReportData(req, res);
+
+  if (("observationName" in instaRes) == true) {
+
+    let resData = await pdfHandler.instanceCriteriaReportPdfGeneration(instaRes, true);
+
+    let hostname = req.headers.host;
+
+    resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+
+    resolve(resData);
+  }
+
+  else {
+    resolve(instaRes);
+  }
+
+});
+};
+
+
+
+/**
+   * @api {post} /dhiti/api/v1/observations/instanceScoreReportByCriteria
+   * Instance score report by criteria
+   * @apiVersion 1.0.0
+   * @apiGroup Observations
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "submissionId": "",
+  "filter": {
+     "criteria": []
+  }
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "result": true,
+       "totalScore": "",
+       "scoreAchieved": "",
+       "observationName": "",
+       "response": [{
+          "criteriaName": "",
+          "criteriaId": "",
+          "questionArray": [{
+              "order": "",
+              "question": "",
+              "chart": {
+                 "type": "",
+                 "credits": {
+                    "enabled": false
+                  },
+                 "plotOptions": {
+                    "pie": {
+                       "allowPointSelect": true,
+                       "cursor": "pointer",
+                       "dataLabels": {
+                          "enabled": false
+                        },
+                    "showInLegend": true,
+                    "borderColor": "#000000"
+                  }
+                },
+                "data": [{
+                  "data": [{
+                    "name": "",
+                    "y": "",
+                    "color": "#6c4fa1"
+                },{
+                    "name": "",
+                    "y": "",
+                    "color": "#fff"
+                  }]
+                }]
+              },
+              "evidences":[
+                 {"url":"", "extension":""},
+              ]
+          }]
+        }]
+*     }
+   * @apiUse errorBody
+   */
+
+//Controller for instance observation score report query
+exports.instanceScoreReportByCriteria = async function (req, res) {
+
+  let data = await instanceScoreCriteriaReportData(req, res);
+
+  res.send(data);
+}
+
+
+//Controller for instance observation score report chart object creation
+async function instanceScoreCriteriaReportData(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    if (!req.body.submissionId) {
+      let response = {
+        result: false,
+        message: 'submissionId is a required field'
+      };
+
+      resolve(response);
+
+    } else {
+
+      model.MyModel.findOneAsync({ qid: "instance_score_criteria_report_query" }, { allow_filtering: true })
+        .then(async function (result) {
+
+          let bodyParam = JSON.parse(result.query);
+
+          if (config.druid.observation_datasource_name) {
+            bodyParam.dataSource = config.druid.observation_datasource_name;
+          }
+         
+           //if filter is given
+           if (req.body.filter) {
+            if (req.body.filter.criteria && req.body.filter.criteria.length > 0) {
+              bodyParam.filter.fields[0].value = req.body.submissionId;
+              bodyParam.filter.fields.push({"type":"in","dimension":"criteriaId","values":req.body.filter.criteria});
+            }
+            else {
+              bodyParam.filter.fields[0].value = req.body.submissionId;
+            }
+          }
+          else {
+            bodyParam.filter.fields[0].value = req.body.submissionId;
+          }
+      
+          //pass the query as body param and get the resul from druid
+          let options = config.druid.options;
+          options.method = "POST";
+          options.body = bodyParam;
+          let data = await rp(options);
+
+          if (!data.length) {
+            resolve({
+              "result": false,
+              "data": "SUBMISSION_ID_NOT_FOUND"
+            });
+          } else {
+              
+            let reportType = "criteria";
+            let chartData = await helperFunc.instanceScoreReportChartObjectCreation(data,reportType);
+
+            //Get evidence data from evidence datasource
+            let inputObj = {
+              submissionId : req.body.submissionId
+            }
+
+            let evidenceData = await getEvidenceData(inputObj);
+            
+            let responseObj;
+
+            if(evidenceData.result) {
+              responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-auth-token"]);
+
+            } else {
+              responseObj = chartData;
+            }
+            
+            // get criteria wise report
+            responseObj = await helperFunc.getCriteriawiseReport(responseObj);
+
+            resolve(responseObj);
+          }
+        })
+        .catch(function (err) {
+          let response = {
+            result: false,
+            message: 'INTERNAL_SERVER_ERROR'
+          };
+          resolve(response);
+        });
+    }
+  })
+};
+
+
+//Instance observation score pdf generation
+async function instanceScorePdfReprtByCriteria(req, res) {
+
+return new Promise(async function (resolve, reject) {
+
+  let instaRes = await instanceScoreCriteriaReportData(req, res);
+
+  if (instaRes.result == true) {
+
+    let obj = {
+      totalScore: instaRes.totalScore,
+      scoreAchieved: instaRes.scoreAchieved
+    }
+
+    let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(instaRes, true, obj);
+
+    let hostname = req.headers.host;
+
+    resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+
+    resolve(resData);
+  }
+
+  else {
+    resolve(instaRes);
+  }
+
+});
+
+};
+
+
+
+/**
+   * @api {post} /dhiti/api/v1/observations/entityReportByCriteria
+   * Entity report by criteria
+   * @apiVersion 1.0.0
+   * @apiGroup Observations
+   * @apiHeader {String} x-auth-token Authenticity token    
+   * @apiParamExample {json} Request-Body:
+* {
+  "entityId": "",
+  "observationId": "",
+  "entityType": "",
+  "filter": {
+     "criteria": []
+  }
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "observationId": "",
+       "observationName": "",
+       "entityType": "",
+       "entityId": "",
+       "entityName": "",
+       "response": [{
+          "criteriaName": "",
+          "criteriaId": "",
+          "questionArray": [{
+              "order": "",
+              "question": "",
+              "responseType": "",
+              "answers": "",
+              "chart": {},
+              "instanceQuestions": [],
+              "evidences":[
+                  {"url":"", "extension":""}
+              ]
+            }]  
+        }]
+*     }
+   * @apiUse errorBody
+   */
+
+//Controller for entity observation report
+exports.entityReportByCriteria = async function (req, res) {
+
+  let data = await entityCriteriaReportData(req, res);
+
+  res.send(data);
+}
+
+
+async function entityCriteriaReportData(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    if (!req.body.entityId && !req.body.observationId) {
+      let response = {
+        result: false,
+        message: 'entityId and observationId are required fields'
+      }
+      resolve(response);
+    }
+    else {
+
+      model.MyModel.findOneAsync({ qid: "entity_criteria_report_query" }, { allow_filtering: true })
+        .then(async function (result) {
+
+          let bodyParam = JSON.parse(result.query);
+
+          if (config.druid.observation_datasource_name) {
+            bodyParam.dataSource = config.druid.observation_datasource_name;
+          }
+
+          let entityType = "school";
+          
+          if(req.body.entityType){
+            entityType = req.body.entityType;
+          }
+
+           //if filter is given
+           if (req.body.filter) {
+            if (req.body.filter.criteria && req.body.filter.criteria.length > 0) {
+              let filter = { "type": "and", "fields": [{"type":"and","fields":[{"type": "selector", "dimension": entityType, "value": req.body.entityId },{"type": "selector", "dimension": "observationId", "value": req.body.observationId }]}, { "type": "in", "dimension":"criteriaId","values":req.body.filter.criteria }] };
+              bodyParam.filter = filter;
+              
+            }
+            else {
+              bodyParam.filter.fields[0].dimension = entityType;
+              bodyParam.filter.fields[0].value = req.body.entityId;
+              bodyParam.filter.fields[1].value = req.body.observationId;
+            }
+          }
+          else {
+            bodyParam.filter.fields[0].dimension = entityType;
+            bodyParam.filter.fields[0].value = req.body.entityId;
+            bodyParam.filter.fields[1].value = req.body.observationId;
+          }
+
+          //pass the query as body param and get the resul from druid
+          let options = config.druid.options;
+          options.method = "POST";
+          options.body = bodyParam;
+          let data = await rp(options);
+
+          if (!data.length) {
+            resolve({ 
+              "result": false,
+              "data": "NO_OBSERVATIONS_MADE_FOR_THE_ENTITY" })
+          }
+          else {
+
+            let reportType = "criteria";
+            let chartData = await helperFunc.entityReportChart(data, req.body.entityId, "school",reportType)
+
+             //Get evidence data from evidence datasource
+             let inputObj = {
+              entityId : req.body.entityId,
+              observationId : req.body.observationId,
+              entityType: entityType
+            }
+
+            let evidenceData = await getEvidenceData(inputObj);
+            
+            let responseObj;
+
+            if(evidenceData.result) {
+              responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-auth-token"]);
+
+            } else {
+              responseObj = chartData;
+            }
+          
+            responseObj = await helperFunc.getCriteriawiseReport(responseObj);
+
+            resolve(responseObj);
+
+          }
+        })
+        .catch(function (err) {
+          let response = {
+            result: false,
+            message: 'INTERNAL_SERVER_ERROR'
+          }
+          resolve(response);
+        })
+    }
+  });
+}
+
+
+//Funcion for instance observation pdf generation
+async function entityPdfReportByCriteria(req, res) {
+  
+  return new Promise(async function (resolve, reject) {
+
+    let entityRes = await entityCriteriaReportData(req, res);
+  
+    if (("observationName" in entityRes) == true) {
+     
+      let resData = await pdfHandler.entityCriteriaPdfReportGeneration(entityRes, true);
+
+      let hostname = req.headers.host;
+
+      resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+
+      resolve(resData);
+    }
+
+    else {
+      resolve(entityRes);
+    }
+
+  });
+};
+
+
+
+/**
+   * @api {post} /dhiti/api/v1/observations/entityScoreReportByCriteria
+   * Entity score report by criteria
+   * @apiVersion 1.0.0
+   * @apiGroup Observations
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "entityId": "",
+  "observationId": "",
+  "filter":{
+     "criteria": []
+  }
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "result": true,
+       "schoolName": "",
+       "totalObservations": "",
+       "observationName": "",
+       "response" : [{
+          "criteriaName": "",
+          "criteriaId": "",
+          "questionArray": [{
+              "order": "",
+              "question": "",
+              "chart": {
+                  "type": "scatter",
+                  "title": "",
+                  "xAxis": {
+                     "title": {
+                     "enabled": true,
+                     "text": "observations"
+                    },
+                     "labels": {},
+                     "categories": ["Obs1", "Obs2", "Obs3", "Obs4", "Obs5"],
+                     "startOnTick": false,
+                     "endOnTick": false,
+                     "showLastLabel": true
+                  },
+                  "yAxis": {
+                     "min": 0,
+                     "max": "",
+                     "allowDecimals": false,
+                     "title": {
+                        "text": "Score"
+                     }
+                  },
+                  "plotOptions":{
+                     "scatter":{
+                     "lineWidth": 1,
+                     "lineColor": "#F6B343"
+                     }
+                  },
+                  "credits": {
+                     "enabled": false
+                  },
+                  "legend": {
+                     "enabled": false
+                  },
+                  "data": [{
+                    "color": "#F6B343",
+                    "data": []
+                  }]
+              }
+            }]
+        }]
+*     }
+   * @apiUse errorBody
+   */
+
+//Controller for Entity Observation Score Report
+exports.entityScoreReportByCriteria = async function (req, res) {
+
+  let data = await entityScoreCriteriaReportData(req, res);
+
+  res.send(data);
+
+}
+
+async function entityScoreCriteriaReportData(req, res) {
+  
+  return new Promise(async function (resolve, reject) {
+
+    if (!req.body.entityId && !req.body.observationId) {
+      var response = {
+        result: false,
+        message: 'entityId and observationId are required fields'
+      }
+      resolve(response);
+    }
+
+    else {
+
+      model.MyModel.findOneAsync({ qid: "entity_score_criteria_report_query" }, { allow_filtering: true })
+        .then(async function (result) {
+
+          var bodyParam = JSON.parse(result.query);
+
+          if (config.druid.observation_datasource_name) {
+            bodyParam.dataSource = config.druid.observation_datasource_name;
+          }
+
+          let entityType = "school";
+
+          if(req.body.entityType){
+            entityType = req.body.entityType;
+          }
+
+           //if filter is given
+           if (req.body.filter) {
+            if (req.body.filter.criteria && req.body.filter.criteria.length > 0) {
+              bodyParam.filter.fields[1].fields[0].dimension = entityType;
+              bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+              bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
+              bodyParam.filter.fields.push({"type":"in","dimension":"criteriaId","values":req.body.filter.criteria});
+            }
+            else {
+              bodyParam.filter.fields[1].fields[0].dimension = entityType;
+              bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+              bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
+            }
+          }
+          else {
+            bodyParam.filter.fields[1].fields[0].dimension = entityType;
+            bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+            bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
+          }
+
+
+          //pass the query as body param and get the resul from druid
+          var options = config.druid.options;
+          options.method = "POST";
+          options.body = bodyParam;
+
+          var data = await rp(options);
+
+          if (!data.length) {
+            resolve({
+              "result": false,
+              "data": "NO_OBSERVATIONS_MADE_FOR_THE_ENTITY" })
+          }
+
+          else {
+            let reportType = "criteria";
+            let chartData = await helperFunc.entityScoreReportChartObjectCreation(data,"v2", reportType);
+
+            // send entity name dynamically
+            chartData.entityName = data[0].event[entityType + "Name"];
+
+            //Get evidence data from evidence datasource
+             let inputObj = {
+              entityId : req.body.entityId,
+              observationId: req.body.observationId,
+              entityType: entityType
+            }
+
+            let evidenceData = await getEvidenceData(inputObj);
+            let responseObj;
+
+            if(evidenceData.result) {
+                responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-auth-token"]);
+            } else {
+                responseObj = chartData;
+            }
+
+            responseObj = await helperFunc.getCriteriawiseReport(responseObj);
+            resolve(responseObj);
+
+          }
+        })
+
+        .catch(function (err) {
+          console.log(err);
+          let response = {
+            result: false,
+            message: 'INTERNAL_SERVER_ERROR'
+          }
+          resolve(response);
+        })
+
+    }
+
+  })
+
+}
+
+
+//Entity observation score pdf generation
+async function entityScorePdfReportByCriteria(req, res) {
+  
+  return new Promise(async function (resolve, reject) {
+
+    var entityRes = await entityScoreCriteriaReportData(req, res);
+
+    if (entityRes.result == true) {
+
+      let obj = {
+        entityName: entityRes.entityName,
+        totalObservations: entityRes.totalObservations
+      }
+
+      let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(entityRes, true, obj);
+
+      let hostname = req.headers.host;
+
+      resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+
+      resolve(resData);
+    }
+
+    else {
+      resolve(entityRes);
+    }
+
+  });
+
+};
+
+
+
+/**
+   * @api {post} /dhiti/api/v1/observations/observationReportByCriteria
+   * Observation report by criteria
+   * @apiVersion 1.0.0
+   * @apiGroup Observations
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "observationId": "",
+  "filter":{
+     "criteria": []
+  }
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "observationId": "",
+       "observationName": "",
+       "entityType": "",
+       "entityId": "",
+       "entityName": "",
+       "response": [{
+          "criteriaName": "",
+          "criteriaId": "",
+          "questionArray":[{
+             "order": "",
+             "question": "",
+             "responseType": "",
+             "answers": "",
+             "chart": {},
+             "instanceQuestions": [],
+             "evidences":[
+                {"url":"", "extension":""},
+            ]
+          }]
+       }]
+*     }
+   * @apiUse successBody
+   * @apiUse errorBody
+   */
+
+//Controller for observation report
+exports.observationReportByCriteria = async function (req, res) {
+  return new Promise(async function (resolve, reject) {
+      let data = await observationCriteriaReportData(req, res);
+      res.send(data);
+  })
+}
+
+async function observationCriteriaReportData(req, res) {
+  return new Promise(async function (resolve, reject) {
+
+      if (!req.body.observationId) {
+          let response = {
+              result: false,
+              message: 'observationId is a required field'
+          }
+          resolve(response);
+      }
+      else {
+          
+          model.MyModel.findOneAsync({ qid: "observation_criteria_report_query" }, { allow_filtering: true })
+              .then(async function (result) {
+
+                let bodyParam = JSON.parse(result.query);
+                if (config.druid.observation_datasource_name) {
+                  bodyParam.dataSource = config.druid.observation_datasource_name;
+                }
+
+                //if filter is given
+                if (req.body.filter) {
+                  if (req.body.filter.criteria && req.body.filter.criteria.length > 0) {
+                    let filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "in", "dimension": "criteriaId", "values": req.body.filter.criteria }] };
+                    bodyParam.filter = filter;
+
+                  }
+                  else {
+                    bodyParam.filter.value = req.body.observationId;
+                  }
+                }
+                else {
+                  bodyParam.filter.value = req.body.observationId;
+                }
+
+                //pass the query as body param and get the resul from druid
+                let options = config.druid.options;
+                options.method = "POST";
+                options.body = bodyParam;
+                let data = await rp(options);
+
+                  //if no data throw error message
+                  if (!data.length) {
+                      resolve({
+                        "result": false,
+                         "data": "NO_ENTITY_WAS_FOUND" })
+                  }
+                else {
+                  let entityId = "";
+                  let entityType = "";
+                  let reportType = "criteria";
+                  let chartData = await helperFunc.entityReportChart(data, entityId, entityType, reportType);
+
+                  //Get evidence data from evidence datasource
+                  let inputObj = {
+                    observationId: req.body.observationId
+                  }
+
+                  let evidenceData = await getEvidenceData(inputObj);
+
+                  let responseObj;
+
+                  if (evidenceData.result) {
+                    responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+
+                  } else {
+                    responseObj = chartData;
+                  }
+                  
+                  responseObj = await helperFunc.getCriteriawiseReport(responseObj);
+                  resolve(responseObj);
+
+                }
+              })
+            .catch(function (err) {
+                  let response = {
+                      result: false,
+                      message: 'INTERNAL_SERVER_ERROR'
+                  }
+                  resolve(response);
+              })
+      }
+  });
+}
+
+
+//Funcion for observation pdf generation
+async function observationPdfReportByCriteria(req, res) {
+  
+  return new Promise(async function (resolve, reject) {
+
+    let observeRes = await observationCriteriaReportData(req, res);
+  
+    if (("observationName" in observeRes) == true) {
+     
+      let resData = await pdfHandler.entityCriteriaPdfReportGeneration(observeRes, true);
+
+      let hostname = req.headers.host;
+
+      resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+
+      resolve(resData);
+    }
+
+    else {
+      resolve(observeRes);
+    }
+
+  });
+};
+
+
+/**
+   * @api {post} /dhiti/api/v1/observations/observationScoreReportByCriteria
+   * Observation score report by criteria
+   * @apiVersion 1.0.0
+   * @apiGroup Observations
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "observationId": "",
+  "filter":{
+      "criteria": []
+  }
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "result": true,
+       "solutionName": "",
+       "response": [{
+         "criteriaName": "",
+         "criteriaId": "",
+         "questionArray": [{
+            "order": "",
+            "question": "",
+            "chart": {
+               "type": "bar",
+               "title": "",
+               "xAxis": {
+                  "title": {
+                     "text": null
+                  },
+                  "labels": {},
+                  "categories": []
+                },
+                "yAxis": {
+                   "min": 0,
+                   "max": "",
+                   "title": {
+                     "text": "Score"
+                    },
+                   "labels": {
+                      "overflow": "justify"
+                    },
+                   "allowDecimals" : false
+                },
+                "plotOptions": {
+                  "bar": {
+                    "dataLabels": {
+                        "enabled": true
+                    }
+                  } 
+                },
+                "legend": {
+                  "enabled" : true
+                },
+                "credits": {
+                  "enabled": false
+                },
+                "data": [{
+                  "name": "observation1",
+                  "data": []
+                }, {
+                  "name": "observation2",
+                  "data": []
+                }]
+            },
+            "evidences":[
+              {"url":"", "extension":""}
+            ]
+          }]
+        }]
+*     }
+   * @apiUse errorBody
+   */
+
+//Controller for observation Score report  
+exports.observationScoreReportByCriteria = async function (req , res){
+
+  let data = await observationScoreCriteriaReportData(req, res);
+
+  res.send(data);
+
+}
+
+
+async function observationScoreCriteriaReportData(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    if (!req.body.observationId) {
+      let response = {
+        result: false,
+        message: 'observationId is a required fields'
+      }
+      resolve(response);
+    }
+
+    else {
+
+      model.MyModel.findOneAsync({ qid: "observation_score_criteria_report_query" }, { allow_filtering: true })
+        .then(async function (result) {
+
+          var bodyParam = JSON.parse(result.query);
+
+          if (config.druid.observation_datasource_name) {
+            bodyParam.dataSource = config.druid.observation_datasource_name;
+          }
+
+          let entityType = "school";
+
+            if(req.body.entityType){
+               entityType = req.body.entityType;
+            }
+            
+            bodyParam.dimensions.push(entityType,entityType + "Name");
+  
+           //if filter is given
+           if (req.body.filter) {
+            if (req.body.filter.criteria && req.body.filter.criteria.length > 0) {
+              bodyParam.filter.fields[0].value = req.body.observationId;
+              bodyParam.filter.fields.push({"type":"in","dimension":"criteriaId","values":req.body.filter.criteria});
+            }
+            else {
+              bodyParam.filter.fields[0].value = req.body.observationId;
+            }
+          }
+          else {
+            bodyParam.filter.fields[0].value = req.body.observationId;
+          }
+
+          //pass the query as body param and get the resul from druid
+          let options = config.druid.options;
+          options.method = "POST";
+          options.body = bodyParam;
+
+          let data = await rp(options);
+
+          if (!data.length) {
+            resolve({
+               "result": false, 
+               "data": "NO_ENTITIES_FOUND" })
+          }
+
+          else {
+            let reportType = "criteria";
+            let chartData = await helperFunc.observationScoreReportChart(data,entityType,reportType);
+
+              //Call samiksha API to get total schools count for the given observationId
+              let totalEntities = await getTotalEntities(req.body.observationId,req.headers["x-auth-token"]);
+
+
+            if (totalEntities.result) {
+              chartData.totalEntities = totalEntities.result.count;
+            }
+
+            //Get evidence data from evidence datasource
+            let inputObj = {
+              observationId: req.body.observationId
+            }
+
+            let evidenceData = await getEvidenceData(inputObj);
+
+            let responseObj;
+
+            if (evidenceData.result) {
+              responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+
+            } else {
+              responseObj = chartData;
+            }
+            
+            //get criteria wise report
+            responseObj = await helperFunc.getCriteriawiseReport(responseObj);
+            resolve(responseObj);
+
+          }
+        })
+
+        .catch(function (err) {
+          let response = {
+            result: false,
+            message: 'INTERNAL_SERVER_ERROR'
+          }
+          resolve(response);
+        })
+
+    }
+
+  })
+
+}
+
+
+//Observation score pdf generation 
+async function observationScorePdfReportByCriteria(req, res) {
+
+  return new Promise (async function (resolve,reject){
+
+  let observationRes = await observationScoreCriteriaReportData(req, res);
+
+  if (observationRes.result == true) {
+
+    let obj = {
+        totalEntities : observationRes.totalEntities,
+        entitiesObserved : observationRes.entitiesObserved,
+        entityType: observationRes.entityType
+    }
+
+    let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(observationRes, true, obj);
+
+    let hostname = req.headers.host;
+
+    resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+
+    res.send(resData);
+  }
+
+  else {
+    res.send(observationRes);
+  }
+});
+};
+
+
+//Controller function for observation pdf reports
+exports.pdfReportsByCriteria = async function (req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    if (req.body.submissionId) {
+
+      let resObj = await instancePdfReportByCriteria(req, res);
+      res.send(resObj);
+
+    }
+
+    else if (req.body.entityId && req.body.observationId && req.body.entityType) {
+
+      let resObj = await entityPdfReportByCriteria(req, res);
+      res.send(resObj);
+    }
+
+    else if (req.body.observationId) {
+
+      let resObj = await observationPdfReportByCriteria(req, res);
+      res.send(resObj);
+
+    }
+    else {
+      res.send({
+        status: "failure",
+        message: "INVALID_INPUT"
+      });
+    }
+  })
+
+}
+
+
+//Controller function for criteria score pdf reports
+exports.scorePdfReportsByCriteria = async function (req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    if (req.body.submissionId) {
+
+      let resObj = await instanceScorePdfReprtByCriteria(req, res);
+      res.send(resObj);
+
+    }
+
+    else if (req.body.entityId && req.body.observationId && req.body.entityType) {
+
+      let resObj = await entityScorePdfReportByCriteria(req, res);
+      res.send(resObj);
+    }
+
+    else if (req.body.observationId) {
+
+      let resObj = await observationScorePdfReportByCriteria(req, res);
+      res.send(resObj);
+
+    }
+    else {
+      res.send({
+        status: "failure",
+        message: "INVALID_INPUT"
+      });
+    }
+  })
+
+}
 
 
 /**
@@ -2344,7 +3564,11 @@ async function allEvidencesList(req, res) {
             filter = { "type": "and", fields: [{ "type": "selector", "dimension": "observationSubmissionId", "value": req.body.submissionId }, { "type": "selector", "dimension": "questionExternalId", "value": req.body.questionId }] };
           }
           else if (req.body.entityId && req.body.observationId && req.body.questionId) {
-            filter = { "type": "and", fields: [{ "type": "selector", "dimension": "school", "value": req.body.entityId }, { "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "selector", "dimension": "questionExternalId", "value": req.body.questionId }] };
+            let entityType = "school";
+            if(req.body.entityType){
+              entityType = req.body.entityType;
+            }
+            filter = { "type": "and", fields: [{ "type": "selector", "dimension": entityType, "value": req.body.entityId }, { "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "selector", "dimension": "questionExternalId", "value": req.body.questionId }] };
           }
           else if (req.body.observationId && req.body.questionId) {
             filter = { "type": "and", fields: [{ "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "selector", "dimension": "questionExternalId", "value": req.body.questionId }] };
@@ -2390,20 +3614,6 @@ async function allEvidencesList(req, res) {
 
 }
 
-// Function for preparing filter
-async function filterCreate(questions) {
-
-  let fieldsArray = [];
-
-  await Promise.all(questions.map(element => {
-    let filterObj = { "type": "selector", "dimension": "questionExternalId", "value": element };
-    fieldsArray.push(filterObj);
-  }))
-    
-  return fieldsArray;
-}
-
-
 // Get the evidence data
 async function getEvidenceData(inputObj) {
 
@@ -2415,6 +3625,7 @@ async function getEvidenceData(inputObj) {
         let submissionId = inputObj.submissionId;
         let entityId = inputObj.entityId;
         let observationId = inputObj.observationId;
+        let entityType = inputObj.entityType;
 
         var bodyParam = JSON.parse(result.query);
         
@@ -2424,7 +3635,7 @@ async function getEvidenceData(inputObj) {
         if (submissionId) {
           filter = { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }
         } else if(entityId && observationId) {
-          filter = {"type":"and","fields":[{"type": "selector", "dimension": "school", "value": entityId},{"type": "selector", "dimension": "observationId", "value": observationId}]}
+          filter = {"type":"and","fields":[{"type": "selector", "dimension": entityType, "value": entityId},{"type": "selector", "dimension": "observationId", "value": observationId}]}
         } else if(observationId) {
           filter = { "type": "selector", "dimension": "observationId", "value": observationId }
         }

@@ -1,4 +1,5 @@
-var pdfHandler = require('../../helper/common_handler');
+const pdfHandler = require('../../helper/common_handler');
+const config = require('../../config/config');
 
 
 /**
@@ -34,7 +35,7 @@ exports.pdfReport = async function(req,res){
     let response = await pdfHandler.unnatiPdfGeneration(req.body,true);
     let hostname = req.headers.host;
   
-    response.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+    response.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
     res.send(response);
 }
 
@@ -69,7 +70,7 @@ exports.monthlyReport = async function(req,res){
     let response = await pdfHandler.unnatiMonthlyReportPdfGeneration(req.body,true);
     let hostname = req.headers.host;
   
-    response.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+    response.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
     res.send(response);
 }
 
@@ -103,7 +104,7 @@ exports.viewProjectReport = async function(req,res){
     let response = await pdfHandler.unnatiViewFullReportPdfGeneration(req.body,true);
     let hostname = req.headers.host;
   
-    response.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+    response.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
     res.send(response);
 }
 
@@ -148,6 +149,6 @@ exports.addTaskReport = async function(req,res){
    let response = await pdfHandler.addTaskPdfGeneration(req.body,true);
    let hostname = req.headers.host;
  
-   response.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+   response.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
    res.send(response);
 }

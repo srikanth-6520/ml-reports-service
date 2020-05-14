@@ -136,7 +136,7 @@ exports.entitySolutionReportPdfGeneration = async function (req, res) {
       var responseObject = {
         "status": "success",
         "message": "report generated",
-        pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
       }
       resolve(responseObject);
     }
@@ -191,22 +191,19 @@ exports.entityScoreReport = async function (req, res) {
              //if filter is given
              if (req.body.filter) {
               if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
-                let filter = {};
-                questionFilter = await filterCreate(req.body.filter.questionId);
-                filter =  { "type": "or", "fields": questionFilter };
-                bodyParam.filter.fields[1].fields[0].dimension = req.body.entityType;
+                bodyParam.filter.fields[1].fields[0].dimension = entityType;
                 bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
                 bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
-                bodyParam.filter.fields.push(filter);
+                bodyParam.filter.fields.push({"type":"in","dimension":"questionExternalId","values":req.body.filter.questionId});
               }
               else {
-                bodyParam.filter.fields[1].fields[0].dimension = req.body.entityType;
+                bodyParam.filter.fields[1].fields[0].dimension = entityType;
                 bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
                 bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
               }
             }
             else {
-              bodyParam.filter.fields[1].fields[0].dimension = req.body.entityType;
+              bodyParam.filter.fields[1].fields[0].dimension = entityType;
               bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
               bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
             }
@@ -225,14 +222,18 @@ exports.entityScoreReport = async function (req, res) {
   
             else {
   
-              let chartData = await helperFunc.entityScoreReportChartObjectCreation(data,"v2")
+              let chartData = await helperFunc.entityScoreReportChartObjectCreation(data,"v2");
+
+              // send entity name dynamically
+               chartData.entityName = data[0].event[entityType + "Name"];
 
               //Get evidence data from evidence datasource
                let inputObj = {
                 entityId : req.body.entityId,
-                observationId: req.body.observationId
+                observationId: req.body.observationId,
+                entityType: entityType
               }
-
+              
               let evidenceData = await getEvidenceData(inputObj);
               let responseObj;
 
@@ -263,7 +264,7 @@ exports.entityScoreReport = async function (req, res) {
   
 
   //Entity observation score pdf generation
-  exports.entityObservationScorePdfFunc = async function (req, res) {
+  async function entityObservationScorePdfFunc (req, res) {
   
     return new Promise(async function (resolve, reject) {
   
@@ -272,7 +273,7 @@ exports.entityScoreReport = async function (req, res) {
       if (entityRes.result == true) {
   
         let obj = {
-          schoolName: entityRes.schoolName,
+          entityName: entityRes.entityName,
           totalObservations: entityRes.totalObservations
         }
   
@@ -280,7 +281,7 @@ exports.entityScoreReport = async function (req, res) {
   
         let hostname = req.headers.host;
   
-        resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
   
         resolve(resData);
       }
@@ -525,7 +526,7 @@ async function entityObservationPdf(req, res) {
         let obj = {
           status: "success",
           message: 'Observation Pdf Generated successfully',
-          pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+          pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
         }
 
         resolve(obj);
@@ -558,7 +559,7 @@ async function observationGenerateReport(req, res) {
               let obj = {
                   status: "success",
                   message: 'Observation Pdf Generated successfully',
-                  pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+                  pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
               }
 
               resolve(obj);
@@ -574,18 +575,6 @@ async function observationGenerateReport(req, res) {
   });
 }
 
-// Function for preparing filter
-async function filterCreate(questions) {
-
-  let fieldsArray = [];
-
-  await Promise.all(questions.map(element => {
-    let filterObj = { "type": "selector", "dimension": "questionExternalId", "value": element };
-    fieldsArray.push(filterObj);
-  }))
-    
-  return fieldsArray;
-}
 
 
 // Get the evidence data
@@ -599,6 +588,7 @@ async function getEvidenceData(inputObj) {
         let submissionId = inputObj.submissionId;
         let entityId = inputObj.entity;
         let observationId = inputObj.observationId;
+        let entityType = inputObj.entityType;
 
         let bodyParam = JSON.parse(result.query);
         
@@ -608,7 +598,7 @@ async function getEvidenceData(inputObj) {
         if (submissionId) {
           filter = { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }
         } else if(entityId && observationId) {
-          filter = {"type":"and","fileds":[{"type": "selector", "dimension": "school", "value": entityId},{"type": "selector", "dimension": "observationId", "value": observationId}]}
+          filter = {"type":"and","fileds":[{"type": "selector", "dimension": entityType, "value": entityId},{"type": "selector", "dimension": "observationId", "value": observationId}]}
         } else if(observationId) {
           filter = { "type": "selector", "dimension": "observationId", "value": observationId }
         }
