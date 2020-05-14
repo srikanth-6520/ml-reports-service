@@ -492,7 +492,8 @@ exports.entity = async function (req, res) {
                //Get evidence data from evidence datasource
                let inputObj = {
                 entityId : req.body.entityId,
-                observationId : req.body.observationId
+                observationId : req.body.observationId,
+                entityType : entityType
               }
 
               let evidenceData = await getEvidenceData(inputObj);
@@ -2732,7 +2733,8 @@ async function entityCriteriaReportData(req, res) {
              //Get evidence data from evidence datasource
              let inputObj = {
               entityId : req.body.entityId,
-              observationId : req.body.observationId
+              observationId : req.body.observationId,
+              entityType: entityType
             }
 
             let evidenceData = await getEvidenceData(inputObj);
@@ -2945,7 +2947,8 @@ async function entityScoreCriteriaReportData(req, res) {
             //Get evidence data from evidence datasource
              let inputObj = {
               entityId : req.body.entityId,
-              observationId: req.body.observationId
+              observationId: req.body.observationId,
+              entityType: entityType
             }
 
             let evidenceData = await getEvidenceData(inputObj);
