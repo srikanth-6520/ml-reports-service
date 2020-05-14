@@ -2400,7 +2400,7 @@ return new Promise(async function (resolve, reject) {
 
     let hostname = req.headers.host;
 
-    resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/criteria/pdfReportsUrl?id=" + resData.pdfUrl
+    resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
     resolve(resData);
   }
@@ -2592,7 +2592,7 @@ return new Promise(async function (resolve, reject) {
 
     let hostname = req.headers.host;
 
-    resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/criteria/pdfReportsUrl?id=" + resData.pdfUrl
+    resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
     resolve(resData);
   }
@@ -2769,7 +2769,7 @@ async function entityPdfReportByCriteria(req, res) {
 
       let hostname = req.headers.host;
 
-      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/criteria/pdfReportsUrl?id=" + resData.pdfUrl
+      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
       resolve(resData);
     }
@@ -2986,7 +2986,7 @@ async function entityScorePdfReportByCriteria(req, res) {
 
       let hostname = req.headers.host;
 
-      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/criteria/pdfReportsUrl?id=" + resData.pdfUrl
+      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
       resolve(resData);
     }
@@ -3149,7 +3149,7 @@ async function observationPdfReportByCriteria(req, res) {
 
       let hostname = req.headers.host;
 
-      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/criteria/pdfReportsUrl?id=" + resData.pdfUrl
+      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
       resolve(resData);
     }
@@ -3364,7 +3364,7 @@ async function observationScorePdfReportByCriteria(req, res) {
 
     let hostname = req.headers.host;
 
-    resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/criteria/pdfReportsUrl?id=" + resData.pdfUrl
+    resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
     res.send(resData);
   }
