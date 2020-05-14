@@ -2000,6 +2000,7 @@ exports.listEntitesObjectCreation = async function(data){
         obj.solutionId = element.event.solutionId;
         obj.solutionName = element.event.solutionName;
 
+
         entityArray.push(obj);
 
     }));
