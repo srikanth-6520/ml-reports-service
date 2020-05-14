@@ -1545,6 +1545,8 @@ async function observationScoreReport(req, res) {
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
             }
+
+            bodyParam.dimensions.push("entityType");
             
              //if filter is given
              if (req.body.filter) {

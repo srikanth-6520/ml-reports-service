@@ -1395,6 +1395,7 @@ exports.observationScoreReportChart = async function (data,reportType) {
         result: true,
         observationName: data[0].event.observationName,
         solutionName: data[0].event.solutionName,
+        entityType: data[0].event.entityType,
         response: []
     }
 
