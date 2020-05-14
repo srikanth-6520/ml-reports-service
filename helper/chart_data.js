@@ -124,7 +124,7 @@ exports.instanceReportChart = async function (data,reportType) {
         //sort the response objects based on questionExternalId field
         await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
 
-        if(reportType != "criteria"){
+        if(!reportType){
         // Get the questions array
         let questionArray = await questionListObjectCreation(actualData);
         obj.allQuestions = questionArray;
@@ -325,7 +325,7 @@ exports.entityReportChart = async function (data,entityId,entityName,reportType)
         //sort the response objects based on questionExternalId field
          await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
 
-        if(reportType != "criteria"){
+        if(!reportType){
         // Get the questions array
         let questionArray = await questionListObjectCreation(actualData);
         obj.allQuestions = questionArray;
@@ -1154,7 +1154,7 @@ exports.instanceScoreReportChartObjectCreation = async function (data,reportType
      //sort the response objects based on questionExternalId field
      await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
      
-     if(reportType != "criteria"){
+     if(!reportType){
      // Get the question array
      let questionArray = await questionListObjectCreation(data);
      obj.allQuestions = questionArray;
@@ -1288,7 +1288,7 @@ exports.entityScoreReportChartObjectCreation = async function (data, version, re
       //sort the response objects using questionExternalId field
       await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
 
-      if(reportType != "criteria"){
+      if(!reportType){
       // Get the question array
       let questionArray = await questionListObjectCreation(data);
       obj.allQuestions = questionArray;
@@ -1389,13 +1389,13 @@ async function entityScoreObjectCreateFunc (data, version) {
 
 
 // Chart object creation for observation score report
-exports.observationScoreReportChart = async function (data,reportType) {
+exports.observationScoreReportChart = async function (data,entityType,reportType) {
 
     let obj = {
         result: true,
         observationName: data[0].event.observationName,
         solutionName: data[0].event.solutionName,
-        entityType: data[0].event.entityType,
+        entityType: entityType,
         response: []
     }
 
@@ -1406,19 +1406,19 @@ exports.observationScoreReportChart = async function (data,reportType) {
 
     await Promise.all(entityKeys.map(async element => {
 
-        let responseObj = await observationScoreResponseObj(questionIdGroupedData[element]);
+        let responseObj = await observationScoreResponseObj(questionIdGroupedData[element],entityType);
 
         obj.response.push(responseObj);
     }))
 
 
     // Number of schools in this particular observation/solution
-    //obj.schoolsObserved = obj.response[0].chart.xAxis.categories.length;
+    obj.entitiesObserved = obj.response[0].chart.xAxis.categories.length;
 
     //sort the response objects using questionExternalId field
     await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
-
-    if(reportType != "criteria"){
+    
+    if(!reportType){
     // Get the question array
     let questionArray = await questionListObjectCreation(data);
     obj.allQuestions = questionArray;
@@ -1428,15 +1428,15 @@ exports.observationScoreReportChart = async function (data,reportType) {
 }
 
 //Chart object creation for each question
-async function observationScoreResponseObj(data){
+async function observationScoreResponseObj(data,entityType){
 
     let obsArray1 = [];
     let obsArray2 = [];
-    let schoolNames = [];
+    let entityNames = [];
     let yAxisMaxValue;
     
     //Group the data based on school Id
-    let groupedEntityData = await groupArrayByGivenField(data,"school");
+    let groupedEntityData = await groupArrayByGivenField(data,entityType);
     
     let groupedEntityKeys = Object.keys(groupedEntityData);
     
@@ -1444,7 +1444,7 @@ async function observationScoreResponseObj(data){
          
         let sortedData = await groupedEntityData[element].sort(sort_objects);
 
-        schoolNames.push(sortedData[0].event.schoolName);
+        entityNames.push(sortedData[0].event[entityType]);
         yAxisMaxValue = parseInt(sortedData[0].event.maxScore);
 
         if (sortedData.length >= 1) {
@@ -1480,7 +1480,7 @@ async function observationScoreResponseObj(data){
                     text: null
                 },
                 labels: {},
-                categories: schoolNames
+                categories: entityNames
             },
             yAxis: {
                 min: 0,

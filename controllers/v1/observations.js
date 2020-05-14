@@ -369,7 +369,7 @@ async function instanceObservationScorePdfFunc(req, res) {
   
         let hostname = req.headers.host;
   
-        resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
   
         resolve(resData);
       }
@@ -546,7 +546,7 @@ async function entityObservationPdf(req, res) {
           var obj = {
             status: "success",
             message: 'Observation Pdf Generated successfully',
-            pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+            pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
           }
   
           resolve(obj);
@@ -700,7 +700,7 @@ async function entityObservationReportPdfGeneration(req, res) {
         var responseObject = {
           "status": "success",
           "message": "report generated",
-          pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+          pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
         }
         resolve(responseObject);
       }
@@ -870,7 +870,7 @@ async function entityObservationScorePdfFunc(req, res) {
   
         let hostname = req.headers.host;
   
-        resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
   
         resolve(resData);
       }
@@ -1139,7 +1139,7 @@ exports.entitySolutionScorePdfFunc = async function (req, res) {
   
         let hostname = req.headers.host;
   
-        resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
   
         resolve(resData);
       }
@@ -1426,7 +1426,7 @@ async function observationGenerateReport(req, res) {
                 var obj = {
                     status: "success",
                     message: 'Observation Pdf Generated successfully',
-                    pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+                    pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
                 }
 
                 resolve(obj);
@@ -1545,8 +1545,14 @@ async function observationScoreReport(req, res) {
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
             }
+            
+            let entityType = "school";
 
-            bodyParam.dimensions.push("entityType");
+            if(req.body.entityType){
+               entityType = req.body.entityType;
+            }
+            
+            bodyParam.dimensions.push(entityType,entityType + "Name");
             
              //if filter is given
              if (req.body.filter) {
@@ -1575,13 +1581,13 @@ async function observationScoreReport(req, res) {
   
             else {
 
-              let chartData = await helperFunc.observationScoreReportChart(data);
+              let chartData = await helperFunc.observationScoreReportChart(data,entityType);
 
                 //Call samiksha API to get total schools count for the given observationId
-                let totalSchools = await getTotalEntities(req.body.observationId,req.headers["x-auth-token"]);
+                let totalEntities = await getTotalEntities(req.body.observationId,req.headers["x-auth-token"]);
 
-              if (totalSchools.result) {
-                chartData.totalSchools = totalSchools.result.count;
+              if (totalEntities.result) {
+                chartData.totalEntities = totalEntities.result.count;
               }
 
               //Get evidence data from evidence datasource
@@ -1606,6 +1612,7 @@ async function observationScoreReport(req, res) {
           })
   
           .catch(function (err) {
+            console.log(err);
             var response = {
               result: false,
               message: 'Data not found'
@@ -1656,15 +1663,16 @@ async function observationScorePdfFunc(req, res) {
     if (observationRes.result == true) {
 
       let obj = {
-          totalSchools : observationRes.totalSchools,
-          schoolsObserved : observationRes.schoolsObserved
+        totalEntities : observationRes.totalEntities,
+        entitiesObserved : observationRes.entitiesObserved,
+        entityType: observationRes.entityType
       }
 
       let resData = await pdfHandler.instanceObservationScorePdfGeneration(observationRes, true, obj);
   
       let hostname = req.headers.host;
   
-      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
   
       res.send(resData);
     }
@@ -2234,7 +2242,7 @@ exports.entitySolutionReportPdfGeneration = async function (req, res) {
       var responseObject = {
         "status": "success",
         "message": "report generated",
-        pdfUrl: "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
       }
       resolve(responseObject);
     }
@@ -2400,7 +2408,7 @@ return new Promise(async function (resolve, reject) {
 
     let hostname = req.headers.host;
 
-    resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+    resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
     resolve(resData);
   }
@@ -2592,7 +2600,7 @@ return new Promise(async function (resolve, reject) {
 
     let hostname = req.headers.host;
 
-    resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+    resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
     resolve(resData);
   }
@@ -2769,7 +2777,7 @@ async function entityPdfReportByCriteria(req, res) {
 
       let hostname = req.headers.host;
 
-      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
       resolve(resData);
     }
@@ -2931,6 +2939,9 @@ async function entityScoreCriteriaReportData(req, res) {
             let reportType = "criteria";
             let chartData = await helperFunc.entityScoreReportChartObjectCreation(data,"v2", reportType);
 
+            // send entity name dynamically
+            chartData.entityName = data[0].event[entityType + "Name"];
+
             //Get evidence data from evidence datasource
              let inputObj = {
               entityId : req.body.entityId,
@@ -2978,7 +2989,7 @@ async function entityScorePdfReportByCriteria(req, res) {
     if (entityRes.result == true) {
 
       let obj = {
-        schoolName: entityRes.schoolName,
+        entityName: entityRes.entityName,
         totalObservations: entityRes.totalObservations
       }
 
@@ -2986,7 +2997,7 @@ async function entityScorePdfReportByCriteria(req, res) {
 
       let hostname = req.headers.host;
 
-      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
       resolve(resData);
     }
@@ -3149,7 +3160,7 @@ async function observationPdfReportByCriteria(req, res) {
 
       let hostname = req.headers.host;
 
-      resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
       resolve(resData);
     }
@@ -3269,6 +3280,14 @@ async function observationScoreCriteriaReportData(req, res) {
           if (config.druid.observation_datasource_name) {
             bodyParam.dataSource = config.druid.observation_datasource_name;
           }
+
+          let entityType = "school";
+
+            if(req.body.entityType){
+               entityType = req.body.entityType;
+            }
+            
+            bodyParam.dimensions.push(entityType,entityType + "Name");
   
            //if filter is given
            if (req.body.filter) {
@@ -3299,13 +3318,14 @@ async function observationScoreCriteriaReportData(req, res) {
 
           else {
             let reportType = "criteria";
-            let chartData = await helperFunc.observationScoreReportChart(data,reportType);
+            let chartData = await helperFunc.observationScoreReportChart(data,entityType,reportType);
 
               //Call samiksha API to get total schools count for the given observationId
-              let totalSchools = await getTotalEntities(req.body.observationId,req.headers["x-auth-token"]);
+              let totalEntities = await getTotalEntities(req.body.observationId,req.headers["x-auth-token"]);
 
-            if (totalSchools.result) {
-              chartData.totalSchools = totalSchools.result.count;
+
+            if (totalEntities.result) {
+              chartData.totalEntities = totalEntities.result.count;
             }
 
             //Get evidence data from evidence datasource
@@ -3356,15 +3376,16 @@ async function observationScorePdfReportByCriteria(req, res) {
   if (observationRes.result == true) {
 
     let obj = {
-        totalSchools : observationRes.totalSchools,
-        schoolsObserved : observationRes.schoolsObserved
+        totalEntities : observationRes.totalEntities,
+        entitiesObserved : observationRes.entitiesObserved,
+        entityType: observationRes.entityType
     }
 
     let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(observationRes, true, obj);
 
     let hostname = req.headers.host;
 
-    resData.pdfUrl = "https://" + hostname + "/dhiti/api/v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+    resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
     res.send(resData);
   }
@@ -3528,7 +3549,11 @@ async function allEvidencesList(req, res) {
             filter = { "type": "and", fields: [{ "type": "selector", "dimension": "observationSubmissionId", "value": req.body.submissionId }, { "type": "selector", "dimension": "questionExternalId", "value": req.body.questionId }] };
           }
           else if (req.body.entityId && req.body.observationId && req.body.questionId) {
-            filter = { "type": "and", fields: [{ "type": "selector", "dimension": "school", "value": req.body.entityId }, { "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "selector", "dimension": "questionExternalId", "value": req.body.questionId }] };
+            let entityType = "school";
+            if(req.body.entityType){
+              entityType = req.body.entityType;
+            }
+            filter = { "type": "and", fields: [{ "type": "selector", "dimension": entityType, "value": req.body.entityId }, { "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "selector", "dimension": "questionExternalId", "value": req.body.questionId }] };
           }
           else if (req.body.observationId && req.body.questionId) {
             filter = { "type": "and", fields: [{ "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "selector", "dimension": "questionExternalId", "value": req.body.questionId }] };
@@ -3574,20 +3599,6 @@ async function allEvidencesList(req, res) {
 
 }
 
-// Function for preparing filter
-async function filterCreate(questions) {
-
-  let fieldsArray = [];
-
-  await Promise.all(questions.map(element => {
-    let filterObj = { "type": "selector", "dimension": "questionExternalId", "value": element };
-    fieldsArray.push(filterObj);
-  }))
-    
-  return fieldsArray;
-}
-
-
 // Get the evidence data
 async function getEvidenceData(inputObj) {
 
@@ -3599,6 +3610,7 @@ async function getEvidenceData(inputObj) {
         let submissionId = inputObj.submissionId;
         let entityId = inputObj.entityId;
         let observationId = inputObj.observationId;
+        let entityType = inputObj.entityType;
 
         var bodyParam = JSON.parse(result.query);
         
@@ -3608,7 +3620,7 @@ async function getEvidenceData(inputObj) {
         if (submissionId) {
           filter = { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }
         } else if(entityId && observationId) {
-          filter = {"type":"and","fields":[{"type": "selector", "dimension": "school", "value": entityId},{"type": "selector", "dimension": "observationId", "value": observationId}]}
+          filter = {"type":"and","fields":[{"type": "selector", "dimension": entityType, "value": entityId},{"type": "selector", "dimension": "observationId", "value": observationId}]}
         } else if(observationId) {
           filter = { "type": "selector", "dimension": "observationId", "value": observationId }
         }

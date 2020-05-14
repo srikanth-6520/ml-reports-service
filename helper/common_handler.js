@@ -1193,9 +1193,11 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
 
 //Prepare chart object to send it to highchart server
 async function getSelectedData(items, type) {
+    
     return new Promise(async function (resolve, reject) {
-        var ArrayOfChartData = [];
-        // console.log("items",items);
+
+        let arrayOfChartData = [];
+       
         await Promise.all(items.map(async ele => {
 
             if (ele.responseType && ele.responseType == type) {
@@ -1205,57 +1207,15 @@ async function getSelectedData(items, type) {
                 } else if (type == "stackedbar") {
                     chartType = "stackedbar";
                 }
+                
+               let obj;
 
-                var obj = {
-                    order: ele.order,
-                    type: "svg",
-                    options: {
-                        title: {
-                            text: ele.question
-                        },
-                        colors: ['#D35400', '#F1C40F', '#3498DB', '#8E44AD', '#154360', '#145A32'],
+               if(chartType == "bar" || chartType == "pie"){
 
-                        chart: {
-                            type: chartType
-
-
-                        },
-                        plotOptions: ele.chart.plotOptions,
-                        xAxis: ele.chart.xAxis,
-                        yAxis: ele.chart.yAxis,
-                        credits: {
-                            enabled: false
-                        },
-                        series: ele.chart.data
-                    },
-                    question: ele.question
-                };
-
-                if (chartType == "pie") {
-
-                    let multiSelectInputs = [];
-                    await Promise.all(obj.options.series[0].data.map(function (item) {
-                        let parseVal = parseInt(item.y);
-                        var ex = {
-                            name: item.name,
-                            y: parseVal
-                        }
-                        multiSelectInputs.push(ex);
-
-                    }));
-                    obj.options.series[0].data = multiSelectInputs;
-
-                } else if (chartType == "bar") {
-
-                    let multiSelectInputs = [];
-                    await Promise.all(obj.options.series[0].data.map(function (item) {
-                        multiSelectInputs.push(parseInt(item));
-
-                    }));
-                    obj.options.series[0].data = multiSelectInputs;
+                  obj = await createChartObject(ele,chartType);
 
                 } else if (chartType == "stackedbar") {
-                    var obj = {
+                     obj = {
                         type: "svg",
                         options: {
                             chart: {
@@ -1294,10 +1254,10 @@ async function getSelectedData(items, type) {
                     }
 
                 }
-                ArrayOfChartData.push(obj);
+                arrayOfChartData.push(obj);
             }
         }));
-        return resolve(ArrayOfChartData);
+        return resolve(arrayOfChartData);
     });
 }
 
@@ -1308,117 +1268,17 @@ async function getScoreChartObject(items) {
 
     return new Promise(async function (resolve, reject) {
 
-        var ArrayOfChartData = [];
+        let arrayOfChartData = [];
 
         await Promise.all(items.map(async ele => {
 
-            var obj;
+            let obj = await createScoreChartObject(ele);
 
-            if (ele.chart.type == "pie") {
-
-                obj = {
-                    order: ele.order,
-                    type: "svg",
-                    options: {
-                        title: {
-                            text: ele.question
-                        },
-                        // colors: ['#6c4fa1'],
-
-                        chart: {
-                            type: ele.chart.type
-                        },
-                        xAxis: ele.chart.xAxis,
-                        yAxis: ele.chart.yAxis,
-                        credits: ele.chart.credits,
-                        plotOptions: ele.chart.plotOptions,
-                        series: ele.chart.data
-                    },
-                    question: ele.question
-                };
-            }
-            else if (ele.chart.type == "bar") {
-
-                obj = {
-                    order: ele.order,
-                    type: "svg",
-                    options: {
-                        title: {
-                            text: ele.question
-                        },
-                        chart: {
-                            type: ele.chart.type
-                        },
-                        colors: ['#D35400', '#F1C40F', '#3498DB', '#8E44AD', '#154360', '#145A32'],
-                        xAxis: ele.chart.xAxis,
-                        yAxis: ele.chart.yAxis,
-                        credits: ele.chart.credits,
-                        plotOptions: ele.chart.plotOptions,
-                        legend: ele.chart.legend,
-                        series: ele.chart.data
-                    },
-                    question: ele.question
-                };
-            }
-            else if (ele.chart.type == "scatter") {
-
-                obj = {
-                    order: ele.order,
-                    type: "svg",
-                    options: {
-                        title: {
-                            text: ""
-                        },
-                        chart: {
-                            type: ele.chart.type
-                        },
-                        xAxis: ele.chart.xAxis,
-                        yAxis: ele.chart.yAxis,
-                        plotOptions: ele.chart.plotOptions,
-                        credits: ele.chart.credits,
-                        legend: ele.chart.legend,
-                        series: ele.chart.data
-                    }
-                };
-
-                if (ele.question) {
-                    obj.question = ele.question;
-                    obj.options.title.text = ele.question;
-                }
-
-                if (ele.schoolName) {
-                    obj.options.title.text = ele.schoolName;
-                }
-
-            }
-            else if (ele.chart.type == "column") {
-
-                obj = {
-                    order: ele.order,
-                    type: "svg",
-                    options: {
-                        title: {
-                            text: ele.question
-                        },
-                        chart: {
-                            type: ele.chart.type
-                        },
-                        xAxis: ele.chart.xAxis,
-                        yAxis: ele.chart.yAxis,
-                        plotOptions: ele.chart.plotOptions,
-                        credits: ele.chart.credits,
-                        legend: ele.chart.legend,
-                        series: ele.chart.data
-                    },
-                    question: ele.question
-                };
-            }
-
-            ArrayOfChartData.push(obj);
+            arrayOfChartData.push(obj);
 
         }));
 
-        return resolve(ArrayOfChartData);
+        return resolve(arrayOfChartData);
 
     });
 }
@@ -1437,107 +1297,7 @@ async function getCriteriaScoreChartObject(items) {
 
         await Promise.all(element.questionArray.map(async ele => {
 
-            var obj;
-
-            if (ele.chart.type == "pie") {
-
-                obj = {
-                    order: ele.order,
-                    type: "svg",
-                    options: {
-                        title: {
-                            text: ele.question
-                        },
-                        // colors: ['#6c4fa1'],
-
-                        chart: {
-                            type: ele.chart.type
-                        },
-                        xAxis: ele.chart.xAxis,
-                        yAxis: ele.chart.yAxis,
-                        credits: ele.chart.credits,
-                        plotOptions: ele.chart.plotOptions,
-                        series: ele.chart.data
-                    },
-                    question: ele.question
-                };
-            }
-            else if (ele.chart.type == "bar") {
-
-                obj = {
-                    order: ele.order,
-                    type: "svg",
-                    options: {
-                        title: {
-                            text: ele.question
-                        },
-                        chart: {
-                            type: ele.chart.type
-                        },
-                        colors: ['#D35400', '#F1C40F', '#3498DB', '#8E44AD', '#154360', '#145A32'],
-                        xAxis: ele.chart.xAxis,
-                        yAxis: ele.chart.yAxis,
-                        credits: ele.chart.credits,
-                        plotOptions: ele.chart.plotOptions,
-                        legend: ele.chart.legend,
-                        series: ele.chart.data
-                    },
-                    question: ele.question
-                };
-            }
-            else if (ele.chart.type == "scatter") {
-
-                obj = {
-                    order: ele.order,
-                    type: "svg",
-                    options: {
-                        title: {
-                            text: ""
-                        },
-                        chart: {
-                            type: ele.chart.type
-                        },
-                        xAxis: ele.chart.xAxis,
-                        yAxis: ele.chart.yAxis,
-                        plotOptions: ele.chart.plotOptions,
-                        credits: ele.chart.credits,
-                        legend: ele.chart.legend,
-                        series: ele.chart.data
-                    }
-                };
-
-                if (ele.question) {
-                    obj.question = ele.question;
-                    obj.options.title.text = ele.question;
-                }
-
-                if (ele.schoolName) {
-                    obj.options.title.text = ele.schoolName;
-                }
-
-            }
-            else if (ele.chart.type == "column") {
-
-                obj = {
-                    order: ele.order,
-                    type: "svg",
-                    options: {
-                        title: {
-                            text: ele.question
-                        },
-                        chart: {
-                            type: ele.chart.type
-                        },
-                        xAxis: ele.chart.xAxis,
-                        yAxis: ele.chart.yAxis,
-                        plotOptions: ele.chart.plotOptions,
-                        credits: ele.chart.credits,
-                        legend: ele.chart.legend,
-                        series: ele.chart.data
-                    },
-                    question: ele.question
-                };
-            }
+            let obj = await createScoreChartObject(ele);
 
             arrayOfChartData.push(obj);
 
@@ -1550,6 +1310,118 @@ async function getCriteriaScoreChartObject(items) {
     });
 }
 
+
+
+async function createScoreChartObject(ele){
+
+    return new Promise(async function(resolve,reject){
+
+        let obj;
+
+        if (ele.chart.type == "pie") {
+
+            obj = {
+                order: ele.order,
+                type: "svg",
+                options: {
+                    title: {
+                        text: ele.question
+                    },
+                    // colors: ['#6c4fa1'],
+
+                    chart: {
+                        type: ele.chart.type
+                    },
+                    xAxis: ele.chart.xAxis,
+                    yAxis: ele.chart.yAxis,
+                    credits: ele.chart.credits,
+                    plotOptions: ele.chart.plotOptions,
+                    series: ele.chart.data
+                },
+                question: ele.question
+            };
+        }
+        else if (ele.chart.type == "bar") {
+
+            obj = {
+                order: ele.order,
+                type: "svg",
+                options: {
+                    title: {
+                        text: ele.question
+                    },
+                    chart: {
+                        type: ele.chart.type
+                    },
+                    colors: ['#D35400', '#F1C40F', '#3498DB', '#8E44AD', '#154360', '#145A32'],
+                    xAxis: ele.chart.xAxis,
+                    yAxis: ele.chart.yAxis,
+                    credits: ele.chart.credits,
+                    plotOptions: ele.chart.plotOptions,
+                    legend: ele.chart.legend,
+                    series: ele.chart.data
+                },
+                question: ele.question
+            };
+        }
+        else if (ele.chart.type == "scatter") {
+
+            obj = {
+                order: ele.order,
+                type: "svg",
+                options: {
+                    title: {
+                        text: ""
+                    },
+                    chart: {
+                        type: ele.chart.type
+                    },
+                    xAxis: ele.chart.xAxis,
+                    yAxis: ele.chart.yAxis,
+                    plotOptions: ele.chart.plotOptions,
+                    credits: ele.chart.credits,
+                    legend: ele.chart.legend,
+                    series: ele.chart.data
+                }
+            };
+
+            if (ele.question) {
+                obj.question = ele.question;
+                obj.options.title.text = ele.question;
+            }
+
+            if (ele.schoolName) {
+                obj.options.title.text = ele.schoolName;
+            }
+
+        }
+        else if (ele.chart.type == "column") {
+
+            obj = {
+                order: ele.order,
+                type: "svg",
+                options: {
+                    title: {
+                        text: ele.question
+                    },
+                    chart: {
+                        type: ele.chart.type
+                    },
+                    xAxis: ele.chart.xAxis,
+                    yAxis: ele.chart.yAxis,
+                    plotOptions: ele.chart.plotOptions,
+                    credits: ele.chart.credits,
+                    legend: ele.chart.legend,
+                    series: ele.chart.data
+                },
+                question: ele.question
+            };
+        }
+    
+        return resolve(obj);
+
+    })
+}
 
 //Unnati pdf generate function
 exports.unnatiPdfGeneration = async function (responseData, deleteFromS3 = null) {
@@ -2860,40 +2732,7 @@ async function getCriteriaChartData(items, type) {
                     chartType = "pie";
                 } 
 
-                let obj = {
-                    order: ele.order,
-                    type: "svg",
-                    options: {
-                        title: {
-                            text: ele.question
-                        },
-                        colors: ['#D35400', '#F1C40F', '#3498DB', '#8E44AD', '#154360', '#145A32'],
-
-                        chart: {
-                            type: chartType
-
-
-                        },
-                        plotOptions: ele.chart.plotOptions,
-                        xAxis: ele.chart.xAxis,
-                        yAxis: ele.chart.yAxis,
-                        credits: {
-                            enabled: false
-                        },
-                        series: ele.chart.data
-                    },
-                    question: ele.question
-                };
-
-                // if (chartType == "pie") {
-
-                //     obj.options.series[0].data = ele.chart.data;
-
-                // } else if (chartType == "bar") {
-
-                //     obj.options.series[0].data = ele.chart.data;
-
-                // }
+                let obj = await createChartObject(ele,chartType);
 
                 arrayOfChartData.push(obj);
             }
@@ -2905,6 +2744,40 @@ async function getCriteriaChartData(items, type) {
 }
 
 
+async function createChartObject(ele,chartType){
+  
+    return new Promise(async function (resolve, reject){
+
+        let obj = {
+            order: ele.order,
+            type: "svg",
+            options: {
+                title: {
+                    text: ele.question
+                },
+                colors: ['#D35400', '#F1C40F', '#3498DB', '#8E44AD', '#154360', '#145A32'],
+
+                chart: {
+                    type: chartType
+
+
+                },
+                plotOptions: ele.chart.plotOptions,
+                xAxis: ele.chart.xAxis,
+                yAxis: ele.chart.yAxis,
+                credits: {
+                    enabled: false
+                },
+                series: ele.chart.data
+            },
+            question: ele.question
+        };
+
+    resolve(obj);
+
+    })
+
+}
 
 //PDF generation for instance observation score report
 exports.instanceScoreCriteriaPdfGeneration = async function(observationResp, deleteFromS3 = null, obj) {
