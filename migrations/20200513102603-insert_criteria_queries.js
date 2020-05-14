@@ -35,7 +35,6 @@ module.exports = {
       }];
 
       await cassandra.batch(queries, { prepare: true });
-      console.log("successfully inserted the queries");
 
         return global.migrationMsg;
       },

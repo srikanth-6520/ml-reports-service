@@ -2095,6 +2095,8 @@ exports.improvementProjectsObjectCreate = async function(data){
             criteriaObj.improvementProjects.push(projectObj);
         }));
 
+        response.data.push(criteriaObj);
+
     }));
 
     return response;
