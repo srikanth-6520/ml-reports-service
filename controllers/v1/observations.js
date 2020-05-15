@@ -41,19 +41,7 @@ const assessmentService = require('../../helper/assessment_service');
          "chart": {},
          "instanceQuestions":[],
          "evidences":[
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
               {"url":"", "extension":""}
-=======
-              {"url":"", "extension":""},
->>>>>>> a6e381d... added apidoc for criteria API's
-=======
-              {"url":"", "extension":""}
->>>>>>> cad312c... modified apidoc
-=======
-              {"url":"", "extension":""}
->>>>>>> 4a2a175db7ea37768ef584db76f3b52e99a07cce
             ]
        }]
 *     }
