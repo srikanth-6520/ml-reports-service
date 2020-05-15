@@ -1444,7 +1444,7 @@ async function observationScoreResponseObj(data,entityType){
          
         let sortedData = await groupedEntityData[element].sort(sort_objects);
 
-        entityNames.push(sortedData[0].event[entityType]);
+        entityNames.push(sortedData[0].event[entityType + "Name"]);
         yAxisMaxValue = parseInt(sortedData[0].event.maxScore);
 
         if (sortedData.length >= 1) {
