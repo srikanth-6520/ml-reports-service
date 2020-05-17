@@ -118,7 +118,7 @@ async function entitySolutionReportGeneration(req, res) {
 
 
 //Function for entity solution report PDF generation
-exports.entitySolutionReportPdfGeneration = async function (req, res) {
+async function entitySolutionReportPdfGeneration(req, res) {
 
   return new Promise (async function (resolve,reject){
 
