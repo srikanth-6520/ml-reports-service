@@ -40,11 +40,18 @@
 
 <body class="container">
 
-    <h5><%= data.response.projectName %></h5>
-
     <hr class="new1">
 
     <div class="" style=" background: #eee !important;padding: 15px 40px;">
+
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>PROJECT TITLE</b></p>
+            </div>
+            <div style="width:50%; float:left;">
+                <p><%= data.response.projectName %></p>
+            </div>
+        </div>
 
         <div class="row">
             <div style="width:30%; float:left;">
@@ -81,7 +88,7 @@
 
         <div class="row" style="text-align: center">
             <% if(data.response.tasks && data.response.tasks["assigneeName"]) {%>
-            <p>For &nbsp&nbsp<span
+            <p>Assigned To &nbsp&nbsp<span
                     style="background-color:#eee !important;border-radius: 27px;padding: 20px;padding-left: 50px;padding-right: 50px"><%= data.response.tasks.assigneeName %></span>
             </p>
             <% } %>

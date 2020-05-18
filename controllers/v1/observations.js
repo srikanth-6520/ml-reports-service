@@ -1124,7 +1124,7 @@ async function schoolSolutionScoreReport(req, res) {
 
   
 //Entity solution score pdf generation
-exports.entitySolutionScorePdfFunc = async function (req, res) {
+async function entitySolutionScorePdfFunc(req, res) {
   
     return new Promise(async function (resolve, reject) {
   
@@ -2024,13 +2024,13 @@ exports.observationScorePdfReport = async function (req, res) {
         }
         else if (req.body && req.body.solutionId && req.body.entityId && req.body.entityType) {
 
-            let resObj = await entityController.entitySolutionScorePdfFunc(req, res);
+            let resObj = await entitySolutionScorePdfFunc(req, res);
             res.send(resObj);
 
         }
         else if (req.body && req.body.solutionId && req.body.entityId && req.body.entityType && req.body.reportType) {
 
-            let resObj = await entityController.entitySolutionScorePdfFunc(req, res);
+            let resObj = await entitySolutionScorePdfFunc(req, res);
             res.send(resObj);
 
         }
