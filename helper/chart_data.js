@@ -2100,9 +2100,8 @@ exports.improvementProjectsObjectCreate = async function(data){
             }
         }));
 
-        if (criteriaObj.improvementProjects.length > 0) {
-            response.data.push(criteriaObj);
-        }
+        response.data.push(criteriaObj);
+    
     }));
 
     return response;
