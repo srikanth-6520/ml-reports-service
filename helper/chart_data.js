@@ -2087,18 +2087,22 @@ exports.improvementProjectsObjectCreate = async function(data){
        
         await Promise.all(groupByCriteria[element].map(ele => {
 
-            let projectObj = {
-                projectName : ele.event.imp_project_title,
-                projectId : ele.event.imp_project_id,
-                projectGoal:ele.event.imp_project_goal,
-                projectExternalId: ele.event.imp_project_externalId
-            }
+            if (ele.event.imp_project_title != null) {
 
-            criteriaObj.improvementProjects.push(projectObj);
+                let projectObj = {
+                    projectName: ele.event.imp_project_title,
+                    projectId: ele.event.imp_project_id,
+                    projectGoal: ele.event.imp_project_goal,
+                    projectExternalId: ele.event.imp_project_externalId
+                }
+
+                criteriaObj.improvementProjects.push(projectObj);
+            }
         }));
 
-        response.data.push(criteriaObj);
-
+        if (criteriaObj.improvementProjects.length > 0) {
+            response.data.push(criteriaObj);
+        }
     }));
 
     return response;
