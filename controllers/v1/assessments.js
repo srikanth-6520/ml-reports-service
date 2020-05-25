@@ -643,7 +643,7 @@ exports.listImprovementProjects = async function (req, res) {
                 if (config.druid.assessment_datasource_name) {
                     bodyParam.dataSource = config.druid.assessment_datasource_name;
                 }
-                
+                bodyParam.dimensions.push("label");
                 bodyParam.filter.fields.push({"type":"selector","dimension":req.body.entityType,"value":req.body.entityId},
                                              {"type":"selector","dimension":"programId","value":req.body.programId},
                                              {"type":"selector","dimension":"solutionId","value":req.body.solutionId});
