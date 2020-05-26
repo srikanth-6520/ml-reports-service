@@ -2082,6 +2082,7 @@ exports.improvementProjectsObjectCreate = async function(data){
         let criteriaObj = {
             criteriaName : groupByCriteria[element][0].event.criteriaDescription,
             level : groupByCriteria[element][0].event.level,
+            label: groupByCriteria[element][0].event.label,
             improvementProjects : []
         }
        
