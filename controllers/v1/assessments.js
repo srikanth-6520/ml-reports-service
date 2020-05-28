@@ -1,10 +1,12 @@
-var config = require('../../config/config');
-var rp = require('request-promise');
-var request = require('request');
-var model = require('../../db')
-var helperFunc = require('../../helper/chart_data');
-var commonCassandraFunc = require('../../common/cassandra_func');
-var pdfHandler = require('../../helper/common_handler');
+const config = require('../../config/config');
+const rp = require('request-promise');
+const request = require('request');
+const model = require('../../db')
+const helperFunc = require('../../helper/chart_data');
+const commonCassandraFunc = require('../../common/cassandra_func');
+const pdfHandler = require('../../helper/common_handler');
+const assessmentService = require('../../helper/assessment_service');
+const authService = require('../../middleware/authentication_service');
 
 
 /**
@@ -401,6 +403,292 @@ async function assessmentReportGetChartData(req, res) {
 
 
 
+/**
+   * @api {post} /dhiti/api/v1/assessments/listAssessmentPrograms
+   * List assessment programs
+   * @apiVersion 1.0.0
+   * @apiGroup Assessments
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+   *   "result" : true,
+   *   "data" : [{
+   *    "programName": "",
+        "programId": "",
+   *    }]
+*     }
+   * @apiUse errorBody
+   */
+
+// Function for listing assement programs
+exports.listAssessmentPrograms = async function (req, res) {
+
+    let filter;
+
+    let getUserProfile = await getUserProfileFunc(req, res);
+    let userProfile = getUserProfile[0];
+    let filterData = getUserProfile[1];
+
+    let aclLength = Object.keys(userProfile.result.acl);
+    if (userProfile.result.acl && aclLength > 0) {
+
+        let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
+
+        filter = {
+            "type": "and", "fields": [{
+                "type": "or", "fields": [{ "type": "in", "dimension": "schoolType", "values": tagsArray },
+                { "type": "in", "dimension": "administrationType", "values": tagsArray }]
+            }]
+        };
+
+        //combine entity filter array with acl array
+        filter.fields.push({ "type": "or", "fields": filterData });
+
+    } else {
+        filter = { "type": "or", "fields": filterData };
+    }
+
+    //get query from cassandra
+    model.MyModel.findOneAsync({ qid: "list_assessment_programs_query" }, { allow_filtering: true })
+        .then(async function (result) {
+
+            let bodyParam = JSON.parse(result.query);
+
+            if (config.druid.assessment_datasource_name) {
+                bodyParam.dataSource = config.druid.assessment_datasource_name;
+            }
+
+            bodyParam.filter = filter;
+            bodyParam.dimensions = ["programId", "programName"];
+
+            //pass the query as body param and get the result from druid
+            let options = config.druid.options;
+            options.method = "POST";
+            options.body = bodyParam;
+            let data = await rp(options);
+
+            if (!data.length) {
+                res.send({ "result": false, "data": [] });
+            }
+            else {
+
+                let responseObj = await helperFunc.listAssessmentProgramsObjectCreate(data);
+                res.send(responseObj);
+            }
+
+        })
+        .catch(function (err) {
+            res.status(400);
+            let response = {
+                result: false,
+                message: 'INTERNAL SERVER ERROR'
+            }
+            res.send(response);
+        });
+}
+
+
+
+/**
+   * @api {post} /dhiti/api/v1/assessments/listEntities
+   * List entities 
+   * @apiVersion 1.0.0
+   * @apiGroup Assessments
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+   * {
+   * "programId" : ""
+   * }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+   *   "result" : true,
+   *   "data" : [{
+   *    "entityId": "",
+        "entityName": "",
+        "entityType": "",
+        "solutions": [{
+            "solutionId" : "",
+            "solutionName" : ""
+        }]
+   *    }]
+*     }
+   * @apiUse errorBody
+   */
+
+// Function for listing assement programs
+exports.listEntities = async function (req, res) {
+
+    let filter;
+    let getUserProfile = await getUserProfileFunc(req, res);
+    let userProfile = getUserProfile[0];
+    let filterData = getUserProfile[1];
+    let dimensionArray = getUserProfile[2];
+
+    let aclLength = Object.keys(userProfile.result.acl);
+
+    if (userProfile.result.acl && aclLength > 0) {
+
+        let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
+
+        filter = {
+            "type": "and", "fields": [
+                { "type": "selector", "dimension": "programId", "values": req.body.programId },
+                {
+                    "type": "or", "fields": [{ "type": "in", "dimension": "schoolType", "values": tagsArray },
+                    { "type": "in", "dimension": "administrationType", "values": tagsArray }]
+                }]
+        };
+
+        //combine entity filter array with acl array
+        filter.fields.push({ "type": "or", "fields": filterData });
+
+    } else {
+        filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "programId", "value": req.body.programId }] };
+        filter.fields.push({ "type": "or", "fields": filterData });
+    }
+
+    //get query from cassandra
+    model.MyModel.findOneAsync({ qid: "list_entities_query" }, { allow_filtering: true })
+        .then(async function (result) {
+
+            let bodyParam = JSON.parse(result.query);
+
+            if (config.druid.assessment_datasource_name) {
+                bodyParam.dataSource = config.druid.assessment_datasource_name;
+            }
+
+            bodyParam.filter = filter;
+            bodyParam.dimensions = [...bodyParam.dimensions, ...dimensionArray];
+            bodyParam.dimensions = [...new Set(bodyParam.dimensions)];
+            bodyParam.dimensions.push("entityType");
+
+            //pass the query as body param and get the result from druid
+            let options = config.druid.options;
+            options.method = "POST";
+            options.body = bodyParam;
+            let data = await rp(options);
+
+            if (!data.length) {
+                res.send({ "result": false, "data": [] });
+            }
+            else {
+
+                let responseObj = await helperFunc.listEntitesObjectCreation(data);
+                res.send(responseObj);
+            }
+
+        })
+        .catch(function (err) {
+            let response = {
+                result: false,
+                message: 'INTERNAL SERVER ERROR'
+            }
+            res.send(response);
+        })
+}
+
+
+
+/**
+   * @api {post} /dhiti/api/v1/assessments/listImprovementProjects
+   * List improvement programs
+   * @apiVersion 1.0.0
+   * @apiGroup Assessments
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+*  {
+*  "entityId": "",
+*  "entityType":"",
+*  "programId": "",
+*  "solutionId": ""
+*  }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "result" : true,
+       "data" : [{
+           "criteriaName" : "",
+           "level" : "",
+           "improvementProjects" : [{
+               "projectName" : "",
+               "projectId" : "",
+               "projectGoal": "",
+               "projectExternalId": ""
+           }]
+       }] 
+*     }
+   * @apiUse errorBody
+   */
+
+// Function for listing assement programs
+exports.listImprovementProjects = async function (req, res) {
+    if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
+        res.status(400);
+        let response = {
+            result: false,
+            message: 'entityId,entityType,programId and solutionId are required fields'
+        }
+        res.send(response);
+    }
+    else {
+
+        //get quey from cassandra
+        model.MyModel.findOneAsync({ qid: "list_improvement_projects_query" }, { allow_filtering: true })
+            .then(async function (result) {
+
+                let bodyParam = JSON.parse(result.query);
+
+                if (config.druid.assessment_datasource_name) {
+                    bodyParam.dataSource = config.druid.assessment_datasource_name;
+                }
+                bodyParam.dimensions.push("label");
+                bodyParam.filter.fields.push({"type":"selector","dimension":req.body.entityType,"value":req.body.entityId},
+                                             {"type":"selector","dimension":"programId","value":req.body.programId},
+                                             {"type":"selector","dimension":"solutionId","value":req.body.solutionId});
+
+                //get the createdBy field
+                let createdBy = await getCreatedByField(req, res);
+
+                //get the acl data from samiksha service
+                let userProfile = await assessmentService.getUserProfile(createdBy, req.headers["x-auth-token"]);
+                let aclLength = Object.keys(userProfile.result.acl);
+                if (userProfile.result && userProfile.result.acl && aclLength > 0) {
+                    let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
+
+                    bodyParam.filter.fields.push({"type":"or","fields":[{"type": "in", "dimension": "schoolType", "values": tagsArray },
+                        { "type": "in", "dimension": "administrationType", "values": tagsArray }]});
+                }
+
+                //pass the query as body param and get the result from druid
+                let options = config.druid.options;
+                options.method = "POST";
+                options.body = bodyParam;
+
+                let data = await rp(options);
+                if (!data.length) {
+                    res.send({ "result": false, "data": [] });
+                }
+                else {
+                    //call the function improvementProjectsObjectCreate to get the response object
+                    let responseObj = await helperFunc.improvementProjectsObjectCreate(data);
+                    res.send(responseObj);
+                }
+            })
+            .catch(function (err) {
+                let response = {
+                    result: false,
+                    message: 'INTERNAL SERVER ERROR'
+                }
+                res.send(response);
+            })
+    }
+}
+
+
+
+
 //function to make a call to samiksha assessment entities list API
 async function assessmentEntityList(entityId, childType, token) {
 
@@ -490,3 +778,52 @@ exports.pdfReports = async function (req, res) {
         }
     }
 };
+
+// Function to get user profile data from assessment service
+async function getUserProfileFunc(req,res){
+
+  return new Promise(async function(resolve,reject){
+    try {
+
+    let filterData = [];
+    let dimensionArray = [];
+
+    //get userid from access token 
+    let createdBy = await getCreatedByField(req, res);
+  
+    //make a call to samiksha and get user profile
+    let userProfile = await assessmentService.getUserProfile(createdBy, req.headers["x-auth-token"]);
+  
+    if (userProfile.result && userProfile.result.roles && userProfile.result.roles.length > 0) {
+
+        await Promise.all(userProfile.result.roles.map(async data => {
+
+            await Promise.all(data.entities.map(entityData => {
+                dimensionArray.push(entityData.entityType, entityData.entityType + "Name");
+                let filterField = { "type": "selector", "dimension": entityData.entityType, "value": entityData._id };
+                filterData.push(filterField);
+            }));
+
+        }));
+
+        return resolve([userProfile,filterData,dimensionArray]);
+    } else {
+        res.send({"result":false,"data":[]});
+    }
+    } catch(err){
+        return reject(err);
+    }
+ });
+}
+
+// Function for getting createdBy field from header access token
+async function getCreatedByField(req, res) {
+  
+    return new Promise(async function (resolve, reject) {
+  
+        let token = await authService.validateToken(req, res);
+  
+        resolve(token.userId);
+  
+    })
+}

@@ -1,6 +1,6 @@
-var commonCassandraFunc = require('../../common/cassandra_func');
-var pdfHandler = require('../../helper/common_handler');
-var assessmentController = require('./assessments');
+const commonCassandraFunc = require('../../common/cassandra_func');
+const pdfHandler = require('../../helper/common_handler');
+const assessmentController = require('./assessments');
 
 
 //Function to generate PDF for entity assessment API (For earlier version of the app)

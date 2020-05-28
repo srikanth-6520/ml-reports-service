@@ -12,7 +12,13 @@
       "table":"CASSANDRA_TABLE",
       "apiReqAndResTable":"OBSERVATION_API_REQUEST_RESPONSE_TABLE",
       "assessmentTable": "ASSESSMENT_API_REQUEST_RESPONSE_TABLE",
-      "migrationTable": "MIGRATION_TABLE_NAME"
+  },
+
+   "mongodb":{
+        "url":"MONGO_URL",
+        "db":"DATABASE_NAME",
+        "migration_collection":"COLLECTION_NAME",
+        "migration_dir":""
   },
 
   "druid": {
@@ -51,7 +57,8 @@
  },
     "samiksha_api": {
        "assessment_entity_list_api":"SAMIKSHA_ASSESSMENT_ENTITY_LIST_API",
-       "observation_details_api":"SAMIKSHA_OBSERVATION_DETAILS_API"
+       "observation_details_api":"SAMIKSHA_OBSERVATION_DETAILS_API",
+       "get_user_profile_api": "SAMIKSHA_GET_USER_PROFILE_API"
     },
     
      "kendra" : {
