@@ -555,21 +555,41 @@ exports.listEntities = async function (req, res) {
 
             let bodyParam = JSON.parse(result.query);
 
+            let programFilter = {"type":"selector","dimension":"programId","value":req.body.programId}
+
+            bodyParam.filter = programFilter
+
             if (config.druid.assessment_datasource_name) {
                 bodyParam.dataSource = config.druid.assessment_datasource_name;
             }
 
-            bodyParam.filter = filter;
-            bodyParam.dimensions = [...bodyParam.dimensions, ...dimensionArray];
-            bodyParam.dimensions = [...new Set(bodyParam.dimensions)];
             bodyParam.dimensions.push("entityType");
 
             //pass the query as body param and get the result from druid
             let options = config.druid.options;
             options.method = "POST";
             options.body = bodyParam;
-            let data = await rp(options);
+            let entityData = await rp(options);
 
+            let entityDimensions = [];
+            if(entityData.length > 0){
+               entityData.forEach( dimension => {
+                 if(!entityDimensions.includes(dimension)){
+                    entityDimensions.push(dimension.event.entityType,dimension.event.entityType + "Name");
+                  }
+                })
+             }
+
+            bodyParam.filter = filter;
+            bodyParam.dimensions = [...bodyParam.dimensions, ...dimensionArray];
+            bodyParam.dimensions = [...bodyParam.dimensions, ...entityDimensions];
+            bodyParam.dimensions.push("entityType");
+            bodyParam.dimensions = [...new Set(bodyParam.dimensions)];
+
+            //pass the query as body param and get the result from druid
+            options.body = bodyParam;
+            let data = await rp(options);
+            
             if (!data.length) {
                 res.send({ "result": false, "data": [] });
             }
@@ -643,7 +663,7 @@ exports.listImprovementProjects = async function (req, res) {
                 if (config.druid.assessment_datasource_name) {
                     bodyParam.dataSource = config.druid.assessment_datasource_name;
                 }
-                bodyParam.dimensions.push("label");
+                
                 bodyParam.filter.fields.push({"type":"selector","dimension":req.body.entityType,"value":req.body.entityId},
                                              {"type":"selector","dimension":"programId","value":req.body.programId},
                                              {"type":"selector","dimension":"solutionId","value":req.body.solutionId});
