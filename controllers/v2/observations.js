@@ -5,7 +5,6 @@ const model = require('../../db')
 const helperFunc = require('../../helper/chart_data');
 const pdfHandler = require('../../helper/common_handler');
 var commonCassandraFunc = require('../../common/cassandra_func');
-const authService = require('../../middleware/authentication_service');
 const observationController = require('../v1/observations');
 const url = require("url");
 const omit = require('object.omit');
@@ -57,16 +56,29 @@ async function entitySolutionReportGeneration(req, res) {
             bodyParam.filter.fields[0].value = req.body.entityId;
             bodyParam.filter.fields[1].value = req.body.solutionId;
 
-             //get the createdBy field
-             let createdBy = await getCreatedByField(req, res);
-
-            if(req.body.reportType == "my"){
-              let filter = {"type":"selector","dimension":"createdBy","value":createdBy}
-              bodyParam.filter.fields.push(filter);
+            //if programId is given
+            if(req.body.programId){
+            let programFilter = {"type":"selector","dimension":"programId","value":req.body.programId};
+            bodyParam.filter.fields.push(programFilter);
             }
 
+            if (req.body.reportType == "my") {
+              let filter = {"type":"or","fields":[{"type":"and","fields":[{"type":"selector","dimension":"createdBy","value": req.userDetails.userId},
+                           {"type":"selector","dimension":"isAPrivateProgram","value":true}]},
+                           {"type":"and","fields":[{"type":"selector","dimension":"createdBy","value": req.userDetails.userId},
+                           {"type":"selector","dimension":"isAPrivateProgram","value":false}]}]};
+
+              bodyParam.filter.fields.push(filter);
+            }
+            else {
+              let filter = {"type": "or","fields":[{"type":"and","fields":[{"type":"selector","dimension":"createdBy","value": req.userDetails.userId},
+              {"type":"selector","dimension":"isAPrivateProgram","value":true}]},
+              {"type":"selector","dimension":"isAPrivateProgram","value":false}]};
+
+              bodyParam.filter.fields.push(filter);
+            }
              //get the acl data from samiksha service
-             let userProfile = await assessmentService.getUserProfile(createdBy, req.headers["x-auth-token"]);
+             let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-auth-token"]);
              let aclLength = Object.keys(userProfile.result.acl);
              if (userProfile.result && userProfile.result.acl && aclLength > 0) {
                let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
@@ -313,7 +325,7 @@ exports.listObservationSolutions = async function (req, res) {
         if (req.body.reportType == "my") {
             query = "list_my_solutions_query";
         } else {
-            query = "list_observation_solutions_query";
+            query = "solutions_list_query";
         }
 
         //get query from cassandra
@@ -325,24 +337,20 @@ exports.listObservationSolutions = async function (req, res) {
               if (config.druid.observation_datasource_name) {
                 bodyParam.dataSource = config.druid.observation_datasource_name;
               }
-              
-              //get the createdBy field
-              let createdBy = await getCreatedByField(req, res);
 
                 if (req.body.reportType == "my") {
-
                     bodyParam.filter.fields[0].dimension = req.body.entityType;
                     bodyParam.filter.fields[0].value = req.body.entityId;
-                    bodyParam.filter.fields[1].value = createdBy;
-                    
+                    bodyParam.filter.fields[1].value = req.userDetails.userId;
                 }
                 else {
-                    let filter = {"type":"and","fields":[{"type":"selector","dimension":req.body.entityType,"value":req.body.entityId}]}
-                    bodyParam.filter = filter;
+                  bodyParam.filter.fields[0].dimension = req.body.entityType;
+                  bodyParam.filter.fields[0].value = req.body.entityId;
+                  bodyParam.filter.fields[1].fields[0].fields[0].value = req.userDetails.userId;
                 }
 
                 //get the acl data from samiksha service
-              let userProfile = await assessmentService.getUserProfile(createdBy, req.headers["x-auth-token"]);
+              let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-auth-token"]);
               let aclLength = Object.keys(userProfile.result.acl);
               if (userProfile.result && userProfile.result.acl && aclLength > 0) {
                 let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
@@ -377,20 +385,6 @@ exports.listObservationSolutions = async function (req, res) {
     }
 }
 
-  
-// Function for getting createdBy field from header access token
-async function getCreatedByField(req, res) {
-  
-    return new Promise(async function (resolve, reject) {
-  
-        let token = await authService.validateToken(req, res);
-  
-        resolve(token.userId);
-  
-    })
-}
-
-
 //Controller function for observation score pdf reports
 exports.observationScorePdfReport = async function (req, res) {
 
@@ -411,8 +405,6 @@ exports.observationScorePdfReport = async function (req, res) {
     })
 }
 
-
-//=========================> Observation pdf API ===============
 
 //Controller function for observation pdf reports
 exports.pdfReports = async function (req, res) {
