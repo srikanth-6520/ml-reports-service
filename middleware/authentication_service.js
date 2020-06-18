@@ -57,9 +57,10 @@ function authenticate(req, res, next) {
         .then(function (result) {
 
             if (result.status == "success") {
-
-                req.body.userId = result.userId;
+               
+                req.userDetails = result.userDetails;
                 next();
+
             } else {
                 res.send({ status: "failed", message: result.message })
             }
@@ -81,7 +82,7 @@ function validateToken(req, res) {
             apiInterceptor.validateToken(token, function (err, tokenData) {
 
                 if (tokenData) {
-                    resolve({ status: "success", userId: tokenData.userId });
+                    resolve({ status: "success", userDetails: tokenData });
                 }
                 if (err) {
                     resolve({ status: "failed", message: err });
