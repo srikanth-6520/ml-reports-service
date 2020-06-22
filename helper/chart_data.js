@@ -4,6 +4,8 @@ const path = require("path");
 const filesHelper = require('../common/files_helper');
 const kendraService = require('./kendra_service');
 let obsScoreOrder = 0;
+const default_no_of_assessment_submissions_threshold = 3;
+const default_entity_score_api_threshold = 5;
 
 //function for instance observation final response creation
 exports.instanceReportChart = async function (data,reportType) {
@@ -1244,9 +1246,15 @@ exports.entityScoreReportChartObjectCreation = async function (data, version, re
     let submissionId = [];
     let responseData = [];
 
-    await Promise.all(sortedData.map( element => {
+    let threshold = config.druid.threshold_in_entity_score_api? config.druid.threshold_in_entity_score_api : default_entity_score_api_threshold;
 
-        if(submissionId.length <= config.druid.threshold_in_entity_score_api) {
+        if(typeof threshold !== "number"){
+            throw new Error("threshold_in_entity_score_api should be integer");
+        }
+
+    await Promise.all(sortedData.map( element => {
+        
+        if(submissionId.length <= threshold) {
           if(!submissionId.includes(element.event.observationSubmissionId)){
                  submissionId.push(element.event.observationSubmissionId)
            }
@@ -1279,7 +1287,7 @@ exports.entityScoreReportChartObjectCreation = async function (data, version, re
 
      await Promise.all(groupKeys.map( async ele => {
 
-        let responseObj = await entityScoreObjectCreateFunc(groupedData[ele], version);
+        let responseObj = await entityScoreObjectCreateFunc(groupedData[ele], version, threshold);
        
           obj.response.push(responseObj);
         
@@ -1299,7 +1307,7 @@ exports.entityScoreReportChartObjectCreation = async function (data, version, re
     }
 
     
-async function entityScoreObjectCreateFunc (data, version) {
+async function entityScoreObjectCreateFunc (data, version, threshold) {
 
     let seriesData = [];
     let yAxisMaxValue ;
@@ -1315,7 +1323,7 @@ async function entityScoreObjectCreateFunc (data, version) {
             groupedSubmissionData[scoreData][0].event.minScore = 0;
         }
 
-        if(seriesData.length != config.druid.threshold_in_entity_score_api){
+        if(seriesData.length != threshold){
         seriesData.push([parseInt(groupedSubmissionData[scoreData][0].event.minScore)]);
         }
 
@@ -2263,3 +2271,297 @@ const createSolutionsArray = async function (data) {
         console.log(err);
     }
 }
+
+
+//Report for entity level report in assessments
+exports.entityLevelReportData = async function (data) {
+
+    return new Promise(async function (resolve, reject) {
+       
+        //group the data based on completed date   
+        let groupedSubmissionData = await groupArrayByGivenField(data, "completedDate");
+
+        let completedDateKeys = Object.keys(groupedSubmissionData);
+
+        let threshold = config.druid.no_of_assessment_submissions_threshold ? config.druid.no_of_assessment_submissions_threshold : default_no_of_assessment_submissions_threshold;
+
+        if(typeof threshold !== "number"){
+            throw new Error("no_of_assessment_submissions_threshold value should be integer");
+        }
+        
+        let dateArray = [];
+        if (completedDateKeys.length > threshold) {
+            
+            dateArray = completedDateKeys.slice(-(threshold-1));
+            dateArray.push(completedDateKeys[0]);
+            
+            completedDateKeys = dateArray;
+        }
+
+        let response = await entityLevelReportChartCreateFunc(groupedSubmissionData, completedDateKeys.sort());
+
+        let result = {};
+        result.chartObject = response[0];
+        result.domainArray = response[1];
+
+        return resolve(result);
+    }).
+        catch(err => {
+            return reject(err);
+        })
+}
+
+//Chart data preparation for entity level assessment report
+const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, completedDateArray) {
+
+    return new Promise(async function (resolve, reject) {
+
+        let domainObj = {};
+        let domainNameArray = [];
+        let submissionDateArray = [];
+        let domainCriteriaArray = [];
+        let domainCriteriaObj = {};
+
+        //loop the data and construct domain name and level object
+        for (completedDate = 0; completedDate < completedDateArray.length; completedDate++) {
+
+            let date = completedDateArray[completedDate];
+
+            for (domain = 0; domain < groupedSubmissionData[date].length; domain++) {
+
+                let domainData = groupedSubmissionData[date][domain];
+
+                if (domainData.event.level != null) {
+
+                    // Domain and level object creation for chart
+                    if (!domainObj[domainData.event.domainName]) {
+                        domainObj[domainData.event.domainName] = {};
+
+                        if (!domainObj[domainData.event.domainName][domainData.event.completedDate]) {
+                            domainObj[domainData.event.domainName][domainData.event.completedDate] = {};
+
+                            if (!domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level]) {
+                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = domainData.event.domainNameCount;
+                            }
+                            else {
+                                let level = domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level];
+                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = level + domainData.event.domainNameCount;
+                            }
+                        }
+                        else {
+                            if (!domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level]) {
+                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = domainData.event.domainNameCount;
+                            }
+                            else {
+                                let level = domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level];
+                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = level + domainData.event.domainNameCount;
+                            }
+                        }
+                    } else {
+                        if (!domainObj[domainData.event.domainName][domainData.event.completedDate]) {
+                            domainObj[domainData.event.domainName][domainData.event.completedDate] = {};
+
+                            if (!domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level]) {
+                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = domainData.event.domainNameCount;
+                            }
+                            else {
+
+                                let level = domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level];
+                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = level + domainData.event.domainNameCount;
+                            }
+                        }
+                        else {
+                            if (!domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level]) {
+                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = domainData.event.domainNameCount;
+                            }
+                            else {
+
+                                let level = domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level];
+                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = level + domainData.event.domainNameCount;
+                            }
+                        }
+                    }
+
+
+                    // Domain and criteria object creation
+                    if (!domainCriteriaObj[domainData.event.domainName]) {
+                        domainCriteriaObj[domainData.event.domainName] = {};
+
+                        if (!domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]) {
+                            domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription] = {};
+
+                            if (!domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"]) {
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"] = [domainData.event.level];
+                            }
+                            else {
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"].push(domainData.event.level);
+                            }
+                        }
+                        else {
+
+                            if (!domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"]) {
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"] = [domainData.event.level];
+                            }
+                            else {
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"].push(domainData.event.level);
+                            }
+                        }
+                    }
+                    else {
+                        if (!domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]) {
+                            domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription] = {};
+
+                            if (!domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"]) {
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"] = [domainData.event.level];
+                            }
+                            else {
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"].push(domainData.event.level);
+                            }
+                        }
+                        else {
+                            if (!domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"]) {
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"] = [domainData.event.level];
+                            }
+                            else {
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"].push(domainData.event.level);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //loo the domain keys and construct level array for stacked bar chart
+        let domainKeys = Object.keys(domainObj);
+        let obj = {};
+
+        for (domainKey = 0; domainKey < domainKeys.length; domainKey++) {
+
+            let dateKeys = Object.keys(domainObj[domainKeys[domainKey]]);
+
+            for (dateKey = 0; dateKey < dateKeys.length; dateKey++) {
+
+                submissionDateArray.push(dateKeys[dateKey]);
+
+                if (!domainNameArray.includes(domainKeys[domainKey])) {
+
+                    domainNameArray.push(domainKeys[domainKey])
+
+                } else {
+                    domainNameArray.push("")
+                }
+
+                let levels = domainObj[domainKeys[domainKey]][dateKeys[dateKey]];
+
+                let levelObj = {};
+
+                //sort the levels
+                Object.keys(levels).sort().forEach(function (key) {
+                    levelObj[key] = levels[key];
+                });
+
+                for (level in levelObj) {
+
+                    if (!obj[level]) {
+                        obj[level] = [levelObj[level]];
+                    } else {
+                        obj[level].push(levelObj[level]);
+                    }
+                }
+            }
+        }
+
+        let series = [];
+        for (level in obj) {
+            series.push({
+                name: level,
+                data: obj[level]
+            })
+        }
+
+        submissionDateArray = await getDateTime(submissionDateArray);
+
+        let chartObj = {
+            chart: {
+                type: 'bar'
+            },
+            title: {
+                text: ''
+            },
+            xAxis: [{
+                categories: domainNameArray
+
+            },
+            {
+                opposite: true,
+                reversed: false,
+                categories: submissionDateArray,
+                linkedTo: 0
+            },
+            ],
+            yAxis: {
+                min: 0,
+                title: {
+                    text: ''
+                }
+            },
+            legend: {
+                reversed: true
+            },
+            plotOptions: {
+                series: {
+                    stacking: 'percent'
+                }
+            },
+            series: series
+        }
+
+
+        let domainCriteriaKeys = Object.keys(domainCriteriaObj);
+
+        for (domainKey = 0; domainKey < domainCriteriaKeys.length; domainKey++) {
+
+            let domainCriteriaObject = {
+                domainName: domainCriteriaKeys[domainKey],
+                criterias: []
+            }
+
+            let criteriaKey = Object.keys(domainCriteriaObj[domainCriteriaKeys[domainKey]]);
+
+            for (ckey = 0; ckey < criteriaKey.length; ckey++) {
+
+                let criteriaObj = {
+                    criteriaName: criteriaKey[ckey],
+                    levels: domainCriteriaObj[domainCriteriaKeys[domainKey]][criteriaKey[ckey]].levels
+                }
+
+                domainCriteriaObject.criterias.push(criteriaObj);
+            }
+            domainCriteriaArray.push(domainCriteriaObject);
+        }
+
+        return resolve([chartObj, domainCriteriaArray]);
+
+    }).
+        catch(err => {
+            return reject(err);
+        })
+}
+
+//function for date conversion
+const getDateTime = async function (completedDate) {
+
+    let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    let submissionDate = [];
+    await Promise.all(completedDate.map(date => {
+
+        let dateValue = new Date(date);
+        let day = dateValue.getDate();
+        let month = months[dateValue.getMonth()];
+        let year = dateValue.getFullYear();
+        submissionDate.push(day + " " + month + " " + year);
+    }));
+
+    return submissionDate;
+}
+

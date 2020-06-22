@@ -451,8 +451,16 @@ exports.listAssessmentPrograms = async function (req, res) {
         filter.fields.push({ "type": "or", "fields": filterData });
 
     } else {
-        filter = { "type": "or", "fields": filterData };
+        filter = {"type":"and","fields":[{"type": "or", "fields": filterData }]};
     }
+
+    //Add private program filter
+    filter.fields.push({"type":"or","fields":[
+        {"type":"and","fields":[{"type":"selector","dimension":"userId","value":req.userDetails.userId},
+        {"type":"selector","dimension":"isAPrivateProgram","value":true}]},
+        {"type":"selector","dimension":"isAPrivateProgram","value":false}
+        ]
+    });
 
     //get query from cassandra
     model.MyModel.findOneAsync({ qid: "list_assessment_programs_query" }, { allow_filtering: true })
@@ -553,6 +561,14 @@ exports.listEntities = async function (req, res) {
         filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "programId", "value": req.body.programId }] };
         filter.fields.push({ "type": "or", "fields": filterData });
     }
+
+    //Add private program filter
+    filter.fields.push({"type":"or","fields":[
+        {"type":"and","fields":[{"type":"selector","dimension":"userId","value":req.userDetails.userId},
+        {"type":"selector","dimension":"isAPrivateProgram","value":true}]},
+        {"type":"selector","dimension":"isAPrivateProgram","value":false}
+        ]
+    });
 
     //get query from cassandra
     model.MyModel.findOneAsync({ qid: "list_entities_query" }, { allow_filtering: true })
@@ -835,3 +851,141 @@ async function getUserProfileFunc(req,res){
  });
 }
 
+
+/**
+   * @api {post} /dhiti/api/v1/assessments/entityReport
+   * entity level assessment report
+   * @apiVersion 1.0.0
+   * @apiGroup Assessments
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+* "entityId": "",
+* "entityType": "",
+* "programId": "",
+* "solutionId": ""
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*   {
+    "result": true,
+    "programName": "",
+    "solutionName": "",
+    "chartObject": {
+        "chart": {
+            "type": "bar"
+        },
+        "title": {
+            "text": ""
+        },
+        "xAxis": [
+            {
+                "categories": []
+            },
+            {
+                "opposite": true,
+                "reversed": false,
+                "categories": [],
+                "linkedTo": 0
+            }
+        ],
+        "yAxis": {
+            "min": 0,
+            "title": {
+                "text": ""
+            }
+        },
+        "legend": {
+            "reversed": true
+        },
+        "plotOptions": {
+            "series": {
+                "stacking": "percent"
+            }
+        },
+        "series": [
+            {
+                "name": "Level 1",
+                "data": []
+            }
+        ]
+    },
+    "domainArray" : [{
+        "domainName": "",
+        "criterias": [{
+             "criteriaName": "",
+             "levels": []
+        }]
+    }]
+}
+   * @apiUse errorBody
+   */
+exports.entityReport = async function(req,res){
+
+    let data = await entityReportChartCreateFunction(req, res);
+    res.send(data);
+}
+
+
+async function entityReportChartCreateFunction(req, res) {
+return new Promise(async function (resolve, reject) {
+
+    if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
+        let response = {
+            result: false,
+            message: 'entityId,entityType,programId,solutionId are required fields'
+        }
+        resolve(response);
+    }
+    else {
+           //get domainName and level info
+            model.MyModel.findOneAsync({ qid: "entity_level_assessment_report_query" }, { allow_filtering: true })
+                .then(async function (result) {
+
+                    var bodyParam = JSON.parse(result.query);
+                    if (config.druid.assessment_datasource_name) {
+                        bodyParam.dataSource = config.druid.assessment_datasource_name;
+                    }
+
+                    //dynamically appending values to filter
+                    bodyParam.filter.fields[0].dimension = req.body.entityType;
+                    bodyParam.filter.fields[0].value = req.body.entityId;
+                    bodyParam.filter.fields[1].value = req.body.programId;
+                    bodyParam.filter.fields[2].value = req.body.solutionId;
+
+                    let options = config.druid.options;
+                    options.method = "POST";
+                    options.body = bodyParam;
+
+                    let data = await rp(options);
+
+                    if (!data.length) {
+                        resolve({"result":false,"data": "NO_ASSESSMENT_MADE_FOR_THE_ENTITY"})
+                    }
+                    else {
+                        
+                        let response = {
+                                        "result":true,
+                                        "programName": data[0].event.programName,
+                                        "solutionName": data[0].event.solutionName,
+                                       };
+
+                        let reportData = await helperFunc.entityLevelReportData(data);
+
+                        response.chartObject = reportData.chartObject;
+                        response.domainArray = reportData.domainArray;
+                     
+                       return resolve(response);
+                    }
+                })
+                .catch(function (err) {
+                    let response = {
+                        result: false,
+                        message: 'INTERNAL_SERVER_ERROR',
+                        err: err
+                    }
+                    resolve(response);
+                })
+        }
+    })
+}
