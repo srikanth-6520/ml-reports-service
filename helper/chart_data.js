@@ -2170,3 +2170,96 @@ exports.getCriteriawiseReport = async function(responseObj){
     return responseObj;
 
 }
+
+exports.programsListCreation = async function (programs) {
+
+   let programArray = [];
+
+    await Promise.all(programs.map(program => {
+        programArray.push(program.event);
+    }));
+    
+    // remove duplicate programs from the array
+   let uniquePrograms = [...new Set(programArray.map(obj => JSON.stringify(obj)))].map(str => JSON.parse(str));
+
+    programList = {
+        result: true,
+        data: uniquePrograms
+    }
+
+    return programList;
+}
+
+
+
+exports.solutionListCreation = async function(solutions, id){
+    
+    let solutionArray = {
+        result: true,
+        data: {
+        }
+    }
+
+    let solutionData = await createSolutionsArray(solutions, id);
+
+    solutionArray.data.mySolutions = solutionData.filter(data => id.includes(data.id));
+
+    solutionArray.data.allSolutions = solutionData;
+
+    return solutionArray;
+}
+
+
+//Create response object for listSolutionNames API
+const createSolutionsArray = async function (data) {
+    try {
+        let responseObj = [];
+        let scoring;
+
+        let groupBySolutionId = await groupArrayByGivenField(data, "solutionId")
+
+        let solutionKeys = Object.keys(groupBySolutionId);
+
+        await Promise.all(solutionKeys.map(element => {
+
+            let obj = {
+                solutionName: groupBySolutionId[element][0].event.solutionName,
+                solutionId: groupBySolutionId[element][0].event.solutionId,
+                type: groupBySolutionId[element][0].event.type
+            }
+
+            if(groupBySolutionId[element][0].event['createdBy']){
+                obj.id = groupBySolutionId[element][0].event.createdBy;
+            }
+
+            else if(groupBySolutionId[element][0].event['userId']){
+                obj.id = groupBySolutionId[element][0].event.userId;
+            } 
+            else {
+                obj.id = "";
+            }
+
+            groupBySolutionId[element].forEach(ele => {
+
+                if (ele.event['totalScore'] && ele.event.totalScore >= 1) {
+                    scoring = true;
+                }
+            });
+
+
+            if (scoring == true) {
+                obj.scoring = true;
+            } else {
+                obj.scoring = false;
+            }
+
+            responseObj.push(obj);
+        }))
+
+        return responseObj;
+
+    }
+    catch (err) {
+        console.log(err);
+    }
+}

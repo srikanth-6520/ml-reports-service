@@ -6,7 +6,6 @@ const helperFunc = require('../../helper/chart_data');
 const commonCassandraFunc = require('../../common/cassandra_func');
 const pdfHandler = require('../../helper/common_handler');
 const assessmentService = require('../../helper/assessment_service');
-const authService = require('../../middleware/authentication_service');
 
 
 /**
@@ -49,15 +48,21 @@ exports.listPrograms = async function (req, res) {
         res.send(response);
     }
     else {
+
         //get quey from cassandra
         model.MyModel.findOneAsync({ qid: "list_assessment_programs_query" }, { allow_filtering: true })
             .then(async function (result) {
-                var bodyParam = JSON.parse(result.query);
+
+                let bodyParam = JSON.parse(result.query);
+
                 if (config.druid.assessment_datasource_name) {
                     bodyParam.dataSource = config.druid.assessment_datasource_name;
                 }
-                bodyParam.filter.dimension = req.body.entityType;
-                bodyParam.filter.value = req.body.entityId;
+
+                bodyParam.filter.fields[0].dimension = req.body.entityType;
+                bodyParam.filter.fields[0].value = req.body.entityId;
+                bodyParam.filter.fields[1].fields[0].fields[0].value = req.userDetails.userId;
+
                 //pass the query as body param and get the result from druid
                 var options = config.druid.options;
                 options.method = "POST";
@@ -66,8 +71,8 @@ exports.listPrograms = async function (req, res) {
                 if (!data.length) {
 
                     //==========Production hotfix code============================
-                    bodyParam.filter.dimension = "school";
-                    bodyParam.filter.value = req.body.entityId;
+                    bodyParam.filter.fields[0].dimension = "school";
+                    bodyParam.filter.fields[0].value = req.body.entityId;
 
                     //pass the query as body param and get the result from druid
                     let optionsData = config.druid.options;
@@ -97,7 +102,7 @@ exports.listPrograms = async function (req, res) {
                 res.status(400);
                 var response = {
                     result: false,
-                    message: 'Data not found'
+                    message: 'INTERNAL_SERVER_ERROR'
                 }
                 res.send(response);
             })
@@ -668,11 +673,8 @@ exports.listImprovementProjects = async function (req, res) {
                                              {"type":"selector","dimension":"programId","value":req.body.programId},
                                              {"type":"selector","dimension":"solutionId","value":req.body.solutionId});
 
-                //get the createdBy field
-                let createdBy = await getCreatedByField(req, res);
-
                 //get the acl data from samiksha service
-                let userProfile = await assessmentService.getUserProfile(createdBy, req.headers["x-auth-token"]);
+                let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-auth-token"]);
                 let aclLength = Object.keys(userProfile.result.acl);
                 if (userProfile.result && userProfile.result.acl && aclLength > 0) {
                     let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
@@ -807,12 +809,9 @@ async function getUserProfileFunc(req,res){
 
     let filterData = [];
     let dimensionArray = [];
-
-    //get userid from access token 
-    let createdBy = await getCreatedByField(req, res);
   
     //make a call to samiksha and get user profile
-    let userProfile = await assessmentService.getUserProfile(createdBy, req.headers["x-auth-token"]);
+    let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-auth-token"]);
   
     if (userProfile.result && userProfile.result.roles && userProfile.result.roles.length > 0) {
 
@@ -836,14 +835,3 @@ async function getUserProfileFunc(req,res){
  });
 }
 
-// Function for getting createdBy field from header access token
-async function getCreatedByField(req, res) {
-  
-    return new Promise(async function (resolve, reject) {
-  
-        let token = await authService.validateToken(req, res);
-  
-        resolve(token.userId);
-  
-    })
-}
