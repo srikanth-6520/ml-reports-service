@@ -113,8 +113,7 @@ const getSolutions = async function(bodyParam, type) {
                 if (config.druid.assessment_datasource_name) {
                     bodyParam.dataSource = config.druid.assessment_datasource_name;
                 }
-                bodyParam.filter.fields[1].fields[0].fields[0].value = "userId";
-                bodyParam.dimensions = bodyParam.dimensions.filter(e => e !== 'totalScore')
+                bodyParam.filter.fields[1].fields[0].fields[0].dimension = "userId";
             }
             else if (type == filesHelper.observation) {
 
@@ -122,6 +121,7 @@ const getSolutions = async function(bodyParam, type) {
                 if (config.druid.observation_datasource_name) {
                     bodyParam.dataSource = config.druid.observation_datasource_name;
                 }
+                bodyParam.filter.fields[1].fields[0].fields[0].dimension = "createdBy";
             }
 
             //pass the query as body param and get the result from druid

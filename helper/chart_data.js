@@ -2214,7 +2214,6 @@ exports.solutionListCreation = async function(solutions, id){
 const createSolutionsArray = async function (data) {
     try {
         let responseObj = [];
-        let scoring;
 
         let groupBySolutionId = await groupArrayByGivenField(data, "solutionId")
 
@@ -2228,11 +2227,11 @@ const createSolutionsArray = async function (data) {
                 type: groupBySolutionId[element][0].event.type
             }
 
-            if(groupBySolutionId[element][0].event['createdBy']){
+            if(groupBySolutionId[element][0].event['createdBy'] != null){
                 obj.id = groupBySolutionId[element][0].event.createdBy;
             }
 
-            else if(groupBySolutionId[element][0].event['userId']){
+            else if(groupBySolutionId[element][0].event['userId'] != null){
                 obj.id = groupBySolutionId[element][0].event.userId;
             } 
             else {
@@ -2242,16 +2241,11 @@ const createSolutionsArray = async function (data) {
             groupBySolutionId[element].forEach(ele => {
 
                 if (ele.event['totalScore'] && ele.event.totalScore >= 1) {
-                    scoring = true;
+                    obj.scoring = true;
+                } else {
+                    obj.scoring = false;
                 }
             });
-
-
-            if (scoring == true) {
-                obj.scoring = true;
-            } else {
-                obj.scoring = false;
-            }
 
             responseObj.push(obj);
         }))
