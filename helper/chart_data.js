@@ -2121,7 +2121,6 @@ exports.improvementProjectObjectCreation = async function(data){
         let criteriaObj = {
             criteriaName : element.name,
             level : element.score,
-            label:"",
             improvementProjects : []
         }
 
@@ -2135,8 +2134,8 @@ exports.improvementProjectObjectCreation = async function(data){
             criteriaObj.label = "Level 4";
         }
        
-        if(element.improvement-projects.length > 0) {
-        await Promise.all(element.improvement-projects.map(ele => {
+        if(element["improvement-projects"].length > 0) {
+        await Promise.all(element["improvement-projects"].map(ele => {
 
             if (ele.title != null) {
 

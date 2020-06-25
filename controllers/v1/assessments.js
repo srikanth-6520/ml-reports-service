@@ -697,7 +697,7 @@ exports.listImprovementProjects = async function (req, res) {
                     //call the function improvementProjectsObjectCreate to get the response object
                     // let responseObj = await helperFunc.improvementProjectsObjectCreate(data);
                     let responseObj;
-                    if(improvemtProjectList.status == 200){
+                    if(improvementProjectList.status == 200){
                         responseObj = await helperFunc.improvementProjectObjectCreation(improvementProjectList.result);
                     } else {
                         responseObj = { "result": false, "data": [] };
