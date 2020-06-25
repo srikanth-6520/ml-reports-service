@@ -2124,13 +2124,13 @@ exports.improvementProjectObjectCreation = async function(data){
             improvementProjects : []
         }
 
-        if(data.score == "L1"){
+        if (element.score == "L1") {
             criteriaObj.label = "Level 1";
-        } else if(data.score == "L2"){
+        } else if (element.score == "L2") {
             criteriaObj.label = "Level 2";
-        }  else if(data.score == "L3"){
+        } else if (element.score == "L3") {
             criteriaObj.label = "Level 3";
-        }  else if(data.score == "L4"){
+        } else if (element.score == "L4") {
             criteriaObj.label = "Level 4";
         }
        
