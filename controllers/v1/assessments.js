@@ -663,7 +663,8 @@ exports.listImprovementProjects = async function (req, res) {
                 if (config.druid.assessment_datasource_name) {
                     bodyParam.dataSource = config.druid.assessment_datasource_name;
                 }
-                
+                bodyParam.dimensions.push("submissionId");
+
                 bodyParam.filter.fields.push({"type":"selector","dimension":req.body.entityType,"value":req.body.entityId},
                                              {"type":"selector","dimension":"programId","value":req.body.programId},
                                              {"type":"selector","dimension":"solutionId","value":req.body.solutionId});
@@ -691,8 +692,16 @@ exports.listImprovementProjects = async function (req, res) {
                     res.send({ "result": false, "data": [] });
                 }
                 else {
+
+                    let improvementProjectList = await assessmentService.getImprovemtProjects(data[0].event.submissionId,req.headers["x-auth-token"]);
                     //call the function improvementProjectsObjectCreate to get the response object
-                    let responseObj = await helperFunc.improvementProjectsObjectCreate(data);
+                    // let responseObj = await helperFunc.improvementProjectsObjectCreate(data);
+                    let responseObj;
+                    if(improvemtProjectList.status == 200){
+                        responseObj = await helperFunc.improvementProjectObjectCreation(improvementProjectList.result);
+                    } else {
+                        responseObj = { "result": false, "data": [] };
+                    }
                     res.send(responseObj);
                 }
             })

@@ -2109,6 +2109,56 @@ exports.improvementProjectsObjectCreate = async function(data){
 }
 
 
+exports.improvementProjectObjectCreation = async function(data){
+
+    let response = {
+        "result" : true,
+        "data" : []
+    }
+
+    await Promise.all(data.map(async element => {
+
+        let criteriaObj = {
+            criteriaName : element.name,
+            level : element.score,
+            label:"",
+            improvementProjects : []
+        }
+
+        if(data.score == "L1"){
+            criteriaObj.label = "Level 1";
+        } else if(data.score == "L2"){
+            criteriaObj.label = "Level 2";
+        }  else if(data.score == "L3"){
+            criteriaObj.label = "Level 3";
+        }  else if(data.score == "L4"){
+            criteriaObj.label = "Level 4";
+        }
+       
+        if(element.improvement-projects.length > 0) {
+        await Promise.all(element.improvement-projects.map(ele => {
+
+            if (ele.title != null) {
+
+                let projectObj = {
+                    projectName: ele.title,
+                    projectId: ele.id,
+                    projectGoal: ele.goal,
+                    projectExternalId: ele.externalId
+                }
+
+                criteriaObj.improvementProjects.push(projectObj);
+            }
+        }));
+    }
+
+        response.data.push(criteriaObj);
+    
+    }));
+
+    return response;
+}
+
 //Function to create a report based on criteria
 exports.getCriteriawiseReport = async function(responseObj){
     
