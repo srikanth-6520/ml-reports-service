@@ -2141,7 +2141,7 @@ exports.improvementProjectObjectCreation = async function(data){
 
                 let projectObj = {
                     projectName: ele.title,
-                    projectId: ele.id,
+                    projectId: ele._id,
                     projectGoal: ele.goal,
                     projectExternalId: ele.externalId
                 }
