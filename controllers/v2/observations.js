@@ -77,6 +77,10 @@ async function entitySolutionReportGeneration(req, res) {
 
               bodyParam.filter.fields.push(filter);
             }
+
+            // filter out not answered questions
+            bodyParam.filter.fields.push({"type":"not","field":{"type":"selector","dimension":"questionAnswer","value":""}});
+
              //get the acl data from samiksha service
              let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-auth-token"]);
              let aclLength = Object.keys(userProfile.result.acl);
