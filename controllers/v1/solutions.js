@@ -62,6 +62,7 @@ exports.list = async function (req, res) {
                 bodyParam.filter.fields[0].dimension = req.body.entityType;
                 bodyParam.filter.fields[0].value = req.body.entityId;
                 bodyParam.filter.fields[1].fields[0].fields[0].value = req.userDetails.userId;
+                bodyParam.filter.fields.push({"type":"selector","dimension":"programId","value":req.body.programId});
 
                 let solutionArray = [getSolutions(bodyParam, filesHelper.assessment),
                 getSolutions(bodyParam, filesHelper.observation)];
