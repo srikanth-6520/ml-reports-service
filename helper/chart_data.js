@@ -832,19 +832,22 @@ async function programListRespObjCreate(data){
 
 //Function to create stacked bar chart response object for entity assessment API  
 exports.entityAssessmentChart = async function (inputObj) {
-    try {
-    data = inputObj.data;
-    childEntity = inputObj.childEntity;
-    entityName = inputObj.entityName;
-    levelCount = inputObj.levelCount;
-    entityType = inputObj.entityType;
+    return new Promise (async function (resolve, reject) {
 
-    var domainArray = [];
-    var firstScoreArray =[];
-    var secondScoreArray = [];
-    var thirdScoreArray = [];
-    var fourthScoreArray = [];
-    var obj ={};
+    let data = inputObj.data;
+    let childEntity = inputObj.childEntity;
+    let entityName = inputObj.entityName;
+    let levelCount = inputObj.levelCount;
+    let entityType = inputObj.entityType;
+
+    let domainArray = [];
+    let firstScoreArray =[];
+    let secondScoreArray = [];
+    let thirdScoreArray = [];
+    let fourthScoreArray = [];
+    let obj = {};
+    let scoresExists = false;
+
 
     //Store the domain Names in an array
     await Promise.all(data.map(async ele => {               
@@ -853,7 +856,15 @@ exports.entityAssessmentChart = async function (inputObj) {
         } else {
             domainArray.push(ele.event[entityName]);
         }
+
+        if (ele.event.level != null) {
+            scoresExists = true;
+        }
     }));
+
+    if (scoresExists == false) {
+        return resolve({});
+    }
    
     //group the json objects based on entityName
     var res = await groupArrayByGivenField(data,entityName);
@@ -1012,11 +1023,12 @@ exports.entityAssessmentChart = async function (inputObj) {
         ]
     }
 // console.log(chartObj.reportSections[0].chart);
-  return chartObj;
-}
-catch(err){
-    console.log(err);
-}
+  return resolve(chartObj);
+  })
+  .catch(err => {
+    return reject(err);
+})
+
 }
 
 
@@ -2277,6 +2289,8 @@ exports.entityLevelReportData = async function (data) {
 
         let completedDateKeys = Object.keys(groupedSubmissionData);
 
+        let totalSubmissions = completedDateKeys.length;
+
         let threshold = config.druid.no_of_assessment_submissions_threshold ? config.druid.no_of_assessment_submissions_threshold : default_no_of_assessment_submissions_threshold;
 
         if(typeof threshold !== "number"){
@@ -2294,9 +2308,15 @@ exports.entityLevelReportData = async function (data) {
 
         let response = await entityLevelReportChartCreateFunc(groupedSubmissionData, completedDateKeys.sort());
 
-        let result = {};
-        result.chartObject = response[0];
-        result.domainArray = response[1];
+        let result = [];
+        if (response.length > 0) {
+            
+        result.push(response[0]);
+
+        //append total number of submissions value
+        response[1].chart.totalSubmissions = totalSubmissions;
+        result.push(response[1]);
+        }
 
         return resolve(result);
     }).
@@ -2315,9 +2335,15 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
         let submissionDateArray = [];
         let domainCriteriaArray = [];
         let domainCriteriaObj = {};
+        let heading = [];
+        let dynamicLevelObj = {};
+        let scoresExists = false;
 
         //loop the data and construct domain name and level object
         for (completedDate = 0; completedDate < completedDateArray.length; completedDate++) {
+
+            let i = completedDate + 1;
+            heading.push("Assess. " + i);
 
             let date = completedDateArray[completedDate];
 
@@ -2325,8 +2351,14 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
 
                 let domainData = groupedSubmissionData[date][domain];
 
-                if (domainData.event.level != null) {
+                if (domainData.event.level !== null) {
 
+                    scoresExists = true;
+
+                    if(!dynamicLevelObj[domainData.event.level]){
+                        dynamicLevelObj[domainData.event.level] = [];
+                     }
+                    
                     // Domain and level object creation for chart
                     if (!domainObj[domainData.event.domainName]) {
                         domainObj[domainData.event.domainName] = {};
@@ -2335,20 +2367,20 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
                             domainObj[domainData.event.domainName][domainData.event.completedDate] = {};
 
                             if (!domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level]) {
-                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = domainData.event.domainNameCount;
+                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = 1;
                             }
                             else {
                                 let level = domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level];
-                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = level + domainData.event.domainNameCount;
+                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = ++level;
                             }
                         }
                         else {
                             if (!domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level]) {
-                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = domainData.event.domainNameCount;
+                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = 1;
                             }
                             else {
                                 let level = domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level];
-                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = level + domainData.event.domainNameCount;
+                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = ++level;
                             }
                         }
                     } else {
@@ -2356,22 +2388,22 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
                             domainObj[domainData.event.domainName][domainData.event.completedDate] = {};
 
                             if (!domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level]) {
-                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = domainData.event.domainNameCount;
+                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = 1;
                             }
                             else {
 
                                 let level = domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level];
-                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = level + domainData.event.domainNameCount;
+                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = ++level;
                             }
                         }
                         else {
                             if (!domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level]) {
-                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = domainData.event.domainNameCount;
+                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = 1;
                             }
                             else {
 
                                 let level = domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level];
-                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = level + domainData.event.domainNameCount;
+                                domainObj[domainData.event.domainName][domainData.event.completedDate][domainData.event.level] = ++level;
                             }
                         }
                     }
@@ -2385,19 +2417,19 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
                             domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription] = {};
 
                             if (!domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"]) {
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"] = [domainData.event.level];
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"] = [domainData.event.label];
                             }
                             else {
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"].push(domainData.event.level);
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"].push(domainData.event.label);
                             }
                         }
                         else {
 
                             if (!domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"]) {
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"] = [domainData.event.level];
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"] = [domainData.event.label];
                             }
                             else {
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"].push(domainData.event.level);
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"].push(domainData.event.label);
                             }
                         }
                     }
@@ -2406,25 +2438,30 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
                             domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription] = {};
 
                             if (!domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"]) {
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"] = [domainData.event.level];
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"] = [domainData.event.label];
                             }
                             else {
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"].push(domainData.event.level);
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"].push(domainData.event.label);
                             }
                         }
                         else {
                             if (!domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"]) {
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"] = [domainData.event.level];
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"] = [domainData.event.label];
                             }
                             else {
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"].push(domainData.event.level);
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"].push(domainData.event.label);
                             }
                         }
                     }
                 }
             }
         }
-
+        
+        // if score does not exists, return empty array
+        if (scoresExists == false){
+           return resolve([]);
+        }
+        
         //loo the domain keys and construct level array for stacked bar chart
         let domainKeys = Object.keys(domainObj);
         let obj = {};
@@ -2447,23 +2484,23 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
 
                 let levels = domainObj[domainKeys[domainKey]][dateKeys[dateKey]];
 
-                let levelObj = {};
+                let levelKeys = Object.keys(levels);
 
-                //sort the levels
-                Object.keys(levels).sort().forEach(function (key) {
-                    levelObj[key] = levels[key];
-                });
-
-                for (level in levelObj) {
-
-                    if (!obj[level]) {
-                        obj[level] = [levelObj[level]];
+                for (level in dynamicLevelObj) {
+                    if (levelKeys.includes(level)) {
+                        dynamicLevelObj[level].push(levels[level]);
                     } else {
-                        obj[level].push(levelObj[level]);
+                        dynamicLevelObj[level].push(0);
                     }
+
                 }
             }
         }
+        
+        //sort the levels
+        Object.keys(dynamicLevelObj).sort().forEach(function (key) {
+            obj[key] = dynamicLevelObj[key];
+        });
 
         let series = [];
         for (level in obj) {
@@ -2476,12 +2513,10 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
         submissionDateArray = await getDateTime(submissionDateArray);
 
         let chartObj = {
+            order: 1,
             chart: {
-                type: 'bar'
-            },
-            title: {
-                text: ''
-            },
+            type: 'bar',
+            title: "",
             xAxis: [{
                 categories: domainNameArray
 
@@ -2496,7 +2531,7 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
             yAxis: {
                 min: 0,
                 title: {
-                    text: ''
+                    text: 'Criteria'
                 }
             },
             legend: {
@@ -2507,7 +2542,9 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
                     stacking: 'percent'
                 }
             },
-            series: series
+            data: series
+
+          }
         }
 
 
@@ -2525,7 +2562,7 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
             for (ckey = 0; ckey < criteriaKey.length; ckey++) {
 
                 let criteriaObj = {
-                    criteriaName: criteriaKey[ckey],
+                    name: criteriaKey[ckey],
                     levels: domainCriteriaObj[domainCriteriaKeys[domainKey]][criteriaKey[ckey]].levels
                 }
 
@@ -2534,7 +2571,17 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
             domainCriteriaArray.push(domainCriteriaObject);
         }
 
-        return resolve([chartObj, domainCriteriaArray]);
+        let expansionViewObj = {
+            order: 2,
+            chart: {
+                type: "expansion-table",
+                title: "Descriptive view",
+                heading: heading,
+                domains: domainCriteriaArray
+            }
+        };
+
+        return resolve([chartObj, expansionViewObj]);
 
     }).
         catch(err => {

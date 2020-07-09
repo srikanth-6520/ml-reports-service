@@ -191,7 +191,7 @@ async function assessmentReportGetChartData(req, res) {
 
         if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
             res.status(400);
-            var response = {
+            let response = {
                 result: false,
                 message: 'entityId,entityType,programId,solutionId and immediateChildEntityType are required fields'
             }
@@ -202,7 +202,7 @@ async function assessmentReportGetChartData(req, res) {
             childType = req.body.immediateChildEntityType;
             reqBody = req.body
 
-            var dataAssessIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqBody)
+            let dataAssessIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqBody)
 
             if (dataAssessIndexes == undefined) {
 
@@ -210,7 +210,7 @@ async function assessmentReportGetChartData(req, res) {
                 model.MyModel.findOneAsync({ qid: "entity_assessment_query" }, { allow_filtering: true })
                     .then(async function (result) {
 
-                        var bodyParam = JSON.parse(result.query);
+                        let bodyParam = JSON.parse(result.query);
                         if (config.druid.assessment_datasource_name) {
                             bodyParam.dataSource = config.druid.assessment_datasource_name;
                         }
@@ -229,7 +229,7 @@ async function assessmentReportGetChartData(req, res) {
                             bodyParam.aggregations[0].name = "domainNameCount";
                         }
                         else {
-                            var entityName = req.body.immediateChildEntityType + "Name";
+                            let entityName = req.body.immediateChildEntityType + "Name";
                             bodyParam.dimensions.push(req.body.immediateChildEntityType, entityName, "level", "programName");
                             bodyParam.aggregations[0].fieldName = entityName;
                             bodyParam.aggregations[0].fieldNames.push(entityName);
@@ -239,7 +239,7 @@ async function assessmentReportGetChartData(req, res) {
                         let opt = config.druid.options;
                         opt.method = "POST";
                         opt.body = bodyParam;
-                        var data = await rp(opt);
+                        let data = await rp(opt);
 
                         if (!data.length) {
 
@@ -253,7 +253,7 @@ async function assessmentReportGetChartData(req, res) {
                             let options = config.druid.options;
                             options.method = "POST";
                             options.body = bodyParam;
-                            var assessData = await rp(options);
+                            let assessData = await rp(options);
 
                             if (!assessData.length) {
                                 resolve({ "result": false, "data": {} })
@@ -269,7 +269,12 @@ async function assessmentReportGetChartData(req, res) {
                                 }
 
                                 //call the function entityAssessmentChart to get the data for stacked bar chart 
-                                var responseObj = await helperFunc.entityAssessmentChart(inputObj);
+                                let responseObj = await helperFunc.entityAssessmentChart(inputObj);
+
+                                if (Object.keys(responseObj).length === 0) {
+                                    return resolve({ "reportSections" : [] });
+                                }
+
                                 responseObj.title = "Performance Report";
                                 bodyParam.dimensions.push("childType", "childName", "domainExternalId");
 
@@ -295,7 +300,7 @@ async function assessmentReportGetChartData(req, res) {
                                 }
 
                                 //call the function to get the data for expansion view of domain and criteria
-                                var tableObject = await helperFunc.entityTableViewFunc(dataObject)
+                                let tableObject = await helperFunc.entityTableViewFunc(dataObject)
                                 tableObject.chart.title = "Descriptive View";
                                 responseObj.reportSections.push(tableObject);
 
@@ -327,7 +332,7 @@ async function assessmentReportGetChartData(req, res) {
                         }
                         else {
 
-                            var inputObj = {
+                            let inputObj = {
                                 data: data,
                                 entityName: bodyParam.aggregations[0].fieldName,
                                 childEntity: req.body.immediateChildEntityType,
@@ -336,7 +341,12 @@ async function assessmentReportGetChartData(req, res) {
                             }
 
                             //call the function entityAssessmentChart to get the data for stacked bar chart 
-                            var responseObj = await helperFunc.entityAssessmentChart(inputObj);
+                            let responseObj = await helperFunc.entityAssessmentChart(inputObj);
+                             
+                            if (Object.keys(responseObj).length === 0) {
+                                return resolve({ "reportSections" : [] });
+                            }
+
                             bodyParam.dimensions.push("childType", "childName", "domainExternalId");
 
                             if (!bodyParam.dimensions.includes("domainName")) {
@@ -348,26 +358,26 @@ async function assessmentReportGetChartData(req, res) {
                             }
 
                             //pass the query as body param and get the result from druid
-                            var options = config.druid.options;
+                            let options = config.druid.options;
                             options.method = "POST";
                             options.body = bodyParam;
 
-                            var entityData = await rp(options);
+                            let entityData = await rp(options);
 
-                            var dataObj = {
+                            let dataObj = {
                                 entityData: entityData,
                                 childEntityType: req.body.immediateChildEntityType,
                                 entityType: req.body.entityType
                             }
 
                             //call the function to get the data for expansion view of domain and criteria
-                            var tableObj = await helperFunc.entityTableViewFunc(dataObj)
+                            let tableObj = await helperFunc.entityTableViewFunc(dataObj)
                             responseObj.reportSections.push(tableObj);
 
                             if (childType) {
 
                                 //call samiksha entity list assessment API to get the grandchildEntity type.
-                                var grandChildEntityType = await assessmentEntityList(req.body.entityId, childType, req.headers["x-auth-token"])
+                                let grandChildEntityType = await assessmentEntityList(req.body.entityId, childType, req.headers["x-auth-token"])
 
                                 if (grandChildEntityType.status == 200) {
                                     if (grandChildEntityType.result[0].subEntityGroups.length != 0) {
@@ -392,10 +402,9 @@ async function assessmentReportGetChartData(req, res) {
                         }
                     })
                     .catch(function (err) {
-                        res.status(400);
-                        var response = {
+                        let response = {
                             result: false,
-                            message: 'Data not found'
+                            message: 'INTERNAL_SERVER_ERROR'
                         }
                         resolve(response);
                     })
@@ -871,13 +880,11 @@ async function getUserProfileFunc(req,res){
     "result": true,
     "programName": "",
     "solutionName": "",
-    "chartObject": {
+    "reportSections": [{
+        "order": 1,
         "chart": {
-            "type": "bar"
-        },
-        "title": {
-            "text": ""
-        },
+        "type": "bar",
+        "title": "",
         "xAxis": [
             {
                 "categories": []
@@ -903,19 +910,28 @@ async function getUserProfileFunc(req,res){
                 "stacking": "percent"
             }
         },
-        "series": [
+        "data": [
             {
                 "name": "Level 1",
                 "data": []
             }
         ]
+      }
     },
-    "domainArray" : [{
-        "domainName": "",
-        "criterias": [{
-             "criteriaName": "",
-             "levels": []
-        }]
+    {
+       "order": 2,
+       "chart": {
+            "type": "expansion",
+            "title": "Descriptive view",
+            "heading": ["Assess. 1","Assess. 2"],
+            "domains": [{
+                "domainName": "",
+                "criterias": [{
+                   "criteriaName": "",
+                   "levels": []
+                }]
+            }]
+        }
     }]
 }
    * @apiUse errorBody
@@ -953,6 +969,10 @@ return new Promise(async function (resolve, reject) {
                     bodyParam.filter.fields[1].value = req.body.programId;
                     bodyParam.filter.fields[2].value = req.body.solutionId;
 
+                    if(req.body.submissionId) {
+                        bodyParam.filter.fields.push({"type":"selector","dimension":"submissionId","value":req.body.submissionId});
+                    }
+
                     let options = config.druid.options;
                     options.method = "POST";
                     options.body = bodyParam;
@@ -972,8 +992,7 @@ return new Promise(async function (resolve, reject) {
 
                         let reportData = await helperFunc.entityLevelReportData(data);
 
-                        response.chartObject = reportData.chartObject;
-                        response.domainArray = reportData.domainArray;
+                        response.reportSections = reportData;
                      
                        return resolve(response);
                     }
