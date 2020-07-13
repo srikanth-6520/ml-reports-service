@@ -17,7 +17,7 @@ module.exports = {
     let queries = 
       [{
         query: query,
-        params: [Uuid.random().toString(), 'entity_level_assessment_report_query', '{"queryType":"groupBy","dataSource":"sl_assessments","granularity":"all","dimensions":["submissionId","completedDate","domainName","criteriaDescription","level","programName","solutionName"],"filter":{"type":"and","fields":[{"type":"selector","dimension":"","value":""},{"type":"selector","dimension":"programId","value":""},{"type":"selector","dimension":"solutionId","value":""}]},"aggregations":[{"fieldName":"domainName","fieldNames":["domainName"],"type":"count","name":"domainNameCount"}],"postAggregations":[],"intervals":["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"]}']
+        params: [Uuid.random().toString(), 'entity_level_assessment_report_query', '{"queryType":"groupBy","dataSource":"sl_assessments","granularity":"all","dimensions":["submissionId","completedDate","domainName","criteriaDescription","level","label","programName","solutionName","childExternalid"],"filter":{"type":"and","fields":[{"type":"selector","dimension":"","value":""},{"type":"selector","dimension":"programId","value":""},{"type":"selector","dimension":"solutionId","value":""}]},"aggregations":[{"fieldName":"domainName","fieldNames":["domainName"],"type":"count","name":"domainNameCount"}],"postAggregations":[],"intervals":["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"]}']
       }];
 
       await cassandra.batch(queries, { prepare: true });

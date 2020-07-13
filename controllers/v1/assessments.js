@@ -871,13 +871,11 @@ async function getUserProfileFunc(req,res){
     "result": true,
     "programName": "",
     "solutionName": "",
-    "chartObject": {
+    "reportSections": [{
+        "order": 1,
         "chart": {
-            "type": "bar"
-        },
-        "title": {
-            "text": ""
-        },
+        "type": "bar",
+        "title": "",
         "xAxis": [
             {
                 "categories": []
@@ -903,19 +901,28 @@ async function getUserProfileFunc(req,res){
                 "stacking": "percent"
             }
         },
-        "series": [
+        "data": [
             {
                 "name": "Level 1",
                 "data": []
             }
         ]
+      }
     },
-    "domainArray" : [{
-        "domainName": "",
-        "criterias": [{
-             "criteriaName": "",
-             "levels": []
-        }]
+    {
+       "order": 2,
+       "chart": {
+            "type": "expansion",
+            "title": "Descriptive view",
+            "heading": ["Assess. 1","Assess. 2"],
+            "domains": [{
+                "domainName": "",
+                "criterias": [{
+                   "criteriaName": "",
+                   "levels": []
+                }]
+            }]
+        }
     }]
 }
    * @apiUse errorBody
@@ -953,6 +960,10 @@ return new Promise(async function (resolve, reject) {
                     bodyParam.filter.fields[1].value = req.body.programId;
                     bodyParam.filter.fields[2].value = req.body.solutionId;
 
+                    if(req.body.submissionId) {
+                        bodyParam.filter.fields.push({"type":"selector","dimension":"submissionId","value":req.body.submissionId});
+                    }
+
                     let options = config.druid.options;
                     options.method = "POST";
                     options.body = bodyParam;
@@ -972,8 +983,7 @@ return new Promise(async function (resolve, reject) {
 
                         let reportData = await helperFunc.entityLevelReportData(data);
 
-                        response.chartObject = reportData.chartObject;
-                        response.domainArray = reportData.domainArray;
+                        response.reportSections = reportData;
                      
                        return resolve(response);
                     }
