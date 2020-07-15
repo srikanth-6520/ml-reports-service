@@ -832,19 +832,22 @@ async function programListRespObjCreate(data){
 
 //Function to create stacked bar chart response object for entity assessment API  
 exports.entityAssessmentChart = async function (inputObj) {
-    try {
-    data = inputObj.data;
-    childEntity = inputObj.childEntity;
-    entityName = inputObj.entityName;
-    levelCount = inputObj.levelCount;
-    entityType = inputObj.entityType;
+    return new Promise (async function (resolve, reject) {
 
-    var domainArray = [];
-    var firstScoreArray =[];
-    var secondScoreArray = [];
-    var thirdScoreArray = [];
-    var fourthScoreArray = [];
-    var obj ={};
+    let data = inputObj.data;
+    let childEntity = inputObj.childEntity;
+    let entityName = inputObj.entityName;
+    let levelCount = inputObj.levelCount;
+    let entityType = inputObj.entityType;
+
+    let domainArray = [];
+    let firstScoreArray =[];
+    let secondScoreArray = [];
+    let thirdScoreArray = [];
+    let fourthScoreArray = [];
+    let obj = {};
+    let scoresExists = false;
+
 
     //Store the domain Names in an array
     await Promise.all(data.map(async ele => {               
@@ -853,7 +856,15 @@ exports.entityAssessmentChart = async function (inputObj) {
         } else {
             domainArray.push(ele.event[entityName]);
         }
+
+        if (ele.event.level != null) {
+            scoresExists = true;
+        }
     }));
+
+    if (scoresExists == false) {
+        return resolve({});
+    }
    
     //group the json objects based on entityName
     var res = await groupArrayByGivenField(data,entityName);
@@ -1012,11 +1023,12 @@ exports.entityAssessmentChart = async function (inputObj) {
         ]
     }
 // console.log(chartObj.reportSections[0].chart);
-  return chartObj;
-}
-catch(err){
-    console.log(err);
-}
+  return resolve(chartObj);
+  })
+  .catch(err => {
+    return reject(err);
+})
+
 }
 
 
@@ -2297,11 +2309,14 @@ exports.entityLevelReportData = async function (data) {
         let response = await entityLevelReportChartCreateFunc(groupedSubmissionData, completedDateKeys.sort());
 
         let result = [];
+        if (response.length > 0) {
+            
         result.push(response[0]);
 
         //append total number of submissions value
         response[1].chart.totalSubmissions = totalSubmissions;
         result.push(response[1]);
+        }
 
         return resolve(result);
     }).
@@ -2322,6 +2337,7 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
         let domainCriteriaObj = {};
         let heading = [];
         let dynamicLevelObj = {};
+        let scoresExists = false;
 
         //loop the data and construct domain name and level object
         for (completedDate = 0; completedDate < completedDateArray.length; completedDate++) {
@@ -2336,6 +2352,8 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
                 let domainData = groupedSubmissionData[date][domain];
 
                 if (domainData.event.level !== null) {
+
+                    scoresExists = true;
 
                     if(!dynamicLevelObj[domainData.event.level]){
                         dynamicLevelObj[domainData.event.level] = [];
@@ -2438,7 +2456,12 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
                 }
             }
         }
-
+        
+        // if score does not exists, return empty array
+        if (scoresExists == false){
+           return resolve([]);
+        }
+        
         //loo the domain keys and construct level array for stacked bar chart
         let domainKeys = Object.keys(domainObj);
         let obj = {};
@@ -2551,7 +2574,7 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
         let expansionViewObj = {
             order: 2,
             chart: {
-                type: "expansion",
+                type: "expansion-table",
                 title: "Descriptive view",
                 heading: heading,
                 domains: domainCriteriaArray
