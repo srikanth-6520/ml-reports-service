@@ -67,7 +67,8 @@ var assessmentModel = models.loadSchema(config.cassandra.assessmentTable, {
 
 // MyModel or models.instance.Person can now be used as the model instance
 
-
+ console.log("syncing database");
+ 
 // sync the schema definition with the cassandra database table
 // if the schema has not changed, the callback will fire immediately
 // otherwise express-cassandra will try to migrate the schema and fire the callback afterwards
