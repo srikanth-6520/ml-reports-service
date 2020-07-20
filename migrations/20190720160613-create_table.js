@@ -10,7 +10,7 @@ module.exports = {
       throw new Error("Cassandra connection not available.");
     }
 
-    let truncateTable = "TRUNCATE TABLE " + config.cassandra.table;
+    let truncateTable = "DROP TABLE IF EXISTS " + config.cassandra.keyspace + "." + config.cassandra.table;
 
     cassandra.execute(truncateTable);
 
