@@ -10,10 +10,13 @@ module.exports = {
       throw new Error("Cassandra connection not available.");
     }
 
-    let query = "CREATE TABLE IF NOT EXISTS " + config.cassandra.table + " (id uuid PRIMARY KEY, qid text, quesry text)";
+    let truncateTable = "TRUNCATE TABLE " + config.cassandra.table;
 
+    cassandra.execute(truncateTable);
 
-    cassandra.execute(query);
+    let createTable = "CREATE TABLE IF NOT EXISTS " + config.cassandra.table + " (id uuid PRIMARY KEY, qid text, query text)";
+
+    cassandra.execute(createTable);
 
 
     return global.migrationMsg;
