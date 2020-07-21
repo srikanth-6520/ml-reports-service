@@ -12,11 +12,11 @@ module.exports = {
 
     let truncateTable = "DROP TABLE IF EXISTS " + config.cassandra.keyspace + "." + config.cassandra.table;
 
-    cassandra.execute(truncateTable);
+    await cassandra.execute(truncateTable);
 
-    let createTable = "CREATE TABLE IF NOT EXISTS " + config.cassandra.table + " (id uuid PRIMARY KEY, qid text, query text)";
+    let query = "CREATE TABLE IF NOT EXISTS " + config.cassandra.table + " (id uuid PRIMARY KEY, qid text, query text)";
 
-    cassandra.execute(createTable);
+    await cassandra.execute(query);
 
 
     return global.migrationMsg;

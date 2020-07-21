@@ -14,7 +14,8 @@ module.exports = {
     const result = await cassandra.execute(query, [ 'observation_report_query' ], { prepare: true });
     const row = result.rows;
    
-   
+    if (row.length > 0) {
+      
     let queries = 
       [{
         query: 'UPDATE ' + config.cassandra.keyspace + '.' + config.cassandra.table + ' SET query=? WHERE id=?',
@@ -22,6 +23,8 @@ module.exports = {
       }];
 
       await cassandra.batch(queries, { prepare: true });
+
+      }
 
       return global.migrationMsg;
     },

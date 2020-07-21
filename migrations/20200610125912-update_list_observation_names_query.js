@@ -13,7 +13,9 @@ module.exports = {
     const query = 'SELECT id FROM ' + config.cassandra.keyspace + '.' + config.cassandra.table + ' WHERE qid = ? ALLOW FILTERING';
     const result = await cassandra.execute(query, [ 'list_observation_names_query' ], { prepare: true });
     const row = result.rows;
-   
+    
+
+    if (row.length > 0) {
    
     let queries = 
       [{
@@ -22,6 +24,8 @@ module.exports = {
       }];
 
       await cassandra.batch(queries, { prepare: true });
+
+     }
 
       return global.migrationMsg;
     },
