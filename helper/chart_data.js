@@ -2412,51 +2412,42 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
                     // Domain and criteria object creation
                     if (!domainCriteriaObj[domainData.event.domainName]) {
                         domainCriteriaObj[domainData.event.domainName] = {};
+                        
+                        domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid] = {};
+                        
+                        domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.criteriaDescription] = {};
 
-                        if (!domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]) {
-                            domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription] = {};
-
-                            if (!domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"]) {
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"] = [domainData.event.label];
-                            }
-                            else {
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"].push(domainData.event.label);
-                            }
-                        }
-                        else {
-
-                            if (!domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"]) {
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"] = [domainData.event.label];
-                            }
-                            else {
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"].push(domainData.event.label);
-                            }
-                        }
+                        domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.criteriaDescription]["levels"] = [domainData.event.label];
                     }
                     else {
-                        if (!domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]) {
-                            domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription] = {};
 
-                            if (!domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"]) {
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"] = [domainData.event.label];
-                            }
-                            else {
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"].push(domainData.event.label);
-                            }
+                        if (!domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid]) {
+                            domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid] = {};
+
+                            domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.criteriaDescription] = {};
+                            domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.criteriaDescription]["levels"] = [domainData.event.label];
                         }
                         else {
-                            if (!domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"]) {
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"] = [domainData.event.label];
+                            if (!domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.criteriaDescription]) {
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.criteriaDescription] = {};
+
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.criteriaDescription]["levels"] = [domainData.event.label];
                             }
                             else {
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.criteriaDescription]["levels"].push(domainData.event.label);
+
+                             if (!domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.criteriaDescription]["levels"]) {
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.criteriaDescription]["levels"] = [domainData.event.label];
+                            }
+                            else {
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.criteriaDescription]["levels"].push(domainData.event.label);
                             }
                         }
+                      }
                     }
                 }
             }
         }
-        
+               
         // if score does not exists, return empty array
         if (scoresExists == false){
            return resolve([]);
@@ -2557,16 +2548,21 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
                 criterias: []
             }
 
-            let criteriaKey = Object.keys(domainCriteriaObj[domainCriteriaKeys[domainKey]]);
+            let externalIdKeys = Object.keys(domainCriteriaObj[domainCriteriaKeys[domainKey]]);
 
-            for (ckey = 0; ckey < criteriaKey.length; ckey++) {
+            for (externalIdKey = 0; externalIdKey < externalIdKeys.length; externalIdKey++) {
 
-                let criteriaObj = {
-                    name: criteriaKey[ckey],
-                    levels: domainCriteriaObj[domainCriteriaKeys[domainKey]][criteriaKey[ckey]].levels
+                let criteriaKey = Object.keys(domainCriteriaObj[domainCriteriaKeys[domainKey]][externalIdKeys[externalIdKey]]);
+
+                for (ckey = 0; ckey < criteriaKey.length; ckey++) {
+
+                    let criteriaObj = {
+                        name: criteriaKey[ckey],
+                        levels: domainCriteriaObj[domainCriteriaKeys[domainKey]][externalIdKeys[externalIdKey]][criteriaKey[ckey]].levels
+                    }
+
+                    domainCriteriaObject.criterias.push(criteriaObj);
                 }
-
-                domainCriteriaObject.criterias.push(criteriaObj);
             }
             domainCriteriaArray.push(domainCriteriaObject);
         }
