@@ -3,7 +3,7 @@ var rp = require('request-promise');
 var request = require('request');
 var model = require('../../db')
 var helperFunc = require('../../helper/chart_data');
-
+const default_content_api_threshold = 10;
 
 /**
      * @apiDefine errorBody
@@ -49,8 +49,14 @@ exports.contentView = async function (req, res) {
             // get previous month date and append to intervals field
             bodyParam.intervals = await getIntervals();
 
+            let threshold = config.druid.threshold_in_content_api ? config.druid.threshold_in_content_api : default_content_api_threshold
+
+            if(typeof threshold !== "number"){
+                throw new Error("threshold_in_content_api should be integer");
+            }
+
             //Assign threshold value to restrict number of records to be shown
-            bodyParam.threshold = config.druid.threshold_in_content_api;
+            bodyParam.threshold = threshold;
 
             //pass the query as body param and get the result from druid
             var options = config.druid.options;
@@ -129,8 +135,14 @@ exports.contentDownloadedByUser = async function (req, res) {
                  // get previous month date and append to intervals field
                  bodyParam.intervals = await getIntervals();
 
+                 let threshold = config.druid.threshold_in_content_api ? config.druid.threshold_in_content_api : default_content_api_threshold;
+
+                 if(typeof threshold !== "number"){
+                     throw new Error("threshold_in_content_api should be integer");
+                 }
+
                 //Assign threshold value to restrict number of records to be shown
-                bodyParam.threshold = config.druid.threshold_in_content_api;
+                bodyParam.threshold = threshold;
 
                 //pass the query as body param and get the result from druid
                 var options = config.druid.options;
@@ -190,8 +202,14 @@ exports.usageByContent = async function (req, res) {
                 bodyParam.dataSource = config.druid.telemetry_datasource_name;
             }
             
+            let threshold = config.druid.threshold_in_content_api ? config.druid.threshold_in_content_api : default_content_api_threshold;
+
+            if(typeof threshold !== "number"){
+                throw new Error("threshold_in_content_api should be integer");
+            }
+
             //Assign threshold value to restrict number of records to be shown
-            bodyParam.threshold = config.druid.threshold_in_content_api
+            bodyParam.threshold = threshold;
 
              // get previous month date and append to intervals field
              bodyParam.intervals = await getIntervals();
