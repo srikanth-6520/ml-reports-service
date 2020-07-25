@@ -6,7 +6,6 @@ const helperFunc = require('../../helper/chart_data');
 const commonCassandraFunc = require('../../common/cassandra_func');
 const pdfHandler = require('../../helper/common_handler');
 const assessmentService = require('../../helper/assessment_service');
-const authService = require('../../middleware/authentication_service');
 
 
 /**
@@ -49,15 +48,21 @@ exports.listPrograms = async function (req, res) {
         res.send(response);
     }
     else {
+
         //get quey from cassandra
         model.MyModel.findOneAsync({ qid: "list_assessment_programs_query" }, { allow_filtering: true })
             .then(async function (result) {
-                var bodyParam = JSON.parse(result.query);
+
+                let bodyParam = JSON.parse(result.query);
+
                 if (config.druid.assessment_datasource_name) {
                     bodyParam.dataSource = config.druid.assessment_datasource_name;
                 }
-                bodyParam.filter.dimension = req.body.entityType;
-                bodyParam.filter.value = req.body.entityId;
+
+                bodyParam.filter.fields[0].dimension = req.body.entityType;
+                bodyParam.filter.fields[0].value = req.body.entityId;
+                bodyParam.filter.fields[1].fields[0].fields[0].value = req.userDetails.userId;
+
                 //pass the query as body param and get the result from druid
                 var options = config.druid.options;
                 options.method = "POST";
@@ -66,8 +71,8 @@ exports.listPrograms = async function (req, res) {
                 if (!data.length) {
 
                     //==========Production hotfix code============================
-                    bodyParam.filter.dimension = "school";
-                    bodyParam.filter.value = req.body.entityId;
+                    bodyParam.filter.fields[0].dimension = "school";
+                    bodyParam.filter.fields[0].value = req.body.entityId;
 
                     //pass the query as body param and get the result from druid
                     let optionsData = config.druid.options;
@@ -97,7 +102,7 @@ exports.listPrograms = async function (req, res) {
                 res.status(400);
                 var response = {
                     result: false,
-                    message: 'Data not found'
+                    message: 'INTERNAL_SERVER_ERROR'
                 }
                 res.send(response);
             })
@@ -186,7 +191,7 @@ async function assessmentReportGetChartData(req, res) {
 
         if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
             res.status(400);
-            var response = {
+            let response = {
                 result: false,
                 message: 'entityId,entityType,programId,solutionId and immediateChildEntityType are required fields'
             }
@@ -197,7 +202,7 @@ async function assessmentReportGetChartData(req, res) {
             childType = req.body.immediateChildEntityType;
             reqBody = req.body
 
-            var dataAssessIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqBody)
+            let dataAssessIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqBody)
 
             if (dataAssessIndexes == undefined) {
 
@@ -205,7 +210,7 @@ async function assessmentReportGetChartData(req, res) {
                 model.MyModel.findOneAsync({ qid: "entity_assessment_query" }, { allow_filtering: true })
                     .then(async function (result) {
 
-                        var bodyParam = JSON.parse(result.query);
+                        let bodyParam = JSON.parse(result.query);
                         if (config.druid.assessment_datasource_name) {
                             bodyParam.dataSource = config.druid.assessment_datasource_name;
                         }
@@ -224,7 +229,7 @@ async function assessmentReportGetChartData(req, res) {
                             bodyParam.aggregations[0].name = "domainNameCount";
                         }
                         else {
-                            var entityName = req.body.immediateChildEntityType + "Name";
+                            let entityName = req.body.immediateChildEntityType + "Name";
                             bodyParam.dimensions.push(req.body.immediateChildEntityType, entityName, "level", "programName");
                             bodyParam.aggregations[0].fieldName = entityName;
                             bodyParam.aggregations[0].fieldNames.push(entityName);
@@ -234,7 +239,7 @@ async function assessmentReportGetChartData(req, res) {
                         let opt = config.druid.options;
                         opt.method = "POST";
                         opt.body = bodyParam;
-                        var data = await rp(opt);
+                        let data = await rp(opt);
 
                         if (!data.length) {
 
@@ -248,7 +253,7 @@ async function assessmentReportGetChartData(req, res) {
                             let options = config.druid.options;
                             options.method = "POST";
                             options.body = bodyParam;
-                            var assessData = await rp(options);
+                            let assessData = await rp(options);
 
                             if (!assessData.length) {
                                 resolve({ "result": false, "data": {} })
@@ -264,7 +269,12 @@ async function assessmentReportGetChartData(req, res) {
                                 }
 
                                 //call the function entityAssessmentChart to get the data for stacked bar chart 
-                                var responseObj = await helperFunc.entityAssessmentChart(inputObj);
+                                let responseObj = await helperFunc.entityAssessmentChart(inputObj);
+
+                                if (Object.keys(responseObj).length === 0) {
+                                    return resolve({ "reportSections" : [] });
+                                }
+
                                 responseObj.title = "Performance Report";
                                 bodyParam.dimensions.push("childType", "childName", "domainExternalId");
 
@@ -290,7 +300,7 @@ async function assessmentReportGetChartData(req, res) {
                                 }
 
                                 //call the function to get the data for expansion view of domain and criteria
-                                var tableObject = await helperFunc.entityTableViewFunc(dataObject)
+                                let tableObject = await helperFunc.entityTableViewFunc(dataObject)
                                 tableObject.chart.title = "Descriptive View";
                                 responseObj.reportSections.push(tableObject);
 
@@ -322,7 +332,7 @@ async function assessmentReportGetChartData(req, res) {
                         }
                         else {
 
-                            var inputObj = {
+                            let inputObj = {
                                 data: data,
                                 entityName: bodyParam.aggregations[0].fieldName,
                                 childEntity: req.body.immediateChildEntityType,
@@ -331,7 +341,12 @@ async function assessmentReportGetChartData(req, res) {
                             }
 
                             //call the function entityAssessmentChart to get the data for stacked bar chart 
-                            var responseObj = await helperFunc.entityAssessmentChart(inputObj);
+                            let responseObj = await helperFunc.entityAssessmentChart(inputObj);
+                             
+                            if (Object.keys(responseObj).length === 0) {
+                                return resolve({ "reportSections" : [] });
+                            }
+
                             bodyParam.dimensions.push("childType", "childName", "domainExternalId");
 
                             if (!bodyParam.dimensions.includes("domainName")) {
@@ -343,26 +358,26 @@ async function assessmentReportGetChartData(req, res) {
                             }
 
                             //pass the query as body param and get the result from druid
-                            var options = config.druid.options;
+                            let options = config.druid.options;
                             options.method = "POST";
                             options.body = bodyParam;
 
-                            var entityData = await rp(options);
+                            let entityData = await rp(options);
 
-                            var dataObj = {
+                            let dataObj = {
                                 entityData: entityData,
                                 childEntityType: req.body.immediateChildEntityType,
                                 entityType: req.body.entityType
                             }
 
                             //call the function to get the data for expansion view of domain and criteria
-                            var tableObj = await helperFunc.entityTableViewFunc(dataObj)
+                            let tableObj = await helperFunc.entityTableViewFunc(dataObj)
                             responseObj.reportSections.push(tableObj);
 
                             if (childType) {
 
                                 //call samiksha entity list assessment API to get the grandchildEntity type.
-                                var grandChildEntityType = await assessmentEntityList(req.body.entityId, childType, req.headers["x-auth-token"])
+                                let grandChildEntityType = await assessmentEntityList(req.body.entityId, childType, req.headers["x-auth-token"])
 
                                 if (grandChildEntityType.status == 200) {
                                     if (grandChildEntityType.result[0].subEntityGroups.length != 0) {
@@ -387,10 +402,9 @@ async function assessmentReportGetChartData(req, res) {
                         }
                     })
                     .catch(function (err) {
-                        res.status(400);
-                        var response = {
+                        let response = {
                             result: false,
-                            message: 'Data not found'
+                            message: 'INTERNAL_SERVER_ERROR'
                         }
                         resolve(response);
                     })
@@ -446,8 +460,16 @@ exports.listAssessmentPrograms = async function (req, res) {
         filter.fields.push({ "type": "or", "fields": filterData });
 
     } else {
-        filter = { "type": "or", "fields": filterData };
+        filter = {"type":"and","fields":[{"type": "or", "fields": filterData }]};
     }
+
+    //Add private program filter
+    filter.fields.push({"type":"or","fields":[
+        {"type":"and","fields":[{"type":"selector","dimension":"userId","value":req.userDetails.userId},
+        {"type":"selector","dimension":"isAPrivateProgram","value":true}]},
+        {"type":"selector","dimension":"isAPrivateProgram","value":false}
+        ]
+    });
 
     //get query from cassandra
     model.MyModel.findOneAsync({ qid: "list_assessment_programs_query" }, { allow_filtering: true })
@@ -548,6 +570,14 @@ exports.listEntities = async function (req, res) {
         filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "programId", "value": req.body.programId }] };
         filter.fields.push({ "type": "or", "fields": filterData });
     }
+
+    //Add private program filter
+    filter.fields.push({"type":"or","fields":[
+        {"type":"and","fields":[{"type":"selector","dimension":"userId","value":req.userDetails.userId},
+        {"type":"selector","dimension":"isAPrivateProgram","value":true}]},
+        {"type":"selector","dimension":"isAPrivateProgram","value":false}
+        ]
+    });
 
     //get query from cassandra
     model.MyModel.findOneAsync({ qid: "list_entities_query" }, { allow_filtering: true })
@@ -668,11 +698,8 @@ exports.listImprovementProjects = async function (req, res) {
                                              {"type":"selector","dimension":"programId","value":req.body.programId},
                                              {"type":"selector","dimension":"solutionId","value":req.body.solutionId});
 
-                //get the createdBy field
-                let createdBy = await getCreatedByField(req, res);
-
                 //get the acl data from samiksha service
-                let userProfile = await assessmentService.getUserProfile(createdBy, req.headers["x-auth-token"]);
+                let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-auth-token"]);
                 let aclLength = Object.keys(userProfile.result.acl);
                 if (userProfile.result && userProfile.result.acl && aclLength > 0) {
                     let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
@@ -807,12 +834,9 @@ async function getUserProfileFunc(req,res){
 
     let filterData = [];
     let dimensionArray = [];
-
-    //get userid from access token 
-    let createdBy = await getCreatedByField(req, res);
   
     //make a call to samiksha and get user profile
-    let userProfile = await assessmentService.getUserProfile(createdBy, req.headers["x-auth-token"]);
+    let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-auth-token"]);
   
     if (userProfile.result && userProfile.result.roles && userProfile.result.roles.length > 0) {
 
@@ -836,14 +860,151 @@ async function getUserProfileFunc(req,res){
  });
 }
 
-// Function for getting createdBy field from header access token
-async function getCreatedByField(req, res) {
-  
-    return new Promise(async function (resolve, reject) {
-  
-        let token = await authService.validateToken(req, res);
-  
-        resolve(token.userId);
-  
+
+/**
+   * @api {post} /dhiti/api/v1/assessments/entityReport
+   * entity level assessment report
+   * @apiVersion 1.0.0
+   * @apiGroup Assessments
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+* "entityId": "",
+* "entityType": "",
+* "programId": "",
+* "solutionId": ""
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*   {
+    "result": true,
+    "programName": "",
+    "solutionName": "",
+    "reportSections": [{
+        "order": 1,
+        "chart": {
+        "type": "bar",
+        "title": "",
+        "xAxis": [
+            {
+                "categories": []
+            },
+            {
+                "opposite": true,
+                "reversed": false,
+                "categories": [],
+                "linkedTo": 0
+            }
+        ],
+        "yAxis": {
+            "min": 0,
+            "title": {
+                "text": ""
+            }
+        },
+        "legend": {
+            "reversed": true
+        },
+        "plotOptions": {
+            "series": {
+                "stacking": "percent"
+            }
+        },
+        "data": [
+            {
+                "name": "Level 1",
+                "data": []
+            }
+        ]
+      }
+    },
+    {
+       "order": 2,
+       "chart": {
+            "type": "expansion",
+            "title": "Descriptive view",
+            "heading": ["Assess. 1","Assess. 2"],
+            "domains": [{
+                "domainName": "",
+                "criterias": [{
+                   "criteriaName": "",
+                   "levels": []
+                }]
+            }]
+        }
+    }]
+}
+   * @apiUse errorBody
+   */
+exports.entityReport = async function(req,res){
+
+    let data = await entityReportChartCreateFunction(req, res);
+    res.send(data);
+}
+
+
+async function entityReportChartCreateFunction(req, res) {
+return new Promise(async function (resolve, reject) {
+
+    if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
+        let response = {
+            result: false,
+            message: 'entityId,entityType,programId,solutionId are required fields'
+        }
+        resolve(response);
+    }
+    else {
+           //get domainName and level info
+            model.MyModel.findOneAsync({ qid: "entity_level_assessment_report_query" }, { allow_filtering: true })
+                .then(async function (result) {
+
+                    var bodyParam = JSON.parse(result.query);
+                    if (config.druid.assessment_datasource_name) {
+                        bodyParam.dataSource = config.druid.assessment_datasource_name;
+                    }
+
+                    //dynamically appending values to filter
+                    bodyParam.filter.fields[0].dimension = req.body.entityType;
+                    bodyParam.filter.fields[0].value = req.body.entityId;
+                    bodyParam.filter.fields[1].value = req.body.programId;
+                    bodyParam.filter.fields[2].value = req.body.solutionId;
+
+                    if(req.body.submissionId) {
+                        bodyParam.filter.fields.push({"type":"selector","dimension":"submissionId","value":req.body.submissionId});
+                    }
+
+                    let options = config.druid.options;
+                    options.method = "POST";
+                    options.body = bodyParam;
+
+                    let data = await rp(options);
+
+                    if (!data.length) {
+                        resolve({"result":false,"data": "NO_ASSESSMENT_MADE_FOR_THE_ENTITY"})
+                    }
+                    else {
+                        
+                        let response = {
+                                        "result":true,
+                                        "programName": data[0].event.programName,
+                                        "solutionName": data[0].event.solutionName,
+                                       };
+
+                        let reportData = await helperFunc.entityLevelReportData(data);
+
+                        response.reportSections = reportData;
+                     
+                       return resolve(response);
+                    }
+                })
+                .catch(function (err) {
+                    let response = {
+                        result: false,
+                        message: 'INTERNAL_SERVER_ERROR',
+                        err: err
+                    }
+                    resolve(response);
+                })
+        }
     })
 }
