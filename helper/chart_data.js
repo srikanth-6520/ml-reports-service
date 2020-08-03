@@ -870,53 +870,41 @@ exports.entityAssessmentChart = async function (inputObj) {
     var res = await groupArrayByGivenField(data,entityName);
 
     var dt = Object.keys(res);
-    await Promise.all(dt.map(element => {
-        var l1 = "";
-        var l2 = "";
-        var l3 = "";
-        var l4 = "";
-        var foundL1 = res[element].some(function (el) {
-            if (el.event.level === 'L1') {
-                l1 = el;
-                return el;
-            } else {
-                return false;
-            }
-        });
+    await Promise.all(dt.map(async element => {
+        let l1Count = 0;
+        let l2Count = 0;
+        let l3Count = 0;
+        let l4Count = 0;
+        let l1ChildEntity;
+        let l2ChildEntity;
+        let l3ChildEntity;
+        let l4ChildEntity;
 
-        var foundL2 = res[element].some(el => {
-            if (el.event.level === 'L2') {
-                l2 = el;
-                return el;
-            } else {
-                return false;
-            }
-        });
+        await Promise.all(res[element].map(ele => {
 
-        var foundL3 = res[element].some(el => {
-            if (el.event.level === 'L3') {
-                l3 = el;
-                return el;
-            } else {
-                return false;
-            }
-        });
+             if (ele.event.level === "L1") {
+                l1Count = ++l1Count;
+                l1ChildEntity = ele.event[childEntity];
+             }
+             else if (ele.event.level === "L2") {
+                l2Count = ++l2Count;
+                l2ChildEntity = ele.event[childEntity]
+             }
+             else if (ele.event.level === "L3") {
+                l3Count = ++l3Count;
+                l3ChildEntity = ele.event[childEntity]
+             }
+             else if (ele.event.level === "L4") {
+                l4Count = ++l4Count;
+                l4ChildEntity = ele.event[childEntity]
+             }
 
-        var foundL4 = res[element].some(el => {
-            if (el.event.level === 'L4') {
-                l4 = el;
-                return el;
-            } else {
-                return false;
-            }
-        })
-        
+        }))
 
-        //if domainCount is found, then push the count, otherwise push 0 
-        if (foundL1) {
+        if (l1Count > 0) {
             obj = {
-                y: l1.event[levelCount],
-                entityId: l1.event[childEntity]
+                y: l1Count,
+                entityId: l1ChildEntity
             }
             firstScoreArray.push(obj);
         } else {
@@ -926,10 +914,10 @@ exports.entityAssessmentChart = async function (inputObj) {
             }
             firstScoreArray.push(obj);
         }
-        if (foundL2) {
+        if (l2Count > 0) {
             obj = {
-                y: l2.event[levelCount],
-                entityId: l2.event[childEntity]
+                y: l2Count,
+                entityId: l2ChildEntity
             }
             secondScoreArray.push(obj);
         } else {
@@ -939,10 +927,10 @@ exports.entityAssessmentChart = async function (inputObj) {
             }
             secondScoreArray.push(obj);
         }
-        if (foundL3) {
+        if (l3Count > 0) {
             obj = {
-                y: l3.event[levelCount],
-                entityId: l3.event[childEntity]
+                y: l3Count,
+                entityId: l3ChildEntity
             }
             thirdScoreArray.push(obj);
         } else {
@@ -952,10 +940,10 @@ exports.entityAssessmentChart = async function (inputObj) {
             }
             thirdScoreArray.push(obj);
         }
-        if (foundL4) {
+        if (l4Count > 0) {
             obj = {
-                y: l4.event[levelCount],
-                entityId: l4.event[childEntity]
+                y: l4Count,
+                entityId: l4ChildEntity
             }
             fourthScoreArray.push(obj);
         } else {
@@ -978,7 +966,7 @@ exports.entityAssessmentChart = async function (inputObj) {
           chartTitle = "Entity"
       }
 
-      var designation = await designationCreateFunction(entityType);
+//      var designation = await designationCreateFunction(entityType);
 
       var chartObj = {
         result:true,
