@@ -832,308 +832,240 @@ async function programListRespObjCreate(data){
 
 //Function to create stacked bar chart response object for entity assessment API  
 exports.entityAssessmentChart = async function (inputObj) {
-    return new Promise (async function (resolve, reject) {
+    return new Promise(async function (resolve, reject) {
 
-    let data = inputObj.data;
-    let childEntity = inputObj.childEntity;
-    let entityName = inputObj.entityName;
-    let levelCount = inputObj.levelCount;
-    let entityType = inputObj.entityType;
+        let data = inputObj.data;
+        let entityName = inputObj.entityName;
+        let domainObj = {};
+        let domainCriteriaObj = {};
+        let domainArray = [];
+        let scoresExists = false;
+        let dynamicLevelObj = {};
+        let childEntityId = inputObj.childEntity ? inputObj.childEntity : "school";
+        let childEntityName = childEntityId + "Name";
 
-    let domainArray = [];
-    let firstScoreArray =[];
-    let secondScoreArray = [];
-    let thirdScoreArray = [];
-    let fourthScoreArray = [];
-    let obj = {};
-    let scoresExists = false;
+        for (let domain = 0; domain < data.length; domain++) {
 
+            let domainData = data[domain];
 
-    //Store the domain Names in an array
-    await Promise.all(data.map(async ele => {               
-        if (domainArray.includes(ele.event[entityName])) {
+            if (domainData.event.level !== null) {
 
-        } else {
-            domainArray.push(ele.event[entityName]);
-        }
+                scoresExists = true;
 
-        if (ele.event.level != null) {
-            scoresExists = true;
-        }
-    }));
+                if (!dynamicLevelObj[domainData.event.level]) {
+                    dynamicLevelObj[domainData.event.level] = [];
+                }
 
-    if (scoresExists == false) {
-        return resolve({});
-    }
-   
-    //group the json objects based on entityName
-    var res = await groupArrayByGivenField(data,entityName);
+                // Domain and level object creation for chart
+                if (!domainObj[domainData.event[entityName]]) {
+                    domainObj[domainData.event[entityName]] = {};
+                    domainObj[domainData.event[entityName]][domainData.event.level] = {
+                        [domainData.event.level]: 1,
+                        entityId: inputObj.childEntity ? domainData.event[inputObj.childEntity] : ""
+                    };
 
-    var dt = Object.keys(res);
-    await Promise.all(dt.map(element => {
-        var l1 = "";
-        var l2 = "";
-        var l3 = "";
-        var l4 = "";
-        var foundL1 = res[element].some(function (el) {
-            if (el.event.level === 'L1') {
-                l1 = el;
-                return el;
-            } else {
-                return false;
-            }
-        });
-
-        var foundL2 = res[element].some(el => {
-            if (el.event.level === 'L2') {
-                l2 = el;
-                return el;
-            } else {
-                return false;
-            }
-        });
-
-        var foundL3 = res[element].some(el => {
-            if (el.event.level === 'L3') {
-                l3 = el;
-                return el;
-            } else {
-                return false;
-            }
-        });
-
-        var foundL4 = res[element].some(el => {
-            if (el.event.level === 'L4') {
-                l4 = el;
-                return el;
-            } else {
-                return false;
-            }
-        })
-        
-
-        //if domainCount is found, then push the count, otherwise push 0 
-        if (foundL1) {
-            obj = {
-                y: l1.event[levelCount],
-                entityId: l1.event[childEntity]
-            }
-            firstScoreArray.push(obj);
-        } else {
-            obj = {
-                y: 0,
-                entityId: ""
-            }
-            firstScoreArray.push(obj);
-        }
-        if (foundL2) {
-            obj = {
-                y: l2.event[levelCount],
-                entityId: l2.event[childEntity]
-            }
-            secondScoreArray.push(obj);
-        } else {
-            obj = {
-                y: 0,
-                entityId: ""
-            }
-            secondScoreArray.push(obj);
-        }
-        if (foundL3) {
-            obj = {
-                y: l3.event[levelCount],
-                entityId: l3.event[childEntity]
-            }
-            thirdScoreArray.push(obj);
-        } else {
-            obj = {
-                y: 0,
-                entityId: ""
-            }
-            thirdScoreArray.push(obj);
-        }
-        if (foundL4) {
-            obj = {
-                y: l4.event[levelCount],
-                entityId: l4.event[childEntity]
-            }
-            fourthScoreArray.push(obj);
-        } else {
-            obj = {
-                y: 0,
-                entityId: ""
-            }
-            fourthScoreArray.push(obj);
-        }
-    }));
-
-      var titleName = "";
-      var chartTitle = "";
-      if(childEntity == ""){
-          titleName = "School";
-          chartTitle = "domain"
-      }
-      else{
-          titleName = "Entity";
-          chartTitle = "Entity"
-      }
-
-      var designation = await designationCreateFunction(entityType);
-
-      var chartObj = {
-        result:true,
-        title: data[0].event.programName + " report",
-        reportSections: [
-            {
-                order: 1,
-                chart: {
-                    type: "bar",
-                    nextChildEntityType: childEntity,
-                    stacking: "percent",
-                    title: "Criteria vs level mapping aggregated at " + chartTitle + " level",
-                    xAxis: {
-                        categories: domainArray,
-                        title: ""
-                    },
-                    yAxis: {
-                        title: {
-                            text: "Criteria"
+                } else {
+                    if (!domainObj[domainData.event[entityName]][domainData.event.level]) {
+                        domainObj[domainData.event[entityName]][domainData.event.level] = {
+                            [domainData.event.level]: 1,
+                            entityId: inputObj.childEntity ? domainData.event[inputObj.childEntity] : ""
+                        };
+                    }
+                    else {
+                        let level = domainObj[domainData.event[entityName]][domainData.event.level][domainData.event.level];
+                        domainObj[domainData.event[entityName]][domainData.event.level] = {
+                            [domainData.event.level]: ++level,
+                            entityId: inputObj.childEntity ? domainData.event[inputObj.childEntity] : ""
                         }
-                    },
-                    data: [
-                        {
-                            name: "Level 1",
-                            data: firstScoreArray
-                        },
-                        {
-                            name: "Level 2",
-                            data: secondScoreArray
-                        },
-                        {
-                            name: "Level 3",
-                            data: thirdScoreArray
-                        },
-                        {
-                            name: "Level 4",
-                            data: fourthScoreArray
+                    }
+                }
+
+
+                // Domain and criteria object creation
+                if (!domainCriteriaObj[domainData.event[childEntityId]]) {
+                    domainCriteriaObj[domainData.event[childEntityId]] = {};
+                    domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]] = {};
+                    domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName] = {};
+                    domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid] = {};
+                    domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName] = {};
+                    domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["level"] = domainData.event.level;
+                }
+                else {
+                    if (!domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]]) {
+                        domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]] = {};
+                        domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName] = {};
+                        domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid] = {};
+                        domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName] = {};
+                        domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["level"] = domainData.event.level;
+                    }
+                    else {
+                        if (!domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName]) {
+                            domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName] = {};
+                            domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid] = {};
+                            domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName] = {};
+                            domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["level"] = domainData.event.level;
                         }
-                    ]
+                        else {
+                            if (!domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid]) {
+                                domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid] = {};
+                                domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName] = {};
+                                domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["level"] = domainData.event.level;
+                            }
+                            else {
+                                if (!domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]) {
+                                    domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName] = {};
+                                    domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["level"] = domainData.event.level;
+                                }
+                                else {
+                                    domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["level"] = domainData.event.level;
+                                }
+                            }
+                        }
+                    }
+
                 }
             }
-        ]
-    }
-// console.log(chartObj.reportSections[0].chart);
-  return resolve(chartObj);
-  })
-  .catch(err => {
-    return reject(err);
-})
-
-}
-
-
-
-//Function for creating response object to show domainNames, criteria's and level's   -- expansion view entity assessment API
-exports.entityTableViewFunc = async function(dataObj){
-    try {
-    var data = dataObj.entityData;
-    var entityType = dataObj.entityType;
-    var childType = dataObj.childEntityType;
-    var result = await groupArrayByGivenField(data,childType);
-    var res = Object.keys(result);
-    
-    var titleName;
-    if(entityType == "school"){
-        titleName = "school";
-    }
-    else{
-        titleName = "Entity"
-    }
-    var designation = await designationCreateFunction(entityType);
-    var tableObj = {
-        order: 2,
-        chart: {
-            type: "expansion",
-            title: "Descriptive view",
-            entities : []
-        }
-    }
-    
-    // wait till the final entity response object comes
-    await Promise.all(res.map(async element => {
-        var tableData = await tableDataCreateFunc(result[element],childType)
-        tableObj.chart.entities.push(tableData);
-    }));
-
-    return tableObj;
-    }
-    catch(err){
-        console.log(err);
-    }
-
-}
-
-//create criteria array based on domainName
-async function tableDataCreateFunc(data,entityType){
-    try{
-
-    var result = await groupArrayByGivenField(data,"domainName");
-    var res = Object.keys(result);
-
-    var chartdata = {
-        entityName: data[0].event[entityType + "Name"],
-        entityId: data[0].event[entityType],
-        domains : []
-     }
-
-    // chartdata.domains = await domainLoopFunction(result,res)
-    await Promise.all(res.map( async element => {
-        var tableData = await domainCriteriaCreateFunc(result[element])
-        chartdata.domains.push(tableData);
-    }));
-
-    return chartdata;
-    }
-    catch(err){
-        console.log(err);
-    }
-}
-
-//Function to create criteria array based on the domain Name -- expansion view of entity assessment API
-async function domainCriteriaCreateFunc (data){
-    try{
-    var chartObj = {
-        domainName: data[0].event.domainName,
-        domainId: data[0].event.domainExternalId,
-        criterias: []
-    }
-
-    await Promise.all(data.map(async ele => { 
-        if (ele.event.childType == "criteria") {
-            var obj = {
-                name: ele.event.childName
-            }
-            if (ele.event.level == "L1") {
-                obj.level = "Level 1"
-            }
-            else if (ele.event.level == "L2") {
-                obj.level = "Level 2"
-            }
-            else if (ele.event.level == "L3") {
-                obj.level = "Level 3"
-            }
-            else if (ele.event.level == "L4") {
-                obj.level = "Level 4"
-            }
-            chartObj.criterias.push(obj);
         }
 
-    }));
-       return chartObj;
-  }
- catch(err){
-    console.log(err);
- }
+        //  if score does not exists, return empty array
+        if (scoresExists == false) {
+            return resolve({});
+        }
+
+        //loop the domain keys and construct level array for stacked bar chart
+        let domainKeys = Object.keys(domainObj);
+        let obj = {};
+        domainArray = domainKeys;
+
+        for (let domainKey = 0; domainKey < domainKeys.length; domainKey++) {
+            let levels = domainObj[domainKeys[domainKey]];
+            let levelKeys = Object.keys(levels);
+            for (level in dynamicLevelObj) {
+                if (levelKeys.includes(level)) {
+                    dynamicLevelObj[level].push({
+                        y: levels[level][level],
+                        entityId: levels[level].entityId
+                    });
+                } else {
+                    dynamicLevelObj[level].push({
+                        y: 0,
+                        entityId: ""
+                    });
+                }
+            }
+        }
+
+        //sort the levels
+        Object.keys(dynamicLevelObj).sort().forEach(function (key) {
+            obj[key] = dynamicLevelObj[key];
+        });
+
+        let series = [];
+        for (level in obj) {
+            series.push({
+                name: level,
+                data: obj[level]
+            })
+        }
+
+        let chartTitle = "";
+        if (inputObj.childEntity == "") {
+            chartTitle = "domain"
+        }
+        else {
+            chartTitle = "Entity"
+        }
+
+        let chartObj = {
+            result: true,
+            title: data[0].event.programName + " report",
+            reportSections: [
+                {
+                    order: 1,
+                    chart: {
+                        type: "bar",
+                        nextChildEntityType: inputObj.childEntity,
+                        stacking: "percent",
+                        title: "Criteria vs level mapping aggregated at " + chartTitle + " level",
+                        xAxis: {
+                            categories: domainArray,
+                            title: ""
+                        },
+                        yAxis: {
+                            title: {
+                                text: "Criteria"
+                            }
+                        },
+                        data: series
+                    }
+                }
+            ]
+        }
+
+        let domainCriteriaArray = [];
+        let entityIdKeys = Object.keys(domainCriteriaObj);
+
+        for (let entityIdKey = 0; entityIdKey < entityIdKeys.length; entityIdKey++) {
+
+            let entityNameKeys = Object.keys(domainCriteriaObj[entityIdKeys[entityIdKey]]);
+
+            for (let entityNameKey = 0; entityNameKey < entityNameKeys.length; entityNameKey++) {
+
+                let entityDomainObject = {
+                    entityId: entityIdKeys[entityIdKey],
+                    entityName: entityNameKeys[entityNameKey],
+                    domains: []
+                }
+
+                let domainNameKeys = Object.keys(domainCriteriaObj[entityIdKeys[entityIdKey]][entityNameKeys[entityNameKey]]);
+
+                for (let domainNameKey = 0; domainNameKey < domainNameKeys.length; domainNameKey++) {
+
+                    let domainObject = {
+                        domainName: domainNameKeys[domainNameKey],
+                        criterias: []
+                    }
+
+                    let externalIdKeys = Object.keys(domainCriteriaObj[entityIdKeys[entityIdKey]][entityNameKeys[entityNameKey]][domainNameKeys[domainNameKey]]);
+
+                    for (let externalIdKey = 0; externalIdKey < externalIdKeys.length; externalIdKey++) {
+
+                        let childNameKeys = Object.keys(domainCriteriaObj[entityIdKeys[entityIdKey]][entityNameKeys[entityNameKey]][domainNameKeys[domainNameKey]][externalIdKeys[externalIdKey]]);
+
+                        for (childNameKey = 0; childNameKey < childNameKeys.length; childNameKey++) {
+
+                            let criteriaObject = {
+                                name: childNameKeys[childNameKey],
+                                level: domainCriteriaObj[entityIdKeys[entityIdKey]][entityNameKeys[entityNameKey]][domainNameKeys[domainNameKey]][externalIdKeys[externalIdKey]][childNameKeys[childNameKey]].level
+                            }
+
+                            domainObject.criterias.push(criteriaObject);
+                        }
+                    }
+                    entityDomainObject.domains.push(domainObject);
+                }
+
+                domainCriteriaArray.push(entityDomainObject);
+            }
+        }
+
+        let expansionObject = {
+            order: 2,
+            chart: {
+                type: "expansion",
+                title: "Descriptive view",
+                entities: domainCriteriaArray
+            }
+        }
+
+        chartObj.reportSections.push(expansionObject);
+
+        return resolve(chartObj);
+    })
+        .catch(err => {
+            return reject(err);
+        })
+
 }
 
 
