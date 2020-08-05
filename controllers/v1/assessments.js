@@ -286,17 +286,18 @@ async function assessmentReportGetChartData(req, res) {
                                 return resolve({ "reportSections": [] });
                             }
 
-                            responseObj.reportSections[0].chart.grandChildEntityType = "";
-
                             if (childType) {
 
                                 //call samiksha entity list assessment API to get the grandchildEntity type.
                                 let grandChildEntityType = await assessmentService.getEntityList(req.body.entityId, childType, req.headers["x-auth-token"]);
 
-                                if (grandChildEntityType.status == 200) {
-                                    if (grandChildEntityType.result[0].subEntityGroups.length != 0) {
-                                        responseObj.reportSections[0].chart.grandChildEntityType = grandChildEntityType.result[0].immediateSubEntityType;
-                                    }
+                                if (grandChildEntityType.status == 200 && grandChildEntityType.result[0].subEntityGroups.length > 0) {
+                                
+                                    responseObj.reportSections[0].chart.grandChildEntityType = grandChildEntityType.result[0].immediateSubEntityType
+                                    
+                                }
+                                else {
+                                    responseObj.reportSections[0].chart.grandChildEntityType = "";
                                 }
                             }
 
@@ -844,7 +845,6 @@ return new Promise(async function (resolve, reject) {
                     bodyParam.filter.fields[0].value = req.body.entityId;
                     bodyParam.filter.fields[1].value = req.body.programId;
                     bodyParam.filter.fields[2].value = req.body.solutionId;
-
                     if(req.body.submissionId) {
                         bodyParam.filter.fields.push({"type":"selector","dimension":"submissionId","value":req.body.submissionId});
                     }

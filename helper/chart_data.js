@@ -834,7 +834,6 @@ async function programListRespObjCreate(data){
 exports.entityAssessmentChart = async function (inputObj) {
     return new Promise(async function (resolve, reject) {
 
-        let data = inputObj.data;
         let entityName = inputObj.entityName;
         let domainObj = {};
         let domainCriteriaObj = {};
@@ -844,9 +843,9 @@ exports.entityAssessmentChart = async function (inputObj) {
         let childEntityId = inputObj.childEntity ? inputObj.childEntity : "school";
         let childEntityName = childEntityId + "Name";
 
-        for (let domain = 0; domain < data.length; domain++) {
+        for (let domain = 0; domain < inputObj.data.length; domain++) {
 
-            let domainData = data[domain];
+            let domainData = inputObj.data[domain];
 
             if (domainData.event.level !== null) {
 
@@ -2347,31 +2346,31 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
                         
                         domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid] = {};
                         
-                        domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.criteriaDescription] = {};
+                        domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName] = {};
 
-                        domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.criteriaDescription]["levels"] = [domainData.event.label];
+                        domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"] = [domainData.event.label];
                     }
                     else {
 
                         if (!domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid]) {
                             domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid] = {};
 
-                            domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.criteriaDescription] = {};
-                            domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.criteriaDescription]["levels"] = [domainData.event.label];
+                            domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName] = {};
+                            domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"] = [domainData.event.label];
                         }
                         else {
-                            if (!domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.criteriaDescription]) {
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.criteriaDescription] = {};
+                            if (!domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]) {
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName] = {};
 
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.criteriaDescription]["levels"] = [domainData.event.label];
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"] = [domainData.event.label];
                             }
                             else {
 
-                             if (!domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.criteriaDescription]["levels"]) {
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.criteriaDescription]["levels"] = [domainData.event.label];
+                             if (!domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"]) {
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"] = [domainData.event.label];
                             }
                             else {
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.criteriaDescription]["levels"].push(domainData.event.label);
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"].push(domainData.event.label);
                             }
                         }
                       }
@@ -2523,12 +2522,15 @@ const getDateTime = async function (completedDate) {
     let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     let submissionDate = [];
     await Promise.all(completedDate.map(date => {
-
+        if (date === null) {
+            submissionDate.push("");
+        } else {
         let dateValue = new Date(date);
         let day = dateValue.getDate();
         let month = months[dateValue.getMonth()];
         let year = dateValue.getFullYear();
         submissionDate.push(day + " " + month + " " + year);
+        } 
     }));
 
     return submissionDate;
