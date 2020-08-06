@@ -25,6 +25,18 @@ module.exports = {
       await cassandra.batch(queries, { prepare: true }); 
 
       }
+      else {
+        let id = Uuid.random();
+        let query = 'INSERT INTO ' + config.cassandra.keyspace + '.' + config.cassandra.table +' (id, qid, query) VALUES (?, ?, ?)';
+        
+        let queries = 
+        [{
+          query: query,
+          params: [id.toString(), 'list_assessment_programs_query','{"queryType":"groupBy","dataSource":"sl_assessment","granularity":"all","dimensions":["programName","programId","programDescription","programExternalId","solutionName","solutionId","solutionDescription","solutionExternalId"],"filter":{"type":"and","fields":[{"type":"selector","dimension":"","value":""},{"type":"or","fields":[{"type":"and","fields":[{"type":"selector","dimension":"userId","value":""},{"type":"selector","dimension":"isAPrivateProgram","value":true}]},{"type":"selector","dimension":"isAPrivateProgram","value":false}]}]},"aggregations":[],"postAggregations":[],"intervals":["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"]}']
+        }];
+  
+        await cassandra.batch(queries, { prepare: true });
+      }
 
       return global.migrationMsg;
     },
