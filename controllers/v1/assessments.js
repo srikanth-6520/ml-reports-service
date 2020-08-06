@@ -190,17 +190,16 @@ async function assessmentReportGetChartData(req, res) {
     return new Promise(async function (resolve, reject) {
 
         if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
-            res.status(400);
             let response = {
                 result: false,
-                message: 'entityId,entityType,programId,solutionId and immediateChildEntityType are required fields'
+                message: 'entityId,entityType,programId and solutionId are required fields'
             }
             resolve(response);
         }
         else {
 
-            childType = req.body.immediateChildEntityType;
-            reqBody = req.body
+            let childType = req.body.immediateChildEntityType;
+            let reqBody = req.body
 
             let dataAssessIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqBody)
 
@@ -222,24 +221,17 @@ async function assessmentReportGetChartData(req, res) {
                         bodyParam.filter.fields[2].value = req.body.solutionId;
 
                         if (req.body.immediateChildEntityType == "") {
-                            // req.body.immediateChildEntityType = "domain"
-                            bodyParam.dimensions.push("domainName", "level", "schoolName", "school", "programName");
-                            bodyParam.aggregations[0].fieldName = "domainName";
-                            bodyParam.aggregations[0].fieldNames.push("domainName");
-                            bodyParam.aggregations[0].name = "domainNameCount";
+                            bodyParam.dimensions.push(req.body.entityType,req.body.entityType + "Name");
                         }
                         else {
                             let entityName = req.body.immediateChildEntityType + "Name";
-                            bodyParam.dimensions.push(req.body.immediateChildEntityType, entityName, "level", "programName");
-                            bodyParam.aggregations[0].fieldName = entityName;
-                            bodyParam.aggregations[0].fieldNames.push(entityName);
-                            bodyParam.aggregations[0].name = entityName + "Count";
+                            bodyParam.dimensions.push(req.body.immediateChildEntityType, entityName);
                         }
                         //pass the query as body param and get the resul from druid
-                        let opt = config.druid.options;
-                        opt.method = "POST";
-                        opt.body = bodyParam;
-                        let data = await rp(opt);
+                        let druidOptions = config.druid.options;
+                        druidOptions.method = "POST";
+                        druidOptions.body = bodyParam;
+                        let data = await rp(druidOptions);
 
                         if (!data.length) {
 
@@ -250,10 +242,10 @@ async function assessmentReportGetChartData(req, res) {
                             childType = "";
 
                             //pass the query as body param and get the resul from druid
-                            let options = config.druid.options;
-                            options.method = "POST";
-                            options.body = bodyParam;
-                            let assessData = await rp(options);
+                            // let druidOptions = config.druid.options;
+                            druidOptions.method = "POST";
+                            druidOptions.body = bodyParam;
+                            let assessData = await rp(druidOptions);
 
                             if (!assessData.length) {
                                 resolve({ "result": false, "data": {} })
@@ -264,69 +256,18 @@ async function assessmentReportGetChartData(req, res) {
                                     data: assessData,
                                     entityName: "domainName",
                                     childEntity: "",
-                                    levelCount: "domainNameCount",
-                                    entityType: "school"
                                 }
 
                                 //call the function entityAssessmentChart to get the data for stacked bar chart 
                                 let responseObj = await helperFunc.entityAssessmentChart(inputObj);
 
                                 if (Object.keys(responseObj).length === 0) {
-                                    return resolve({ "reportSections" : [] });
+                                    return resolve({ "reportSections": [] });
                                 }
 
                                 responseObj.title = "Performance Report";
-                                bodyParam.dimensions.push("childType", "childName", "domainExternalId");
-
-                                if (!bodyParam.dimensions.includes("domainName")) {
-                                    bodyParam.dimensions.push("domainName");
-                                }
-
-                                if (req.body.immediateChildEntityType == "") {
-                                    req.body.immediateChildEntityType = "school"
-                                }
-
-                                //pass the query as body param and get the result from druid
-                                let optionsData = config.druid.options;
-                                optionsData.method = "POST";
-                                optionsData.body = bodyParam;
-
-                                let entityData = await rp(optionsData);
-
-                                let dataObject = {
-                                    entityData: entityData,
-                                    childEntityType: req.body.immediateChildEntityType,
-                                    entityType: "school"
-                                }
-
-                                //call the function to get the data for expansion view of domain and criteria
-                                let tableObject = await helperFunc.entityTableViewFunc(dataObject)
-                                tableObject.chart.title = "Descriptive View";
-                                responseObj.reportSections.push(tableObject);
-
-                                if (childType) {
-
-                                    //call samiksha entity list assessment API to get the grandchildEntity type.
-                                    var grandChildEntityType = await assessmentEntityList(req.body.entityId, childType, req.headers["x-auth-token"])
-                                    if (grandChildEntityType.status == 200) {
-                                        if (grandChildEntityType.result[0].subEntityGroups.length != 0) {
-                                            responseObj.reportSections[0].chart.grandChildEntityType = grandChildEntityType.result[0].immediateSubEntityType;
-                                            resolve(responseObj);
-                                        }
-                                        else {
-                                            responseObj.reportSections[0].chart.grandChildEntityType = "";
-                                            resolve(responseObj);
-                                        }
-                                    }
-                                    else {
-                                        responseObj.reportSections[0].chart.grandChildEntityType = "";
-                                        resolve(responseObj);
-                                    }
-                                }
-                                else {
-                                    responseObj.reportSections[0].chart.grandChildEntityType = "";
-                                    resolve(responseObj);
-                                }
+                                responseObj.reportSections[0].chart.grandChildEntityType = "";
+                                resolve(responseObj);
                                 commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
                             }
                         }
@@ -334,70 +275,33 @@ async function assessmentReportGetChartData(req, res) {
 
                             let inputObj = {
                                 data: data,
-                                entityName: bodyParam.aggregations[0].fieldName,
+                                entityName: req.body.immediateChildEntityType ? req.body.immediateChildEntityType + "Name" : "domainName",
                                 childEntity: req.body.immediateChildEntityType,
-                                levelCount: bodyParam.aggregations[0].name,
-                                entityType: req.body.entityType
                             }
 
                             //call the function entityAssessmentChart to get the data for stacked bar chart 
                             let responseObj = await helperFunc.entityAssessmentChart(inputObj);
-                             
+
                             if (Object.keys(responseObj).length === 0) {
-                                return resolve({ "reportSections" : [] });
+                                return resolve({ "reportSections": [] });
                             }
-
-                            bodyParam.dimensions.push("childType", "childName", "domainExternalId");
-
-                            if (!bodyParam.dimensions.includes("domainName")) {
-                                bodyParam.dimensions.push("domainName");
-                            }
-
-                            if (req.body.immediateChildEntityType == "") {
-                                req.body.immediateChildEntityType = "school"
-                            }
-
-                            //pass the query as body param and get the result from druid
-                            let options = config.druid.options;
-                            options.method = "POST";
-                            options.body = bodyParam;
-
-                            let entityData = await rp(options);
-
-                            let dataObj = {
-                                entityData: entityData,
-                                childEntityType: req.body.immediateChildEntityType,
-                                entityType: req.body.entityType
-                            }
-
-                            //call the function to get the data for expansion view of domain and criteria
-                            let tableObj = await helperFunc.entityTableViewFunc(dataObj)
-                            responseObj.reportSections.push(tableObj);
 
                             if (childType) {
 
                                 //call samiksha entity list assessment API to get the grandchildEntity type.
-                                let grandChildEntityType = await assessmentEntityList(req.body.entityId, childType, req.headers["x-auth-token"])
+                                let grandChildEntityType = await assessmentService.getEntityList(req.body.entityId, childType, req.headers["x-auth-token"]);
 
-                                if (grandChildEntityType.status == 200) {
-                                    if (grandChildEntityType.result[0].subEntityGroups.length != 0) {
-                                        responseObj.reportSections[0].chart.grandChildEntityType = grandChildEntityType.result[0].immediateSubEntityType;
-                                        resolve(responseObj);
-                                    }
-                                    else {
-                                        responseObj.reportSections[0].chart.grandChildEntityType = "";
-                                        resolve(responseObj);
-                                    }
+                                if (grandChildEntityType.status == 200 && grandChildEntityType.result[0].subEntityGroups.length > 0) {
+                                
+                                    responseObj.reportSections[0].chart.grandChildEntityType = grandChildEntityType.result[0].immediateSubEntityType
+                                    
                                 }
                                 else {
                                     responseObj.reportSections[0].chart.grandChildEntityType = "";
-                                    resolve(responseObj);
                                 }
                             }
-                            else {
-                                responseObj.reportSections[0].chart.grandChildEntityType = "";
-                                resolve(responseObj);
-                            }
+
+                            resolve(responseObj);
                             commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
                         }
                     })
@@ -734,33 +638,6 @@ exports.listImprovementProjects = async function (req, res) {
 }
 
 
-
-
-//function to make a call to samiksha assessment entities list API
-async function assessmentEntityList(entityId, childType, token) {
-
-    return new Promise(async function (resolve) {
-        var options = {
-            method: "GET",
-            json: true,
-            headers: {
-                "Content-Type": "application/json",
-                "X-authenticated-user-token": token
-            },
-            uri: config.samiksha_api.assessment_entity_list_api + entityId + "?type=" + childType
-        }
-
-        rp(options).then(function (resp) {
-            return resolve(resp);
-
-        }).catch(function (err) {
-            return resolve(err);
-        })
-
-    });
-}
-
-
 //Function to generate PDF for entity assessment API
 exports.pdfReports = async function (req, res) {
 
@@ -968,7 +845,6 @@ return new Promise(async function (resolve, reject) {
                     bodyParam.filter.fields[0].value = req.body.entityId;
                     bodyParam.filter.fields[1].value = req.body.programId;
                     bodyParam.filter.fields[2].value = req.body.solutionId;
-
                     if(req.body.submissionId) {
                         bodyParam.filter.fields.push({"type":"selector","dimension":"submissionId","value":req.body.submissionId});
                     }
