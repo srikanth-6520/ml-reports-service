@@ -28,7 +28,31 @@ async function getUserProfile(createdBy,token){
     });
 }
 
+//function to make a call to samiksha assessment entities list API
+async function getEntityList(entityId, childType, token) {
+
+  return new Promise(async function (resolve) {
+      var options = {
+          method: "GET",
+          json: true,
+          headers: {
+              "Content-Type": "application/json",
+              "X-authenticated-user-token": token
+          },
+          uri: config.samiksha_api.assessment_entity_list_api + entityId + "?type=" + childType
+      }
+
+      rp(options).then(function (resp) {
+          return resolve(resp);
+
+      }).catch(function (err) {
+          return resolve(err);
+      })
+
+  });
+}
 
 module.exports = {
-    getUserProfile : getUserProfile
+    getUserProfile : getUserProfile,
+    getEntityList : getEntityList
 }
