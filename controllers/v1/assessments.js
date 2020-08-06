@@ -228,10 +228,10 @@ async function assessmentReportGetChartData(req, res) {
                             bodyParam.dimensions.push(req.body.immediateChildEntityType, entityName);
                         }
                         //pass the query as body param and get the resul from druid
-                        let optins = config.druid.options;
-                        optins.method = "POST";
-                        optins.body = bodyParam;
-                        let data = await rp(optins);
+                        let druidOptions = config.druid.options;
+                        druidOptions.method = "POST";
+                        druidOptions.body = bodyParam;
+                        let data = await rp(druidOptions);
 
                         if (!data.length) {
 
@@ -242,7 +242,7 @@ async function assessmentReportGetChartData(req, res) {
                             childType = "";
 
                             //pass the query as body param and get the resul from druid
-                            let druidOptions = config.druid.options;
+                            // let druidOptions = config.druid.options;
                             druidOptions.method = "POST";
                             druidOptions.body = bodyParam;
                             let assessData = await rp(druidOptions);
