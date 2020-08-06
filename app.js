@@ -12,6 +12,7 @@ var app = express();
 var debug = require('debug')('nodejs-druid-query-app:server');
 var http = require('http');
 var bodyParser = require('body-parser');
+var fs = require('fs');
 
 app.use(logger('dev'));
 //app.use(express.json());
@@ -142,5 +143,9 @@ function onListening() {
   debug('Listening on ' + bind);
 }
 
+let dir = './tmp';
+if (!fs.existsSync(dir)){
+    fs.mkdirSync(dir);
+}
 
 module.exports = app;
