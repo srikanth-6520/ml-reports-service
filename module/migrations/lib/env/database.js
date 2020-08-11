@@ -1,6 +1,6 @@
 const { MongoClient } = require("mongodb");
 global.ObjectID = require('mongodb').ObjectID;
-const config = require("../../../../config/config");
+let config = require("../../../../config/config");
 
 module.exports = {
   async connect() {

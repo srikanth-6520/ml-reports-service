@@ -3,7 +3,7 @@ const fnArgs = require("fn-args");
 const { promisify } = require("util");
 const status = require("./status");
 const migrationsDir = require("../env/migrationsDir");
-const config = require('../../../../config/config');
+let config = require('../../../../config/config');
 
 module.exports = async db => {
   const downgraded = [];

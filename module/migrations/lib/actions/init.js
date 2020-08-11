@@ -1,6 +1,6 @@
 const fs = require("fs-extra");
 const path = require("path");
-const config = require('../../../../config/config');
+let config = require('../../../../config/config');
 
 const migrationsDir = require("../env/migrationsDir");
 

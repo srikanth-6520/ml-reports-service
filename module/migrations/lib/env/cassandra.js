@@ -1,4 +1,4 @@
-const config = require('../../../../config/config');
+let config = require('../../../../config/config');
 const cassandra = require('cassandra-driver');
 
 module.exports = {

@@ -1,6 +1,6 @@
 const { find } = require("lodash");
 const migrationsDir = require("../env/migrationsDir");
-const config = require('../../../../config/config');
+let config = require('../../../../config/config');
 
 module.exports = async db => {
   await migrationsDir.shouldExist();
