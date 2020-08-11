@@ -1,0 +1,145 @@
+<html>
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <style>
+        #project td,
+        #project th {
+            border: 1px solid #b4b4b4;
+            padding: 8px;
+        }
+
+        .heading {
+            background-color: #c21a2e !important;
+            color: white !important;
+            font-size: 14px !important;
+            text-align: center !important;
+        }
+        .heading1 {
+            background-color: #c21a2e !important;
+            color: white !important;
+            font-size: 14px !important;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+        <% if(data.schoolName) {%> 
+        <h5>School Name : <u><%= data.schoolName %></u></h5>
+        <% } else {%>
+        <h5>School Name : <div style="border-bottom: solid 1px #000 !important;width:53% !important;margin-left: 20% !important"></div> </h5>
+        <% } %> 
+
+        <br>
+
+        <h5>Project Undertaken In Last <%= data.reportType %></h5>
+
+        <br>
+
+        <% for (var i=0;i < data.projectArray.length; i++) { %>
+        <% if(data.projectArray[i].title != "") {%>
+        <p><b><%= data.projectArray[i].title %></b></p>
+        <table id="project">
+            <thead>
+                <tr>
+                    <th class="heading1">Task Name</th>
+                    <th class="heading">No. Of Subtasks</th>
+                    <th class="heading">Start Date</th>
+                    <th class="heading">End Date</th>
+                    <th class="heading">Duration <br>(in days)</th>
+                    <th class="heading">Status</th>
+                </tr>
+            </thead>
+
+            <tbody style="font-size:12px !important">
+                <% for (var j=0;j < data.projectArray[i].tasks.length; j++) { %>
+                <tr>
+                    <% if(data.projectArray[i].tasks[j]["title"]) {%>
+                    <td><%= data.projectArray[i].tasks[j].title %></td>
+                    <% } %>
+                    <% if(data.projectArray[i].tasks[j]["subTasks"]) {%>
+                    <td style="text-align: center !important"><%= data.projectArray[i].tasks[j].subTasks.length %></td>
+                    <% } %>
+
+                    <% if(data.projectArray[i].tasks[j].startDate) {%>
+                    <% var startDate = new Date(data.projectArray[i].tasks[j].startDate) %>
+                    <% var day = startDate.getDate() %>
+                    <% var month = startDate.getMonth() + 1 %>
+                    <% var year = startDate.getFullYear() %>
+                    <% startDateValue = day + '/' + month + '/' + year %>
+                    <td style="background-color: #F2F2F2 !important;text-align:center !important"><%= startDateValue %>
+                    </td>
+                    <% } else { %>
+                    <td style="background-color: #F2F2F2 !important;"></td>
+                    <% } %>
+
+                    <% if(data.projectArray[i].tasks[j].endDate) {%>
+                    <% var endDate = new Date(data.projectArray[i].tasks[j].endDate) %>
+                    <% var day = endDate.getDate() %>
+                    <% var month = endDate.getMonth() + 1 %>
+                    <% var year = endDate.getFullYear() %>
+                    <% endDateValue = day + '/' + month + '/' + year %>
+                    <td style="background-color: #F2F2F2 !important;text-align: center !important"><%= endDateValue %>
+                    </td>
+                    <% } else { %>
+                    <td style="background-color: #F2F2F2 !important"></td>
+                    <% } %>
+
+                    <% if(data.projectArray[i].tasks[j].startDate && data.projectArray[i].tasks[j].endDate) { %>
+                    <% var sdate = new Date(data.projectArray[i].tasks[j].startDate) %>
+                    <% var edate = new Date(data.projectArray[i].tasks[j].endDate) %>
+                    <% var noOfDays = (edate - sdate)/(1000 * 60 * 60 * 24) + 'd' %>
+                    <td style="background-color: #D8DAE0 !important;text-align: center !important"><%= noOfDays %></td>
+                    <% } else {%>
+                    <td style="background-color: #D8DAE0 !important"></td>
+                    <% } %>
+
+
+                    <% if(data.projectArray[i].tasks[j]["status"] && data.projectArray[i].tasks[j].status != "") { %>
+                    <% if(data.projectArray[i].tasks[j].status.toLowerCase() == "completed") { %>
+                    <td style="background-color:#6abf34 !important">Complete</td>
+                    <% } else if(data.projectArray[i].tasks[j].status.toLowerCase() == "in progress") {%>
+                    <td style="background-color:#91d050 !important">In Progress</td>
+                    <% } else if(data.projectArray[i].tasks[j].status.toLowerCase() == "not started yet" || data.projectArray[i].tasks[j].status.toLowerCase() == "not yet started") {%>
+                    <td style="background-color:#81d6f0 !important">Not Started</td>
+                    <% } else {%>
+                    <td></td>
+                    <% } %>
+                    <% } %>
+                </tr>
+                <% } %>
+            </tbody>
+        </table>
+
+        <br>
+        <br>
+
+        <% for (let k=0;k < data.chartData.length; k++) { %>
+        <% if(data.chartData[k].order === data.projectArray[i].order) {%>
+        <div style="text-align: center">
+            <img src="<%= data.chartData[k].options.filename %>" style="width:80%" />
+        </div>
+        <% } %>
+
+        <% } %>
+
+        <div style='page-break-after:always'></div>
+
+        <% } %>
+        <% } %>
+    </div>
+</body>
+
+</html>

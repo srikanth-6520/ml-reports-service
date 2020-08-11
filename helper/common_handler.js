@@ -63,7 +63,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, deleteFromS3 = nu
 
 
         try {
-            
+
             if (!fs.existsSync(imgPath)) {
                 fs.mkdirSync(imgPath);
             }
@@ -73,9 +73,9 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, deleteFromS3 = nu
             // let headerFile = await copyBootStrapFile(__dirname + '/../views/header.html', imgPath + '/header.html');
             let footerFile = await copyBootStrapFile(__dirname + '/../views/footer.html', imgPath + '/footer.html');
 
-        
 
-            
+
+
             let FormData = [];
 
             let matrixMultiSelectArray = [];
@@ -99,11 +99,11 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, deleteFromS3 = nu
             //Prepare chart object before sending it to highchart server
             var multiSelectData = await getSelectedData(instaRes.response, "multiselect");
             var radioQuestions = await getSelectedData(instaRes.response, "radio");
-            
+
             // Prepare chart object before sending it to highchart server (Matrix questions)
             let matrixMultiSelectChartObj = await getSelectedData(matrixMultiSelectArray, "multiselect");
             let matrixRadioChartObj = await getSelectedData(matrixRadioArray, "radio");
-            
+
 
             //send chart objects to highchart server and get the charts
             let formDataMultiSelect = await apiCallToHighChart(multiSelectData, imgPath, "multiselect");
@@ -117,7 +117,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, deleteFromS3 = nu
             FormData.push(...radioFormData);
             FormData.push(...formDataMatrixMultiSelect);
             FormData.push(...matrixRadioFormData);
-            
+
             var params;
 
             if (instaRes.solutionName) {
@@ -181,41 +181,41 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, deleteFromS3 = nu
                                     arrOfData.push(ele);
                                     let obj = {
                                         order: ele.order,
-                                        data:[]
+                                        data: []
                                     }
 
                                     await Promise.all(ele.instanceQuestions.map(element => {
-                                      //push the instance questions to the array
-                                       if(element.responseType == "text" || element.responseType == "date" || element.responseType == "number" || ele.responseType == "slider") {
-                                            obj.data.push(element);   
-                                       }
-                                       else if(element.responseType == "radio"){
-                                         let dt = matrixRadioFormData.filter(or => {
-                                            if (or.order == element.order) {
-                                                return or;
-                                            }
-                                        })
+                                        //push the instance questions to the array
+                                        if (element.responseType == "text" || element.responseType == "date" || element.responseType == "number" || ele.responseType == "slider") {
+                                            obj.data.push(element);
+                                        }
+                                        else if (element.responseType == "radio") {
+                                            let dt = matrixRadioFormData.filter(or => {
+                                                if (or.order == element.order) {
+                                                    return or;
+                                                }
+                                            })
 
-                                        dt[0].options.responseType = "radio";
-                                        dt[0].options.answers = element.answers;
-                                        obj.data.push(dt);
-                                            
-                                       }
-                                       else if(element.responseType == "multiselect"){
-                                        let dt = formDataMatrixMultiSelect.filter(or => {
-                                           if (or.order == element.order) {
-                                               return or;
-                                           }
-                                       })
+                                            dt[0].options.responseType = "radio";
+                                            dt[0].options.answers = element.answers;
+                                            obj.data.push(dt);
 
-                                       dt[0].options.responseType = "multiselect";
-                                       dt[0].options.answers = element.answers;
-                                       
-                                       obj.data.push(dt);
-                                           
-                                      }
+                                        }
+                                        else if (element.responseType == "multiselect") {
+                                            let dt = formDataMatrixMultiSelect.filter(or => {
+                                                if (or.order == element.order) {
+                                                    return or;
+                                                }
+                                            })
+
+                                            dt[0].options.responseType = "multiselect";
+                                            dt[0].options.answers = element.answers;
+
+                                            obj.data.push(dt);
+
+                                        }
                                     }))
-                                   matrixData.push(obj); 
+                                    matrixData.push(obj);
                                 }
                             }));
 
@@ -230,7 +230,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, deleteFromS3 = nu
                                 data: obj
                             })
                                 .then(function (dataEjsRender) {
-                                  
+
                                     var dir = imgPath;
                                     if (!fs.existsSync(dir)) {
                                         fs.mkdirSync(dir);
@@ -270,7 +270,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, deleteFromS3 = nu
                                                 }
                                             });
                                             optionsHtmlToPdf.formData.files = FormData;
-                                          
+
                                             rp(optionsHtmlToPdf)
                                                 .then(function (responseHtmlToPdf) {
 
@@ -310,7 +310,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, deleteFromS3 = nu
                                                                         s3.upload(params, function (s3Err, data) {
                                                                             if (s3Err) throw s3Err;
 
-                                                                            
+
                                                                             console.log(`File uploaded successfully at ${data.Location}`);
 
                                                                             s3SignedUrl(data.key).then(function (signedRes) {
@@ -439,7 +439,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
                 }
 
             }))
-            
+
             //select all the multiselect response objects and create a chart object
             let multiSelectChartObj = await getSelectedData(multiSelectArray, "multiselect");
             let radioChartObj = await getSelectedData(radioArray, "radio");
@@ -448,7 +448,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
             let radioFormData = await apiCallToHighChart(radioChartObj, imgPath, "radio");
             formData.push(...multiselectFormData);
             formData.push(...radioFormData);
-              
+
 
             var params = {
                 observationName: instaRes.observationName
@@ -473,8 +473,8 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
                             var matrixData = [];
 
                             await Promise.all(instaRes.response.map(async ele => {
-                            
-                               
+
+
                                 if (ele.responseType === "text" || ele.responseType === "date" || ele.responseType === "number" || ele.responseType === "slider" || ele.responseType === "multiselect" || ele.responseType === "radio") {
 
                                     arrOfData.push(ele);
@@ -484,39 +484,39 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
                                     //push main matrix question object into array
                                     arrOfData.push(ele);
                                     let obj = {
-                                         order: ele.order,
-                                         data:[]
+                                        order: ele.order,
+                                        data: []
                                     }
                                     await Promise.all(ele.instanceQuestions.map(element => {
-                                      //push the instance questions to the array
-                                       if(element.responseType == "text" || element.responseType == "date" || element.responseType == "number" || ele.responseType == "slider") {
-                                        obj.data.push(element);   
-                                       }
-                                       else if(element.responseType == "radio"){
-                                         let dt = radioFormData.filter(or => {
-                                            if (or.order == element.order) {
-                                                return or;
-                                            }
-                                        })
+                                        //push the instance questions to the array
+                                        if (element.responseType == "text" || element.responseType == "date" || element.responseType == "number" || ele.responseType == "slider") {
+                                            obj.data.push(element);
+                                        }
+                                        else if (element.responseType == "radio") {
+                                            let dt = radioFormData.filter(or => {
+                                                if (or.order == element.order) {
+                                                    return or;
+                                                }
+                                            })
 
-                                        dt[0].options.responseType = "radio";
-                                        dt[0].options.answers = element.answers;
-                                        obj.data.push(dt);
-                                            
-                                       }
-                                       else if(element.responseType == "multiselect"){
-                                        let dt = multiselectFormData.filter(or => {
-                                           if (or.order == element.order) {
-                                               return or;
-                                           }
-                                       })
+                                            dt[0].options.responseType = "radio";
+                                            dt[0].options.answers = element.answers;
+                                            obj.data.push(dt);
 
-                                       dt[0].options.responseType = "multiselect";
-                                       dt[0].options.answers = element.answers;
-                                       
-                                       obj.data.push(dt);
-                                           
-                                      }
+                                        }
+                                        else if (element.responseType == "multiselect") {
+                                            let dt = multiselectFormData.filter(or => {
+                                                if (or.order == element.order) {
+                                                    return or;
+                                                }
+                                            })
+
+                                            dt[0].options.responseType = "multiselect";
+                                            dt[0].options.answers = element.answers;
+
+                                            obj.data.push(dt);
+
+                                        }
                                     }))
 
                                     matrixData.push(obj);
@@ -532,7 +532,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
                                 data: obj
                             })
                                 .then(function (dataEjsRender) {
-                                  
+
                                     var dir = imgPath;
                                     if (!fs.existsSync(dir)) {
                                         fs.mkdirSync(dir);
@@ -572,7 +572,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
                                                 }
                                             });
                                             optionsHtmlToPdf.formData.files = formData;
-                                           
+
                                             rp(optionsHtmlToPdf)
                                                 .then(function (responseHtmlToPdf) {
 
@@ -624,7 +624,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
                                                                                     fs.readdir(imgPath, (err, files) => {
                                                                                         if (err) throw err;
 
-                                                                                       
+
                                                                                         var i = 0;
                                                                                         for (const file of files) {
 
@@ -705,9 +705,9 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
 
 
 
-//PDF generation for observation score report
-exports.instanceObservationScorePdfGeneration = async function instanceObservationPdfGeneration(observationResp,deleteFromS3 = null,obj) {
-    
+//PDF generation for instance observation score report
+exports.instanceObservationScorePdfGeneration = async function instanceObservationPdfGeneration(observationResp, deleteFromS3 = null, obj) {
+
     return new Promise(async function (resolve, reject) {
 
         var currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
@@ -728,7 +728,7 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
             //select all the multiselect response objects and create a chart object
             let chartObj = await getScoreChartObject(observationResp.response);
 
-            let highChartData = await apiCallToHighChart(chartObj, imgPath,"scatter");
+            let highChartData = await apiCallToHighChart(chartObj, imgPath, "scatter");
 
             var params;
 
@@ -757,72 +757,72 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
                         if (errWr) {
                             throw errWr;
                         } else {
-                                
+
                             let arrayOfData = [];
 
-                            
-                                await Promise.all(observationResp.response.map(async ele => {
 
-                                    let dt = highChartData.filter(or => {
+                            await Promise.all(observationResp.response.map(async ele => {
 
-                                        if (or.order == ele.order) {
-                                            return or;
-                                        }
-                                    })
+                                let dt = highChartData.filter(or => {
 
-                                    arrayOfData.push(dt);
-
-                                }))
-                           
-                                obj.orderData = arrayOfData;
-
-                                ejs.renderFile(__dirname + '/../views/instanceScoreObsTemplate.ejs', {
-                                    data: obj
+                                    if (or.order == ele.order) {
+                                        return or;
+                                    }
                                 })
-                                    .then(function (dataEjsRender) {
 
-                                        var dir = imgPath;
-                                        if (!fs.existsSync(dir)) {
-                                            fs.mkdirSync(dir);
-                                        }
+                                arrayOfData.push(dt);
 
-                                        fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
-                                            if (errWriteFile) {
-                                                throw errWriteFile;
-                                            } else {
+                            }))
 
-                                                var optionsHtmlToPdf = config.optionsHtmlToPdf;
-                                                optionsHtmlToPdf.formData = {
-                                                    files: [
-                                                    ]
-                                                };
-                                                highChartData.push({
-                                                    value: fs.createReadStream(dir + '/index.html'),
-                                                    options: {
-                                                        filename: 'index.html'
-                                                    }
-                                                });
-                                                highChartData.push({
-                                                    value: fs.createReadStream(dir + '/style.css'),
-                                                    options: {
-                                                        filename: 'style.css'
-                                                    }
-                                                });
-                                                highChartData.push({
-                                                    value: fs.createReadStream(dir + '/header.html'),
-                                                    options: {
-                                                        filename: 'header.html'
-                                                    }
-                                                });
-                                                highChartData.push({
-                                                    value: fs.createReadStream(dir + '/footer.html'),
-                                                    options: {
-                                                        filename: 'footer.html'
-                                                    }
-                                                });
-                                                optionsHtmlToPdf.formData.files = highChartData;
+                            obj.orderData = arrayOfData;
 
-                                                rp(optionsHtmlToPdf)
+                            ejs.renderFile(__dirname + '/../views/instanceScoreObsTemplate.ejs', {
+                                data: obj
+                            })
+                                .then(function (dataEjsRender) {
+
+                                    var dir = imgPath;
+                                    if (!fs.existsSync(dir)) {
+                                        fs.mkdirSync(dir);
+                                    }
+
+                                    fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
+                                        if (errWriteFile) {
+                                            throw errWriteFile;
+                                        } else {
+
+                                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                                            optionsHtmlToPdf.formData = {
+                                                files: [
+                                                ]
+                                            };
+                                            highChartData.push({
+                                                value: fs.createReadStream(dir + '/index.html'),
+                                                options: {
+                                                    filename: 'index.html'
+                                                }
+                                            });
+                                            highChartData.push({
+                                                value: fs.createReadStream(dir + '/style.css'),
+                                                options: {
+                                                    filename: 'style.css'
+                                                }
+                                            });
+                                            highChartData.push({
+                                                value: fs.createReadStream(dir + '/header.html'),
+                                                options: {
+                                                    filename: 'header.html'
+                                                }
+                                            });
+                                            highChartData.push({
+                                                value: fs.createReadStream(dir + '/footer.html'),
+                                                options: {
+                                                    filename: 'footer.html'
+                                                }
+                                            });
+                                            optionsHtmlToPdf.formData.files = highChartData;
+
+                                            rp(optionsHtmlToPdf)
                                                 .then(function (responseHtmlToPdf) {
 
                                                     var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
@@ -850,62 +850,62 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
 
                                                                         if (deleteFromS3 == true) {
                                                                             var folderPath = Buffer.from(currentTempFolder).toString('base64')
-    
+
                                                                             var response = {
                                                                                 status: "success",
                                                                                 message: 'report generated',
                                                                                 pdfUrl: folderPath,
-    
+
                                                                             };
                                                                             resolve(response);
-    
+
                                                                         } else {
 
 
                                                                             s3.upload(params, function (s3Err, data) {
                                                                                 if (s3Err) throw s3Err;
-    
+
                                                                                 // console.log("data", data);
                                                                                 console.log(`File uploaded successfully at ${data.Location}`);
-    
+
                                                                                 s3SignedUrl(data.key).then(function (signedRes) {
-    
+
                                                                                     try {
-    
-    
-    
+
+
+
                                                                                         fs.readdir(imgPath, (err, files) => {
                                                                                             if (err) throw err;
-    
+
                                                                                             // console.log("files",files.length);
                                                                                             var i = 0;
                                                                                             for (const file of files) {
-    
+
                                                                                                 fs.unlink(path.join(imgPath, file), err => {
                                                                                                     if (err) throw err;
                                                                                                 });
-    
+
                                                                                                 if (i == files.length) {
                                                                                                     fs.unlink('../../' + currentTempFolder, err => {
                                                                                                         if (err) throw err;
-    
+
                                                                                                     });
                                                                                                     console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
                                                                                                     // fs.unlink(path.join(imgPath, ""), err => {
                                                                                                     //     if (err) throw err;
                                                                                                     // });
                                                                                                 }
-    
+
                                                                                                 i = i + 1;
-    
+
                                                                                             }
                                                                                         });
                                                                                         rimraf(imgPath, function () { console.log("done"); });
-    
+
                                                                                     } catch (ex) {
                                                                                         console.log("ex ", ex);
                                                                                     }
-    
+
                                                                                     var response = {
                                                                                         status: "success",
                                                                                         message: 'report generated',
@@ -915,7 +915,7 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
                                                                                     resolve(response);
                                                                                 })
                                                                             });
-    
+
                                                                         }
 
                                                                     });
@@ -932,18 +932,18 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
                                                     throw err;
                                                 });
 
-                                            }
+                                        }
 
-                                        });
-
-                                    }).catch(function (errEjsRender) {
-                                        console.log("errEjsRender : ", errEjsRender);
-    
-                                        reject(errEjsRender);
                                     });
-                            }
 
-                
+                                }).catch(function (errEjsRender) {
+                                    console.log("errEjsRender : ", errEjsRender);
+
+                                    reject(errEjsRender);
+                                });
+                        }
+
+
                     });
 
 
@@ -959,7 +959,7 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
 
 
         }
-    
+
     })
 
 }
@@ -1193,81 +1193,29 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
 
 //Prepare chart object to send it to highchart server
 async function getSelectedData(items, type) {
+    
     return new Promise(async function (resolve, reject) {
-        var ArrayOfChartData = [];
-        // console.log("items",items);
+
+        let arrayOfChartData = [];
+       
         await Promise.all(items.map(async ele => {
-             
+
             if (ele.responseType && ele.responseType == type) {
                 var chartType = "bar";
                 if (type == "radio") {
-
-                    // console.log("ele",ele.chart);
-                    // console.log("ele",ele.chart.data[0]);
                     chartType = "pie";
                 } else if (type == "stackedbar") {
                     chartType = "stackedbar";
                 }
+                
+               let obj;
 
-                //   console.log(chartType,"ele.chart.data",ele.chart.data[0].data)
-                var obj = {
-                    order: ele.order,
-                    type: "svg",
-                    options: {
-                        title: {
-                            text: ele.question
-                        },
-                        colors: ['#D35400', '#F1C40F', '#3498DB', '#8E44AD', '#154360', '#145A32'],
+               if(chartType == "bar" || chartType == "pie"){
 
-                        chart: {
-                            type: chartType
-                           
-                            
-                        },
-                        plotOptions : ele.chart.plotOptions,
-                        xAxis: ele.chart.xAxis,
-                        yAxis: ele.chart.yAxis,
-                        credits: {
-                            enabled: false
-                        },
-                        series: ele.chart.data
-                    },
-                    question: ele.question
-                };
-                //   console.log("obj.options.series",ele.chart.data[0].data[0].y);
-                // return resolve(obj);
-
-
-                if (chartType == "pie") {
-                    // obj.options.series[0].data[0].y = parseInt(obj.options.series[0].data[0].y);
-
-                    let multiSelectInputs = [];
-                    await Promise.all(obj.options.series[0].data.map(function (item) {
-                        // return parseInt(item, 10);
-                        // console.log("item",item);
-                        let parseVal = parseInt(item.y);
-                        var ex = {
-                            name: item.name,
-                            y: parseVal
-                        }
-                        multiSelectInputs.push(ex);
-
-                    }));
-                    obj.options.series[0].data = multiSelectInputs;
-
-                } else if (chartType == "bar") {
-
-                    let multiSelectInputs = [];
-                    await Promise.all(obj.options.series[0].data.map(function (item) {
-                        // return parseInt(item, 10);
-                        // console.log("item",item);
-                        multiSelectInputs.push(parseInt(item));
-
-                    }));
-                    obj.options.series[0].data = multiSelectInputs;
+                  obj = await createChartObject(ele,chartType);
 
                 } else if (chartType == "stackedbar") {
-                    var obj = {
+                     obj = {
                         type: "svg",
                         options: {
                             chart: {
@@ -1306,11 +1254,10 @@ async function getSelectedData(items, type) {
                     }
 
                 }
-                //   console.log(obj.options.series[0].data[0].y);
-                ArrayOfChartData.push(obj);
+                arrayOfChartData.push(obj);
             }
         }));
-        return resolve(ArrayOfChartData);
+        return resolve(arrayOfChartData);
     });
 }
 
@@ -1321,114 +1268,1874 @@ async function getScoreChartObject(items) {
 
     return new Promise(async function (resolve, reject) {
 
-        var ArrayOfChartData = [];
-       
+        let arrayOfChartData = [];
+
         await Promise.all(items.map(async ele => {
 
-            var obj;
+            let obj = await createScoreChartObject(ele);
 
-            if(ele.chart.type == "pie") {
-               
-                 obj = {
-                    order: ele.order,
-                    type: "svg",
-                    options: {
-                        title: {
-                            text: ele.question
-                        },
-                       // colors: ['#6c4fa1'],
+            arrayOfChartData.push(obj);
 
-                        chart: {
-                            type: ele.chart.type
-                        },
-                        xAxis: ele.chart.xAxis,
-                        yAxis: ele.chart.yAxis,
-                        credits: ele.chart.credits,
-                        plotOptions: ele.chart.plotOptions,
-                        series: ele.chart.data
-                    },
-                    question: ele.question
-                };
-            }
-            else if(ele.chart.type == "bar") {
-               
-                obj = {
-                   order: ele.order,
-                   type: "svg",
-                   options: {
-                       title: {
-                           text: ele.question
-                       },
-                       chart: {
-                           type: ele.chart.type
-                       },
-                       colors: ['#D35400', '#F1C40F', '#3498DB', '#8E44AD', '#154360', '#145A32'],
-                       xAxis: ele.chart.xAxis,
-                       yAxis: ele.chart.yAxis,
-                       credits: ele.chart.credits,
-                       plotOptions: ele.chart.plotOptions,
-                       legend: ele.chart.legend,
-                       series: ele.chart.data
-                   },
-                   question: ele.question
-               };
-           }
-            else if(ele.chart.type == "scatter") {
-
-                obj = {
-                    order: ele.order,
-                    type: "svg",
-                    options: {
-                        title: {
-                            text: ""
-                        },
-                        chart: {
-                            type: ele.chart.type
-                        },
-                        xAxis: ele.chart.xAxis,
-                        yAxis: ele.chart.yAxis,
-                        plotOptions: ele.chart.plotOptions,
-                        credits: ele.chart.credits,
-                        legend: ele.chart.legend,
-                        series: ele.chart.data
-                    }
-                };
-
-                if(ele.question){
-                    obj.question = ele.question;
-                    obj.options.title.text = ele.question;
-                }
-
-                if(ele.schoolName){
-                    obj.options.title.text = ele.schoolName;
-                }
-
-            }
-
-            ArrayOfChartData.push(obj);
-            
         }));
-         
-        return resolve(ArrayOfChartData);
-        
+
+        return resolve(arrayOfChartData);
+
     });
 }
 
 
-async function convertChartDataTofile(radioFilePath, options) {
-    // console.log("options===", options);
-    var fileInfo = await rp(options).pipe(fs.createWriteStream(radioFilePath))
 
-    return new Promise(function (resolve, reject) {
-        fileInfo.on('finish', function () {
-            return resolve(fileInfo);
-        });
-        fileInfo.on('error', function (err) {
-            // return resolve(fileInfo);
-            console.log(err);
-            return resolve(err)
-        });
+
+//Prepare chart object to send it to highchart server for criteria score report
+async function getCriteriaScoreChartObject(items) {
+
+    return new Promise(async function (resolve, reject) {
+
+        let arrayOfChartData = [];
+
+        await Promise.all(items.map(async element => {
+
+        await Promise.all(element.questionArray.map(async ele => {
+
+            let obj = await createScoreChartObject(ele);
+
+            arrayOfChartData.push(obj);
+
+        }));
+
+       }));
+
+        return resolve(arrayOfChartData);
+
     });
+}
+
+
+
+async function createScoreChartObject(ele){
+
+    return new Promise(async function(resolve,reject){
+
+        let obj;
+
+        if (ele.chart.type == "pie") {
+
+            obj = {
+                order: ele.order,
+                type: "svg",
+                options: {
+                    title: {
+                        text: ele.question
+                    },
+                    // colors: ['#6c4fa1'],
+
+                    chart: {
+                        type: ele.chart.type
+                    },
+                    xAxis: ele.chart.xAxis,
+                    yAxis: ele.chart.yAxis,
+                    credits: ele.chart.credits,
+                    plotOptions: ele.chart.plotOptions,
+                    series: ele.chart.data
+                },
+                question: ele.question
+            };
+        }
+        else if (ele.chart.type == "bar") {
+
+            obj = {
+                order: ele.order,
+                type: "svg",
+                options: {
+                    title: {
+                        text: ele.question
+                    },
+                    chart: {
+                        type: ele.chart.type
+                    },
+                    colors: ['#D35400', '#F1C40F', '#3498DB', '#8E44AD', '#154360', '#145A32'],
+                    xAxis: ele.chart.xAxis,
+                    yAxis: ele.chart.yAxis,
+                    credits: ele.chart.credits,
+                    plotOptions: ele.chart.plotOptions,
+                    legend: ele.chart.legend,
+                    series: ele.chart.data
+                },
+                question: ele.question
+            };
+        }
+        else if (ele.chart.type == "scatter") {
+
+            obj = {
+                order: ele.order,
+                type: "svg",
+                options: {
+                    title: {
+                        text: ""
+                    },
+                    chart: {
+                        type: ele.chart.type
+                    },
+                    xAxis: ele.chart.xAxis,
+                    yAxis: ele.chart.yAxis,
+                    plotOptions: ele.chart.plotOptions,
+                    credits: ele.chart.credits,
+                    legend: ele.chart.legend,
+                    series: ele.chart.data
+                }
+            };
+
+            if (ele.question) {
+                obj.question = ele.question;
+                obj.options.title.text = ele.question;
+            }
+
+            if (ele.schoolName) {
+                obj.options.title.text = ele.schoolName;
+            }
+
+        }
+        else if (ele.chart.type == "column") {
+
+            obj = {
+                order: ele.order,
+                type: "svg",
+                options: {
+                    title: {
+                        text: ele.question
+                    },
+                    chart: {
+                        type: ele.chart.type
+                    },
+                    xAxis: ele.chart.xAxis,
+                    yAxis: ele.chart.yAxis,
+                    plotOptions: ele.chart.plotOptions,
+                    credits: ele.chart.credits,
+                    legend: ele.chart.legend,
+                    series: ele.chart.data
+                },
+                question: ele.question
+            };
+        }
+    
+        return resolve(obj);
+
+    })
+}
+
+//Unnati pdf generate function
+exports.unnatiPdfGeneration = async function (responseData, deleteFromS3 = null) {
+
+    return new Promise(async function (resolve, reject) {
+
+        var currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
+
+        var imgPath = __dirname + '/../' + currentTempFolder;
+
+        if (!fs.existsSync(imgPath)) {
+            fs.mkdirSync(imgPath);
+        }
+
+        let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
+        
+        //copy images from public folder
+        let src = __dirname + '/../public/images/Calendar-Time.svg';
+        fs.copyFileSync(src, imgPath + '/Calendar-Time.svg');
+
+        let fileData = [{
+            value: fs.createReadStream(imgPath + '/Calendar-Time.svg'),
+            options: {
+                filename: 'Calendar-Time.svg',
+
+            }
+    }]
+
+
+        let subTasksCount = 0;
+
+        responseData.tasks.forEach(element => {
+            subTasksCount = subTasksCount + element.subTasks.length;
+        });
+
+        let startDate, endDate;
+        let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        if (responseData.startDate) {
+            let date = new Date(responseData.startDate);
+            let day = date.getDate();
+            let month = months[date.getMonth()];
+            let year = date.getFullYear();
+            startDate = day + " " + month + " " + year;
+        }
+
+        if (responseData.endDate) {
+            let date = new Date(responseData.endDate);
+            let day = date.getDate();
+            let month = months[date.getMonth()];
+            let year = date.getFullYear();
+            endDate = day + " " + month + " " + year;
+        }
+
+        try {
+
+            var FormData = [];
+
+            FormData.push(...fileData);
+
+            let obj = {
+                subTasks: subTasksCount,
+                duration: responseData.duration,
+                goal: responseData.goal,
+                tasksArray: responseData.tasks,
+                projectName: responseData.title,
+                category: responseData.category,
+                status: responseData.status,
+                startDate: startDate,
+                endDate: endDate
+            }
+
+            ejs.renderFile(__dirname + '/../views/unnatiTemplate.ejs', {
+                data: obj
+            })
+                .then(function (dataEjsRender) {
+
+                    var dir = imgPath;
+                    if (!fs.existsSync(dir)) {
+                        fs.mkdirSync(dir);
+                    }
+
+                    fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
+                        if (errWriteFile) {
+                            throw errWriteFile;
+                        } else {
+
+                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                            optionsHtmlToPdf.formData = {
+                                files: [
+                                ]
+                            };
+                            FormData.push({
+                                value: fs.createReadStream(dir + '/index.html'),
+                                options: {
+                                    filename: 'index.html'
+                                }
+                            });
+                            optionsHtmlToPdf.formData.files = FormData;
+
+
+                            rp(optionsHtmlToPdf)
+                                .then(function (responseHtmlToPdf) {
+
+                                    var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
+                                    if (responseHtmlToPdf.statusCode == 200) {
+
+                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
+                                            if (err) {
+                                                return console.log(err);
+                                            }
+
+                                            else {
+                                                const s3 = new AWS.S3(config.s3_credentials);
+
+                                                const uploadFile = () => {
+
+                                                    fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
+                                                        if (err) throw err;
+
+                                                        const params = {
+                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                            Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
+                                                            Body: Buffer.from(data, null, 2),
+                                                            Expires: 10
+                                                        };
+
+                                                        if (deleteFromS3 == true) {
+                                                            var folderPath = Buffer.from(currentTempFolder).toString('base64')
+
+                                                            var response = {
+                                                                status: "success",
+                                                                message: 'report generated',
+                                                                pdfUrl: folderPath,
+
+                                                            };
+                                                            resolve(response);
+
+                                                        } else {
+
+
+                                                            s3.upload(params, function (s3Err, data) {
+                                                                if (s3Err) throw s3Err;
+
+                                                                // console.log("data", data);
+                                                                console.log(`File uploaded successfully at ${data.Location}`);
+
+                                                                s3SignedUrl(data.key).then(function (signedRes) {
+
+                                                                    try {
+
+
+
+                                                                        fs.readdir(imgPath, (err, files) => {
+                                                                            if (err) throw err;
+
+                                                                            // console.log("files",files.length);
+                                                                            var i = 0;
+                                                                            for (const file of files) {
+
+                                                                                fs.unlink(path.join(imgPath, file), err => {
+                                                                                    if (err) throw err;
+                                                                                });
+
+                                                                                if (i == files.length) {
+                                                                                    fs.unlink('../../' + currentTempFolder, err => {
+                                                                                        if (err) throw err;
+
+                                                                                    });
+                                                                                    console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
+                                                                                    // fs.unlink(path.join(imgPath, ""), err => {
+                                                                                    //     if (err) throw err;
+                                                                                    // });
+                                                                                }
+
+                                                                                i = i + 1;
+
+                                                                            }
+                                                                        });
+                                                                        rimraf(imgPath, function () { console.log("done"); });
+
+                                                                    } catch (ex) {
+                                                                        console.log("ex ", ex);
+                                                                    }
+
+                                                                    var response = {
+                                                                        status: "success",
+                                                                        message: 'report generated',
+                                                                        pdfUrl: signedRes,
+                                                                        downloadPath: data.key
+                                                                    };
+                                                                    resolve(response);
+                                                                })
+                                                            });
+
+                                                        }
+
+                                                    });
+                                                }
+                                                uploadFile();
+                                            }
+                                        });
+                                    }
+
+                                }).catch(err => {
+                                    resolve(err);
+                                })
+                        }
+                    })
+                })
+        }
+        catch (err) {
+            resolve(err);
+        }
+
+    })
+}
+
+
+
+//Unnati monthly report pdf generation function
+exports.unnatiMonthlyReportPdfGeneration = async function (responseData, deleteFromS3 = null) {
+
+    return new Promise(async function (resolve, reject) {
+
+        var currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
+
+        var imgPath = __dirname + '/../' + currentTempFolder;
+
+        if (!fs.existsSync(imgPath)) {
+            fs.mkdirSync(imgPath);
+        }
+
+        let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
+
+        try {
+            var FormData = [];
+
+            //get the chart object
+            let chartObj = await getTaskStatusPieChart(responseData.projectDetails);
+
+            //generate the chart using highchart server
+            let highChartData = await apiCallToHighChart(chartObj[0], imgPath, "pie");
+
+            FormData.push(...highChartData);
+
+            let projectData = chartObj[1];
+
+            let obj = {
+                schoolName: responseData.schoolName,
+                reportType: responseData.reportType,
+                projectArray: projectData,
+                chartData: highChartData
+            }
+
+            ejs.renderFile(__dirname + '/../views/unnatiMonthlyReport.ejs', {
+                data: obj
+
+            })
+                .then(function (dataEjsRender) {
+
+                    var dir = imgPath;
+                    if (!fs.existsSync(dir)) {
+                        fs.mkdirSync(dir);
+                    }
+
+                    fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
+                        if (errWriteFile) {
+                            throw errWriteFile;
+                        } else {
+
+                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                            optionsHtmlToPdf.formData = {
+                                files: [
+                                ]
+                            };
+                            FormData.push({
+                                value: fs.createReadStream(dir + '/index.html'),
+                                options: {
+                                    filename: 'index.html'
+                                }
+                            });
+                            optionsHtmlToPdf.formData.files = FormData;
+
+
+                            rp(optionsHtmlToPdf)
+                                .then(function (responseHtmlToPdf) {
+
+                                    var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
+                                    if (responseHtmlToPdf.statusCode == 200) {
+
+                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
+                                            if (err) {
+                                                return console.log(err);
+                                            }
+
+                                            else {
+                                                const s3 = new AWS.S3(config.s3_credentials);
+
+                                                const uploadFile = () => {
+
+                                                    fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
+                                                        if (err) throw err;
+
+                                                        const params = {
+                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                            Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
+                                                            Body: Buffer.from(data, null, 2),
+                                                            Expires: 10
+                                                        };
+
+                                                        if (deleteFromS3 == true) {
+                                                            var folderPath = Buffer.from(currentTempFolder).toString('base64')
+
+                                                            var response = {
+                                                                status: "success",
+                                                                message: 'report generated',
+                                                                pdfUrl: folderPath,
+
+                                                            };
+                                                            resolve(response);
+
+                                                        } else {
+
+
+                                                            s3.upload(params, function (s3Err, data) {
+                                                                if (s3Err) throw s3Err;
+
+                                                                console.log(`File uploaded successfully at ${data.Location}`);
+
+                                                                s3SignedUrl(data.key).then(function (signedRes) {
+
+                                                                    try {
+
+
+
+                                                                        fs.readdir(imgPath, (err, files) => {
+                                                                            if (err) throw err;
+
+                                                                            // console.log("files",files.length);
+                                                                            var i = 0;
+                                                                            for (const file of files) {
+
+                                                                                fs.unlink(path.join(imgPath, file), err => {
+                                                                                    if (err) throw err;
+                                                                                });
+
+                                                                                if (i == files.length) {
+                                                                                    fs.unlink('../../' + currentTempFolder, err => {
+                                                                                        if (err) throw err;
+
+                                                                                    });
+                                                                                    console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
+                                                                                    // fs.unlink(path.join(imgPath, ""), err => {
+                                                                                    //     if (err) throw err;
+                                                                                    // });
+                                                                                }
+
+                                                                                i = i + 1;
+
+                                                                            }
+                                                                        });
+                                                                        rimraf(imgPath, function () { console.log("done"); });
+
+                                                                    } catch (ex) {
+                                                                        console.log("ex ", ex);
+                                                                    }
+
+                                                                    var response = {
+                                                                        status: "success",
+                                                                        message: 'report generated',
+                                                                        pdfUrl: signedRes,
+                                                                        downloadPath: data.key
+                                                                    };
+                                                                    resolve(response);
+                                                                })
+                                                            });
+
+                                                        }
+
+                                                    });
+                                                }
+                                                uploadFile();
+                                            }
+                                        });
+                                    }
+
+                                }).catch(err => {
+                                    resolve(err);
+                                })
+                        }
+                    })
+                })
+        }
+        catch (err) {
+            resolve(err);
+        }
+
+    })
+}
+
+async function getTaskStatusPieChart(data) {
+
+    return new Promise(async function (resolve, reject) {
+
+        let seriesData = [];
+        var i = 0;
+        let projectData = [];
+
+        await Promise.all(data.map(async element => {
+
+            let complete = 0, inProgress = 0, notStarted = 0;
+
+            await Promise.all(element.tasks.map(async ele => {
+
+                if (ele.status) {
+                    if (ele.status.toLowerCase() == "completed") {
+                        complete = complete + 1;
+                    }
+                    else if (ele.status.toLowerCase() == "in progress") {
+                        inProgress = inProgress + 1;
+                    }
+                    else if (ele.status.toLowerCase() == "not started yet" || ele.status.toLowerCase() == "not yet started") {
+                        notStarted = notStarted + 1;
+                    }
+
+                
+              }
+            }))
+
+            let dataArray = [];
+
+            if (complete >= 1) {
+                let obj = {
+                    name: 'Complete',
+                    y: complete,
+                    color: "#6abf34"
+                }
+
+                dataArray.push(obj);
+            }
+            if (notStarted >= 1) {
+                let obj = {
+                    name: 'Not Started',
+                    y: notStarted,
+                    color: "#81d6f0"
+                }
+
+                dataArray.push(obj);
+            }
+            if (inProgress >= 1) {
+                let obj = {
+                    name: 'In Progress',
+                    y: inProgress,
+                    color: "#91d050"
+                }
+
+                dataArray.push(obj);
+            }
+
+            let chartData = {
+                type: "svg",
+                order: i,
+                options: {
+                    chart: {
+                        type: 'pie'
+                    },
+                    title: {
+                        text: 'TASK STATUS %'
+                    },
+                    plotOptions: {
+                        pie: {
+                            dataLabels: {
+                                enabled: true,
+                                format: "{point.y}"
+                            },
+                            showInLegend: true
+                        }
+                    },
+                    credits: {
+                        enabled: false
+                    },
+                    series: [{
+                        data: dataArray
+                    }]
+                }
+            }
+
+            seriesData.push(chartData);
+
+            element.order = i;
+            projectData.push(element);
+
+            i++;
+
+        }))
+
+        resolve([seriesData, projectData]);
+
+
+    })
+}
+
+
+//Unnati monthly report pdf generation function
+exports.unnatiViewFullReportPdfGeneration = async function (responseData, deleteFromS3 = null) {
+
+    return new Promise(async function (resolve, reject) {
+
+        var currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
+
+        var imgPath = __dirname + '/../' + currentTempFolder;
+
+        if (!fs.existsSync(imgPath)) {
+            fs.mkdirSync(imgPath);
+        }
+
+        let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
+
+        try {
+
+            var FormData = [];
+
+            //get the chart object
+            let chartObj = await ganttChartObject(responseData.projectDetails);
+
+            //generate the chart using highchart server
+            let highChartData = await apiCallToHighChart(chartObj[0], imgPath, "gantt");
+
+            FormData.push(...highChartData);
+
+            let obj = {
+                chartData: highChartData,
+                reportType:responseData.reportType,
+                projectData: chartObj[1]
+            }
+
+            ejs.renderFile(__dirname + '/../views/unnatiViewFullReport.ejs', {
+                data: obj
+
+            })
+                .then(function (dataEjsRender) {
+
+                    var dir = imgPath;
+                    if (!fs.existsSync(dir)) {
+                        fs.mkdirSync(dir);
+                    }
+
+                    fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
+                        if (errWriteFile) {
+                            throw errWriteFile;
+                        } else {
+
+                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                            optionsHtmlToPdf.formData = {
+                                files: [
+                                ]
+                            };
+                            FormData.push({
+                                value: fs.createReadStream(dir + '/index.html'),
+                                options: {
+                                    filename: 'index.html'
+                                }
+                            });
+                            optionsHtmlToPdf.formData.files = FormData;
+
+
+                            rp(optionsHtmlToPdf)
+                                .then(function (responseHtmlToPdf) {
+
+                                    var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
+                                    if (responseHtmlToPdf.statusCode == 200) {
+
+                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
+                                            if (err) {
+                                                return console.log(err);
+                                            }
+
+                                            else {
+                                                const s3 = new AWS.S3(config.s3_credentials);
+
+                                                const uploadFile = () => {
+
+                                                    fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
+                                                        if (err) throw err;
+
+                                                        const params = {
+                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                            Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
+                                                            Body: Buffer.from(data, null, 2),
+                                                            Expires: 10
+                                                        };
+
+                                                        if (deleteFromS3 == true) {
+                                                            var folderPath = Buffer.from(currentTempFolder).toString('base64')
+
+                                                            var response = {
+                                                                status: "success",
+                                                                message: 'report generated',
+                                                                pdfUrl: folderPath,
+
+                                                            };
+                                                            resolve(response);
+
+                                                        } else {
+
+
+                                                            s3.upload(params, function (s3Err, data) {
+                                                                if (s3Err) throw s3Err;
+
+                                                                // console.log("data", data);
+                                                                console.log(`File uploaded successfully at ${data.Location}`);
+
+                                                                s3SignedUrl(data.key).then(function (signedRes) {
+
+                                                                    try {
+
+
+
+                                                                        fs.readdir(imgPath, (err, files) => {
+                                                                            if (err) throw err;
+
+                                                                            // console.log("files",files.length);
+                                                                            var i = 0;
+                                                                            for (const file of files) {
+
+                                                                                fs.unlink(path.join(imgPath, file), err => {
+                                                                                    if (err) throw err;
+                                                                                });
+
+                                                                                if (i == files.length) {
+                                                                                    fs.unlink('../../' + currentTempFolder, err => {
+                                                                                        if (err) throw err;
+
+                                                                                    });
+                                                                                    console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
+                                                                                    // fs.unlink(path.join(imgPath, ""), err => {
+                                                                                    //     if (err) throw err;
+                                                                                    // });
+                                                                                }
+
+                                                                                i = i + 1;
+
+                                                                            }
+                                                                        });
+                                                                        rimraf(imgPath, function () { console.log("done"); });
+
+                                                                    } catch (ex) {
+                                                                        console.log("ex ", ex);
+                                                                    }
+
+                                                                    var response = {
+                                                                        status: "success",
+                                                                        message: 'report generated',
+                                                                        pdfUrl: signedRes,
+                                                                        downloadPath: data.key
+                                                                    };
+                                                                    resolve(response);
+                                                                })
+                                                            });
+
+                                                        }
+
+                                                    });
+                                                }
+                                                uploadFile();
+                                            }
+                                        });
+                                    }
+
+                                }).catch(err => {
+                                    resolve(err);
+                                })
+                        }
+                    })
+                })
+        }
+        catch (err) {
+            resolve(err);
+        }
+
+    })
+}
+
+
+//Unnati monthly report pdf generation function
+exports.addTaskPdfGeneration = async function (responseData, deleteFromS3 = null) {
+
+    return new Promise(async function (resolve, reject) {
+
+        var currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
+
+        var imgPath = __dirname + '/../' + currentTempFolder;
+
+        if (!fs.existsSync(imgPath)) {
+            fs.mkdirSync(imgPath);
+        }
+
+        let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
+
+        try {
+
+            var FormData = [];
+            
+            let obj = {
+              response: responseData
+            }
+
+            ejs.renderFile(__dirname + '/../views/unnatiAddTaskReport.ejs', {
+                data: obj
+
+            })
+                .then(function (dataEjsRender) {
+
+                    var dir = imgPath;
+                    if (!fs.existsSync(dir)) {
+                        fs.mkdirSync(dir);
+                    }
+
+                    fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
+                        if (errWriteFile) {
+                            throw errWriteFile;
+                        } else {
+
+                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                            optionsHtmlToPdf.formData = {
+                                files: [
+                                ]
+                            };
+                            FormData.push({ 
+                                value: fs.createReadStream(dir + '/index.html'),
+                                options: {
+                                    filename: 'index.html'
+                                }
+                            });
+                            optionsHtmlToPdf.formData.files = FormData;
+
+
+                            rp(optionsHtmlToPdf)
+                                .then(function (responseHtmlToPdf) {
+
+                                    var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
+                                    if (responseHtmlToPdf.statusCode == 200) {
+
+                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
+                                            if (err) {
+                                                return console.log(err);
+                                            }
+
+                                            else {
+                                                const s3 = new AWS.S3(config.s3_credentials);
+
+                                                const uploadFile = () => {
+
+                                                    fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
+                                                        if (err) throw err;
+
+                                                        const params = {
+                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                            Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
+                                                            Body: Buffer.from(data, null, 2),
+                                                            Expires: 10
+                                                        };
+
+                                                        if (deleteFromS3 == true) {
+                                                            var folderPath = Buffer.from(currentTempFolder).toString('base64')
+
+                                                            var response = {
+                                                                status: "success",
+                                                                message: 'report generated',
+                                                                pdfUrl: folderPath,
+
+                                                            };
+                                                            resolve(response);
+
+                                                        } else {
+
+
+                                                            s3.upload(params, function (s3Err, data) {
+                                                                if (s3Err) throw s3Err;
+
+                                                                // console.log("data", data);
+                                                                console.log(`File uploaded successfully at ${data.Location}`);
+
+                                                                s3SignedUrl(data.key).then(function (signedRes) {
+
+                                                                    try {
+
+
+
+                                                                        fs.readdir(imgPath, (err, files) => {
+                                                                            if (err) throw err;
+
+                                                                            // console.log("files",files.length);
+                                                                            var i = 0;
+                                                                            for (const file of files) {
+
+                                                                                fs.unlink(path.join(imgPath, file), err => {
+                                                                                    if (err) throw err;
+                                                                                });
+
+                                                                                if (i == files.length) {
+                                                                                    fs.unlink('../../' + currentTempFolder, err => {
+                                                                                        if (err) throw err;
+
+                                                                                    });
+                                                                                    console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
+                                                                                    // fs.unlink(path.join(imgPath, ""), err => {
+                                                                                    //     if (err) throw err;
+                                                                                    // });
+                                                                                }
+
+                                                                                i = i + 1;
+
+                                                                            }
+                                                                        });
+                                                                        rimraf(imgPath, function () { console.log("done"); });
+
+                                                                    } catch (ex) {
+                                                                        console.log("ex ", ex);
+                                                                    }
+
+                                                                    var response = {
+                                                                        status: "success",
+                                                                        message: 'report generated',
+                                                                        pdfUrl: signedRes,
+                                                                        downloadPath: data.key
+                                                                    };
+                                                                    resolve(response);
+                                                                })
+                                                            });
+
+                                                        }
+
+                                                    });
+                                                }
+                                                uploadFile();
+                                            }
+                                        });
+                                    }
+
+                                }).catch(err => {
+                                    resolve(err);
+                                })
+                        }
+                    })
+                })
+        }
+        catch (err) {
+            resolve(err);
+        }
+
+    })
+}
+
+
+
+//PDF generation for instance criteria report
+exports.instanceCriteriaReportPdfGeneration = async function (instanceResponse, deleteFromS3 = null) {
+
+   
+    return new Promise(async function (resolve, reject) {
+
+        var currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
+
+        var imgPath = __dirname + '/../' + currentTempFolder;
+
+
+        try {
+
+            if (!fs.existsSync(imgPath)) {
+                fs.mkdirSync(imgPath);
+            }
+
+            let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
+
+            // let headerFile = await copyBootStrapFile(__dirname + '/../views/header.html', imgPath + '/header.html');
+            let footerFile = await copyBootStrapFile(__dirname + '/../views/footer.html', imgPath + '/footer.html');
+            
+            let formData = [];
+
+            let params = {
+                observationName: instanceResponse.observationName
+            }
+            ejs.renderFile(__dirname + '/../views/header.ejs', {
+                data: params
+            })
+                .then(function (headerHtml) {
+
+                    var dir = imgPath;
+
+                    fs.writeFile(dir + '/header.html', headerHtml, async function (err, dataWr) {
+                        if (err) {
+                            throw err;
+                        } else {
+
+                            var obj = {
+                                response: instanceResponse.response
+                            };
+                            ejs.renderFile(__dirname + '/../views/instanceCriteriaTemplate.ejs', {
+                                data: obj
+                            })
+                                .then(function (dataEjsRender) {
+
+                                    var dir = imgPath;
+                                    if (!fs.existsSync(dir)) {
+                                        fs.mkdirSync(dir);
+                                    }
+                                    fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
+                                        if (errWriteFile) {
+                                            throw errWriteFile;
+                                        } else {
+
+                                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                                            optionsHtmlToPdf.formData = {
+                                                files: [
+                                                ]
+                                            };
+                                            formData.push({
+                                                value: fs.createReadStream(dir + '/index.html'),
+                                                options: {
+                                                    filename: 'index.html'
+                                                }
+                                            });
+                                            formData.push({
+                                                value: fs.createReadStream(dir + '/style.css'),
+                                                options: {
+                                                    filename: 'style.css'
+                                                }
+                                            });
+                                            formData.push({
+                                                value: fs.createReadStream(dir + '/header.html'),
+                                                options: {
+                                                    filename: 'header.html'
+                                                }
+                                            });
+                                            formData.push({
+                                                value: fs.createReadStream(dir + '/footer.html'),
+                                                options: {
+                                                    filename: 'footer.html'
+                                                }
+                                            });
+                                            optionsHtmlToPdf.formData.files = formData;
+
+                                            rp(optionsHtmlToPdf)
+                                                .then(function (responseHtmlToPdf) {
+
+                                                    // console.log("optionsHtmlToPdf", optionsHtmlToPdf.formData.files);
+                                                    var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
+                                                    if (responseHtmlToPdf.statusCode == 200) {
+                                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
+                                                            if (err) {
+                                                                return console.log(err);
+                                                            }
+                                                            // console.log("The PDF was saved!");
+                                                            const s3 = new AWS.S3(config.s3_credentials);
+                                                            const uploadFile = () => {
+                                                                fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
+                                                                    if (err) throw err;
+                                                                    const params = {
+                                                                        Bucket: config.s3_bucketName, // pass your bucket name
+                                                                        Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf', // file will be saved as testBucket/contacts.csv
+                                                                        Body: Buffer.from(data, null, 2),
+                                                                        Expires: 10
+                                                                    };
+
+                                                                    if (deleteFromS3 == true) {
+                                                                        var folderPath = Buffer.from(currentTempFolder).toString('base64')
+
+                                                                        var response = {
+                                                                            status: "success",
+                                                                            message: 'report generated',
+                                                                            pdfUrl: folderPath,
+
+                                                                        };
+                                                                        resolve(response);
+
+                                                                    } else {
+
+
+                                                                        s3.upload(params, function (s3Err, data) {
+                                                                            if (s3Err) throw s3Err;
+
+                                                                            // console.log("data", data);
+                                                                            console.log(`File uploaded successfully at ${data.Location}`);
+
+                                                                            s3SignedUrl(data.key).then(function (signedRes) {
+
+                                                                                try {
+
+
+
+                                                                                    fs.readdir(imgPath, (err, files) => {
+                                                                                        if (err) throw err;
+
+
+                                                                                        var i = 0;
+                                                                                        for (const file of files) {
+
+                                                                                            fs.unlink(path.join(imgPath, file), err => {
+                                                                                                if (err) throw err;
+                                                                                            });
+
+                                                                                            if (i == files.length) {
+                                                                                                fs.unlink('../../' + currentTempFolder, err => {
+                                                                                                    if (err) throw err;
+
+                                                                                                });
+                                                                                                console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
+                                                                                                // fs.unlink(path.join(imgPath, ""), err => {
+                                                                                                //     if (err) throw err;
+                                                                                                // });
+                                                                                            }
+
+                                                                                            i = i + 1;
+
+                                                                                        }
+                                                                                    });
+                                                                                    rimraf(imgPath, function () { console.log("done"); });
+
+                                                                                } catch (ex) {
+                                                                                    console.log("ex ", ex);
+                                                                                }
+
+                                                                                var response = {
+                                                                                    status: "success",
+                                                                                    message: 'report generated',
+                                                                                    pdfUrl: signedRes,
+                                                                                    downloadPath: data.key
+                                                                                };
+                                                                                resolve(response);
+                                                                            })
+                                                                        });
+
+                                                                    }
+                                                                });
+                                                            };
+                                                            uploadFile();
+                                                        });
+                                                    }
+                                                })
+                                                .catch(function (err) {
+                                                    console.log("error in converting HtmlToPdf", err);
+                                                    resolve(err);
+                                                    throw err;
+                                                });
+                                        }
+                                    });
+                                })
+                                .catch(function (errEjsRender) {
+                                    console.log("errEjsRender : ", errEjsRender);
+
+                                    reject(errEjsRender);
+                                });
+
+                        }
+
+                    });
+                });
+
+        } catch (exp) {
+
+        }
+    })
+}
+
+
+// PDF generation function for entity report
+exports.entityCriteriaPdfReportGeneration = async function (responseData, deleteFromS3 = null) {
+
+    return new Promise(async function (resolve, reject) {
+
+        var currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
+
+        var imgPath = __dirname + '/../' + currentTempFolder;
+
+
+        try {
+
+            if (!fs.existsSync(imgPath)) {
+                fs.mkdirSync(imgPath);
+            }
+
+            let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
+
+            // let headerFile = await copyBootStrapFile(__dirname + '/../views/header.html', imgPath + '/header.html');
+            let footerFile = await copyBootStrapFile(__dirname + '/../views/footer.html', imgPath + '/footer.html');
+
+            let formData = [];
+
+            //Prepare chart object before sending it to highchart server
+            let multiSelectData = await getCriteriaChartData(responseData.response, "multiselect");
+            let radioData = await getCriteriaChartData(responseData.response, "radio");
+
+            //send chart objects to highchart server and get the charts
+            let multiselectFormData = await apiCallToHighChart(multiSelectData, imgPath, "multiselect");
+            let radioFormData = await apiCallToHighChart(radioData, imgPath, "radio");
+
+            formData.push(...multiselectFormData);
+            formData.push(...radioFormData);
+
+            let params = {
+                    observationName: responseData.observationName
+                }
+
+            ejs.renderFile(__dirname + '/../views/header.ejs', {
+                data: params
+            })
+                .then(function (headerHtml) {
+
+                    var dir = imgPath;
+                    if (!fs.existsSync(dir)) {
+                        fs.mkdirSync(dir);
+                    }
+                    fs.writeFile(dir + '/header.html', headerHtml, async function (errWr, dataWr) {
+                        if (errWr) {
+                            throw errWr;
+                        } else {
+
+                            let obj = {
+                                response: responseData.response,
+                                radioData: radioFormData,
+                                multiselectData: multiselectFormData
+                            };
+                            ejs.renderFile(__dirname + '/../views/entityCriteriaTemplate.ejs', {
+                                data: obj
+                            })
+                                .then(function (dataEjsRender) {
+
+                                    var dir = imgPath;
+                                    if (!fs.existsSync(dir)) {
+                                        fs.mkdirSync(dir);
+                                    }
+                                    fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
+                                        if (errWriteFile) {
+                                            throw errWriteFile;
+                                        } else {
+
+                                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                                            optionsHtmlToPdf.formData = {
+                                                files: [
+                                                ]
+                                            };
+                                            formData.push({
+                                                value: fs.createReadStream(dir + '/index.html'),
+                                                options: {
+                                                    filename: 'index.html'
+                                                }
+                                            });
+                                            formData.push({
+                                                value: fs.createReadStream(dir + '/style.css'),
+                                                options: {
+                                                    filename: 'style.css'
+                                                }
+                                            });
+                                            formData.push({
+                                                value: fs.createReadStream(dir + '/header.html'),
+                                                options: {
+                                                    filename: 'header.html'
+                                                }
+                                            });
+                                            formData.push({
+                                                value: fs.createReadStream(dir + '/footer.html'),
+                                                options: {
+                                                    filename: 'footer.html'
+                                                }
+                                            });
+                                            optionsHtmlToPdf.formData.files = formData;
+
+                                            rp(optionsHtmlToPdf)
+                                                .then(function (responseHtmlToPdf) {
+
+                                                    // console.log("optionsHtmlToPdf", optionsHtmlToPdf.formData.files);
+                                                    var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
+                                                    if (responseHtmlToPdf.statusCode == 200) {
+                                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
+                                                            if (err) {
+                                                                return console.log(err);
+                                                            }
+                                                            // console.log("The PDF was saved!");
+                                                            const s3 = new AWS.S3(config.s3_credentials);
+                                                            const uploadFile = () => {
+                                                                fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
+                                                                    if (err) throw err;
+                                                                    const params = {
+                                                                        Bucket: config.s3_bucketName, // pass your bucket name
+                                                                        Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf', // file will be saved as testBucket/contacts.csv
+                                                                        Body: Buffer.from(data, null, 2),
+                                                                        Expires: 10
+                                                                    };
+
+                                                                    if (deleteFromS3 == true) {
+                                                                        var folderPath = Buffer.from(currentTempFolder).toString('base64')
+
+                                                                        var response = {
+                                                                            status: "success",
+                                                                            message: 'report generated',
+                                                                            pdfUrl: folderPath,
+
+                                                                        };
+                                                                        resolve(response);
+
+                                                                    } else {
+
+
+                                                                        s3.upload(params, function (s3Err, data) {
+                                                                            if (s3Err) throw s3Err;
+
+
+                                                                            console.log(`File uploaded successfully at ${data.Location}`);
+
+                                                                            s3SignedUrl(data.key).then(function (signedRes) {
+
+                                                                                try {
+
+
+
+                                                                                    fs.readdir(imgPath, (err, files) => {
+                                                                                        if (err) throw err;
+
+                                                                                        // console.log("files",files.length);
+                                                                                        var i = 0;
+                                                                                        for (const file of files) {
+
+                                                                                            fs.unlink(path.join(imgPath, file), err => {
+                                                                                                if (err) throw err;
+                                                                                            });
+
+                                                                                            if (i == files.length) {
+                                                                                                fs.unlink('../../' + currentTempFolder, err => {
+                                                                                                    if (err) throw err;
+
+                                                                                                });
+                                                                                                console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
+                                                                                                // fs.unlink(path.join(imgPath, ""), err => {
+                                                                                                //     if (err) throw err;
+                                                                                                // });
+                                                                                            }
+
+                                                                                            i = i + 1;
+
+                                                                                        }
+                                                                                    });
+                                                                                    rimraf(imgPath, function () { console.log("done"); });
+
+                                                                                } catch (ex) {
+                                                                                    console.log("ex ", ex);
+                                                                                }
+
+                                                                                var response = {
+                                                                                    status: "success",
+                                                                                    message: 'report generated',
+                                                                                    pdfUrl: signedRes,
+                                                                                    downloadPath: data.key
+                                                                                };
+                                                                                resolve(response);
+                                                                            })
+                                                                        });
+
+                                                                    }
+                                                                });
+                                                            };
+                                                            uploadFile();
+                                                        });
+                                                    }
+                                                })
+                                                .catch(function (err) {
+                                                    resolve(err);
+                                                    throw err;
+                                                });
+                                        }
+                                    });
+                                })
+                                .catch(function (errEjsRender) {
+                                    console.log("errEjsRender : ", errEjsRender);
+
+                                    reject(errEjsRender);
+                                });
+
+                        }
+
+                    });
+                });
+
+        } catch (exp) {
+         console.log(exp);
+    } 
+    })
+
+}
+
+
+
+
+//Prepare chart object to send it to highchart server
+async function getCriteriaChartData(items, type) {
+    return new Promise(async function (resolve, reject) {
+
+        let arrayOfChartData = [];
+
+        await Promise.all(items.map(async element => {
+
+            await Promise.all(element.questionArray.map(async ele => {
+
+            if (ele.responseType && ele.responseType == type) {
+                let chartType = "bar";
+                if (type == "radio") {
+                    chartType = "pie";
+                } 
+
+                let obj = await createChartObject(ele,chartType);
+
+                arrayOfChartData.push(obj);
+            }
+
+           }));
+        }));
+        return resolve(arrayOfChartData);
+    });
+}
+
+
+async function createChartObject(ele,chartType){
+  
+    return new Promise(async function (resolve, reject){
+
+        let obj = {
+            order: ele.order,
+            type: "svg",
+            options: {
+                title: {
+                    text: ele.question
+                },
+                colors: ['#D35400', '#F1C40F', '#3498DB', '#8E44AD', '#154360', '#145A32'],
+
+                chart: {
+                    type: chartType
+
+
+                },
+                plotOptions: ele.chart.plotOptions,
+                xAxis: ele.chart.xAxis,
+                yAxis: ele.chart.yAxis,
+                credits: {
+                    enabled: false
+                },
+                series: ele.chart.data
+            },
+            question: ele.question
+        };
+
+    resolve(obj);
+
+    })
+
+}
+
+//PDF generation for instance observation score report
+exports.instanceScoreCriteriaPdfGeneration = async function(observationResp, deleteFromS3 = null, obj) {
+
+    return new Promise(async function (resolve, reject) {
+
+        var currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
+
+        var imgPath = __dirname + '/../' + currentTempFolder;
+
+        try {
+
+            if (!fs.existsSync(imgPath)) {
+                fs.mkdirSync(imgPath);
+            }
+
+            let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
+
+            // let headerFile = await copyBootStrapFile(__dirname + '/../views/header.html', imgPath + '/header.html');
+            let footerFile = await copyBootStrapFile(__dirname + '/../views/footer.html', imgPath + '/footer.html');
+
+            let chartObj = await getCriteriaScoreChartObject(observationResp.response);
+
+            let highChartData = await apiCallToHighChart(chartObj, imgPath, "pie");
+
+            let params = {
+                    observationName: observationResp.observationName
+                }
+            
+            ejs.renderFile(__dirname + '/../views/header.ejs', {
+                data: params
+            })
+                .then(function (headerHtml) {
+
+                    var dir = imgPath;
+                    if (!fs.existsSync(dir)) {
+                        fs.mkdirSync(dir);
+                    }
+
+                    fs.writeFile(dir + '/header.html', headerHtml, async function (errWr, dataWr) {
+
+                        if (errWr) {
+                            throw errWr;
+                        } else {
+
+                           
+                               obj.response  = observationResp.response;
+                               obj.highChartData = highChartData;
+
+                            ejs.renderFile(__dirname + '/../views/scoreCriteriaTemplate.ejs', {
+                                data: obj
+                            })
+                                .then(function (dataEjsRender) {
+
+                                    var dir = imgPath;
+                                    if (!fs.existsSync(dir)) {
+                                        fs.mkdirSync(dir);
+                                    }
+
+                                    fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
+                                        if (errWriteFile) {
+                                            throw errWriteFile;
+                                        } else {
+
+                                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                                            optionsHtmlToPdf.formData = {
+                                                files: [
+                                                ]
+                                            };
+                                            highChartData.push({
+                                                value: fs.createReadStream(dir + '/index.html'),
+                                                options: {
+                                                    filename: 'index.html'
+                                                }
+                                            });
+                                            highChartData.push({
+                                                value: fs.createReadStream(dir + '/style.css'),
+                                                options: {
+                                                    filename: 'style.css'
+                                                }
+                                            });
+                                            highChartData.push({
+                                                value: fs.createReadStream(dir + '/header.html'),
+                                                options: {
+                                                    filename: 'header.html'
+                                                }
+                                            });
+                                            highChartData.push({
+                                                value: fs.createReadStream(dir + '/footer.html'),
+                                                options: {
+                                                    filename: 'footer.html'
+                                                }
+                                            });
+                                            optionsHtmlToPdf.formData.files = highChartData;
+
+                                            rp(optionsHtmlToPdf)
+                                                .then(function (responseHtmlToPdf) {
+
+                                                    var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
+                                                    if (responseHtmlToPdf.statusCode == 200) {
+
+                                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
+                                                            if (err) {
+                                                                return console.log(err);
+                                                            }
+
+                                                            else {
+                                                                const s3 = new AWS.S3(config.s3_credentials);
+
+                                                                const uploadFile = () => {
+
+                                                                    fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
+                                                                        if (err) throw err;
+
+                                                                        const params = {
+                                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                                            Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
+                                                                            Body: Buffer.from(data, null, 2),
+                                                                            Expires: 10
+                                                                        };
+
+                                                                        if (deleteFromS3 == true) {
+                                                                            var folderPath = Buffer.from(currentTempFolder).toString('base64')
+
+                                                                            var response = {
+                                                                                status: "success",
+                                                                                message: 'report generated',
+                                                                                pdfUrl: folderPath,
+
+                                                                            };
+                                                                            resolve(response);
+
+                                                                        } else {
+
+
+                                                                            s3.upload(params, function (s3Err, data) {
+                                                                                if (s3Err) throw s3Err;
+
+                                                                                // console.log("data", data);
+                                                                                console.log(`File uploaded successfully at ${data.Location}`);
+
+                                                                                s3SignedUrl(data.key).then(function (signedRes) {
+
+                                                                                    try {
+
+
+
+                                                                                        fs.readdir(imgPath, (err, files) => {
+                                                                                            if (err) throw err;
+
+                                                                                            // console.log("files",files.length);
+                                                                                            var i = 0;
+                                                                                            for (const file of files) {
+
+                                                                                                fs.unlink(path.join(imgPath, file), err => {
+                                                                                                    if (err) throw err;
+                                                                                                });
+
+                                                                                                if (i == files.length) {
+                                                                                                    fs.unlink('../../' + currentTempFolder, err => {
+                                                                                                        if (err) throw err;
+
+                                                                                                    });
+                                                                                                    console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
+                                                                                                    // fs.unlink(path.join(imgPath, ""), err => {
+                                                                                                    //     if (err) throw err;
+                                                                                                    // });
+                                                                                                }
+
+                                                                                                i = i + 1;
+
+                                                                                            }
+                                                                                        });
+                                                                                        rimraf(imgPath, function () { console.log("done"); });
+
+                                                                                    } catch (ex) {
+                                                                                        console.log("ex ", ex);
+                                                                                    }
+
+                                                                                    var response = {
+                                                                                        status: "success",
+                                                                                        message: 'report generated',
+                                                                                        pdfUrl: signedRes,
+                                                                                        downloadPath: data.key
+                                                                                    };
+                                                                                    resolve(response);
+                                                                                })
+                                                                            });
+
+                                                                        }
+
+                                                                    });
+                                                                }
+                                                                uploadFile();
+                                                            }
+                                                        });
+
+                                                    }
+
+                                                }).catch(function (err) {
+                                                    console.log("error in converting HtmlToPdf", err);
+                                                    resolve(err);
+                                                    throw err;
+                                                });
+
+                                        }
+
+                                    });
+
+                                }).catch(function (errEjsRender) {
+                                    console.log("errEjsRender : ", errEjsRender);
+
+                                    reject(errEjsRender);
+                                });
+                        }
+
+
+                    });
+
+
+
+                });
+        }
+
+        catch (err) {
+          console.log(err);
+        }
+    })
+
+}
+
+
+// gantt chart for unnati pdf report
+async function ganttChartObject(data) {
+
+    return new Promise(async function (resolve, reject) {
+
+       
+       
+        let i=1;
+        let arrayOfData = [];
+        let projectData = [];
+
+        await Promise.all(data.map( async element => {
+
+            let xAxisCategories = [];
+            let dataArray = [];
+
+
+        await Promise.all(element.tasks.map(ele => {
+
+                xAxisCategories.push(ele.title);
+                if(ele.status){
+                if (ele.status.toLowerCase() == "completed") {
+
+                    let obj = {
+                        y: 4,
+                        color: "#00c983"
+                    }
+
+                    dataArray.push(obj);
+                } else if (ele.status.toLowerCase() == "not yet started" || ele.status.toLowerCase() == "not started yet") {
+                    let obj = {
+                        y: 4,
+                        color: "#F5F5F5"
+                    }
+                    dataArray.push(obj);
+                } else if (ele.status.toLowerCase() == "in progress") {
+                    let obj = {
+                        y: 4,
+                        color: "#FF872F"
+                    }
+                    dataArray.push(obj);
+                }
+              }
+            }))
+
+        let chartData = {
+            order:i,
+            type: "svg",
+            options: {
+
+                chart: {
+                    type: 'bar'
+                },
+                title: {
+                    text: ''
+                },
+
+                xAxis: {
+                    categories: xAxisCategories,
+                    title: {
+                        text: null
+                    }
+                },
+                yAxis: {
+                    min: 1,
+                    max: 4,
+                    allowDecimals: false,
+                    opposite: true,
+                    title: {
+                        text: '',
+
+                    },
+                    labels: {
+                        format: 'Week {value}'
+                    }
+                },
+
+                plotOptions: {
+                    bar: {
+                        dataLabels: {
+                            enabled: false
+                        }
+                    }
+                },
+                legend: {
+                    enabled: false
+                },
+                credits: {
+                    enabled: false
+                },
+                series: [{
+                    data: dataArray
+                }]
+            }
+        }
+
+        arrayOfData.push(chartData);
+        element.order = i;
+        projectData.push(element);
+        i++;
+    }))
+        resolve([arrayOfData,projectData]);
+
+    })
+
+}
+
+async function convertChartDataTofile(radioFilePath, options) {
+    try {
+        // console.log("options===", options);
+        var fileInfo = await rp(options).pipe(fs.createWriteStream(radioFilePath))
+
+        return new Promise(function (resolve, reject) {
+            fileInfo.on('finish', function () {
+                return resolve(fileInfo);
+            });
+            fileInfo.on('error', function (err) {
+                // return resolve(fileInfo);
+                console.log(err);
+                return resolve(err)
+            });
+        });
+    }
+    catch (err) {
+        console.log("error while generating highchart")
+    }
 }
 
 
@@ -1462,274 +3169,50 @@ async function apiCallToHighChart(chartData, imgPath, type) {
                 return resolve(formData);
             }
         } catch (err) {
-            console.log("error while calling", err);
+            console.log("error while calling highchart server");
         }
     });
 }
 
 
 async function callChartApiPreparation(ele, imgPath, type, chartData, carrent, formData) {
-    let loop = 0;
-    var options = config.high_chart;
-    var chartImage = "chartPngImage_" + loop + "_" + uuidv4() + "_.svg";
-    options.method = "POST";
-    options.body = JSON.stringify(ele);
-    let imgFilePath = imgPath + "/" + chartImage;
-    loop = loop + 1;
-    let renderImage = await convertChartDataTofile(imgFilePath, options);
-
-    let fileDat = {
-        order: ele.order,
-        value: fs.createReadStream(imgFilePath),
-        options: {
-            filename: chartImage,
-            
-        }
-    }
-
-    if(ele.question){
-        fileDat.options.question = ele.question;
-    }
-
-    formData.push(fileDat);
-    carrent = carrent + 1;
-    if (chartData.length > carrent) {
-        try {
-            let call = await callChartApiPreparation(chartData[carrent], imgPath, type, chartData, carrent, formData);
-        } catch (err) {
-            console.log("error while making api call to high chart docker", err);
-        }
-    } else {
-        return (formData);
-    }
-}
-
-
-
-//Unnati pdf generate function
-exports.unnatiPdfGeneration = async function (responseData,deleteFromS3 = null) {
-
-    return new Promise(async function (resolve,reject){
-
-    var currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
-
-    var imgPath = __dirname + '/../' + currentTempFolder;
-
-    if (!fs.existsSync(imgPath)) {
-        fs.mkdirSync(imgPath);
-    }
-
-    //copy images from public folder
-    let src = __dirname + '/../public/images/headerlogo.png';
-    fs.copyFileSync(src, imgPath + '/headerlogo.png');
-
-    arrowImg = __dirname + '/../public/images/arrow.png';
-    fs.copyFileSync(arrowImg, imgPath + '/arrow.png');
-
-    homeImg = __dirname + '/../public/images/home.png';
-    fs.copyFileSync(homeImg, imgPath + '/home.png');
-
-    bgImg = __dirname + '/../public/images/background.png';
-    fs.copyFileSync(bgImg, imgPath + '/background.png');
-
-    footerImg = __dirname + '/../public/images/footer.png';
-    fs.copyFileSync(footerImg, imgPath + '/footer.png');
-
-    let fileData = [{
-        value: fs.createReadStream(imgPath + '/headerlogo.png'),
-        options: {
-            filename: 'headerlogo.png',
-
-        }
-    },
-    {
-        value: fs.createReadStream(imgPath + '/arrow.png'),
-        options: {
-            filename: 'arrow.png',
-
-        }
-    },
-    {
-        value: fs.createReadStream(imgPath + '/home.png'),
-        options: {
-            filename: 'home.png',
-
-        }
-    },
-    {
-        value: fs.createReadStream(imgPath + '/background.png'),
-        options: {
-            filename: 'background.png',
-
-        }
-    },
-    {
-        value: fs.createReadStream(imgPath + '/footer.png'),
-        options: {
-            filename: 'footer.png',
-
-        }
-    }];
-
-    let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
-
     try {
+        let loop = 0;
+        var options = config.high_chart;
+        var chartImage = "chartPngImage_" + loop + "_" + uuidv4() + "_.svg";
+        options.method = "POST";
+        options.body = JSON.stringify(ele);
+        let imgFilePath = imgPath + "/" + chartImage;
+        loop = loop + 1;
+        let renderImage = await convertChartDataTofile(imgFilePath, options);
 
-        var FormData = [];
+        let fileDat = {
+            order: ele.order,
+            value: fs.createReadStream(imgFilePath),
+            options: {
+                filename: chartImage,
 
-        FormData.push(...fileData);
-
-        let obj = {
-            duration: responseData.duration,
-            goal: responseData.goal,
-            tasksArray: responseData.tasks,
-            projectName: responseData.title,
-            category : responseData.category,
-            status : responseData.status
+            }
         }
 
-        ejs.renderFile(__dirname + '/../views/unnatiTemplate.ejs', {
-            data: obj
-        })
-            .then(function (dataEjsRender) {
+        if (ele.question) {
+            fileDat.options.question = ele.question;
+        }
 
-                var dir = imgPath;
-                if (!fs.existsSync(dir)) {
-                    fs.mkdirSync(dir);
-                }
-
-                fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
-                    if (errWriteFile) {
-                        throw errWriteFile;
-                    } else {
-
-                        var optionsHtmlToPdf = config.optionsHtmlToPdf;
-                        optionsHtmlToPdf.formData = {
-                            files: [
-                            ]
-                        };
-                        FormData.push({
-                            value: fs.createReadStream(dir + '/index.html'),
-                            options: {
-                                filename: 'index.html'
-                            }
-                        });
-                        optionsHtmlToPdf.formData.files = FormData;
-
-
-                        rp(optionsHtmlToPdf)
-                            .then(function (responseHtmlToPdf) {
-
-                                var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
-                                if (responseHtmlToPdf.statusCode == 200) {
-
-                                    fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
-                                        if (err) {
-                                            return console.log(err);
-                                        }
-
-                                        else {
-                                            const s3 = new AWS.S3(config.s3_credentials);
-
-                                            const uploadFile = () => {
-
-                                                fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
-                                                    if (err) throw err;
-
-                                                    const params = {
-                                                        Bucket: config.s3_bucketName, // pass your bucket name
-                                                        Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
-                                                        Body: Buffer.from(data, null, 2),
-                                                        Expires: 10
-                                                    };
-
-                                                    if (deleteFromS3 == true) {
-                                                        var folderPath = Buffer.from(currentTempFolder).toString('base64')
-
-                                                        var response = {
-                                                            status: "success",
-                                                            message: 'report generated',
-                                                            pdfUrl: folderPath,
-
-                                                        };
-                                                        resolve(response);
-
-                                                    } else {
-
-
-                                                        s3.upload(params, function (s3Err, data) {
-                                                            if (s3Err) throw s3Err;
-
-                                                            // console.log("data", data);
-                                                            console.log(`File uploaded successfully at ${data.Location}`);
-
-                                                            s3SignedUrl(data.key).then(function (signedRes) {
-
-                                                                try {
-
-
-
-                                                                    fs.readdir(imgPath, (err, files) => {
-                                                                        if (err) throw err;
-
-                                                                        // console.log("files",files.length);
-                                                                        var i = 0;
-                                                                        for (const file of files) {
-
-                                                                            fs.unlink(path.join(imgPath, file), err => {
-                                                                                if (err) throw err;
-                                                                            });
-
-                                                                            if (i == files.length) {
-                                                                                fs.unlink('../../' + currentTempFolder, err => {
-                                                                                    if (err) throw err;
-
-                                                                                });
-                                                                                console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
-                                                                                // fs.unlink(path.join(imgPath, ""), err => {
-                                                                                //     if (err) throw err;
-                                                                                // });
-                                                                            }
-
-                                                                            i = i + 1;
-
-                                                                        }
-                                                                    });
-                                                                    rimraf(imgPath, function () { console.log("done"); });
-
-                                                                } catch (ex) {
-                                                                    console.log("ex ", ex);
-                                                                }
-
-                                                                var response = {
-                                                                    status: "success",
-                                                                    message: 'report generated',
-                                                                    pdfUrl: signedRes,
-                                                                    downloadPath: data.key
-                                                                };
-                                                                resolve(response);
-                                                            })
-                                                        });
-
-                                                    }
-
-                                                });
-                                            }
-                                            uploadFile();
-                                        }
-                                    });
-                                }
-
-                            }).catch(err => {
-                                resolve(err);
-                            })
-                    }
-                })
-            })
+        formData.push(fileDat);
+        carrent = carrent + 1;
+        if (chartData.length > carrent) {
+            try {
+                let call = await callChartApiPreparation(chartData[carrent], imgPath, type, chartData, carrent, formData);
+            } catch (err) {
+                console.log("error while making api call to high chart docker", err);
+            }
+        } else {
+            return (formData);
+        }
     }
     catch (err) {
-        resolve(err);
+        console.log(err);
+        console.log("error");
     }
-
-})
 }

@@ -1,0 +1,66 @@
+<html>
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+
+    <h6>Projects Undertaken in Last <%= data.reportType %></h6>
+    <br>
+    <% for (var i=0;i < data.projectData.length; i++){ %>
+    <h6><%= data.projectData[i].title %></h6>
+    <br>
+    <% let startDate,endDate %>
+    <% let months = ["January","February","March","April","May","June","July","August","September","October,","November","December"] %>
+
+    <% if (data.projectData[i].startDate) { %>
+    <% let date = new Date(data.projectData[i].startDate) %>
+    <% let day = date.getDate() %>
+    <% let month = months[date.getMonth()] %>
+    <% let year = date.getFullYear() %>
+    <% startDate = day + " " + month + " " + year %>
+    <% } %>
+
+    <% if (data.projectData[i].endDate) { %>
+    <% let date = new Date(data.projectData[i].endDate) %>
+    <% let day = date.getDate() %>
+    <% let month = months[date.getMonth()] %>
+    <% let year = date.getFullYear() %>
+    <% endDate = day + " " + month + " " + year %>
+    <% } %>
+
+
+    <% for (let j=0;j < data.chartData.length; j++){ %>
+
+    <% if(data.chartData[j].order === data.projectData[i].order){ %>
+    <div class="row">
+        <div style="width:50%;float: left;">
+            <p style="text-align: center;font-size: 10px !important;margin-left: 70px"><b
+                    style="color: #696969 !important">Start Date <br> <%= startDate %> </b></p>
+        </div>
+        <div style="width:50%;float:right">
+            <p style="margin-left: 180px;font-size: 10px !important;"><b style="color: #696969 !important">End Date <br>
+                    <%= endDate %></b>
+            </p>
+        </div>
+        <img src="<%= data.chartData[j].options.filename %>" style="width:85%">
+    </div>
+    <% } %>
+    <% } %>
+    <div style='page-break-after:always'></div>
+    <% } %>
+
+
+</body>
+
+</html>
