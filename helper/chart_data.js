@@ -977,7 +977,7 @@ exports.entityAssessmentChart = async function (inputObj) {
 
         let chartObj = {
             result: true,
-            title: data[0].event.programName + " report",
+            title: inputObj.data[0].event.programName + " report",
             reportSections: [
                 {
                     order: 1,

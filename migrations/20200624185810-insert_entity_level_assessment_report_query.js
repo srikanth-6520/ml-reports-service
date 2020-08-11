@@ -10,7 +10,11 @@ module.exports = {
       throw new Error("Cassandra connection not available.");
     }
 
-    // let id = Uuid.random();
+    const query = 'SELECT id FROM ' + config.cassandra.keyspace + '.' + config.cassandra.table + ' WHERE qid = ? ALLOW FILTERING';
+    const result = await cassandra.execute(query, ['entity_level_assessment_report_query'], { prepare: true });
+    const row = result.rows;
+
+    if (!row.length) {
 
     let query = 'INSERT INTO ' + config.cassandra.keyspace + '.' + config.cassandra.table +' (id, qid, query) VALUES (?, ?, ?)';
    
@@ -21,6 +25,8 @@ module.exports = {
       }];
 
       await cassandra.batch(queries, { prepare: true });
+
+      }
 
         return global.migrationMsg;
     },

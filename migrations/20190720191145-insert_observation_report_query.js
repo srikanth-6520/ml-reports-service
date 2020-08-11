@@ -3,7 +3,7 @@ const config = require('../config/config');
 
 module.exports = {
   async up(db) {
-    global.migrationMsg = "Insert list entities query";
+    global.migrationMsg = "Insert observation report query";
     
     
     if (!cassandra) {
@@ -11,7 +11,7 @@ module.exports = {
     }
     
     const query = 'SELECT id FROM ' + config.cassandra.keyspace + '.' + config.cassandra.table + ' WHERE qid = ? ALLOW FILTERING';
-    const result = await cassandra.execute(query, ['list_entities_query'], { prepare: true });
+    const result = await cassandra.execute(query, ['observation_report_query'], { prepare: true });
     const row = result.rows;
 
     if (!row.length) {
@@ -23,12 +23,12 @@ module.exports = {
     let queries = 
       [{
         query: query,
-        params: [id.toString(), 'list_entities_query', '{"queryType":"groupBy","dataSource":"sl_assessment","granularity":"all","dimensions":["solutionName","solutionId","solutionDescription","solutionExternalId"],"filter":{},"aggregations":[],"postAggregations":[],"intervals":["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"]}']
+        params: [id.toString(), 'observation_report_query', '{"queryType":"groupBy","dataSource":"sl_observation_dev","granularity":"all","dimensions":["questionName","questionAnswer","entityType","observationName","observationId","questionResponseType","questionResponseLabel","observationSubmissionId","questionId","questionExternalId","instanceId","instanceParentQuestion","instanceParentResponsetype","instanceParentId","instanceParentEcmSequence","instanceParentExternalId"],"filter":{"type":"and","fields":[{"type":"selector","dimension":"observationId","value":""}]},"aggregations":[],"postAggregations":[],"intervals":["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"]}']
       }];
 
       await cassandra.batch(queries, { prepare: true });
 
-      }
+     }
       
       return global.migrationMsg;
       },
