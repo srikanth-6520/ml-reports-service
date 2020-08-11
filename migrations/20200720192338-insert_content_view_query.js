@@ -3,15 +3,15 @@ const config = require('../config/config');
 
 module.exports = {
   async up(db) {
-    global.migrationMsg = "Insert list entities query";
+    global.migrationMsg = "Insert content view query";
     
     
     if (!cassandra) {
       throw new Error("Cassandra connection not available.");
     }
-    
+
     const query = 'SELECT id FROM ' + config.cassandra.keyspace + '.' + config.cassandra.table + ' WHERE qid = ? ALLOW FILTERING';
-    const result = await cassandra.execute(query, ['list_entities_query'], { prepare: true });
+    const result = await cassandra.execute(query, ['content_view_query'], { prepare: true });
     const row = result.rows;
 
     if (!row.length) {
@@ -23,12 +23,12 @@ module.exports = {
     let queries = 
       [{
         query: query,
-        params: [id.toString(), 'list_entities_query', '{"queryType":"groupBy","dataSource":"sl_assessment","granularity":"all","dimensions":["solutionName","solutionId","solutionDescription","solutionExternalId"],"filter":{},"aggregations":[],"postAggregations":[],"intervals":["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"]}']
+        params: [id.toString(), 'content_view_query', '{"queryType":"topN","dataSource":"sl_telemetry","aggregations":[{"fieldName":"content_identifier","fieldNames":["content_identifier"],"type":"count","name":"COUNT(content_identifier)"}],"granularity":"all","postAggregations":[],"intervals":"1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00","filter":{"type":"and","fields":[{"type":"not","field":{"type":"selector","dimension":"content_identifier","value":null}},{"type":"bound","dimension":"Date","lower":"2019-10-01T00:00:00.000Z","lowerStrict":false,"upper":null,"upperStrict":false,"alphaNumeric":false}]},"threshold":5,"metric":"COUNT(content_identifier)","dimension":"content_name"}']
       }];
 
       await cassandra.batch(queries, { prepare: true });
 
-      }
+     }
       
       return global.migrationMsg;
       },

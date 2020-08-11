@@ -3,15 +3,15 @@ const config = require('../config/config');
 
 module.exports = {
   async up(db) {
-    global.migrationMsg = "Insert list entities query";
+    global.migrationMsg = "Insert usage by content query";
     
     
     if (!cassandra) {
       throw new Error("Cassandra connection not available.");
     }
-    
+
     const query = 'SELECT id FROM ' + config.cassandra.keyspace + '.' + config.cassandra.table + ' WHERE qid = ? ALLOW FILTERING';
-    const result = await cassandra.execute(query, ['list_entities_query'], { prepare: true });
+    const result = await cassandra.execute(query, ['usage_by_content_query'], { prepare: true });
     const row = result.rows;
 
     if (!row.length) {
@@ -23,7 +23,7 @@ module.exports = {
     let queries = 
       [{
         query: query,
-        params: [id.toString(), 'list_entities_query', '{"queryType":"groupBy","dataSource":"sl_assessment","granularity":"all","dimensions":["solutionName","solutionId","solutionDescription","solutionExternalId"],"filter":{},"aggregations":[],"postAggregations":[],"intervals":["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"]}']
+        params: [id.toString(), 'usage_by_content_query','{"queryType":"topN","dataSource":"sl_telemetry","aggregations":[{"fieldName":"UserId","fieldNames":["UserId"],"type":"count","name":"Total Users Viewed"}],"granularity":"all","postAggregations":[],"intervals":"1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00","filter":{"type":"not","field":{"type":"selector","dimension":"content_name","value":null}},"threshold":5,"metric":"Total Users Viewed","dimension":"content_name"}']
       }];
 
       await cassandra.batch(queries, { prepare: true });
