@@ -3,7 +3,7 @@ const fnArgs = require("fn-args");
 const { promisify } = require("util");
 const status = require("./status");
 const migrationsDir = require("../env/migrationsDir");
-let config = require('../../../../config/config');
+//const config = require("../../../../config/config");
 
 module.exports = async db => {
   const downgraded = [];
@@ -23,7 +23,7 @@ module.exports = async db => {
       );
     }
   
-    const collectionName = config.mongodb.migration_collection || "migrations";
+    const collectionName = process.env.migration_collection || "migrations";
     const collection = db.collection(collectionName);
     try {
       await collection.deleteOne({ fileName: lastAppliedItem.fileName });

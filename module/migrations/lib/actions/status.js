@@ -1,6 +1,6 @@
 const { find } = require("lodash");
 const migrationsDir = require("../env/migrationsDir");
-let config = require('../../../../config/config');
+//const config = require(__dirname +'/../../../../config/config');
 
 module.exports = async db => {
   await migrationsDir.shouldExist();
@@ -15,7 +15,7 @@ module.exports = async db => {
   }else{
     fileValue = fileNames
   }
-  const collectionName = config.mongodb.migration_collection || "migrations"
+  const collectionName = process.env..migration_collection || "migrations"
 
   const collection = db.collection(collectionName);
   const changelog = await collection.find({}).toArray();

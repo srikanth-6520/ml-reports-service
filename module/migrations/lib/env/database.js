@@ -1,12 +1,12 @@
 const { MongoClient } = require("mongodb");
 global.ObjectID = require('mongodb').ObjectID;
-let config = require("../../../../config/config");
+//const config = require(__dirname + "/../../../../config/config");
 
 module.exports = {
   async connect() {
 
-    const url = config.mongodb.url
-    const databaseName = config.mongodb.db
+    const url = process.env.url
+    const databaseName = process.env.db
     const options = {useNewUrlParser: true}
 
     if (!url) {
@@ -30,8 +30,8 @@ module.exports = {
   },
   async connectToTransferFromDB() {
 
-    const url = config.mongodb.url
-    const databaseName = config.mongodb.db
+    const url = process.env.url
+    const databaseName = process.env.db
     const options = {useNewUrlParser: true}
 
     if (!url) {

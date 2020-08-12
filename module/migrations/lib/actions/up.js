@@ -6,7 +6,7 @@ const status = require("./status");
 const migrationsDir = require("../env/migrationsDir");
 const database = require("../env/database");
 const cassandra = require("../env/cassandra");
-let config = require("../../../../config/config");
+//const config = require(__dirname +"/../../../../config/config");
 
 module.exports = async db => {
   const statusItems = await status(db);
@@ -31,7 +31,7 @@ module.exports = async db => {
       throw error;
     }
 
-    const collectionName = config.mongodb.migration_collection || "migrations";
+    const collectionName = process.env..migration_collection || "migrations";
     const collection = db.collection(collectionName);
 
     const { fileName } = item;

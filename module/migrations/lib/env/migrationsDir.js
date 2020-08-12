@@ -1,6 +1,6 @@
 const fs = require("fs-extra");
 const path = require("path");
-let config = require("../../../../config/config");
+//const config = require(__dirname +"/../../../../config/config");
 
 const DEFAULT_MIGRATIONS_DIR_NAME = "migrations";
 
@@ -8,7 +8,7 @@ async function resolveMigrationsDirPath() {
   let migrationsDir;
   try {
         
-    migrationsDir = config.mongodb.migration_dir; 
+    migrationsDir = process.env.migration_dir; 
 
     if (!migrationsDir) {
       migrationsDir = DEFAULT_MIGRATIONS_DIR_NAME;
