@@ -47,8 +47,7 @@
 },
  
   "evidence" : {
-        "evidence_threshold": 3,
-        "gcp_bucket_name": "GCP_BUCKET_NAME"
+        "evidence_threshold": 3
     },
 
  "keycloak": {
