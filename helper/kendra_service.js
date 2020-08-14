@@ -9,13 +9,13 @@ async function getDownloadableUrl(evidenceList, token) {
 
       let url;
       if (config.cloud_storage == filesHelper.googleCloud) {
-         url = config.kendra.gcp_getDownloadableUrl_api;
+         url = config.kendra.gcp_downloadable_file_url_api;
       }
       else if (config.cloud_storage == filesHelper.azure) {
-         url = config.kendra.azure_getDownloadableUrl_api;
+         url = config.kendra.azure_downloadable_file_url_api;
       }
       else if (config.cloud_storage == filesHelper.aws) {
-         url = config.kendra.aws_getDownloadableUrl_api;
+         url = config.kendra.aws_downloadable_file_url_api;
       }
       
       let options = {

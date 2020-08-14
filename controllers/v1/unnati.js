@@ -32,7 +32,7 @@ const config = require('../../config/config');
 //Controller function for unnati pdf generation
 exports.pdfReport = async function(req,res){
 
-    let response = await pdfHandler.unnatiPdfGeneration(req.body, false);
+    let response = await pdfHandler.unnatiPdfGeneration(req.body, storeReportsToS3 = false);
     let hostname = req.headers.host;
   
     response.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
@@ -67,7 +67,7 @@ exports.pdfReport = async function(req,res){
 //Controller function for unnati monthly report pdf generation
 exports.monthlyReport = async function(req,res){
 
-    let response = await pdfHandler.unnatiMonthlyReportPdfGeneration(req.body, false);
+    let response = await pdfHandler.unnatiMonthlyReportPdfGeneration(req.body, storeReportsToS3 = false);
     let hostname = req.headers.host;
   
     response.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
@@ -101,7 +101,7 @@ exports.monthlyReport = async function(req,res){
 //Controller function for unnati view full report pdf generation
 exports.viewProjectReport = async function(req,res){
 
-    let response = await pdfHandler.unnatiViewFullReportPdfGeneration(req.body, false);
+    let response = await pdfHandler.unnatiViewFullReportPdfGeneration(req.body, storeReportsToS3 = false);
     let hostname = req.headers.host;
   
     response.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
@@ -146,7 +146,7 @@ exports.viewProjectReport = async function(req,res){
 //Controller function for unnati add task pdf generation
 exports.addTaskReport = async function(req,res){
 
-   let response = await pdfHandler.addTaskPdfGeneration(req.body, false);
+   let response = await pdfHandler.addTaskPdfGeneration(req.body, storeReportsToS3 = false);
    let hostname = req.headers.host;
  
    response.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
