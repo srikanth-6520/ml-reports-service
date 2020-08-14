@@ -1,6 +1,8 @@
+const config = require('../../config/config');
 const commonCassandraFunc = require('../../common/cassandra_func');
 const pdfHandler = require('../../helper/common_handler');
 const assessmentController = require('./assessments');
+const storePdfReportsToS3 = (!config.store_pdf_reports_in_s3_on_off || config.store_pdf_reports_in_s3_on_off != "OFF") ? "ON" : "OFF"
 
 
 //Function to generate PDF for entity assessment API (For earlier version of the app)
@@ -44,21 +46,33 @@ exports.pdfReports = async function (req, res) {
 
             if (assessmentRes.result == true) {
 
-                let resData = await pdfHandler.assessmentPdfGeneration(assessmentRes);
-
-                if (dataReportIndexes) {
-                    var reqOptions = {
-                        query: dataReportIndexes.id,
-                        downloadPath: resData.downloadPath
-                    }
-                    commonCassandraFunc.updateEntityAssessmentDownloadPath(reqOptions);
-                } else {
-                    //store download url in cassandra
-                    let dataInsert = commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqData, resData, resData.downloadPath);
+                let storeReportsToS3 = false;
+                if(storePdfReportsToS3 == "ON"){
+                  storeReportsToS3 = true;
                 }
+                
+                let resData = await pdfHandler.assessmentPdfGeneration(assessmentRes, storeReportsToS3);
 
-                res.send(resData);
-                // res.send(omit(resData,'downloadPath'));
+                if (storeReportsToS3 == false) {
+                    let hostname = req.headers.host;
+                    resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+                    res.send(resData);
+                }
+                else {
+                    if (dataReportIndexes) {
+                        var reqOptions = {
+                            query: dataReportIndexes.id,
+                            downloadPath: resData.downloadPath
+                        }
+                        commonCassandraFunc.updateEntityAssessmentDownloadPath(reqOptions);
+                    } else {
+                        //store download url in cassandra
+                        let dataInsert = commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqData, resData, resData.downloadPath);
+                    }
+
+                    //res.send(resData);
+                     res.send(omit(resData,'downloadPath'));
+                }
             }
             else {
                 res.send(assessmentRes);

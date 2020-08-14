@@ -12,6 +12,7 @@ const fs = require('fs');
 const path = require('path');
 const kendraService = require('../../helper/kendra_service');
 const assessmentService = require('../../helper/assessment_service');
+const storePdfReportsToS3 = (!config.store_pdf_reports_in_s3_on_off || config.store_pdf_reports_in_s3_on_off != "OFF") ? "ON" : "OFF"
 
 
 /**
@@ -143,34 +144,48 @@ async function instanceObservationData(req, res) {
   
 //Funcion for instance observation pdf generation
 async function instancePdfReport(req, res) {
-  
-    return new Promise(async function (resolve, reject) {
-  
-      let reqData = req.query;
-      let dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
-  
-      if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
-  
-        dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
-        let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
-  
-        let response = {
-          status: "success",
-          message: 'Observation Pdf Generated successfully',
-          pdfUrl: signedUlr
-        };
-  
-        resolve(response);
-  
-      } else {
-  
-        req.body.submissionId = req.query.submissionId;
-  
-        var instaRes = await instanceObservationData(req, res);
-  
-        if (("observationName" in instaRes) == true) {
-          let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes);
-  
+
+  return new Promise(async function (resolve, reject) {
+
+    let reqData = req.query;
+    let dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
+
+    if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
+
+      dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
+      let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
+
+      let response = {
+        status: "success",
+        message: 'Observation Pdf Generated successfully',
+        pdfUrl: signedUlr
+      };
+
+      resolve(response);
+
+    } else {
+
+      req.body.submissionId = req.query.submissionId;
+
+      var instaRes = await instanceObservationData(req, res);
+
+      if (("observationName" in instaRes) == true) {
+
+        let storeReportsToS3 = false;
+        if (storePdfReportsToS3 == "ON") {
+          storeReportsToS3 = true;
+        }
+        let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes, storeReportsToS3);
+
+        if (storeReportsToS3 == false) {
+
+          let hostname = req.headers.host;
+          resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+          resolve(resData);
+
+        }
+        else {
+
           if (dataReportIndexes) {
             let reqOptions = {
               query: dataReportIndexes.id,
@@ -180,17 +195,17 @@ async function instancePdfReport(req, res) {
           } else {
             let dataInsert = commonCassandraFunc.insertReqAndResInCassandra(reqData, instaRes, resData.downloadPath);
           }
-  
+
           // res.send(resData);
           resolve(omit(resData, 'downloadPath'));
         }
-  
-        else {
-          resolve(instaRes);
-        }
       }
-    });
-  };
+      else {
+        resolve(instaRes);
+      }
+    }
+  });
+};
   
 
 /**
@@ -348,7 +363,7 @@ exports.instanceObservationScoreReport = async function (req, res) {
 async function instanceObservationScorePdfFunc(req, res) {
   
     return new Promise(async function (resolve, reject) {
-  
+   
       let instaRes = await instanceScoreReport(req, res);
   
       if (instaRes.result == true) {
@@ -357,19 +372,19 @@ async function instanceObservationScorePdfFunc(req, res) {
           totalScore: instaRes.totalScore,
           scoreAchieved: instaRes.scoreAchieved
         }
-  
-        let resData = await pdfHandler.instanceObservationScorePdfGeneration(instaRes, true, obj);
-  
+       
+        let resData = await pdfHandler.instanceObservationScorePdfGeneration(instaRes, storeReportsToS3 = false, obj);
+         
         let hostname = req.headers.host;
-  
         resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-  
         resolve(resData);
-      }
-  
+
+        }
       else {
         resolve(instaRes);
       }
+
+     
   
     });
   
@@ -520,8 +535,8 @@ async function entityObservationPdf(req, res) {
       let responseData = await entityObservationData(req, res);
   
       if (("observationName" in responseData) == true) {
-  
-        let resData = await pdfHandler.pdfGeneration(responseData, true);
+
+        let resData = await pdfHandler.pdfGeneration(responseData, storeReportsToS3 = false);
   
         if (resData.status && resData.status == "success") {
   
@@ -679,8 +694,8 @@ async function entityObservationReportPdfGeneration(req, res) {
       var entityResponse = await entityObservationReportGeneration(req, res);
   
       if (("observationName" in entityResponse) == true) {
-  
-        let resData = await pdfHandler.pdfGeneration(entityResponse, true);
+
+        let resData = await pdfHandler.pdfGeneration(entityResponse, storeReportsToS3 = false);
         let hostname = req.headers.host;
   
         var responseObject = {
@@ -848,8 +863,8 @@ async function entityObservationScorePdfFunc(req, res) {
           schoolName: entityRes.schoolName,
           totalObservations: entityRes.totalObservations
         }
-  
-        let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, true, obj);
+        
+        let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, storeReportsToS3 = false, obj);
   
         let hostname = req.headers.host;
   
@@ -1143,8 +1158,8 @@ async function entitySolutionScorePdfFunc(req, res) {
         let obj = {
           solutionName: entityRes.solutionName
         }
-  
-        let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, true, obj);
+
+        let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, storeReportsToS3 = false, obj);
   
         let hostname = req.headers.host;
   
@@ -1402,36 +1417,33 @@ async function observationReportData(req, res) {
 //Controller for observation pdf report
 async function observationGenerateReport(req, res) {
 
-    return new Promise(async function (resolve, reject) {
+  return new Promise(async function (resolve, reject) {
 
-        req.body.observationId = req.query.observationId;
-        let responseData = await observationReportData(req, res);
+    req.body.observationId = req.query.observationId;
+    let responseData = await observationReportData(req, res);
 
-        if (("observationName" in responseData) == true) {
+    if (("observationName" in responseData) == true) {
 
-            let resData = await pdfHandler.pdfGeneration(responseData, true);
+      let resData = await pdfHandler.pdfGeneration(responseData, storeReportsToS3 = false);
 
-            if (resData.status && resData.status == "success") {
-                var hostname = req.headers.host;
-                var pathname = url.parse(req.url).pathname;
-               
-                var obj = {
-                    status: "success",
-                    message: 'Observation Pdf Generated successfully',
-                    pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-                }
-
-                resolve(obj);
-            } else {
-                resolve(resData);
-            }
-        }
-        else {
-            resolve(responseData);
+      if (resData.status && resData.status == "success") {
+        var hostname = req.headers.host;
+        
+        var obj = {
+          status: "success",
+          message: 'Observation Pdf Generated successfully',
+          pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
         }
 
-
-    });
+        resolve(obj);
+      } else {
+        resolve(resData);
+      }
+    }
+    else {
+      resolve(responseData);
+    }
+  });
 }
 
 
@@ -1658,7 +1670,7 @@ async function observationScorePdfFunc(req, res) {
         entityType: observationRes.entityType
       }
 
-      let resData = await pdfHandler.instanceObservationScorePdfGeneration(observationRes, true, obj);
+      let resData = await pdfHandler.instanceObservationScorePdfGeneration(observationRes, storeReportsToS3 = false, obj);
   
       let hostname = req.headers.host;
   
@@ -2244,8 +2256,8 @@ exports.entitySolutionReportPdfGeneration = async function (req, res) {
       let obj = {
         solutionName: entityResponse.solutionName
       }
-
-      let resData = await pdfHandler.pdfGeneration(entityResponse, true, obj);
+      
+      let resData = await pdfHandler.pdfGeneration(entityResponse, storeReportsToS3 = false, obj);
       let hostname = req.headers.host;
 
       var responseObject = {
@@ -2410,15 +2422,12 @@ return new Promise(async function (resolve, reject) {
 
   if (("observationName" in instaRes) == true) {
 
-    let resData = await pdfHandler.instanceCriteriaReportPdfGeneration(instaRes, true);
-
+    let resData = await pdfHandler.instanceCriteriaReportPdfGeneration(instaRes, storeReportsToS3 = false);
+    
     let hostname = req.headers.host;
-
     resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-
     resolve(resData);
   }
-
   else {
     resolve(instaRes);
   }
@@ -2602,13 +2611,13 @@ return new Promise(async function (resolve, reject) {
       scoreAchieved: instaRes.scoreAchieved
     }
 
-    let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(instaRes, true, obj);
-
-    let hostname = req.headers.host;
-
-    resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-
-    resolve(resData);
+    let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(instaRes, storeReportsToS3 = false, obj);
+    
+   
+       let hostname = req.headers.host;
+       resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+       resolve(resData);
+  
   }
 
   else {
@@ -2780,7 +2789,7 @@ async function entityPdfReportByCriteria(req, res) {
   
     if (("observationName" in entityRes) == true) {
      
-      let resData = await pdfHandler.entityCriteriaPdfReportGeneration(entityRes, true);
+      let resData = await pdfHandler.entityCriteriaPdfReportGeneration(entityRes, storeReportsToS3 = false);
 
       let hostname = req.headers.host;
 
@@ -3001,7 +3010,7 @@ async function entityScorePdfReportByCriteria(req, res) {
         totalObservations: entityRes.totalObservations
       }
 
-      let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(entityRes, true, obj);
+      let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(entityRes, storeReportsToS3 = false, obj);
 
       let hostname = req.headers.host;
 
@@ -3164,7 +3173,7 @@ async function observationPdfReportByCriteria(req, res) {
   
     if (("observationName" in observeRes) == true) {
      
-      let resData = await pdfHandler.entityCriteriaPdfReportGeneration(observeRes, true);
+      let resData = await pdfHandler.entityCriteriaPdfReportGeneration(observeRes, storeReportsToS3 = false);
 
       let hostname = req.headers.host;
 
@@ -3389,7 +3398,7 @@ async function observationScorePdfReportByCriteria(req, res) {
         entityType: observationRes.entityType
     }
 
-    let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(observationRes, true, obj);
+    let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(observationRes, storeReportsToS3 = false, obj);
 
     let hostname = req.headers.host;
 
