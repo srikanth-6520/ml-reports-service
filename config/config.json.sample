@@ -4,6 +4,9 @@
    "node_env": "local",
    "apidoc_url": "/apidoc",
    "apidoc_path":"/public/apidoc",
+
+   "cloud_storage" : "AWS/GC/AZURE",
+   "bucket_name": "BUCKET_NAME",
    
    "cassandra":{ 
       "host":"CASSANDR_HOST_IP_ADDRESS",
@@ -44,8 +47,7 @@
 },
  
   "evidence" : {
-        "evidence_threshold": 3,
-        "gcp_bucket_name": "GCP_BUCKET_NAME"
+        "evidence_threshold": 3
     },
 
  "keycloak": {
@@ -57,13 +59,15 @@
     "sunbird_cache_ttl": 1800
  },
     "samiksha_api": {
-       "assessment_entity_list_api":"SAMIKSHA_ASSESSMENT_ENTITY_LIST_API",
-       "observation_details_api":"SAMIKSHA_OBSERVATION_DETAILS_API",
-       "get_user_profile_api": "SAMIKSHA_GET_USER_PROFILE_API"
+       "assessment_entity_list_api":"http://localhost:4201/assessment/api/v1/entities/list/",
+       "observation_details_api":"http://localhost:4201/assessment/api/v1/observations/details/",
+       "get_user_profile_api": "http://localhost:4201/assessment/api/v1/userExtension/getProfile"
     },
     
      "kendra" : {
-        "getDownloadableUrl_api": "KENDRA_GETDOWNLOADABLE_API"
+         "gcp_downloadable_file_url_api": "http://localhost:7001/kendra/api/v1/cloud-services/gcp/getDownloadableUrl",
+         "azure_downloadable_file_url_api": "http://localhost:7001/kendra/api/v1/cloud-services/azure/getDownloadableUrl",
+         "aws_downloadable_file_url_api": "http://localhost:7001/kendra/api/v1/cloud-services/aws/getDownloadableUrl"
     },
 
  "optionsHtmlToPdf":{ 
@@ -84,6 +88,7 @@
    },
    "s3_signed_url_expire_seconds":300,
    "s3_bucketName":"",
+   "store_pdf_reports_in_s3_on_off" : "ON/OFF",
    "high_chart":{ 
       "url":"",
       "headers":{ 
