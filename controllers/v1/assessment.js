@@ -54,8 +54,8 @@ exports.pdfReports = async function (req, res) {
                 let resData = await pdfHandler.assessmentPdfGeneration(assessmentRes, storeReportsToS3);
 
                 if (storeReportsToS3 == false) {
-                    let hostname = req.headers.host;
-                    resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+                    
+                    resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
                     res.send(resData);
                 }
                 else {
