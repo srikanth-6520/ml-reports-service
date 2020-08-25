@@ -1,5 +1,6 @@
 { 
    "application_port_number":4700,
+   "application_host_name": "http://localhost:4201",
    "application_base_url":"/dhiti/api/",
    "node_env": "local",
    "apidoc_url": "/apidoc",

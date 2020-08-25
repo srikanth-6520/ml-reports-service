@@ -148,12 +148,11 @@ async function entitySolutionReportPdfGeneration(req, res) {
       }
 
       let resData = await pdfHandler.pdfGeneration(entityResponse, storeReportsToS3 = false, obj);
-      let hostname = req.headers.host;
-
+      
       var responseObject = {
         "status": "success",
         "message": "report generated",
-        pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        pdfUrl: config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
       }
       resolve(responseObject);
     }
@@ -296,9 +295,7 @@ exports.entityScoreReport = async function (req, res) {
   
         let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, storeReportsToS3 = false, obj);
   
-        let hostname = req.headers.host;
-  
-        resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
   
         resolve(resData);
       }
@@ -488,8 +485,8 @@ async function instancePdfReport(req, res) {
         let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes.storeReportsToS3);
 
         if (storeReportsToS3 == false) {
-          let hostname = req.headers.host;
-          resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+          
+          resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
           resolve(resData);
         }
         else {
@@ -530,12 +527,10 @@ async function entityObservationPdf(req, res) {
 
       if (resData.status && resData.status == "success") {
 
-        let hostname = req.headers.host;
-
         let obj = {
           status: "success",
           message: 'Observation Pdf Generated successfully',
-          pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+          pdfUrl: config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
         }
 
         resolve(obj);
@@ -563,12 +558,11 @@ async function observationGenerateReport(req, res) {
           let resData = await pdfHandler.pdfGeneration(responseData, storeReportsToS3 = false);
 
           if (resData.status && resData.status == "success") {
-              let hostname = req.headers.host;
              
               let obj = {
                   status: "success",
                   message: 'Observation Pdf Generated successfully',
-                  pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+                  pdfUrl: config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
               }
 
               resolve(obj);
