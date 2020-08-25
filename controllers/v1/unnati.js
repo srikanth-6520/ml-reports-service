@@ -33,9 +33,8 @@ const config = require('../../config/config');
 exports.pdfReport = async function(req,res){
 
     let response = await pdfHandler.unnatiPdfGeneration(req.body, storeReportsToS3 = false);
-    let hostname = req.headers.host;
-  
-    response.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+   
+    response.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
     res.send(response);
 }
 
@@ -68,9 +67,8 @@ exports.pdfReport = async function(req,res){
 exports.monthlyReport = async function(req,res){
 
     let response = await pdfHandler.unnatiMonthlyReportPdfGeneration(req.body, storeReportsToS3 = false);
-    let hostname = req.headers.host;
   
-    response.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+    response.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
     res.send(response);
 }
 
@@ -102,9 +100,8 @@ exports.monthlyReport = async function(req,res){
 exports.viewProjectReport = async function(req,res){
 
     let response = await pdfHandler.unnatiViewFullReportPdfGeneration(req.body, storeReportsToS3 = false);
-    let hostname = req.headers.host;
   
-    response.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+    response.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
     res.send(response);
 }
 
@@ -147,8 +144,7 @@ exports.viewProjectReport = async function(req,res){
 exports.addTaskReport = async function(req,res){
 
    let response = await pdfHandler.addTaskPdfGeneration(req.body, storeReportsToS3 = false);
-   let hostname = req.headers.host;
  
-   response.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+   response.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
    res.send(response);
 }

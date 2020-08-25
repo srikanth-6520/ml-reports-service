@@ -179,8 +179,7 @@ async function instancePdfReport(req, res) {
 
         if (storeReportsToS3 == false) {
 
-          let hostname = req.headers.host;
-          resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+          resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
           resolve(resData);
 
         }
@@ -375,8 +374,7 @@ async function instanceObservationScorePdfFunc(req, res) {
        
         let resData = await pdfHandler.instanceObservationScorePdfGeneration(instaRes, storeReportsToS3 = false, obj);
          
-        let hostname = req.headers.host;
-        resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
         resolve(resData);
 
         }
@@ -540,14 +538,13 @@ async function entityObservationPdf(req, res) {
   
         if (resData.status && resData.status == "success") {
   
-          var hostname = req.headers.host;
+          
           var pathname = url.parse(req.url).pathname;
-
-  
+          
           var obj = {
             status: "success",
             message: 'Observation Pdf Generated successfully',
-            pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+            pdfUrl: config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
           }
   
           resolve(obj);
@@ -696,12 +693,11 @@ async function entityObservationReportPdfGeneration(req, res) {
       if (("observationName" in entityResponse) == true) {
 
         let resData = await pdfHandler.pdfGeneration(entityResponse, storeReportsToS3 = false);
-        let hostname = req.headers.host;
   
         var responseObject = {
           "status": "success",
           "message": "report generated",
-          pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+          pdfUrl: config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
         }
         resolve(responseObject);
       }
@@ -866,9 +862,7 @@ async function entityObservationScorePdfFunc(req, res) {
         
         let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, storeReportsToS3 = false, obj);
   
-        let hostname = req.headers.host;
-  
-        resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
   
         resolve(resData);
       }
@@ -1161,9 +1155,7 @@ async function entitySolutionScorePdfFunc(req, res) {
 
         let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, storeReportsToS3 = false, obj);
   
-        let hostname = req.headers.host;
-  
-        resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
   
         resolve(resData);
       }
@@ -1427,12 +1419,11 @@ async function observationGenerateReport(req, res) {
       let resData = await pdfHandler.pdfGeneration(responseData, storeReportsToS3 = false);
 
       if (resData.status && resData.status == "success") {
-        var hostname = req.headers.host;
         
         var obj = {
           status: "success",
           message: 'Observation Pdf Generated successfully',
-          pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+          pdfUrl: config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
         }
 
         resolve(obj);
@@ -1672,9 +1663,7 @@ async function observationScorePdfFunc(req, res) {
 
       let resData = await pdfHandler.instanceObservationScorePdfGeneration(observationRes, storeReportsToS3 = false, obj);
   
-      let hostname = req.headers.host;
-  
-      resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
   
       res.send(resData);
     }
@@ -2258,12 +2247,11 @@ exports.entitySolutionReportPdfGeneration = async function (req, res) {
       }
       
       let resData = await pdfHandler.pdfGeneration(entityResponse, storeReportsToS3 = false, obj);
-      let hostname = req.headers.host;
 
       var responseObject = {
         "status": "success",
         "message": "report generated",
-        pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        pdfUrl: config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
       }
       resolve(responseObject);
     }
@@ -2424,8 +2412,7 @@ return new Promise(async function (resolve, reject) {
 
     let resData = await pdfHandler.instanceCriteriaReportPdfGeneration(instaRes, storeReportsToS3 = false);
     
-    let hostname = req.headers.host;
-    resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+    resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
     resolve(resData);
   }
   else {
@@ -2613,9 +2600,7 @@ return new Promise(async function (resolve, reject) {
 
     let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(instaRes, storeReportsToS3 = false, obj);
     
-   
-       let hostname = req.headers.host;
-       resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+       resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
        resolve(resData);
   
   }
@@ -2791,9 +2776,7 @@ async function entityPdfReportByCriteria(req, res) {
      
       let resData = await pdfHandler.entityCriteriaPdfReportGeneration(entityRes, storeReportsToS3 = false);
 
-      let hostname = req.headers.host;
-
-      resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
       resolve(resData);
     }
@@ -3012,9 +2995,7 @@ async function entityScorePdfReportByCriteria(req, res) {
 
       let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(entityRes, storeReportsToS3 = false, obj);
 
-      let hostname = req.headers.host;
-
-      resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
       resolve(resData);
     }
@@ -3175,9 +3156,7 @@ async function observationPdfReportByCriteria(req, res) {
      
       let resData = await pdfHandler.entityCriteriaPdfReportGeneration(observeRes, storeReportsToS3 = false);
 
-      let hostname = req.headers.host;
-
-      resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
       resolve(resData);
     }
@@ -3400,9 +3379,7 @@ async function observationScorePdfReportByCriteria(req, res) {
 
     let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(observationRes, storeReportsToS3 = false, obj);
 
-    let hostname = req.headers.host;
-
-    resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+    resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
     res.send(resData);
   }
