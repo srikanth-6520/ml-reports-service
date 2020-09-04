@@ -482,7 +482,7 @@ async function instancePdfReport(req, res) {
         if (storePdfReportsToS3 == "ON"){
            storeReportsToS3 = true;
         }
-        let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes.storeReportsToS3);
+        let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes, storeReportsToS3);
 
         if (storeReportsToS3 == false) {
           
