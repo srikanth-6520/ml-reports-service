@@ -127,7 +127,6 @@ async function instanceObservationData(req, res) {
               }
             })
             .catch(function (err) {
-              console.log(err);
               let response = {
                 result: false,
                 message: 'INTERNAL_SERVER_ERROR'
@@ -343,7 +342,6 @@ exports.instanceObservationScoreReport = async function (req, res) {
             }
           })
           .catch(function (err) {
-            console.log(err);
             let response = {
               result: false,
               message: 'Data not found'
@@ -1604,7 +1602,6 @@ async function observationScoreReport(req, res) {
           })
   
           .catch(function (err) {
-            console.log(err);
             var response = {
               result: false,
               message: 'Data not found'
@@ -2930,7 +2927,6 @@ async function entityScoreCriteriaReportData(req, res) {
         })
 
         .catch(function (err) {
-          console.log(err);
           let response = {
             result: false,
             message: 'INTERNAL_SERVER_ERROR'
@@ -3301,7 +3297,6 @@ async function observationScoreCriteriaReportData(req, res) {
         })
 
         .catch(function (err) {
-          console.log(err);
           let response = {
             result: false,
             message: 'INTERNAL_SERVER_ERROR'
