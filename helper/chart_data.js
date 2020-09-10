@@ -840,7 +840,7 @@ exports.entityAssessmentChart = async function (inputObj) {
         let domainArray = [];
         let scoresExists = false;
         let dynamicLevelObj = {};
-        let childEntityId = inputObj.childEntity ? inputObj.childEntity : "school";
+        let childEntityId = inputObj.childEntity ? inputObj.childEntity : inputObj.parentEntity;
         let childEntityName = childEntityId + "Name";
 
         for (let domain = 0; domain < inputObj.data.length; domain++) {
