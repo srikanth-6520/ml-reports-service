@@ -276,6 +276,7 @@ async function assessmentReportGetChartData(req, res) {
 
                             let inputObj = {
                                 data: data,
+                                parentEntity: req.body.entityType,
                                 entityName: req.body.immediateChildEntityType ? req.body.immediateChildEntityType + "Name" : "domainName",
                                 childEntity: req.body.immediateChildEntityType,
                             }
