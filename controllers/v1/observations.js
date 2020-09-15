@@ -12,6 +12,7 @@ const fs = require('fs');
 const path = require('path');
 const kendraService = require('../../helper/kendra_service');
 const assessmentService = require('../../helper/assessment_service');
+const storePdfReportsToS3 = (!config.store_pdf_reports_in_s3_on_off || config.store_pdf_reports_in_s3_on_off != "OFF") ? "ON" : "OFF"
 
 
 /**
@@ -126,7 +127,6 @@ async function instanceObservationData(req, res) {
               }
             })
             .catch(function (err) {
-              console.log(err);
               let response = {
                 result: false,
                 message: 'INTERNAL_SERVER_ERROR'
@@ -143,34 +143,47 @@ async function instanceObservationData(req, res) {
   
 //Funcion for instance observation pdf generation
 async function instancePdfReport(req, res) {
-  
-    return new Promise(async function (resolve, reject) {
-  
-      let reqData = req.query;
-      let dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
-  
-      if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
-  
-        dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
-        let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
-  
-        let response = {
-          status: "success",
-          message: 'Observation Pdf Generated successfully',
-          pdfUrl: signedUlr
-        };
-  
-        resolve(response);
-  
-      } else {
-  
-        req.body.submissionId = req.query.submissionId;
-  
-        var instaRes = await instanceObservationData(req, res);
-  
-        if (("observationName" in instaRes) == true) {
-          let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes);
-  
+
+  return new Promise(async function (resolve, reject) {
+
+    let reqData = req.query;
+    let dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
+
+    if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
+
+      dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
+      let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
+
+      let response = {
+        status: "success",
+        message: 'Observation Pdf Generated successfully',
+        pdfUrl: signedUlr
+      };
+
+      resolve(response);
+
+    } else {
+
+      req.body.submissionId = req.query.submissionId;
+
+      var instaRes = await instanceObservationData(req, res);
+
+      if (("observationName" in instaRes) == true) {
+
+        let storeReportsToS3 = false;
+        if (storePdfReportsToS3 == "ON") {
+          storeReportsToS3 = true;
+        }
+        let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes, storeReportsToS3);
+
+        if (storeReportsToS3 == false) {
+
+          resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+          resolve(resData);
+
+        }
+        else {
+
           if (dataReportIndexes) {
             let reqOptions = {
               query: dataReportIndexes.id,
@@ -180,17 +193,17 @@ async function instancePdfReport(req, res) {
           } else {
             let dataInsert = commonCassandraFunc.insertReqAndResInCassandra(reqData, instaRes, resData.downloadPath);
           }
-  
+
           // res.send(resData);
           resolve(omit(resData, 'downloadPath'));
         }
-  
-        else {
-          resolve(instaRes);
-        }
       }
-    });
-  };
+      else {
+        resolve(instaRes);
+      }
+    }
+  });
+};
   
 
 /**
@@ -329,7 +342,6 @@ exports.instanceObservationScoreReport = async function (req, res) {
             }
           })
           .catch(function (err) {
-            console.log(err);
             let response = {
               result: false,
               message: 'Data not found'
@@ -348,7 +360,7 @@ exports.instanceObservationScoreReport = async function (req, res) {
 async function instanceObservationScorePdfFunc(req, res) {
   
     return new Promise(async function (resolve, reject) {
-  
+   
       let instaRes = await instanceScoreReport(req, res);
   
       if (instaRes.result == true) {
@@ -357,19 +369,18 @@ async function instanceObservationScorePdfFunc(req, res) {
           totalScore: instaRes.totalScore,
           scoreAchieved: instaRes.scoreAchieved
         }
-  
-        let resData = await pdfHandler.instanceObservationScorePdfGeneration(instaRes, true, obj);
-  
-        let hostname = req.headers.host;
-  
-        resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-  
+       
+        let resData = await pdfHandler.instanceObservationScorePdfGeneration(instaRes, storeReportsToS3 = false, obj);
+         
+        resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
         resolve(resData);
-      }
-  
+
+        }
       else {
         resolve(instaRes);
       }
+
+     
   
     });
   
@@ -520,19 +531,18 @@ async function entityObservationPdf(req, res) {
       let responseData = await entityObservationData(req, res);
   
       if (("observationName" in responseData) == true) {
-  
-        let resData = await pdfHandler.pdfGeneration(responseData, true);
+
+        let resData = await pdfHandler.pdfGeneration(responseData, storeReportsToS3 = false);
   
         if (resData.status && resData.status == "success") {
   
-          var hostname = req.headers.host;
+          
           var pathname = url.parse(req.url).pathname;
-
-  
+          
           var obj = {
             status: "success",
             message: 'Observation Pdf Generated successfully',
-            pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+            pdfUrl: config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
           }
   
           resolve(obj);
@@ -679,14 +689,13 @@ async function entityObservationReportPdfGeneration(req, res) {
       var entityResponse = await entityObservationReportGeneration(req, res);
   
       if (("observationName" in entityResponse) == true) {
-  
-        let resData = await pdfHandler.pdfGeneration(entityResponse, true);
-        let hostname = req.headers.host;
+
+        let resData = await pdfHandler.pdfGeneration(entityResponse, storeReportsToS3 = false);
   
         var responseObject = {
           "status": "success",
           "message": "report generated",
-          pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+          pdfUrl: config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
         }
         resolve(responseObject);
       }
@@ -848,12 +857,10 @@ async function entityObservationScorePdfFunc(req, res) {
           schoolName: entityRes.schoolName,
           totalObservations: entityRes.totalObservations
         }
+        
+        let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, storeReportsToS3 = false, obj);
   
-        let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, true, obj);
-  
-        let hostname = req.headers.host;
-  
-        resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
   
         resolve(resData);
       }
@@ -1143,12 +1150,10 @@ async function entitySolutionScorePdfFunc(req, res) {
         let obj = {
           solutionName: entityRes.solutionName
         }
+
+        let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, storeReportsToS3 = false, obj);
   
-        let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, true, obj);
-  
-        let hostname = req.headers.host;
-  
-        resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
   
         resolve(resData);
       }
@@ -1386,7 +1391,6 @@ async function observationReportData(req, res) {
                   }
                 })
               .catch(function (err) {
-                    console.log(err);
                     res.status(400);
                     var response = {
                         result: false,
@@ -1402,36 +1406,32 @@ async function observationReportData(req, res) {
 //Controller for observation pdf report
 async function observationGenerateReport(req, res) {
 
-    return new Promise(async function (resolve, reject) {
+  return new Promise(async function (resolve, reject) {
 
-        req.body.observationId = req.query.observationId;
-        let responseData = await observationReportData(req, res);
+    req.body.observationId = req.query.observationId;
+    let responseData = await observationReportData(req, res);
 
-        if (("observationName" in responseData) == true) {
+    if (("observationName" in responseData) == true) {
 
-            let resData = await pdfHandler.pdfGeneration(responseData, true);
+      let resData = await pdfHandler.pdfGeneration(responseData, storeReportsToS3 = false);
 
-            if (resData.status && resData.status == "success") {
-                var hostname = req.headers.host;
-                var pathname = url.parse(req.url).pathname;
-               
-                var obj = {
-                    status: "success",
-                    message: 'Observation Pdf Generated successfully',
-                    pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-                }
-
-                resolve(obj);
-            } else {
-                resolve(resData);
-            }
-        }
-        else {
-            resolve(responseData);
+      if (resData.status && resData.status == "success") {
+        
+        var obj = {
+          status: "success",
+          message: 'Observation Pdf Generated successfully',
+          pdfUrl: config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
         }
 
-
-    });
+        resolve(obj);
+      } else {
+        resolve(resData);
+      }
+    }
+    else {
+      resolve(responseData);
+    }
+  });
 }
 
 
@@ -1602,7 +1602,6 @@ async function observationScoreReport(req, res) {
           })
   
           .catch(function (err) {
-            console.log(err);
             var response = {
               result: false,
               message: 'Data not found'
@@ -1658,11 +1657,9 @@ async function observationScorePdfFunc(req, res) {
         entityType: observationRes.entityType
       }
 
-      let resData = await pdfHandler.instanceObservationScorePdfGeneration(observationRes, true, obj);
+      let resData = await pdfHandler.instanceObservationScorePdfGeneration(observationRes, storeReportsToS3 = false, obj);
   
-      let hostname = req.headers.host;
-  
-      resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
   
       res.send(resData);
     }
@@ -2244,14 +2241,13 @@ exports.entitySolutionReportPdfGeneration = async function (req, res) {
       let obj = {
         solutionName: entityResponse.solutionName
       }
-
-      let resData = await pdfHandler.pdfGeneration(entityResponse, true, obj);
-      let hostname = req.headers.host;
+      
+      let resData = await pdfHandler.pdfGeneration(entityResponse, storeReportsToS3 = false, obj);
 
       var responseObject = {
         "status": "success",
         "message": "report generated",
-        pdfUrl: "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        pdfUrl: config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
       }
       resolve(responseObject);
     }
@@ -2337,19 +2333,12 @@ async function instanceCriteriaReportData(req, res) {
                       bodyParam.dataSource = config.druid.observation_datasource_name;
                   }
 
+                  bodyParam.filter = {"type":"and","fields":[{ "type": "selector", "dimension": "observationSubmissionId", "value": submissionId },
+                                     {"type":"not","field":{"type":"selector","dimension":"questionAnswer","value":""}}]};
+
                   //if filter is given
-                  if (req.body.filter) {
-                      if (req.body.filter.criteria && req.body.filter.criteria.length > 0) {
-                          let filter = {};
-                          filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }, { "type": "in", "dimension":"criteriaId","values":req.body.filter.criteria }] };
-                          bodyParam.filter = filter;
-                      }
-                      else {
-                          bodyParam.filter.value = submissionId;
-                      }
-                  }
-                  else {
-                      bodyParam.filter.value = submissionId;
+                  if (req.body.filter && req.body.filter.criteria && req.body.filter.criteria.length > 0) {
+                    bodyParam.filter.fields.push({"type": "in", "dimension":"criteriaId","values":req.body.filter.criteria});
                   }
 
                   //pass the query as body param and get the resul from druid
@@ -2410,15 +2399,11 @@ return new Promise(async function (resolve, reject) {
 
   if (("observationName" in instaRes) == true) {
 
-    let resData = await pdfHandler.instanceCriteriaReportPdfGeneration(instaRes, true);
-
-    let hostname = req.headers.host;
-
-    resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-
+    let resData = await pdfHandler.instanceCriteriaReportPdfGeneration(instaRes, storeReportsToS3 = false);
+    
+    resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
     resolve(resData);
   }
-
   else {
     resolve(instaRes);
   }
@@ -2523,20 +2508,14 @@ async function instanceScoreCriteriaReportData(req, res) {
           if (config.druid.observation_datasource_name) {
             bodyParam.dataSource = config.druid.observation_datasource_name;
           }
-         
+          
+          bodyParam.filter.fields[0].value = req.body.submissionId;
+          bodyParam.filter.fields.push({"type":"not","field":{"type":"selector","dimension":"questionAnswer","value":""}});
+
            //if filter is given
-           if (req.body.filter) {
-            if (req.body.filter.criteria && req.body.filter.criteria.length > 0) {
-              bodyParam.filter.fields[0].value = req.body.submissionId;
+           if (req.body.filter && req.body.filter.criteria && req.body.filter.criteria.length > 0) {
               bodyParam.filter.fields.push({"type":"in","dimension":"criteriaId","values":req.body.filter.criteria});
-            }
-            else {
-              bodyParam.filter.fields[0].value = req.body.submissionId;
-            }
-          }
-          else {
-            bodyParam.filter.fields[0].value = req.body.submissionId;
-          }
+           }
       
           //pass the query as body param and get the resul from druid
           let options = config.druid.options;
@@ -2602,13 +2581,11 @@ return new Promise(async function (resolve, reject) {
       scoreAchieved: instaRes.scoreAchieved
     }
 
-    let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(instaRes, true, obj);
-
-    let hostname = req.headers.host;
-
-    resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-
-    resolve(resData);
+    let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(instaRes, storeReportsToS3 = false, obj);
+    
+       resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+       resolve(resData);
+  
   }
 
   else {
@@ -2700,23 +2677,14 @@ async function entityCriteriaReportData(req, res) {
             entityType = req.body.entityType;
           }
 
+          bodyParam.filter.fields[0].dimension = entityType;
+          bodyParam.filter.fields[0].value = req.body.entityId;
+          bodyParam.filter.fields[1].value = req.body.observationId;
+          bodyParam.filter.fields.push({"type":"not","field":{"type":"selector","dimension":"questionAnswer","value":""}});
+
            //if filter is given
-           if (req.body.filter) {
-            if (req.body.filter.criteria && req.body.filter.criteria.length > 0) {
-              let filter = { "type": "and", "fields": [{"type":"and","fields":[{"type": "selector", "dimension": entityType, "value": req.body.entityId },{"type": "selector", "dimension": "observationId", "value": req.body.observationId }]}, { "type": "in", "dimension":"criteriaId","values":req.body.filter.criteria }] };
-              bodyParam.filter = filter;
-              
-            }
-            else {
-              bodyParam.filter.fields[0].dimension = entityType;
-              bodyParam.filter.fields[0].value = req.body.entityId;
-              bodyParam.filter.fields[1].value = req.body.observationId;
-            }
-          }
-          else {
-            bodyParam.filter.fields[0].dimension = entityType;
-            bodyParam.filter.fields[0].value = req.body.entityId;
-            bodyParam.filter.fields[1].value = req.body.observationId;
+           if (req.body.filter && req.body.filter.criteria && req.body.filter.criteria.length > 0) {
+            bodyParam.filter.fields.push({ "type": "in", "dimension":"criteriaId","values":req.body.filter.criteria });
           }
 
           //pass the query as body param and get the resul from druid
@@ -2780,11 +2748,9 @@ async function entityPdfReportByCriteria(req, res) {
   
     if (("observationName" in entityRes) == true) {
      
-      let resData = await pdfHandler.entityCriteriaPdfReportGeneration(entityRes, true);
+      let resData = await pdfHandler.entityCriteriaPdfReportGeneration(entityRes, storeReportsToS3 = false);
 
-      let hostname = req.headers.host;
-
-      resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
       resolve(resData);
     }
@@ -2908,26 +2874,15 @@ async function entityScoreCriteriaReportData(req, res) {
             entityType = req.body.entityType;
           }
 
-           //if filter is given
-           if (req.body.filter) {
-            if (req.body.filter.criteria && req.body.filter.criteria.length > 0) {
-              bodyParam.filter.fields[1].fields[0].dimension = entityType;
-              bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
-              bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
-              bodyParam.filter.fields.push({"type":"in","dimension":"criteriaId","values":req.body.filter.criteria});
-            }
-            else {
-              bodyParam.filter.fields[1].fields[0].dimension = entityType;
-              bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
-              bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
-            }
-          }
-          else {
-            bodyParam.filter.fields[1].fields[0].dimension = entityType;
-            bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
-            bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
-          }
+          bodyParam.filter.fields[1].fields[0].dimension = entityType;
+          bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+          bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
+          bodyParam.filter.fields.push({"type":"not","field":{"type":"selector","dimension":"questionAnswer","value":""}});
 
+           //if filter is given
+           if (req.body.filter && req.body.filter.criteria && req.body.filter.criteria.length > 0) {
+              bodyParam.filter.fields.push({"type":"in","dimension":"criteriaId","values":req.body.filter.criteria});
+           }
 
           //pass the query as body param and get the resul from druid
           var options = config.druid.options;
@@ -2972,7 +2927,6 @@ async function entityScoreCriteriaReportData(req, res) {
         })
 
         .catch(function (err) {
-          console.log(err);
           let response = {
             result: false,
             message: 'INTERNAL_SERVER_ERROR'
@@ -3001,11 +2955,9 @@ async function entityScorePdfReportByCriteria(req, res) {
         totalObservations: entityRes.totalObservations
       }
 
-      let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(entityRes, true, obj);
+      let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(entityRes, storeReportsToS3 = false, obj);
 
-      let hostname = req.headers.host;
-
-      resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
       resolve(resData);
     }
@@ -3089,19 +3041,13 @@ async function observationCriteriaReportData(req, res) {
                   bodyParam.dataSource = config.druid.observation_datasource_name;
                 }
 
-                //if filter is given
-                if (req.body.filter) {
-                  if (req.body.filter.criteria && req.body.filter.criteria.length > 0) {
-                    let filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "in", "dimension": "criteriaId", "values": req.body.filter.criteria }] };
-                    bodyParam.filter = filter;
+                bodyParam.filter = {"type": "and", "fields":[{ "type": "selector", "dimension": "observationId", "value": req.body.observationId},
+                                   {"type":"not","field":{"type":"selector","dimension":"questionAnswer","value":""}}]};
+                
 
-                  }
-                  else {
-                    bodyParam.filter.value = req.body.observationId;
-                  }
-                }
-                else {
-                  bodyParam.filter.value = req.body.observationId;
+                //if filter is given
+                if (req.body.filter && req.body.filter.criteria && req.body.filter.criteria.length > 0) {
+                  bodyParam.filter.fields.push({"type": "in", "dimension": "criteriaId", "values": req.body.filter.criteria});
                 }
 
                 //pass the query as body param and get the resul from druid
@@ -3164,11 +3110,9 @@ async function observationPdfReportByCriteria(req, res) {
   
     if (("observationName" in observeRes) == true) {
      
-      let resData = await pdfHandler.entityCriteriaPdfReportGeneration(observeRes, true);
+      let resData = await pdfHandler.entityCriteriaPdfReportGeneration(observeRes, storeReportsToS3 = false);
 
-      let hostname = req.headers.host;
-
-      resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
       resolve(resData);
     }
@@ -3296,20 +3240,13 @@ async function observationScoreCriteriaReportData(req, res) {
             }
             
             bodyParam.dimensions.push(entityType,entityType + "Name");
+            bodyParam.filter.fields[0].value = req.body.observationId;
+            bodyParam.filter.fields.push({"type":"not","field":{"type":"selector","dimension":"questionAnswer","value":""}});
   
            //if filter is given
-           if (req.body.filter) {
-            if (req.body.filter.criteria && req.body.filter.criteria.length > 0) {
-              bodyParam.filter.fields[0].value = req.body.observationId;
+           if (req.body.filter && req.body.filter.criteria && req.body.filter.criteria.length > 0) {
               bodyParam.filter.fields.push({"type":"in","dimension":"criteriaId","values":req.body.filter.criteria});
             }
-            else {
-              bodyParam.filter.fields[0].value = req.body.observationId;
-            }
-          }
-          else {
-            bodyParam.filter.fields[0].value = req.body.observationId;
-          }
 
           //pass the query as body param and get the resul from druid
           let options = config.druid.options;
@@ -3389,11 +3326,9 @@ async function observationScorePdfReportByCriteria(req, res) {
         entityType: observationRes.entityType
     }
 
-    let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(observationRes, true, obj);
+    let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(observationRes, storeReportsToS3 = false, obj);
 
-    let hostname = req.headers.host;
-
-    resData.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+    resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
     res.send(resData);
   }

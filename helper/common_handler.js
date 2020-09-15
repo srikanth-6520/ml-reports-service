@@ -52,7 +52,7 @@ async function s3SignedUrl(filePath) {
 
 
 // PDF generation function for entity report
-exports.pdfGeneration = async function pdfGeneration(instaRes, deleteFromS3 = null) {
+exports.pdfGeneration = async function pdfGeneration(instaRes, storeReportsToS3 = false) {
 
 
     return new Promise(async function (resolve, reject) {
@@ -293,7 +293,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, deleteFromS3 = nu
                                                                         Expires: 10
                                                                     };
 
-                                                                    if (deleteFromS3 == true) {
+                                                                    if (storeReportsToS3 == false) {
                                                                         var folderPath = Buffer.from(currentTempFolder).toString('base64')
 
                                                                         var response = {
@@ -401,7 +401,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, deleteFromS3 = nu
 
 
 // PDF generation function for instance API
-exports.instanceObservationPdfGeneration = async function instanceObservationPdfGeneration(instaRes, deleteFromS3 = null) {
+exports.instanceObservationPdfGeneration = async function instanceObservationPdfGeneration(instaRes, storeReportsToS3 = false) {
 
 
     return new Promise(async function (resolve, reject) {
@@ -595,7 +595,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
                                                                         Expires: 10
                                                                     };
 
-                                                                    if (deleteFromS3 == true) {
+                                                                    if (storeReportsToS3 == false) {
                                                                         var folderPath = Buffer.from(currentTempFolder).toString('base64')
 
                                                                         var response = {
@@ -706,7 +706,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
 
 
 //PDF generation for instance observation score report
-exports.instanceObservationScorePdfGeneration = async function instanceObservationPdfGeneration(observationResp, deleteFromS3 = null, obj) {
+exports.instanceObservationScorePdfGeneration = async function instanceObservationPdfGeneration(observationResp, storeReportsToS3 = false, obj) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -848,7 +848,7 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
                                                                             Expires: 10
                                                                         };
 
-                                                                        if (deleteFromS3 == true) {
+                                                                        if (storeReportsToS3 == false) {
                                                                             var folderPath = Buffer.from(currentTempFolder).toString('base64')
 
                                                                             var response = {
@@ -927,7 +927,6 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
                                                     }
 
                                                 }).catch(function (err) {
-                                                    console.log("error in converting HtmlToPdf", err);
                                                     resolve(err);
                                                     throw err;
                                                 });
@@ -966,7 +965,7 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
 
 
 // ============> PDF generation function for assessment API ======================>
-exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessmentRes, deleteFromS3 = null) {
+exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessmentRes, storeReportsToS3 = false) {
 
 
     return new Promise(async function (resolve, reject) {
@@ -1087,7 +1086,7 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
                                                                         Expires: 10
                                                                     };
 
-                                                                    if (deleteFromS3 == true) {
+                                                                    if (storeReportsToS3 == false) {
                                                                         var folderPath = Buffer.from(currentTempFolder).toString('base64')
 
                                                                         var response = {
@@ -1424,7 +1423,7 @@ async function createScoreChartObject(ele){
 }
 
 //Unnati pdf generate function
-exports.unnatiPdfGeneration = async function (responseData, deleteFromS3 = null) {
+exports.unnatiPdfGeneration = async function (responseData, storeReportsToS3 = false) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -1549,7 +1548,7 @@ exports.unnatiPdfGeneration = async function (responseData, deleteFromS3 = null)
                                                             Expires: 10
                                                         };
 
-                                                        if (deleteFromS3 == true) {
+                                                        if (storeReportsToS3 == false) {
                                                             var folderPath = Buffer.from(currentTempFolder).toString('base64')
 
                                                             var response = {
@@ -1643,7 +1642,7 @@ exports.unnatiPdfGeneration = async function (responseData, deleteFromS3 = null)
 
 
 //Unnati monthly report pdf generation function
-exports.unnatiMonthlyReportPdfGeneration = async function (responseData, deleteFromS3 = null) {
+exports.unnatiMonthlyReportPdfGeneration = async function (responseData, storeReportsToS3 = false) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -1733,7 +1732,7 @@ exports.unnatiMonthlyReportPdfGeneration = async function (responseData, deleteF
                                                             Expires: 10
                                                         };
 
-                                                        if (deleteFromS3 == true) {
+                                                        if (storeReportsToS3 == false) {
                                                             var folderPath = Buffer.from(currentTempFolder).toString('base64')
 
                                                             var response = {
@@ -1927,7 +1926,7 @@ async function getTaskStatusPieChart(data) {
 
 
 //Unnati monthly report pdf generation function
-exports.unnatiViewFullReportPdfGeneration = async function (responseData, deleteFromS3 = null) {
+exports.unnatiViewFullReportPdfGeneration = async function (responseData, storeReportsToS3 = false) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -2015,7 +2014,7 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData, delete
                                                             Expires: 10
                                                         };
 
-                                                        if (deleteFromS3 == true) {
+                                                        if (storeReportsToS3 == false) {
                                                             var folderPath = Buffer.from(currentTempFolder).toString('base64')
 
                                                             var response = {
@@ -2108,7 +2107,7 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData, delete
 
 
 //Unnati monthly report pdf generation function
-exports.addTaskPdfGeneration = async function (responseData, deleteFromS3 = null) {
+exports.addTaskPdfGeneration = async function (responseData, storeReportsToS3 = false) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -2186,7 +2185,7 @@ exports.addTaskPdfGeneration = async function (responseData, deleteFromS3 = null
                                                             Expires: 10
                                                         };
 
-                                                        if (deleteFromS3 == true) {
+                                                        if (storeReportsToS3 == false) {
                                                             var folderPath = Buffer.from(currentTempFolder).toString('base64')
 
                                                             var response = {
@@ -2280,7 +2279,7 @@ exports.addTaskPdfGeneration = async function (responseData, deleteFromS3 = null
 
 
 //PDF generation for instance criteria report
-exports.instanceCriteriaReportPdfGeneration = async function (instanceResponse, deleteFromS3 = null) {
+exports.instanceCriteriaReportPdfGeneration = async function (instanceResponse, storeReportsToS3 = false) {
 
    
     return new Promise(async function (resolve, reject) {
@@ -2388,7 +2387,7 @@ exports.instanceCriteriaReportPdfGeneration = async function (instanceResponse, 
                                                                         Expires: 10
                                                                     };
 
-                                                                    if (deleteFromS3 == true) {
+                                                                    if (storeReportsToS3 == false) {
                                                                         var folderPath = Buffer.from(currentTempFolder).toString('base64')
 
                                                                         var response = {
@@ -2490,7 +2489,7 @@ exports.instanceCriteriaReportPdfGeneration = async function (instanceResponse, 
 
 
 // PDF generation function for entity report
-exports.entityCriteriaPdfReportGeneration = async function (responseData, deleteFromS3 = null) {
+exports.entityCriteriaPdfReportGeneration = async function (responseData, storeReportsToS3 = false) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -2613,7 +2612,7 @@ exports.entityCriteriaPdfReportGeneration = async function (responseData, delete
                                                                         Expires: 10
                                                                     };
 
-                                                                    if (deleteFromS3 == true) {
+                                                                    if (storeReportsToS3 == false) {
                                                                         var folderPath = Buffer.from(currentTempFolder).toString('base64')
 
                                                                         var response = {
@@ -2780,7 +2779,7 @@ async function createChartObject(ele,chartType){
 }
 
 //PDF generation for instance observation score report
-exports.instanceScoreCriteriaPdfGeneration = async function(observationResp, deleteFromS3 = null, obj) {
+exports.instanceScoreCriteriaPdfGeneration = async function(observationResp, storeReportsToS3 = false, obj) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -2899,7 +2898,7 @@ exports.instanceScoreCriteriaPdfGeneration = async function(observationResp, del
                                                                             Expires: 10
                                                                         };
 
-                                                                        if (deleteFromS3 == true) {
+                                                                        if (storeReportsToS3 == false) {
                                                                             var folderPath = Buffer.from(currentTempFolder).toString('base64')
 
                                                                             var response = {

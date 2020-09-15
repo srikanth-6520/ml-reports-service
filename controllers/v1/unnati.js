@@ -32,10 +32,9 @@ const config = require('../../config/config');
 //Controller function for unnati pdf generation
 exports.pdfReport = async function(req,res){
 
-    let response = await pdfHandler.unnatiPdfGeneration(req.body,true);
-    let hostname = req.headers.host;
-  
-    response.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+    let response = await pdfHandler.unnatiPdfGeneration(req.body, storeReportsToS3 = false);
+   
+    response.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
     res.send(response);
 }
 
@@ -67,10 +66,9 @@ exports.pdfReport = async function(req,res){
 //Controller function for unnati monthly report pdf generation
 exports.monthlyReport = async function(req,res){
 
-    let response = await pdfHandler.unnatiMonthlyReportPdfGeneration(req.body,true);
-    let hostname = req.headers.host;
+    let response = await pdfHandler.unnatiMonthlyReportPdfGeneration(req.body, storeReportsToS3 = false);
   
-    response.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+    response.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
     res.send(response);
 }
 
@@ -101,10 +99,9 @@ exports.monthlyReport = async function(req,res){
 //Controller function for unnati view full report pdf generation
 exports.viewProjectReport = async function(req,res){
 
-    let response = await pdfHandler.unnatiViewFullReportPdfGeneration(req.body,true);
-    let hostname = req.headers.host;
+    let response = await pdfHandler.unnatiViewFullReportPdfGeneration(req.body, storeReportsToS3 = false);
   
-    response.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+    response.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
     res.send(response);
 }
 
@@ -146,9 +143,8 @@ exports.viewProjectReport = async function(req,res){
 //Controller function for unnati add task pdf generation
 exports.addTaskReport = async function(req,res){
 
-   let response = await pdfHandler.addTaskPdfGeneration(req.body,true);
-   let hostname = req.headers.host;
+   let response = await pdfHandler.addTaskPdfGeneration(req.body, storeReportsToS3 = false);
  
-   response.pdfUrl = "https://" + hostname + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+   response.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
    res.send(response);
 }

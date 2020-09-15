@@ -840,7 +840,7 @@ exports.entityAssessmentChart = async function (inputObj) {
         let domainArray = [];
         let scoresExists = false;
         let dynamicLevelObj = {};
-        let childEntityId = inputObj.childEntity ? inputObj.childEntity : "school";
+        let childEntityId = inputObj.childEntity ? inputObj.childEntity : inputObj.parentEntity;
         let childEntityName = childEntityId + "Name";
 
         for (let domain = 0; domain < inputObj.data.length; domain++) {
@@ -1688,6 +1688,8 @@ exports.evidenceChartObjectCreation = async function(chartData, evidenceData, to
     
         filesArray.push(result[0]);
         questionData.push(result[1]);
+
+        }
         
         if(element["instanceQuestions"] && element.instanceQuestions.length > 0){
           
@@ -1706,8 +1708,6 @@ exports.evidenceChartObjectCreation = async function(chartData, evidenceData, to
             }));
 
         }
-
-      }
 
     }));
 
@@ -1806,7 +1806,7 @@ async function insertEvidenceArrayToChartObject (chartData,downloadableUrls,ques
 
         if(ele["instanceQuestions"] && ele.instanceQuestions.length > 0){
 
-            await Promise.all(chartData.response.instanceQuestions.map(async value => {
+            await Promise.all(ele.instanceQuestions.map(async value => {
 
                 let filteredData = questionData.filter(data => value.order.includes(data.questionExternalId));
 
