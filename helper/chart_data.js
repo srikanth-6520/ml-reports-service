@@ -2578,21 +2578,22 @@ exports.getSurveySolutionReport = async function (data, submissionCount) {
 
         let result = {
             solutionName: data[0].event.solutionName,
-            response: []
+            response: [],
+            questionExternalIds: []
         }
 
         let matrixData = [];
         let nonMatrixData = [];
 
-        data.forEach(singleData => {
-
+        await Promise.all(data.map(singleData => {
+            questionExternalIds.push(singleData.event.questionExternalId)
             if (singleData.event.instanceParentResponsetype == "matrix") {
                 matrixData.push(singleData)
             }
             else {
                 nonMatrixData.push(singleData);
             }
-        })
+        }))
 
         if (matrixData.length > 0) {
 

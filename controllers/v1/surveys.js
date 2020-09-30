@@ -7,6 +7,7 @@ const filesHelper = require('../../common/files_helper');
 const assessmentService = require('../../helper/assessment_service');
 const kendraService = require('../../helper/kendra_service');
 const solutionReportTextResponseLimit = 10;
+const evidenceLimit = 3;
 
    /**
    * @api {get} /dhiti/api/v1/surveys/solutionReport?solutionId=:solutionId solution report
@@ -79,7 +80,9 @@ exports.solutionReport = async function (req, res) {
 
                  //Get evidence data from evidence datasource
                  let evidenceData = await getEvidenceData(
-                    { solutionId: req.query.solutionId }
+                   { solutionId: req.query.solutionId, 
+                     questionExternalIds: chartData.questionExternalIds
+                   }
                );
 
                if (evidenceData.result) {
@@ -573,24 +576,46 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
 
                 let bodyParam = JSON.parse(result.query);
 
-                if (inputObj.submissionId) {
-                   bodyParam.filter.dimension = "surveySubmissionId";
-                   bodyParam.filter.value = inputObj.submissionId;
-                } else if (inputObj.solutionId) {
-                   bodyParam.filter.dimension = "solutionId";
-                   bodyParam.filter.value = inputObj.solutionId;
-                }
-
                 if (config.druid.survey_evidence_datasource_name) {
                     bodyParam.dataSource = config.druid.survey_evidence_datasource_name;
                 }
 
-                //pass the query as body param and get the resul from druid
+                if (inputObj.submissionId) {
+                   bodyParam.filter.fields[0].dimension = "surveySubmissionId";
+                   bodyParam.filter.fields[0].value = inputObj.submissionId;
+                } else if (inputObj.solutionId) {
+                   bodyParam.filter.fields[0].dimension = "solutionId";
+                   bodyParam.filter.fields[0].value = inputObj.solutionId;
+                } else {
+                    resolve({
+                        "result": false,
+                        "message": "INVALID_INPUT"
+                    });
+                }
+                
+                //pass the query as body param and get the result from druid
                 let options = config.druid.options;
                 options.method = "POST";
-                options.body = bodyParam;
-                let data = await rp(options);
+                let data = [];
+                 
+                if (inputObj.questionExternalIds && inputObj.questionExternalIds.length > 0) {
 
+                    bodyParam.limitSpec = {"type":"default","limit":evidenceLimit,"columns":[{"dimension":"questionExternalId","direction":"descending"}]};
+                    let questionFilter = {"type":"selector","dimension":"questionExternalId","value": ""};
+
+                    await Promise.all(questionExternalIds.map(async questionExternalId => {
+                        questionFilter.value = questionExternalId;
+                        bodyParam.filter.fields.push(questionFilter);
+                        options.body = bodyParam;
+                        let evidenceData = await rp(options);
+                        data.push(...evidenceData);
+                    }))
+                }
+                else {
+                    options.body = bodyParam;
+                    data = await rp(options);
+                }
+                 
                 if (!data.length) {
                     resolve({
                         "result": false,
