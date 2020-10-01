@@ -620,7 +620,7 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
                     bodyParam.limitSpec = {"type":"default","limit":evidenceLimit,"columns":[{"dimension":"questionExternalId","direction":"descending"}]};
                     let questionFilter = {"type":"selector","dimension":"questionExternalId","value": ""};
 
-                    await Promise.all(questionExternalIds.map(async questionExternalId => {
+                    await Promise.all(inputObj.questionExternalIds.map(async questionExternalId => {
                         questionFilter.value = questionExternalId;
                         bodyParam.filter.fields.push(questionFilter);
                         options.body = bodyParam;
