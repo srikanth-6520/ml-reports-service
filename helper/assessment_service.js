@@ -32,7 +32,7 @@ async function getUserProfile(createdBy,token){
 async function getEntityList(entityId, childType, token) {
 
   return new Promise(async function (resolve) {
-      var options = {
+      let options = {
           method: "GET",
           json: true,
           headers: {
@@ -52,7 +52,33 @@ async function getEntityList(entityId, childType, token) {
   });
 }
 
+
+//function to make a call to samiksha assessment entities list API
+async function getSurveySubmissionStatusById(submissionId,token) {
+
+  return new Promise(async function (resolve) {
+      let options = {
+          method: "GET",
+          json: true,
+          headers: {
+              "Content-Type": "application/json",
+              "X-authenticated-user-token": token
+          },
+          uri: config.samiksha_api.get_survey_submission_status_api + "/" + submissionId
+      }
+
+      rp(options).then(function (resp) {
+          return resolve(resp);
+
+      }).catch(function (err) {
+          return resolve(err);
+      })
+
+  });
+}
+
 module.exports = {
     getUserProfile : getUserProfile,
-    getEntityList : getEntityList
+    getEntityList : getEntityList,
+    getSurveySubmissionStatusById: getSurveySubmissionStatusById
 }
