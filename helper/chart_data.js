@@ -2560,16 +2560,21 @@ const getDateTime = async function (completedDate) {
 exports.listALLAnswers = async function (data) {
 
     let result = {
-        question: data[0].event.questionName,
-        answers: []
+        question: data[0].events[0].questionName,
+        answers: [],
+        completedDate: ""
     }
 
-    data.forEach(singleData => {
-        result.answers.push(singleData.event.questionAnswer);
+    data.forEach( singleEvent => {
+        singleEvent.events.forEach( singleResponse => {
+            result.answers.push(singleResponse.questionAnswer);
+        })
     })
 
-    return result;
+    let latestEvent = data[data.length-1].events;
+    result.completedDate = latestEvent[latestEvent.length-1].completedDate;
 
+    return result;
 }
 
 //function for creating report of survey solution

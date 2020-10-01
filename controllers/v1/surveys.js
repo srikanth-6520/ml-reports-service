@@ -8,6 +8,7 @@ const assessmentService = require('../../helper/assessment_service');
 const kendraService = require('../../helper/kendra_service');
 const solutionReportTextResponseLimit = 10;
 const evidenceLimit = 3;
+const numberOfResponsesLimit = 10;
 
    /**
    * @api {get} /dhiti/api/v1/surveys/solutionReport?solutionId=:solutionId solution report
@@ -267,78 +268,93 @@ const getDataOFChartTypeQuestions = async function (req) {
     })
 }
 
- /**
-   * @api {post} /dhiti/api/v1/surveys/getAllResponsesOfQuestion Get all responses for the given questionId
-   * List all responses
-   * @apiVersion 1.0.0
-   * @apiGroup Surveys
-   * @apiHeader {String} x-auth-token Authenticity token  
-   * @apiSampleRequest /dhiti/api/v1/surveys/getAllResponsesOfQuestion
-   * @apiParamExample {json} Request-Body:
-   * {
-     "solutionId": "",
-     "questionExternalId": ""
-   * }
-   * @apiSuccessExample {json} Success-Response:
-   * {  
-   *   "question" : "",
-       "answers": []
-   * }
-   * @apiUse errorBody
-   */
+/**
+  * @api {post} /dhiti/api/v1/surveys/getAllResponsesOfQuestion Get all responses for the given questionId
+  * List all responses
+  * @apiVersion 1.0.0
+  * @apiGroup Surveys
+  * @apiHeader {String} x-auth-token Authenticity token  
+  * @apiSampleRequest /dhiti/api/v1/surveys/getAllResponsesOfQuestion
+  * @apiParamExample {json} Request-Body:
+  * {
+    "solutionId": "",
+    "questionExternalId": "",
+    "completedDate": ""
+  * }
+  * @apiSuccessExample {json} Success-Response:
+  * {  
+  *   "question" : "",
+      "answers": [],
+      "completedDate": ""
+  * }
+  * @apiUse errorBody
+  */
 
 exports.getAllResponsesOfQuestion = async function (req, res) {
 
     return new Promise(async function (resolve, reject) {
 
-        if (!req.body.solutionId && !req.body.questionExternalId) {
-            let response = {
+        let response;
+
+        if (!req.body.solutionId) {
+            response = {
                 result: false,
-                message: 'solutionId and questionExternalId are required fields'
+                message: 'solutionId is a required field'
             }
             res.send(response);
-
-        } else {
-
-            model.MyModel.findOneAsync({ qid: "list_all_responses" }, { allow_filtering: true })
-                .then(async function (result) {
-
-                    let bodyParam = JSON.parse(result.query);
-
-                    if (config.druid.survey_datasource_name) {
-                        bodyParam.dataSource = config.druid.survey_datasource_name;
-                    }
-
-                    bodyParam.filter.fields[0].value = req.body.solutionId;
-                    bodyParam.filter.fields[1].value = req.body.questionExternalId;
-
-                    //pass the query as body param and get the resul from druid
-                    let options = config.druid.options;
-                    options.method = "POST";
-                    options.body = bodyParam;
-                    let data = await rp(options);
-
-                    if (!data.length) {
-
-                        res.send({
-                            "result": false,
-                            "data": "DATA_NOT_FOUND"
-                        });
-
-                    } else {
-
-                        let response = await helperFunc.listALLAnswers(data);
-                        res.send(response);
-                    }
-                })
-                .catch(err => {
-                    let response = {
-                        result: false,
-                        message: 'INTERNAL_SERVER_ERROR'
-                    };
-                    res.send(response);
-                })
         }
+
+        if (!req.body.questionExternalId) {
+            response = {
+                result: false,
+                message: 'questionExternalId is a required field'
+            }
+            res.send(response);
+        }
+
+        model.MyModel.findOneAsync({ qid: "list_all_responses" }, { allow_filtering: true })
+            .then(async function (result) {
+
+                let bodyParam = JSON.parse(result.query);
+
+                if (config.druid.survey_datasource_name) {
+                    bodyParam.dataSource = config.druid.survey_datasource_name;
+                }
+
+                bodyParam.filter.fields[0].value = req.body.solutionId;
+                bodyParam.filter.fields[1].value = req.body.questionExternalId;
+                bodyParam.limit = numberOfResponsesLimit;
+                if (req.body.completedDate) {
+                    let timeFilter = { "type": "bound","dimension": "completedDate","lower": req.body.completedDate,"lowerStrict": true,"ordering": "numeric" }
+                    bodyParam.filter.fields.push(timeFilter);
+                }
+
+                //pass the query as body param and get the resul from druid
+                let options = config.druid.options;
+                options.method = "POST";
+                options.body = bodyParam;
+                let data = await rp(options);
+
+                if (!data.length) {
+                    res.send({
+                        "result": false,
+                        "data": "DATA_NOT_FOUND"
+                    });
+
+                } else {
+
+                    response = await helperFunc.listALLAnswers(data);
+                    res.send(response);
+                }
+            })
+            .catch(err => {
+                response = {
+                    result: false,
+                    message: 'INTERNAL_SERVER_ERROR'
+                };
+                res.send(response);
+            })
+
     })
 }
 
@@ -494,17 +510,18 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
 
     return new Promise(async function (resolve, reject) {
 
-        if (!req.body.submissionId && !req.body.questionId) {
+        if (!req.body.solutionId && !req.body.submissionId) {
             let response = {
               result: false,
-              message: 'submissionId and questionId are required fields'
+              message: 'submissionId/solutionId is a required field'
             }
             res.send(response);
         }
-        else if (!req.body.solutionId && !req.body.questionId) {
+        
+        if (!req.body.questionId) {
             let response = {
               result: false,
-              message: 'solutionId and questionId are required fields'
+              message: 'questionId is a required field'
             }
             res.send(response);
         }

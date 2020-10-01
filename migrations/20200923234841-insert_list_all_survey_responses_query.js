@@ -23,7 +23,7 @@ module.exports = {
     let queries = 
       [{
         query: query,
-        params: [id.toString(), 'list_all_responses','{"queryType":"groupBy","dataSource":"sl_survey","dimensions":["questionName","questionAnswer","surveySubmissionId"],"aggregations":[],"granularity":"all","postAggregations":[],"intervals":"1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00","filter":{"type":"and","fields":[{"type":"selector","dimension":"solutionId","value":""},{"type":"selector","dimension":"questionExternalId","value":""}]}}']
+        params: [id.toString(), 'list_all_responses','{"queryType":"scan","dataSource":"dev_sl_surveys","resultFormat":"list","filter":{"type":"and","fields":[{"type":"selector","dimension":"solutionId","value":""},{"type":"selector","dimension":"questionExternalId","value":""}]},"columns":["questionName","questionAnswer","surveySubmissionId","completedDate"],"intervals":["1901-01-01/2101-01-01"]}']
       }];
 
       await cassandra.batch(queries, { prepare: true });
