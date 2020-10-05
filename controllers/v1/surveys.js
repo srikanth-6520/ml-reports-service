@@ -124,7 +124,7 @@ const getSubmissionIdCount = async function (solutionId) {
             
             let submissionIdCount = 0;
             if (data.length > 0) {
-                submissionIdCount = data[0].event.submissionIdCount;
+                submissionIdCount = parseInt(data[0].event.submissionIdCount);
             }
 
              return resolve({submissionCount : submissionIdCount });

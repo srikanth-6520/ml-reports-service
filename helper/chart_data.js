@@ -2591,7 +2591,11 @@ exports.getSurveySolutionReport = async function (data, submissionCount) {
         let nonMatrixData = [];
 
         await Promise.all(data.map(singleData => {
-            questionExternalIds.push(singleData.event.questionExternalId)
+
+            if (!result.questionExternalIds.includes(singleData.event.questionExternalId)) {
+                result.questionExternalIds.push(singleData.event.questionExternalId)
+            }
+
             if (singleData.event.instanceParentResponsetype == "matrix") {
                 matrixData.push(singleData)
             }
