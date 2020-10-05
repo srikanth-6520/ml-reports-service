@@ -2743,8 +2743,8 @@ const getChartObject = async function (data,submissionCount) {
                 response.push(questionObject);
             }
             else {
-
-                await Promise.all(groupDataByQuestionId[questionKey].map(singleResponse => {
+                let sortedData = await groupDataByQuestionId[questionKey].sort(getSortOrder("completedDate"));
+                await Promise.all(sortedData.map(singleResponse => {
 
                     if (singleResponse.event.questionResponseType == "date") {
                         singleResponse.event.questionAnswer = moment(singleResponse.event.questionAnswer).format('D MMM YYYY, h:mm:ss A');
@@ -2752,6 +2752,7 @@ const getChartObject = async function (data,submissionCount) {
                     questionObject.answers.push(singleResponse.event.questionAnswer)
                 }))
                 questionObject.count = questionObject.answers.length;
+                questionObject.completedDate = sortedData[sortedData.length-1].event.completedDate;
                 response.push(questionObject);
             }
         }))
