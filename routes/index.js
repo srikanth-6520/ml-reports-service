@@ -3,7 +3,7 @@ const authenticator = require('../middleware/authentication_service');
 
 module.exports = function (app) {
 
-    app.use(config.application_base_url, authenticator.authenticate);
+    // app.use(config.application_base_url, authenticator.authenticate);
 
     let router = async function (req, res, next) {
         if (!controllers[req.params.version]) {
@@ -29,3 +29,4 @@ module.exports = function (app) {
     });
 
 }
+
