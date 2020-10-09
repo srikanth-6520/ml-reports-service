@@ -6,9 +6,10 @@ var logger = require('morgan');
 var config = require('./config/config');
 require('./config/globals')();
 var router = require('./routes');
+const cors = require('cors');
 
 var app = express();
-
+app.use(cors);
 var debug = require('debug')('nodejs-druid-query-app:server');
 var http = require('http');
 var bodyParser = require('body-parser');
