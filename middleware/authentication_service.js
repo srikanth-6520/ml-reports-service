@@ -13,7 +13,7 @@ var config = require('../config/config.json');
  * helper functions
  */
 
-var ApiInterceptor = require('../helper/key_cloak_authentication');
+// var ApiInterceptor = require('../helper/key_cloak_authentication');
 
 
 
@@ -48,7 +48,7 @@ var cacheConfig = {
     ttl: 1800
 };
 
-var apiInterceptor = new ApiInterceptor(keyCloakConfig, cacheConfig);
+// var apiInterceptor = new ApiInterceptor(keyCloakConfig, cacheConfig);
 
 
 function authenticate(req, res, next) {

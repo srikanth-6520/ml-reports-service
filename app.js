@@ -1,3 +1,4 @@
+require('dotenv').config();
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
@@ -8,15 +9,15 @@ require('./config/globals')();
 var router = require('./routes');
 
 var app = express();
+var cors = require('cors')
 
+app.use(cors())
 var debug = require('debug')('nodejs-druid-query-app:server');
 var http = require('http');
 var bodyParser = require('body-parser');
 var fs = require('fs');
 
 app.use(logger('dev'));
-//app.use(express.json());
-//app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json({limit: '50mb'}));
 app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 app.use(cookieParser());
