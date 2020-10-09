@@ -1623,21 +1623,6 @@ function getSortOrder(prop) {
     }
  }
 
-//COnvert questionSequenceByEcm value from string to int
-async function sequenceNumberTypeConvertion(data){
-
-    await Promise.all(data.map(element => {
-         element.event.questionSequenceByEcm = parseInt(element.event.questionSequenceByEcm);
-
-         if(element.event.instanceParentEcmSequence != null){
-             element.event.instanceParentEcmSequence = parseInt(element.event,instanceParentEcmSequence);
-         }
-    }));
-
- return data;
-}
-
-
 
 // question list response object creation
 var questionListObjectCreation = async function(data){
@@ -2768,3 +2753,15 @@ const getChartObject = async function (data,submissionCount) {
 
 
 
+// Get the questionExternalIds from the input data
+exports.getQuestionExternalIds = async function(data) {
+
+    let questionExternalIds = [];
+  
+    await Promise.all(data.map(element => {
+      questionExternalIds.push(element.order);
+    }))
+  
+    return questionExternalIds;
+}
+  

@@ -13,7 +13,7 @@ const path = require('path');
 const kendraService = require('../../helper/kendra_service');
 const assessmentService = require('../../helper/assessment_service');
 const storePdfReportsToS3 = (!config.store_pdf_reports_in_s3_on_off || config.store_pdf_reports_in_s3_on_off != "OFF") ? "ON" : "OFF"
-
+const evidenceLimit = 3;
 
 /**
    * @api {post} /dhiti/api/v1/observations/instance 
@@ -484,12 +484,15 @@ exports.entity = async function (req, res) {
             else {
 
               let chartData = await helperFunc.entityReportChart(data, req.body.entityId, "school")
+              
+              let questionExternalIds = await helperFunc.getQuestionExternalIds(chartData.response);
 
                //Get evidence data from evidence datasource
                let inputObj = {
                 entityId : req.body.entityId,
                 observationId : req.body.observationId,
-                entityType : entityType
+                entityType : entityType,
+                questionExternalIds: questionExternalIds
               }
 
               let evidenceData = await getEvidenceData(inputObj);
@@ -509,9 +512,9 @@ exports.entity = async function (req, res) {
           })
           .catch(function (err) {
             res.status(400);
-            var response = {
+            let response = {
               result: false,
-              message: 'Data not found'
+              message: 'INTERNAL_SERVER_ERROR'
             }
             resolve(response);
           })
@@ -1370,9 +1373,12 @@ async function observationReportData(req, res) {
 
                     let chartData = await helperFunc.entityReportChart(data, entityId, entityType);
 
+                    let questionExternalIds = await helperFunc.getQuestionExternalIds(chartData.response);
+
                     //Get evidence data from evidence datasource
                     let inputObj = {
-                      observationId: req.body.observationId
+                      observationId: req.body.observationId,
+                      questionExternalIds: questionExternalIds
                     }
 
                     let evidenceData = await getEvidenceData(inputObj);
@@ -1394,7 +1400,7 @@ async function observationReportData(req, res) {
                     res.status(400);
                     var response = {
                         result: false,
-                        message: 'Data not found'
+                        message: 'INTERNAL_SERVER_ERROR'
                     }
                     resolve(response);
                 })
@@ -1579,10 +1585,13 @@ async function observationScoreReport(req, res) {
               if (totalEntities.result) {
                 chartData.totalEntities = totalEntities.result.count;
               }
+              
+              let questionExternalIds = await helperFunc.getQuestionExternalIds(chartData.response);
 
               //Get evidence data from evidence datasource
               let inputObj = {
-                observationId: req.body.observationId
+                observationId: req.body.observationId,
+                questionExternalIds: questionExternalIds
               }
 
               let evidenceData = await getEvidenceData(inputObj);
@@ -2703,11 +2712,14 @@ async function entityCriteriaReportData(req, res) {
             let reportType = "criteria";
             let chartData = await helperFunc.entityReportChart(data, req.body.entityId, "school",reportType)
 
+            let questionExternalIds = await helperFunc.getQuestionExternalIds(chartData.response);
+
              //Get evidence data from evidence datasource
              let inputObj = {
               entityId : req.body.entityId,
               observationId : req.body.observationId,
-              entityType: entityType
+              entityType: entityType,
+              questionExternalIds: questionExternalIds
             }
 
             let evidenceData = await getEvidenceData(inputObj);
@@ -2904,11 +2916,14 @@ async function entityScoreCriteriaReportData(req, res) {
             // send entity name dynamically
             chartData.entityName = data[0].event[entityType + "Name"];
 
+            let questionExternalIds = await helperFunc.getQuestionExternalIds(chartData.response);
+
             //Get evidence data from evidence datasource
              let inputObj = {
               entityId : req.body.entityId,
               observationId: req.body.observationId,
-              entityType: entityType
+              entityType: entityType,
+              questionExternalIds: questionExternalIds
             }
 
             let evidenceData = await getEvidenceData(inputObj);
@@ -3068,9 +3083,12 @@ async function observationCriteriaReportData(req, res) {
                   let reportType = "criteria";
                   let chartData = await helperFunc.entityReportChart(data, entityId, entityType, reportType);
 
+                  let questionExternalIds = await helperFunc.getQuestionExternalIds(chartData.response)
+
                   //Get evidence data from evidence datasource
                   let inputObj = {
-                    observationId: req.body.observationId
+                    observationId: req.body.observationId,
+                    questionExternalIds: questionExternalIds
                   }
 
                   let evidenceData = await getEvidenceData(inputObj);
@@ -3273,9 +3291,12 @@ async function observationScoreCriteriaReportData(req, res) {
               chartData.totalEntities = totalEntities.result.count;
             }
 
+            let questionExternalIds = await helperFunc.getQuestionExternalIds(chartData.response);
+
             //Get evidence data from evidence datasource
             let inputObj = {
-              observationId: req.body.observationId
+              observationId: req.body.observationId,
+              questionExternalIds: questionExternalIds
             }
 
             let evidenceData = await getEvidenceData(inputObj);
@@ -3454,33 +3475,26 @@ exports.listAllEvidences = async function (req, res) {
 async function allEvidencesList(req, res) {
   return new Promise(async function (resolve, reject) {
 
-    if (!req.body.submissionId && !req.body.questionId) {
-      var response = {
+    if (!req.body.submissionId && !(req.body.entityId && req.body.observationId) && !req.body.observationId) {
+      let response = {
         result: false,
-        message: 'submissionId and questionId are required fields'
+        message: 'submissionId/ entityId and observationId/ observationId required'
       }
       resolve(response);
+    } 
 
-    } else if (!req.body.entityId && !req.body.observationId && !req.body.questionId) {
-      var response = {
+    if (!req.body.questionId) {
+      let response = {
         result: false,
-        message: 'entityId, observationId and questionId are required fields'
+        message: 'questionId is a required field'
       }
       resolve(response);
+    } 
+    
+    model.MyModel.findOneAsync({ qid: "list_all_evidence_query" }, { allow_filtering: true })
+      .then(async function (result) {
 
-    } else if (!req.body.observationId && !req.body.questionId) {
-      var response = {
-        result: false,
-        message: 'observationId and questionId are required fields'
-      }
-      resolve(response);
-
-    } else {
-
-      model.MyModel.findOneAsync({ qid: "list_all_evidence_query" }, { allow_filtering: true })
-        .then(async function (result) {
-
-          var bodyParam = JSON.parse(result.query);
+          let bodyParam = JSON.parse(result.query);
 
           if (config.druid.evidence_datasource_name) {
             bodyParam.dataSource = config.druid.evidence_datasource_name;
@@ -3505,10 +3519,10 @@ async function allEvidencesList(req, res) {
           bodyParam.filter = filter;
 
           //pass the query as body param and get the resul from druid
-          var options = config.druid.options;
+          let options = config.druid.options;
           options.method = "POST";
           options.body = bodyParam;
-          var data = await rp(options);
+          let data = await rp(options);
 
           if (!data.length) {
             resolve({
@@ -3530,17 +3544,15 @@ async function allEvidencesList(req, res) {
 
         })
         .catch(err => {
-          var response = {
+          let response = {
             result: false,
-            message: 'Data not found'
+            message: 'INTERNAL_SERVER_ERROR'
           };
           resolve(response);
 
         })
-    }
-  })
-
-}
+    })
+  }
 
 // Get the evidence data
 async function getEvidenceData(inputObj) {
@@ -3556,29 +3568,51 @@ async function getEvidenceData(inputObj) {
         let entityType = inputObj.entityType;
 
         var bodyParam = JSON.parse(result.query);
-        
+
         //based on the given input change the filter
         let filter = {};
 
         if (submissionId) {
           filter = { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }
-        } else if(entityId && observationId) {
-          filter = {"type":"and","fields":[{"type": "selector", "dimension": entityType, "value": entityId},{"type": "selector", "dimension": "observationId", "value": observationId}]}
-        } else if(observationId) {
-          filter = { "type": "selector", "dimension": "observationId", "value": observationId }
+        } else if (entityId && observationId) {
+          filter = { "type": "and", "fields": [{ "type": "selector", "dimension": entityType, "value": entityId }, { "type": "selector", "dimension": "observationId", "value": observationId }] }
+        } else if (observationId) {
+          filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "observationId", "value": observationId }] }
+        } else {
+          resolve({
+            "result": false,
+            "message": "INVALID_INPUT"
+          });
         }
 
         if (config.druid.evidence_datasource_name) {
           bodyParam.dataSource = config.druid.evidence_datasource_name;
         }
-         
+
         bodyParam.filter = filter;
 
         //pass the query as body param and get the resul from druid
-        var options = config.druid.options;
+        let options = config.druid.options;
         options.method = "POST";
-        options.body = bodyParam;
-        var data = await rp(options);
+        let data = [];
+
+        if (inputObj.questionExternalIds && inputObj.questionExternalIds.length > 0) {
+
+          bodyParam.limitSpec = { "type": "default", "limit": evidenceLimit, "columns": [{ "dimension": "questionExternalId", "direction": "descending" }] };
+          let questionFilter = { "type": "selector", "dimension": "questionExternalId", "value": "" };
+
+          await Promise.all(inputObj.questionExternalIds.map(async questionExternalId => {
+            questionFilter.value = questionExternalId;
+            bodyParam.filter.fields.push(questionFilter);
+            options.body = bodyParam;
+            let evidenceData = await rp(options);
+            data.push(...evidenceData);
+          }))
+        }
+        else {
+          options.body = bodyParam;
+          data = await rp(options);
+        }
 
         if (!data.length) {
           resolve({
@@ -3586,13 +3620,13 @@ async function getEvidenceData(inputObj) {
             "data": "EVIDENCE_NOT_FOUND"
           });
         } else {
-          resolve({"result":true,"data":data});
+          resolve({ "result": true, "data": data });
         }
       })
       .catch(function (err) {
-        var response = {
+        let response = {
           result: false,
-          message: "Internal server error"
+          message: "INTERNAL_SERVER_ERROR"
         };
         resolve(response);
       });

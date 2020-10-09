@@ -10,6 +10,7 @@ const url = require("url");
 const omit = require('object.omit');
 const assessmentService = require('../../helper/assessment_service');
 const storePdfReportsToS3 = (!config.store_pdf_reports_in_s3_on_off || config.store_pdf_reports_in_s3_on_off != "OFF") ? "ON" : "OFF"
+const evidenceLimit = 3;
 
 //Controller for entity solution report (cluster/block/zone/district)
 exports.entitySolutionReport = async function (req, res) {
@@ -243,11 +244,14 @@ exports.entityScoreReport = async function (req, res) {
               // send entity name dynamically
                chartData.entityName = data[0].event[entityType + "Name"];
 
+               let questionExternalIds = await helperFunc.getQuestionExternalIds(chartData.response);
+
               //Get evidence data from evidence datasource
                let inputObj = {
                 entityId : req.body.entityId,
                 observationId: req.body.observationId,
-                entityType: entityType
+                entityType: entityType,
+                questionExternalIds: questionExternalIds
               }
               
               let evidenceData = await getEvidenceData(inputObj);
@@ -595,16 +599,21 @@ async function getEvidenceData(inputObj) {
 
         let bodyParam = JSON.parse(result.query);
         
-        //based on the given input change the filter
-        let filter = {};
+         //based on the given input change the filter
+         let filter = {};
 
-        if (submissionId) {
-          filter = { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }
-        } else if(entityId && observationId) {
-          filter = {"type":"and","fileds":[{"type": "selector", "dimension": entityType, "value": entityId},{"type": "selector", "dimension": "observationId", "value": observationId}]}
-        } else if(observationId) {
-          filter = { "type": "selector", "dimension": "observationId", "value": observationId }
-        }
+         if (submissionId) {
+           filter = { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }
+         } else if (entityId && observationId) {
+           filter = { "type": "and", "fields": [{ "type": "selector", "dimension": entityType, "value": entityId }, { "type": "selector", "dimension": "observationId", "value": observationId }] }
+         } else if (observationId) {
+           filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "observationId", "value": observationId }] }
+         } else {
+           resolve({
+             "result": false,
+             "message": "INVALID_INPUT"
+           });
+         }
 
         if (config.druid.evidence_datasource_name) {
           bodyParam.dataSource = config.druid.evidence_datasource_name;
@@ -615,8 +624,25 @@ async function getEvidenceData(inputObj) {
         //pass the query as body param and get the resul from druid
         let options = config.druid.options;
         options.method = "POST";
-        options.body = bodyParam;
-        let data = await rp(options);
+        let data = [];
+
+        if (inputObj.questionExternalIds && inputObj.questionExternalIds.length > 0) {
+
+          bodyParam.limitSpec = { "type": "default", "limit": evidenceLimit, "columns": [{ "dimension": "questionExternalId", "direction": "descending" }] };
+          let questionFilter = { "type": "selector", "dimension": "questionExternalId", "value": "" };
+
+          await Promise.all(inputObj.questionExternalIds.map(async questionExternalId => {
+            questionFilter.value = questionExternalId;
+            bodyParam.filter.fields.push(questionFilter);
+            options.body = bodyParam;
+            let evidenceData = await rp(options);
+            data.push(...evidenceData);
+          }))
+        }
+        else {
+          options.body = bodyParam;
+          data = await rp(options);
+        }
 
         if (!data.length) {
           resolve({
@@ -630,7 +656,7 @@ async function getEvidenceData(inputObj) {
       .catch(function (err) {
         let response = {
           result: false,
-          message: "Internal server error"
+          message: "INTERNAL_SERVER_ERROR"
         };
         resolve(response);
       });
