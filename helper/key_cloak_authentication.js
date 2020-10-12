@@ -6,7 +6,7 @@ var keyCloakAuthUtils = require("keycloak-auth-utils");
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const accessTokenValidationMode = (process.env.VALIDATE_ACCESS_TOKEN_OFFLINE && process.env.VALIDATE_ACCESS_TOKEN_OFFLINE === "OFF")? "OFF" : "ON";
-const keyCloakPublicKeyPath = (process.env.KEYCLOAK_PUBLIC_KEY_PATH && process.env.KEYCLOAK_PUBLIC_KEY_PATH != "") ? ROOT_PATH+"/"+process.env.KEYCLOAK_PUBLIC_KEY_PATH : ROOT_PATH+"/"+"keycloak-public-keys/" ;
+const keyCloakPublicKeyPath = (process.env.KEYCLOAK_PUBLIC_KEY_PATH && process.env.KEYCLOAK_PUBLIC_KEY_PATH != "") ? PROJECT_ROOT_DIRECTORY+"/"+process.env.KEYCLOAK_PUBLIC_KEY_PATH : PROJECT_ROOT_DIRECTORY+"/"+"keycloak-public-keys/" ;
 
 function ApiInterceptor(keycloak_config, cache_config) {
   this.config = keycloak_config;
