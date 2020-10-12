@@ -26,6 +26,10 @@ ApiInterceptor.prototype.validateToken = function(token, callback) {
   if (accessTokenValidationMode === "ON") {
     var self = this;
     var decoded = jwt.decode(token, { complete: true });
+    if(decoded.header === undefined){
+      return callback("Invalid token", null);
+    }
+    
     const kid = decoded.header.kid
     let cert = "";
     let path = keyCloakPublicKeyPath + kid + '.pem';
