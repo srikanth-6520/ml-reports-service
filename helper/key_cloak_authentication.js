@@ -29,6 +29,7 @@ ApiInterceptor.prototype.validateToken = function(token, callback) {
     const kid = decoded.header.kid
     let cert = "";
     let path = keyCloakPublicKeyPath + kid + '.pem';
+
     cert = fs.readFileSync(path);
 
     if (fs.existsSync(path)) {
@@ -62,6 +63,7 @@ ApiInterceptor.prototype.validateToken = function(token, callback) {
       return callback(err, null);
     }
   }else{
+      var self = this;
       self.grantManager.userInfo(token, function(err, userData) {
         if (err) {
           return callback(err, null);
