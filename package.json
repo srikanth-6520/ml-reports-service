@@ -28,6 +28,7 @@
     "http-errors": "^1.6.3",
     "jade": "~1.11.0",
     "jsonwebtoken": "^8.5.1",
+    "dotenv": "^6.1.0",
     "keycloak-auth-utils": "^3.3.0",
     "lodash.get": "^4.4.2",
     "moment": "^2.24.0",
