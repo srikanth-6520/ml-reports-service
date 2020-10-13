@@ -100,5 +100,5 @@
       }
    },
     "validate_access_token_offline" : "ON/OFF",
-    "keycloak_public_key_path" : "keycloak-public-keys/"
+    "keycloak_public_key_path" : "keycloak-public-keys"
 }  

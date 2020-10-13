@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const config = require('../config/config');
 const accessTokenValidationMode = (config.validate_access_token_offline && config.validate_access_token_offline === "OFF") ? "OFF" : "ON";
-const keyCloakPublicKeyPath = (config.keycloak_public_key_path && config.keycloak_public_key_path != "") ? PROJECT_ROOT_DIRECTORY + "/" + config.keycloak_public_key_path : PROJECT_ROOT_DIRECTORY + "/" + "keycloak-public-keys/";
+const keyCloakPublicKeyPath = (config.keycloak_public_key_path && config.keycloak_public_key_path != "") ? PROJECT_ROOT_DIRECTORY + "/" + config.keycloak_public_key_path+ "/" : PROJECT_ROOT_DIRECTORY + "/" + "keycloak-public-keys/";
 
 function ApiInterceptor(keycloak_config, cache_config) {
   this.config = keycloak_config;
