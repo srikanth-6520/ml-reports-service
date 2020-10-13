@@ -98,5 +98,7 @@
       "headers":{ 
          "Content-Type":"application/json"
       }
-   }
+   },
+    "validate_access_token_offline" : "ON/OFF",
+    "keycloak_public_key_path" : "keycloak-public-keys"
 }  
