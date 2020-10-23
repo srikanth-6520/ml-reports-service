@@ -3,13 +3,13 @@ const auth = require('../../middleware/authentication_service');
 const csv = require('csvtojson');
 var fs = require('fs');
 const groupBy = require('group-array');
-var inputFilePath =const_data['getParams']['Key'] = 'mantra/user_content/user_content_watch.csv';
 
 exports.adoption = async function (req, res) {
   try {
     let resources = req.body;
-    console.log(resources);
-    const jsonData = await csv().fromFile(inputFilePath);
+    const_data['getParams']['Key'] = "mantra/user_content/user_content_watch.csv";
+    const stream = const_data['s3'].getObject(const_data['getParams']).createReadStream();
+    const jsonData = await csv().fromStream(stream);
     var jdata = [];
     await jsonData.forEach((data) => {
       resources.forEach((item) => {
