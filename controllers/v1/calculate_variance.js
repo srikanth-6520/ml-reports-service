@@ -1,7 +1,4 @@
-const auth = require('../../middleware/authentication_service');
-var const_data = require('../../config/aws-config');
-const csv = require('csvtojson');
-exports.diff = async function (req, res) {
+exports.variance = async function (req, res) {
     try {
         var difference = [];
         var data1 = req.body.data.data1;

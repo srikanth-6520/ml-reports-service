@@ -1,7 +1,7 @@
-const readFile = require('../v1/portal_reports/read_file')
-exports.roleCount = async function (req, res) {
+const readFile = require('./portal_reports/read_file')
+exports.userNeverLoggedIn= async function (req, res) {
   try {
-    filename =  'mantra/telemetry/role_content.csv';
+    filename ='mantra/Adoption_Dashboard/users_never_logged_in/users_never_logged_in.json';
     var result = await readFile.readS3File(filename);
     res.send(result);
 
@@ -25,3 +25,12 @@ exports.roleCount = async function (req, res) {
 
 
    
+
+    
+    
+
+
+    
+
+
+    

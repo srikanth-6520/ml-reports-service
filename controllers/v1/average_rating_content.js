@@ -1,10 +1,10 @@
-const readFile = require('../v1/portal_reports/read_file')
-exports.roleCount = async function (req, res) {
+const readFile = require('./portal_reports/read_file')
+exports.averageRatingContent = async function (req, res) {
   try {
-    filename =  'mantra/telemetry/role_content.csv';
+    filename = 'mantra/Home_Dashboard/top_content_ratings/top_content_ratings.json';
     var result = await readFile.readS3File(filename);
     res.send(result);
-
+    
    
   }
   catch (e) {
@@ -25,3 +25,6 @@ exports.roleCount = async function (req, res) {
 
 
    
+
+    
+    

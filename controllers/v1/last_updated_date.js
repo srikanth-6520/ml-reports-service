@@ -1,7 +1,7 @@
 const readFile = require('../v1/portal_reports/read_file')
-exports.participationPercentage = async function (req, res) {
+exports.lastUpdatedDate = async function (req, res) {
   try {
-    filename = 'mantra/Learning/group_participation_percentage/group_participation_percentage.json';
+    filename =  'mantra/Home_Dashboard/date/last_updated_date.json';
     var result = await readFile.readS3File(filename);
     res.send(result);
 
@@ -15,3 +15,13 @@ exports.participationPercentage = async function (req, res) {
 };
 
     
+
+
+    
+
+
+
+
+
+
+   

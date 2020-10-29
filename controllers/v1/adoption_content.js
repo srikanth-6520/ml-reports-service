@@ -1,25 +1,11 @@
-var const_data = require('../../config/aws-config');
-const auth = require('../../middleware/authentication_service');
-const csv = require('csvtojson')
+const readFile = require('./portal_reports/read_file')
 exports.adoption_content = async function (req, res) {
   try {
-    const_data['getParams']['Key'] = 'mantra/user_content/user_content_watch.csv'
-    async function csvToJSON() {
-      var params = {
-        Bucket: const_data['getParams']['Bucket'],
-        Key: const_data['getParams']['Key'],
-      };
-      const_data['s3'].headObject(params, async function (err, metadata) {
-        if (err && err.code === 'NotFound') {
-          res.status(403).json({ errMsg: 'No such data found' });
-        } else {
-          const stream = const_data['s3'].getObject(const_data['getParams']).createReadStream();
-          const json = await csv().fromStream(stream);
-          res.status(200).send(json);
-        }
-      });
-    }
-    csvToJSON()
+    filename = 'mantra/Adoption_Dashboard/user_content_watch/user_content_watch.json';
+    var result = await readFile.readS3File(filename);
+    res.send(result);
+    
+   
   }
   catch (e) {
     console.log(e);
