@@ -6,6 +6,7 @@ var logger = require('morgan');
 var config = require('./config/config');
 require('./config/globals')();
 var router = require('./routes');
+const cors = require('cors');
 
 var app = express();
 
@@ -14,6 +15,7 @@ var http = require('http');
 var bodyParser = require('body-parser');
 var fs = require('fs');
 
+app.use(cors());
 app.use(logger('dev'));
 //app.use(express.json());
 //app.use(express.urlencoded({ extended: false }));
@@ -23,6 +25,7 @@ app.use(cookieParser());
 app.set('views', path.join(__dirname, 'controllers/views'));
 app.set('view engine', 'ejs');
 app.use(express.static("public"));
+
 
 app.use(function (req, res, next) { //allow cross origin requests
   res.setHeader("Access-Control-Allow-Methods", "POST, PUT, OPTIONS, DELETE, GET");
