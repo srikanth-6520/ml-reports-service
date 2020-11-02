@@ -7,5 +7,7 @@ module.exports = {
     assessment: "assessment",
     googleCloud: "GC",
     azure: "azure",
-    aws: "aws"
+    aws: "aws",
+    survey: "survey",
+    submission_status_completed: "completed"
 }
