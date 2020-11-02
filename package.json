@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "app.js"
+    "start": "nodemon app.js"
   },
   "bin": {
     "dhiti-migrations": "module/migrations/bin/migrations.js"

@@ -2,15 +2,25 @@ const readFile = require('../v1/portal_reports/read_file')
 const files = require('./portal_reports/filePaths');
 var groupBy = require('group-array')
 /**
-   * @api {get} /dhiti/api/:version/:controller/:method
+     * @apiDefine errorBody
+     * @apiError {String} status 4XX,5XX
+     * @apiError {String} message Error
+     */    /**
+     * @apiDefine successBody
+     *  @apiSuccess {String} status 200
+     * @apiSuccess {String} result Data
+     */
+
+/**
+   * @api {post} /dhiti/api/v1/mantra4changeApi/genericApi
    * @apiVersion 1.0.0
+   * @apiHeader {String} x-auth-token Authenticity token 
    * @apiGroup Shikshalokam 
    * @apiSuccessExample {json} Success-Response:
 *     HTTP/1.1 200 OK
 *     {
 *       "result": true,
 *       "data": [{
-        
         }]
 *     }
    * @apiUse errorBody
@@ -28,7 +38,7 @@ exports.genericApi = async function (req, res) {
 
 };
 /**
-   * @api {get} /dhiti/api/:version/:controller/:method
+   * @api {post} /dhiti/api/v1/mantra4changeApi/percentageVariance
    * @apiVersion 1.0.0
    * @apiGroup Shikshalokam 
    * @apiSuccessExample {json} Success-Response:
@@ -44,7 +54,6 @@ exports.genericApi = async function (req, res) {
    */
 exports.percentageVariance = async function (req, res) {
     try {
-        console.log(req.body.data);
         var difference = [];
         var data1 = req.body.data.data1;
         var data2 = req.body.data.data2;
@@ -58,9 +67,8 @@ exports.percentageVariance = async function (req, res) {
         res.status(500).json({ errMessage: 'Internal error. Please try again!!' });
     }
 };
-
 /**
-   * @api {get} /dhiti/api/:version/:controller/:method
+   * @api {post} /dhiti/api/v1/mantra4changeApi/multiResource
    * @apiVersion 1.0.0
    * @apiGroup Shikshalokam 
    * @apiSuccessExample {json} Success-Response:
@@ -103,7 +111,6 @@ exports.multiResource = async function (req, res) {
             });
             usersCount.push({ group: key, count: cnt });
         })
-        console.log(usersCount);
         res.send({ "result": true, "data": usersCount })
     }
 
@@ -114,7 +121,7 @@ exports.multiResource = async function (req, res) {
 
 };
 /**
-   * @api {get} /dhiti/api/:version/:controller/:method
+   * @api {post} /dhiti/api/v1/mantra4changeApi/multiSelection
    * @apiVersion 1.0.0
    * @apiGroup Shikshalokam 
    * @apiSuccessExample {json} Success-Response:
@@ -129,7 +136,6 @@ exports.multiResource = async function (req, res) {
 *     }
    * @apiUse errorBody
    */
-
 exports.multiSelection = async function (req, res) {
     try {
         var fileName = files[`${req.body.key}`];
