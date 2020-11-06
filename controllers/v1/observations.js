@@ -13,6 +13,7 @@ const path = require('path');
 const kendraService = require('../../helper/kendra_service');
 const assessmentService = require('../../helper/assessment_service');
 const storePdfReportsToS3 = (!config.store_pdf_reports_in_s3_on_off || config.store_pdf_reports_in_s3_on_off != "OFF") ? "ON" : "OFF"
+const filesHelper = require('../../common/files_helper');
 
 
 /**
@@ -101,8 +102,23 @@ async function instanceObservationData(req, res) {
               var data = await rp(options);
 
               if (!data.length) {
+                let message;
+                let getSubmissionStatusResponse = await assessmentService.getObservationSubmissionStatusById
+                (
+                    submissionId,
+                    req.headers["x-auth-token"]
+                )
+              
+                if (getSubmissionStatusResponse.result && 
+                    getSubmissionStatusResponse.result.status == filesHelper.submission_status_completed) {
+                    message = filesHelper.submission_not_found_message
+                }
+                else {
+                    message = "SUBMISSION_ID_NOT_FOUND";
+                }
+
                 resolve({
-                  "data": "SUBMISSION_ID_NOT_FOUND"
+                  "data": message
                 });
               } else {
                
@@ -316,9 +332,25 @@ exports.instanceObservationScoreReport = async function (req, res) {
             let data = await rp(options);
   
             if (!data.length) {
+              let message;
+              let getSubmissionStatusResponse = await assessmentService.getObservationSubmissionStatusById
+              (
+                req.body.submissionId,
+                req.headers["x-auth-token"]
+              )
+
+              if (getSubmissionStatusResponse.result && 
+                  getSubmissionStatusResponse.result.status == filesHelper.submission_status_completed) {
+                  message = filesHelper.submission_not_found_message;
+              }
+              else {
+                  message = "SUBMISSION_ID_NOT_FOUND";
+              }
+
               resolve({
-                "data": "SUBMISSION_ID_NOT_FOUND"
+                "data": message
               });
+
             } else {
 
               let chartData = await helperFunc.instanceScoreReportChartObjectCreation(data);
@@ -2348,10 +2380,26 @@ async function instanceCriteriaReportData(req, res) {
                   let data = await rp(options);
 
                   if (!data.length) {
-                      resolve({
-                          "result": false,
-                          "data": "SUBMISSION_ID_NOT_FOUND"
-                      });
+                    let message;
+                    let getSubmissionStatusResponse = await assessmentService.getObservationSubmissionStatusById
+                    (
+                        submissionId,
+                        req.headers["x-auth-token"]
+                    )
+    
+                    if (getSubmissionStatusResponse.result && 
+                        getSubmissionStatusResponse.result.status == filesHelper.submission_status_completed) {
+                        message = filesHelper.submission_not_found_message;
+                    }
+                    else {
+                        message = "SUBMISSION_ID_NOT_FOUND";
+                    }
+  
+                    resolve({
+                      "result": false,
+                      "data": message
+                    });
+
                   } else {
 
                       let reportType = "criteria";
@@ -2524,10 +2572,26 @@ async function instanceScoreCriteriaReportData(req, res) {
           let data = await rp(options);
 
           if (!data.length) {
+            let message;
+            let getSubmissionStatusResponse = await assessmentService.getObservationSubmissionStatusById
+            (
+              req.body.submissionId,
+              req.headers["x-auth-token"]
+            )
+
+            if (getSubmissionStatusResponse.result && 
+                getSubmissionStatusResponse.result.status == filesHelper.submission_status_completed) {
+                message = filesHelper.submission_not_found_message;
+            }
+            else {
+                message = "SUBMISSION_ID_NOT_FOUND";
+            }
+
             resolve({
               "result": false,
-              "data": "SUBMISSION_ID_NOT_FOUND"
+              "data": message
             });
+          
           } else {
               
             let reportType = "criteria";

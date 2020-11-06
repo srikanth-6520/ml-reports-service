@@ -77,8 +77,33 @@ async function getSurveySubmissionStatusById(submissionId,token) {
   });
 }
 
+//function to make a call to samiksha assessment entities list API
+async function getObservationSubmissionStatusById(submissionId,token) {
+
+  return new Promise(async function (resolve) {
+      let options = {
+          method: "GET",
+          json: true,
+          headers: {
+              "Content-Type": "application/json",
+              "X-authenticated-user-token": token
+          },
+          uri: config.samiksha_api.get_observation_submission_status_api + "/" + submissionId
+      }
+
+      rp(options).then(function (resp) {
+          return resolve(resp);
+
+      }).catch(function (err) {
+          return resolve(err);
+      })
+
+  });
+}
+
 module.exports = {
     getUserProfile : getUserProfile,
     getEntityList : getEntityList,
-    getSurveySubmissionStatusById: getSurveySubmissionStatusById
+    getSurveySubmissionStatusById: getSurveySubmissionStatusById,
+    getObservationSubmissionStatusById: getObservationSubmissionStatusById
 }
