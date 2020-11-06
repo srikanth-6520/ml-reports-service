@@ -66,7 +66,7 @@
        "observation_details_api":"http://localhost:4201/assessment/api/v1/observations/details/",
        "get_user_profile_api": "http://localhost:4201/assessment/api/v1/userExtension/getProfile",
        "get_survey_submission_status_api": "http://localhost:4201/assessment/api/v1/surveySubmissions/getStatus",
-       "get_observation_submission_status_api": "http://localhost:4201/assessment/api/v1/observationSubmissions/getSubmissionStatusById"
+       "get_observation_submission_status_api": "http://localhost:4201/assessment/api/v1/observationSubmissions/status"
     },
     
      "kendra" : {
