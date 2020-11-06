@@ -1,18 +1,18 @@
-const readFile = require('../v1/portal_reports/read_file')
-const files = require('./portal_reports/filePaths');
+const readFile = require('../../helper/read_file')
+const config = require('../../config/config.json');
 var groupBy = require('group-array')
 /**
      * @apiDefine errorBody
      * @apiError {String} status 4XX,5XX
      * @apiError {String} message Error
      */    /**
-     * @apiDefine successBody
-     *  @apiSuccess {String} status 200
-     * @apiSuccess {String} result Data
-     */
+* @apiDefine successBody
+*  @apiSuccess {String} status 200
+* @apiSuccess {String} result Data
+*/
 
 /**
-   * @api {post} /dhiti/api/v1/mantra4changeApi/genericApi
+   * @api {get} /dhiti/api/v1/portal_api/genericApi
    * @apiVersion 1.0.0
    * @apiHeader {String} x-auth-token Authenticity token 
    * @apiGroup Shikshalokam 
@@ -27,7 +27,8 @@ var groupBy = require('group-array')
    */
 exports.genericApi = async function (req, res) {
     try {
-        var fileName = files[`${req.body.key}`];
+        var fileName = config.file_path[`${req.body.key}`];
+        console.log(fileName);
         var result = await readFile.readS3File(fileName);
         res.send({ "result": true, "data": result })
     }
@@ -38,39 +39,46 @@ exports.genericApi = async function (req, res) {
 
 };
 /**
-   * @api {post} /dhiti/api/v1/mantra4changeApi/percentageVariance
+   * @api {post} /dhiti/api/v1/portal_api/varianceCalculation
    * @apiVersion 1.0.0
    * @apiGroup Shikshalokam 
+   * @apiParamExample {json} Request-Body:
+*    {
+     "data":{"data1":[],"data2":[]}
+*    }
    * @apiSuccessExample {json} Success-Response:
 *     HTTP/1.1 200 OK
 *     {
 *       "result": true,
-*       "data": [{
-               "variance":[]
-        
-        }]
+*       "data": [
+                variance
+               ]
 *     }
    * @apiUse errorBody
    */
-exports.percentageVariance = async function (req, res) {
+exports.varianceCalculation = async function (req, res) {
     try {
-        var difference = [];
+        var variance = [];
         var data1 = req.body.data.data1;
         var data2 = req.body.data.data2;
         for (let i = 0; i < data1.length; i++) {
-            var mydiff = parseFloat(((data2[i] - data1[i]) * 100 / data1[i]).toFixed(2));
-            difference.push(mydiff);
+            var percentageVariance = parseFloat(((data2[i] - data1[i]) * 100 / data1[i]).toFixed(2));
+            variance.push(percentageVariance);
         }
-        res.status(200).json({ 'result': true, 'data': difference });
+        res.status(200).json({ 'result': true, 'data': variance });
     } catch (e) {
         console.log(e);
         res.status(500).json({ errMessage: 'Internal error. Please try again!!' });
     }
 };
 /**
-   * @api {post} /dhiti/api/v1/mantra4changeApi/multiResource
+   * @api {post} /dhiti/api/v1/portal_api/userViewAllResource
    * @apiVersion 1.0.0
    * @apiGroup Shikshalokam 
+   * @apiParamExample {json} Request-Body:
+*    {
+     "data":[""]
+*    }
    * @apiSuccessExample {json} Success-Response:
 *     HTTP/1.1 200 OK
 *     {
@@ -84,23 +92,23 @@ exports.percentageVariance = async function (req, res) {
    * @apiUse errorBody
    */
 
-exports.multiResource = async function (req, res) {
+exports.userViewAllResource = async function (req, res) {
     try {
-        var fileName = files[`${req.body.key}`];
-        let resources = req.body.data;
+        var fileName = config.file_path[`${req.body.key}`];
+        let contents = req.body.data;
         const jsonData = await readFile.readS3File(fileName);
         var jdata = []
         await jsonData.forEach(data => {
-            resources.forEach(item => {
+            contents.forEach(item => {
                 if (data.content_name == item) {
                     jdata.push(data);
                 }
             });
         });
         let groupData = groupBy(jdata, 'role_externalId');
-        let myKeys = Object.keys(groupData);
+        let objectKeys = Object.keys(groupData);
         let usersCount = []
-        myKeys.forEach(key => {
+        objectKeys.forEach(key => {
             var grouppedData = groupBy(groupData[`${key}`], 'User_FirstName');
             var userKeys = Object.keys(grouppedData);
             var cnt = 0;
@@ -121,9 +129,13 @@ exports.multiResource = async function (req, res) {
 
 };
 /**
-   * @api {post} /dhiti/api/v1/mantra4changeApi/multiSelection
+   * @api {post} /dhiti/api/v1/portal_api/dailyActivityPercentagePerGroup
    * @apiVersion 1.0.0
    * @apiGroup Shikshalokam 
+   * @apiParamExample {json} Request-Body:
+*    {
+     "data":[""]
+*    }
    * @apiSuccessExample {json} Success-Response:
 *     HTTP/1.1 200 OK
 *     {
@@ -136,26 +148,26 @@ exports.multiResource = async function (req, res) {
 *     }
    * @apiUse errorBody
    */
-exports.multiSelection = async function (req, res) {
+exports.dailyActivityPercentagePerGroup = async function (req, res) {
     try {
-        var fileName = files[`${req.body.key}`];
+        var fileName = config.file_path[`${req.body.key}`];
         let list1 = req.body.data;
         const jsonData = await readFile.readS3File(fileName);
         var jdata = []
         var keys = Object.keys(jsonData[0]);
         await list1.forEach(item => {
-            var mydata = [];
+            var listData = [];
             jsonData.forEach(data => {
                 keys.forEach(key => {
                     if (item == key) {
-                        mydata.push(Number(data[`${key}`]));
+                        listData.push(Number(data[`${key}`]));
 
                     }
                 })
             });
             let a = {
                 name: item,
-                data: mydata
+                data: listData
             }
             jdata.push(a)
         })

@@ -19,8 +19,8 @@ app.use(cors());
 app.use(logger('dev'));
 //app.use(express.json());
 //app.use(express.urlencoded({ extended: false }));
-app.use(bodyParser.json({limit: '50mb'}));
-app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser());
 app.set('views', path.join(__dirname, 'controllers/views'));
 app.set('view engine', 'ejs');
@@ -30,7 +30,7 @@ app.use(express.static("public"));
 app.use(function (req, res, next) { //allow cross origin requests
   res.setHeader("Access-Control-Allow-Methods", "POST, PUT, OPTIONS, DELETE, GET");
   res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With,Authorization, Content-Type, Accept,x-auth-token");   
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With,Authorization, Content-Type, Accept,x-auth-token");
   next();
 });
 
@@ -147,8 +147,8 @@ function onListening() {
 }
 
 let dir = './tmp';
-if (!fs.existsSync(dir)){
-    fs.mkdirSync(dir);
+if (!fs.existsSync(dir)) {
+  fs.mkdirSync(dir);
 }
 
 module.exports = app;
