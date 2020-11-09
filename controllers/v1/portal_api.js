@@ -28,7 +28,6 @@ var groupBy = require('group-array')
 exports.genericApi = async function (req, res) {
     try {
         var fileName = config.file_path[`${req.body.key}`];
-        console.log(fileName);
         var result = await readFile.readS3File(fileName);
         res.send({ "result": true, "data": result })
     }
@@ -113,7 +112,7 @@ exports.userViewAllResource = async function (req, res) {
             var userKeys = Object.keys(grouppedData);
             var cnt = 0;
             userKeys.forEach(user => {
-                if (grouppedData[`${user}`].length == resources.length) {
+                if (grouppedData[`${user}`].length == contents.length) {
                     cnt++;
                 }
             });
