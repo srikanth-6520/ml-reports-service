@@ -5,7 +5,26 @@
    "node_env": "local",
    "apidoc_url": "/apidoc",
    "apidoc_path":"/public/apidoc",
-
+   "file_path": {
+      "userNeverLoggedIn": "",
+      "uniqueActiveUsers": "",
+      "topScoreQuiz": "",
+      "topFiveContentRatings": "",
+      "mapDataResources": "",
+      "loginTrend": "",
+      "loginPercentage": "",
+      "learningTopscoreQuiz": "",
+      "participationPercentage": "",
+      "lastUpdatedDate": "",
+      "dailyAverageGrowth": "",
+      "countContentRating": "",
+      "averageTimeSpent": "",
+      "averageRatingContent": "",
+      "appCount": "",
+      "adoptionContent": "",
+      "multiResource": "",
+      "multiSelection": ""
+   },
    "cloud_storage" : "AWS/GC/AZURE",
    "bucket_name": "BUCKET_NAME",
    
@@ -65,7 +84,8 @@
        "assessment_entity_list_api":"http://localhost:4201/assessment/api/v1/entities/list/",
        "observation_details_api":"http://localhost:4201/assessment/api/v1/observations/details/",
        "get_user_profile_api": "http://localhost:4201/assessment/api/v1/userExtension/getProfile",
-       "get_survey_submission_status_api": "http://localhost:4201/assessment/api/v1/surveySubmissions/getStatus"
+       "get_survey_submission_status_api": "http://localhost:4201/assessment/api/v1/surveySubmissions/getStatus",
+       "get_observation_submission_status_api": "http://localhost:4201/assessment/api/v1/observationSubmissions/getSubmissionStatusById"
     },
     
      "kendra" : {
@@ -101,4 +121,4 @@
    },
     "validate_access_token_offline" : "ON/OFF",
     "keycloak_public_key_path" : "keycloak-public-keys"
-}  
+}
