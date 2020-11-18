@@ -436,7 +436,7 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
 
                         if (getSubmissionStatusResponse.result && 
                             getSubmissionStatusResponse.result.status == filesHelper.submission_status_completed) {
-                            message = "Your report generation is in progress. Please check back after a few minutes."
+                            message = filesHelper.submission_not_found_message;
                         }
                         else {
                             message = "SUBMISSION_ID_NOT_FOUND";
