@@ -1,0 +1,110 @@
+<html>
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+</head>
+
+<body>
+
+    <div class="container">
+        <% if(data.response.entityName){ %>
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>Entity Name</b></p>
+            </div>
+            <div style="width:50%; float:left;">
+                <p><%= data.response.entityName %></p>
+            </div>
+        </div>
+        <% } %>
+        
+        <% if(data.response.programName){ %>
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>Program Name</b></p>
+            </div>
+            <div style="width:50%; float:left;">
+                <p><%= data.response.programName %></p>
+            </div>
+        </div>
+        <% } %>
+
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>Shared By</b></p>
+            </div>
+            <div style="width:50%; float:left;">
+                <p><%= data.response.sharedBy %></p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>Report For Month</b></p>
+            </div>
+            <div style="width:50%; float:left;">
+                <p><%= data.response.date %></p>
+            </div>
+        </div>
+    </div>
+
+    <hr style="background:#000 !important">
+
+    <div class="container">
+        <div class="row">
+            <div style="width:40%; float:left;">
+                <h4>Project Overview</h4>
+            </div>
+            <div style="width:40%; float:left;">
+                <h4>Monthly</h4>
+            </div>
+        </div>
+    
+        <div class="row">
+            <div style="width:40%;background: #eee !important">
+                <p>Total Projects</p>
+            </div>
+            <div style="width:40%;background: #eee !important">
+                <p>Projects Completed</p>
+            </div>
+        </div>
+    
+        <div class="row">
+            <div style="width:40%;background: #eee !important">
+                <p>Projects In progress</p>
+            </div>
+            <div style="width:40%;background: #eee !important">
+                <p>Projects overdue</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div style="width:40%; float:left;">
+                <h4>Task Overview</h4>
+            </div>
+            <div style="width:40%; float:left;">
+                <h4>Monthly</h4>
+            </div>
+        </div>
+
+        <img src="<%= data.chartData[0].options.filename %>" style="width:60%">
+        
+        <h4>Category Wise Reports</h4>
+        <img src="<%= data.chartData[1].options.filename %>" style="width:60%">
+    </div>
+
+</body>
+
+</html>
