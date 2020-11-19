@@ -3135,7 +3135,24 @@ exports.unnatiEntityReportPdfGeneration = async function (inputData, storeReport
 
         try {
             let formData = [];
+            
+            //copy images from public folder
+            let imgSourcePaths = ['/../public/images/note1.svg', '/../public/images/note2.svg', '/../public/images/note3.svg','/../public/images/note4.svg']
+            
+            for (let i=0; i< imgSourcePaths.length; i++) {
 
+                let imgName = "note" + (i+1) + ".svg";
+                let src = __dirname + imgSourcePaths[i];
+                fs.copyFileSync(src, imgPath + ('/' + imgName));
+
+                formData.push({
+                    value: fs.createReadStream(imgPath + ('/' + imgName)),
+                    options: {
+                        filename: imgName,
+                    }
+                })
+            }
+           
             //get the chart object
             let chartData = await getEntityReportChartObjects(inputData);
 

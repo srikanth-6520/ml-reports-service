@@ -69,22 +69,56 @@
                 <h4>Monthly</h4>
             </div>
         </div>
-    
+
         <div class="row">
-            <div style="width:40%;background: #eee !important">
-                <p>Total Projects</p>
+            <div style="width:40%; float:left; background: #eee !important">
+                <div class="row col-md-12">
+                    <div class="col-md-2">
+                        <img src="note1.svg">
+                    </div>
+                    <div class="col-md-6">
+                        <p>Total Projects</p>
+                        <p><%= data.response.projects.total %></p>
+                    </div>
+                </div>
             </div>
-            <div style="width:40%;background: #eee !important">
-                <p>Projects Completed</p>
+
+            <div style="width:40%; float:right; background: #eee !important">
+                <div class="row col-md-12">
+                    <div class="col-md-2">
+                        <img src="note2.svg">
+                    </div>
+                    <div class="col-md-6">
+                        <p>Projects Completed</p>
+                        <p><%= data.response.projects.completed %></p>
+                    </div>
+                </div>
             </div>
         </div>
-    
-        <div class="row">
-            <div style="width:40%;background: #eee !important">
-                <p>Projects In progress</p>
+
+        <div class="row" style="margin-top:15px !important">
+            <div style="width:40%; float:left; background: #eee !important">
+                <div class="row col-md-12">
+                    <div class="col-md-2">
+                        <img src="note3.svg">
+                    </div>
+                    <div class="col-md-6">
+                        <p>Projects In progress</p>
+                        <p><%= data.response.projects.inProgress %></p>
+                    </div>
+                </div>
             </div>
-            <div style="width:40%;background: #eee !important">
-                <p>Projects overdue</p>
+
+            <div style="width:40%; float:right; background: #eee !important">
+                <div class="row col-md-12">
+                    <div class="col-md-2">
+                        <img src="note4.svg">
+                    </div>
+                    <div class="col-md-6">
+                        <p>Projects Overdue</p>
+                        <p><%= data.response.projects.overdue %></p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
