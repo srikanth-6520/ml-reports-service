@@ -3328,9 +3328,18 @@ async function getTaskOverviewChart(tasks) {
         let dataArray = [];
 
         Object.keys(tasks).forEach( eachTask => {
+
+            let color = "";
+            if(eachTask=="completed"){
+                color ="green";
+            }else if(eachTask=="notStarted"){
+                color ="red";
+            }
+
             dataArray.push({
                 name: eachTask,
-                y: tasks[eachTask]
+                y: tasks[eachTask],
+                color:color
             })
         })
        
@@ -3372,47 +3381,20 @@ async function getTaskOverviewChart(tasks) {
 async function getCategoryWiseChart(categories) {
     return new Promise( async function(resolve,reject) {
 
-        let dataArray = [];
-
+        let seriesData="[";
         Object.keys(categories).forEach( eachCategory => {
-            dataArray.push({
-                name: eachCategory,
-                y: categories[eachCategory]
-            })
+            seriesData = seriesData + "{ name: '"+eachCategory+"',y: "+categories[eachCategory]+"},";
         })
-       
+        seriesData = seriesData + "]";
+        let chartOptions  = "{ title: { text: '' },chart: { type: 'pie' },"+
+        "plotOptions: { 'pie': { showInLegend: true, dataLabels: { enabled: true, formatter: function () { return this.y ? this.point.y : null; }} }},"
+        +"credits: { enabled: false },"
+        +"series: [{ minPointSize: 50,innerSize: '50%',zMin: 0,name: 'tasks', data: "+seriesData+" }] }"
+   
         let chartObject = {
             order: 2,
             type: "svg",
-            options: {
-                title: {
-                    text: ""
-                },
-                chart: {
-                    type: "pie"
-                },
-                plotOptions: {
-                    pie: {
-                        showInLegend: true,
-                        dataLabels: {
-                          enabled: true,
-                          formatter: function () {
-                            return this.y ? this.point.value : null;
-                          }
-                        }
-                    }
-                },
-                credits: {
-                    enabled: false
-                },
-                series: [{
-                    minPointSize: 50,
-                    innerSize: "50%",
-                    zMin: 0,
-                    name: "tasks",
-                    data: dataArray
-                }]
-            }
+            options: chartOptions
         };
 
         resolve(chartObject);
