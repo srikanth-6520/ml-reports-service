@@ -25,11 +25,20 @@ var groupBy = require('group-array')
 *     }
    * @apiUse errorBody
    */
-exports.genericApi = async function (req, res) {
+  exports.genericApi = async function (req, res) {
     try {
+        let randomNumer = Math.random().toFixed(2)*100
+        console.log(`\n\n\n\n`);
+        console.log(`----- Generic API call start --- ${new Date()} -------------- Random No : ${randomNumer}`);
         var fileName = config.file_path[`${req.body.key}`];
-        var result = await readFile.readS3File(fileName);
+        console.log(`----- Before s3 call --- ${new Date()} -------------- Random No : ${randomNumer}`);
+        var result = await readFile.readS3File(fileName, randomNumer);
+        console.log(`----- reading s3 file finished --- ${new Date()} -------------- Random No : ${randomNumer}`);
+        console.log(`----- After s3 call --- ${new Date()} -------------- Random No : ${randomNumer}`);
+        console.log(`----- data length of the s3 file ::: ${result.length} -------------- Random No : ${randomNumer}`);        
+        console.log(`----- Generic API call end --- ${new Date()} -------------- Random No : ${randomNumer}`);
         res.send({ "result": true, "data": result })
+        console.log(`----- Generic API response sent --- ${new Date()} -------------- Random No : ${randomNumer}`);
     }
     catch (e) {
         console.log(e);
@@ -55,8 +64,11 @@ exports.genericApi = async function (req, res) {
 *     }
    * @apiUse errorBody
    */
-exports.varianceCalculation = async function (req, res) {
+  exports.varianceCalculation = async function (req, res) {
     try {
+        let randomNumer = Math.random().toFixed(2)*100
+        console.log(`\n\n\n\n`);
+        console.log(`----- Variance API call start --- ${new Date()} -------------- Random No : ${randomNumer}`);
         var variance = [];
         var data1 = req.body.data.data1;
         var data2 = req.body.data.data2;
@@ -64,7 +76,9 @@ exports.varianceCalculation = async function (req, res) {
             var percentageVariance = parseFloat(((data2[i] - data1[i]) * 100 / data1[i]).toFixed(2));
             variance.push(percentageVariance);
         }
+        console.log(`----- Variance API call end --- ${new Date()} -------------- Random No : ${randomNumer}`);        
         res.status(200).json({ 'result': true, 'data': variance });
+        console.log(`----- Variance API response sent --- ${new Date()} -------------- Random No : ${randomNumer}`);
     } catch (e) {
         console.log(e);
         res.status(500).json({ errMessage: 'Internal error. Please try again!!' });

@@ -82,7 +82,7 @@ server.listen(port, function () {
 });
 server.on('error', onError);
 server.on('listening', onListening);
-
+server.setTimeout(500000);
 console.log("application started");
 
 /**

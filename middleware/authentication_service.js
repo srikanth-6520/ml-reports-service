@@ -52,7 +52,7 @@ var apiInterceptor = new ApiInterceptor(keyCloakConfig, cacheConfig);
 
 
 function authenticate(req, res, next) {
-
+    console.log(req.headers)
     validateToken(req, res)
         .then(function (result) {
 
