@@ -38,7 +38,7 @@ var groupBy = require('group-array')
         console.log(`----- data length of the s3 file ::: ${result.length} -------------- Random No : ${randomNumer}`);        
         console.log(`----- Generic API call end --- ${new Date()} -------------- Random No : ${randomNumer}`);
         res.send({ "result": true, "data": result })
-        console.log(`  ----- response ----${result}`)
+        console.log(`  ----- response ----${JSON.stringify(result)}`)
         console.log(`----- Generic API response sent --- ${new Date()} -------------- Random No : ${randomNumer}`);
     }
     catch (e) {
@@ -72,14 +72,17 @@ var groupBy = require('group-array')
         console.log(`----- Variance API call start --- ${new Date()} -------------- Random No : ${randomNumer}`);
         var variance = [];
         var data1 = req.body.data.data1;
+        console.log(`-------user data-------${JSON.stringify(data1)}`)
         var data2 = req.body.data.data2;
+        console.log(`-------user data-------${JSON.stringify(data2)}`)
+
         for (let i = 0; i < data1.length; i++) {
             var percentageVariance = parseFloat(((data2[i] - data1[i]) * 100 / data1[i]).toFixed(2));
             variance.push(percentageVariance);
         }
         console.log(`----- Variance API call end --- ${new Date()} -------------- Random No : ${randomNumer}`);        
         res.status(200).json({ 'result': true, 'data': variance });
-        console.log(` ------res[oponse -------${variance}`)
+        console.log(`  ----- response ----${JSON.stringify(variance)}`)
         console.log(`----- Variance API response sent --- ${new Date()} -------------- Random No : ${randomNumer}`);
     } catch (e) {
         console.log(e);
@@ -115,7 +118,7 @@ exports.userViewAllResource = async function (req, res) {
         var fileName = config.file_path[`${req.body.key}`];
         console.log(`----- Before s3 call --- ${new Date()} -------------- Random No : ${randomNumer}`);
         let contents = req.body.data;
-        console.log(`-------user data-------${contents}`)
+        console.log(`-------user data-------${JSON.stringify(contents)}`)
         const jsonData = await readFile.readS3File(fileName,randomNumer);
         console.log(`----- reading s3 file finished --- ${new Date()} -------------- Random No : ${randomNumer}`);
         console.log(`----- After s3 call --- ${new Date()} -------------- Random No : ${randomNumer}`);
@@ -144,7 +147,8 @@ exports.userViewAllResource = async function (req, res) {
         })
         console.log(`----- userViewAllResource API call end --- ${new Date()} -------------- Random No : ${randomNumer}`);
         res.send({ "result": true, "data": usersCount });
-        console.log(` ------response ---------${usersCount}`)
+        console.log(`  ----- response ----${JSON.stringify(usersCount)}`)
+        
         console.log(`----- userViewAllResource API response sent --- ${new Date()} -------------- Random No : ${randomNumer}`);
     }
 
@@ -182,7 +186,7 @@ exports.dailyActivityPercentagePerGroup = async function (req, res) {
         var fileName = config.file_path[`${req.body.key}`];
         console.log(`----- Before s3 call --- ${new Date()} -------------- Random No : ${randomNumer}`);
         let list1 = req.body.data;
-        console.log(list1)
+        console.log(`-------user data-------${JSON.stringify(list1)}`)
         const jsonData = await readFile.readS3File(fileName,randomNumer);
         console.log(`----- reading s3 file finished --- ${new Date()} -------------- Random No : ${randomNumer}`);
         console.log(`----- After s3 call --- ${new Date()} -------------- Random No : ${randomNumer}`);
@@ -207,7 +211,7 @@ exports.dailyActivityPercentagePerGroup = async function (req, res) {
         })
         console.log(`----- dailyActivityPercentagePerGroup API call end --- ${new Date()} -------------- Random No : ${randomNumer}`);
         res.send({ "result": true, "data": jdata })
-        console.log(`-----response --------${jdata}`)
+        console.log(`  ----- response ----${JSON.stringify(jdata)}`)
         console.log(`----- dailyActivityPercentagePerGroup API response sent --- ${new Date()} -------------- Random No : ${randomNumer}`);
     }
 
