@@ -38,6 +38,7 @@ var groupBy = require('group-array')
         console.log(`----- data length of the s3 file ::: ${result.length} -------------- Random No : ${randomNumer}`);        
         console.log(`----- Generic API call end --- ${new Date()} -------------- Random No : ${randomNumer}`);
         res.send({ "result": true, "data": result })
+        console.log(`  ----- response ----${result}`)
         console.log(`----- Generic API response sent --- ${new Date()} -------------- Random No : ${randomNumer}`);
     }
     catch (e) {
@@ -78,6 +79,7 @@ var groupBy = require('group-array')
         }
         console.log(`----- Variance API call end --- ${new Date()} -------------- Random No : ${randomNumer}`);        
         res.status(200).json({ 'result': true, 'data': variance });
+        console.log(` ------res[oponse -------${variance}`)
         console.log(`----- Variance API response sent --- ${new Date()} -------------- Random No : ${randomNumer}`);
     } catch (e) {
         console.log(e);
@@ -113,6 +115,7 @@ exports.userViewAllResource = async function (req, res) {
         var fileName = config.file_path[`${req.body.key}`];
         console.log(`----- Before s3 call --- ${new Date()} -------------- Random No : ${randomNumer}`);
         let contents = req.body.data;
+        console.log(`-------user data-------${contents}`)
         const jsonData = await readFile.readS3File(fileName,randomNumer);
         console.log(`----- reading s3 file finished --- ${new Date()} -------------- Random No : ${randomNumer}`);
         console.log(`----- After s3 call --- ${new Date()} -------------- Random No : ${randomNumer}`);
@@ -141,6 +144,7 @@ exports.userViewAllResource = async function (req, res) {
         })
         console.log(`----- userViewAllResource API call end --- ${new Date()} -------------- Random No : ${randomNumer}`);
         res.send({ "result": true, "data": usersCount });
+        console.log(` ------response ---------${usersCount}`)
         console.log(`----- userViewAllResource API response sent --- ${new Date()} -------------- Random No : ${randomNumer}`);
     }
 
@@ -178,6 +182,7 @@ exports.dailyActivityPercentagePerGroup = async function (req, res) {
         var fileName = config.file_path[`${req.body.key}`];
         console.log(`----- Before s3 call --- ${new Date()} -------------- Random No : ${randomNumer}`);
         let list1 = req.body.data;
+        console.log(list1)
         const jsonData = await readFile.readS3File(fileName,randomNumer);
         console.log(`----- reading s3 file finished --- ${new Date()} -------------- Random No : ${randomNumer}`);
         console.log(`----- After s3 call --- ${new Date()} -------------- Random No : ${randomNumer}`);
@@ -202,6 +207,7 @@ exports.dailyActivityPercentagePerGroup = async function (req, res) {
         })
         console.log(`----- dailyActivityPercentagePerGroup API call end --- ${new Date()} -------------- Random No : ${randomNumer}`);
         res.send({ "result": true, "data": jdata })
+        console.log(`-----response --------${jdata}`)
         console.log(`----- dailyActivityPercentagePerGroup API response sent --- ${new Date()} -------------- Random No : ${randomNumer}`);
     }
 
