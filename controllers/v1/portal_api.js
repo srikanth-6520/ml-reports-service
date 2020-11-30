@@ -60,48 +60,6 @@ var groupBy = require('group-array')
 };
  
 /**
-   * @api {post} /dhiti/api/v1/portal_api/varianceCalculation
-   * @apiVersion 1.0.0
-   * @apiGroup Shikshalokam 
-   * @apiParamExample {json} Request-Body:
-*    {
-     "data":{"data1":[],"data2":[]}
-*    }
-   * @apiSuccessExample {json} Success-Response:
-*     HTTP/1.1 200 OK
-*     {
-*       "result": true,
-*       "data": [
-                variance
-               ]
-*     }
-   * @apiUse errorBody
-   */
-  exports.varianceCalculation = async function (req, res) {
-    try {
-        let randomNumer = Math.random().toFixed(2)*100
-        console.log(`\n\n\n\n`);
-        console.log(`----- Variance API call start --- ${new Date()} -------------- Random No : ${randomNumer}`);
-        var variance = [];
-        var data1 = req.body.data.data1;
-        console.log(`-------user data-------${JSON.stringify(data1)}`)
-        var data2 = req.body.data.data2;
-        console.log(`-------user data-------${JSON.stringify(data2)}`)
-
-        for (let i = 0; i < data1.length; i++) {
-            var percentageVariance = parseFloat(((data2[i] - data1[i]) * 100 / data1[i]).toFixed(2));
-            variance.push(percentageVariance);
-        }
-        console.log(`----- Variance API call end --- ${new Date()} -------------- Random No : ${randomNumer}`);        
-        res.status(200).json({ 'result': true, 'data': variance });
-        console.log(`  ----- response ----${JSON.stringify(variance)}`)
-        console.log(`----- Variance API response sent --- ${new Date()} -------------- Random No : ${randomNumer}`);
-    } catch (e) {
-        console.log(e);
-        res.status(500).json({ errMessage: 'Internal error. Please try again!!' });
-    }
-};
-/**
    * @api {post} /dhiti/api/v1/portal_api/userViewAllResource
    * @apiVersion 1.0.0
    * @apiGroup Shikshalokam 
