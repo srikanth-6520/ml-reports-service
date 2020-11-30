@@ -3319,59 +3319,41 @@ async function getEntityReportChartObjects(data) {
             });
 
         return resolve(chartData)
+
+       
     })
 }
 
 async function getTaskOverviewChart(tasks) {
     return new Promise( async function(resolve,reject) {
 
-        let dataArray = [];
-
-        Object.keys(tasks).forEach( eachTask => {
-
+         let seriesData="[";
+         Object.keys(tasks).forEach( eachTask => {
             let color = "";
-            if(eachTask=="completed"){
+            if(eachTask=="Completed"){
                 color ="green";
-            }else if(eachTask=="notStarted"){
+            }else if(eachTask=="Not Started"){
                 color ="red";
             }
 
-            dataArray.push({
-                name: eachTask,
-                y: tasks[eachTask],
-                color:color
-            })
-        })
-       
-        let chartObject = {
-            order: 1,
-            type: "svg",
-            options: {
-                title: {
-                    text: ""
-                },
-                chart: {
-                    type: "pie"
-                },
-                plotOptions: {
-                    pie: {
-                        showInLegend: true,
-                        dataLabels: {
-                        enabled: false
-                        }
-                    }
-                },
-                credits: {
-                    enabled: false
-                },
-                series: [{
-                    minPointSize: 50,
-                    innerSize: "80%",
-                    zMin: 0,
-                    name: "tasks",
-                    data: dataArray
-                }]
+            if(color != ""){
+                seriesData = seriesData + "{ color:'"+color+"',name: '"+eachTask+"',y: "+tasks[eachTask]+"},";
+            } else {
+                seriesData = seriesData + "{ name: '"+eachTask+"',y: "+tasks[eachTask]+"},";
             }
+            
+        })
+        seriesData = seriesData + "]";
+
+        let chartOptions  = "{ title: { text: '' },chart: { type: 'pie' },"+
+        "plotOptions: { 'pie': { showInLegend: true, dataLabels: { enabled: true, formatter: function () { return this.y ? this.point.y : null; }} }},"
+        +"credits: { enabled: false },"
+        +"series: [{ minPointSize: 50,innerSize: '80%',zMin: 0,name: 'tasks', data: "+seriesData+" }] }"
+   
+        let chartObject = {
+            order: 2,
+            type: "svg",
+            options: chartOptions
         };
 
         resolve(chartObject);
@@ -3396,7 +3378,6 @@ async function getCategoryWiseChart(categories) {
             type: "svg",
             options: chartOptions
         };
-
         resolve(chartObject);
     })
 }
