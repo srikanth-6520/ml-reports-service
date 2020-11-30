@@ -1,0 +1,169 @@
+<html>
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+</head>
+
+<body>
+
+    <div class="container">
+        <% if(data.response.entityName){ %>
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>Entity Name</b></p>
+            </div>
+            <div style="width:50%; float:left;">
+                <p><%= data.response.entityName %></p>
+            </div>
+        </div>
+        <% } %>
+        
+        <% if(data.response.programName){ %>
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>Program Name</b></p>
+            </div>
+            <div style="width:50%; float:left;">
+                <p><%= data.response.programName %></p>
+            </div>
+        </div>
+        <% } %>
+
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>Shared By</b></p>
+            </div>
+            <div style="width:50%; float:left;">
+                <p><%= data.response.sharedBy %></p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>Report For Month</b></p>
+            </div>
+            <div style="width:50%; float:left;">
+                <p><%= data.response.date %></p>
+            </div>
+        </div>
+    </div>
+
+    <hr style="background:#000 !important">
+
+    <div class="container" style="margin-top: -10px">
+        <div class="row">
+            <div style="width:40%; float:left;">
+                <h4>Project Overview</h4>
+            </div>
+            <div style="width:40%; float:left;">
+                <div class="dropdown">
+                    <button class="btn dropdown-toggle" type="button" data-toggle="dropdown"
+                        style="border:solid 1px #A9A9A9 !important;padding:5px;">Monthly
+                        <span class="glyphicon glyphicon-chevron-down" style="margin-left:6px"></span></button>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row" style="margin-top: 5px">
+            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5" style="margin-right:5px">
+                <div class="row" style="background: #eee !important;padding:5px">
+                    <div class="col-md-3 col-xs-3" style="padding-top:10px">
+                        <img src="note1.svg">
+                    </div>
+                    <div class="col-md-9 col-xs-9">
+                        <p style="margin-bottom: 0px !important">Total Projects</p>
+                        <% if(data.response.projects.total){ %>
+                        <p style="margin-bottom: 0px !important"><%= data.response.projects.total %></p>
+                        <% } else {%>
+                        <p style="margin-bottom: 0px !important">0</p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5" style="margin-left:5px;">
+                <div class="row" style="background: #eee !important;padding:5px">
+                    <div class="col-md-3 col-xs-3" style="padding-top:10px">
+                        <img src="note2.svg">
+                    </div>
+                    <div class="col-md-9 col-xs-9">
+                        <p style="margin-bottom: 0px !important">Projects Completed</p>
+                        <% if(data.response.projects.completed){ %>
+                        <p style="margin-bottom: 0px !important"><%= data.response.projects.completed %></p>
+                        <% } else {%>
+                        <p style="margin-bottom: 0px !important">0</p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" style="margin-top:5px">
+            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5" style="margin-right:5px">
+                <div class="row" style="background: #eee !important;padding:5px">
+                    <div class="col-md-3 col-xs-3" style="padding-top:10px">
+                        <img src="note3.svg">
+                    </div>
+                    <div class="col-md-9 col-xs-9">
+                        <p style="margin-bottom: 0px !important">Projects In progress</p>
+                        <% if(data.response.projects.inProgress){ %>
+                        <p style="margin-bottom: 0px !important"><%= data.response.projects.inProgress %></p>
+                        <% } else {%>
+                        <p style="margin-bottom: 0px !important">0</p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5" style="margin-left:5px">
+                <div class="row" style="background: #eee !important;padding:5px">
+                    <div class="col-md-3 col-xs-3" style="padding-top:10px">
+                        <img src="note4.svg">
+                    </div>
+                    <div class="col-md-9 col-xs-9">
+                        <p style="margin-bottom: 0px !important">Projects Overdue</p>
+                        <% if(data.response.projects.overdue){ %>
+                        <p style="margin-bottom: 0px !important"><%= data.response.projects.overdue %></p>
+                        <% } else {%>
+                        <p style="margin-bottom: 0px !important">0</p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" style="margin-top:15px">
+        <div class="row">
+            <div style="width:40%; float:left;">
+                <h4>Task Overview</h4>
+            </div>
+            <div style="width:40%; float:left;">
+                <div class="dropdown">
+                    <button class="btn dropdown-toggle" type="button" data-toggle="dropdown"
+                        style="border:solid 1px #A9A9A9 !important;padding:5px;">Monthly
+                        <span class="glyphicon glyphicon-chevron-down" style="margin-left:6px"></span></button>
+                </div>
+            </div>
+        </div>
+        <img src="<%= data.chartData[0].options.filename %>" style="width:75%">
+        <div class="row">
+            <div style="width:40%; float:left;">
+                <h4>Category Wise Reports</h4>
+            </div>
+        </div>
+        <img src="<%= data.chartData[1].options.filename %>" style="width:75%">
+    </div>
+
+</body>
+
+</html>
