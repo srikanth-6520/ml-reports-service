@@ -30,16 +30,27 @@ var groupBy = require('group-array')
         let randomNumer = Math.random().toFixed(2)*100
         console.log(`\n\n\n\n`);
         console.log(`----- Generic API call start --- ${new Date()} -------------- Random No : ${randomNumer}`);
-        var fileName = config.file_path[`${req.body.key}`];
-        console.log(`----- Before s3 call --- ${new Date()} -------------- Random No : ${randomNumer}`);
-        var result = await readFile.readS3File(fileName, randomNumer);
-        console.log(`----- reading s3 file finished --- ${new Date()} -------------- Random No : ${randomNumer}`);
-        console.log(`----- After s3 call --- ${new Date()} -------------- Random No : ${randomNumer}`);
-        console.log(`----- data length of the s3 file ::: ${result.length} -------------- Random No : ${randomNumer}`);        
-        console.log(`----- Generic API call end --- ${new Date()} -------------- Random No : ${randomNumer}`);
-        res.send({ "result": true, "data": result })
+        var arryData = req.body.key;
+        console.log(`-------user data-------${JSON.stringify(arryData)}`)
+        var a = {}
+        for(let item = 0; item < arryData.length; item++) {
+            
+               var fileName = config.file_path[arryData[`${item}`]];
+               console.log(`----- Before s3 call --- ${new Date()} -------------- Random No : ${randomNumer}`);
+            
+               var result = await readFile.readS3File(fileName,randomNumer);
+               console.log(`----- reading s3 file finished --- ${new Date()} -------------- Random No : ${randomNumer}`);
+               console.log(`----- After s3 call --- ${new Date()} -------------- Random No : ${randomNumer}`);
+               console.log(`----- data length of the s3 file ::: ${result.length} -------------- Random No : ${randomNumer}`);   
+               
+               a[[arryData[`${item}`]]]={"result":true,"data":result}
+            
+                
+        }
+        console.log(`----- genericApi API call end --- ${new Date()} -------------- Random No : ${randomNumer}`); 
+        res.send(a)
         console.log(`  ----- response ----${JSON.stringify(result)}`)
-        console.log(`----- Generic API response sent --- ${new Date()} -------------- Random No : ${randomNumer}`);
+        console.log(`----- genericApi API response sent --- ${new Date()} -------------- Random No : ${randomNumer}`);
     }
     catch (e) {
         console.log(e);
@@ -47,6 +58,7 @@ var groupBy = require('group-array')
     }
 
 };
+ 
 /**
    * @api {post} /dhiti/api/v1/portal_api/varianceCalculation
    * @apiVersion 1.0.0
