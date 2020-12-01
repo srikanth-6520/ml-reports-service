@@ -50,7 +50,7 @@
 
         <div class="row">
             <div style="width:30%; float:left;">
-                <p><b>Report For Month</b></p>
+                <p><b>Report For <%= data.response.reportTitle %> </b></p>
             </div>
             <div style="width:50%; float:left;">
                 <p><%= data.response.date %></p>
@@ -68,7 +68,7 @@
             <div style="width:40%; float:left;">
                 <div class="dropdown">
                     <button class="btn dropdown-toggle" type="button" data-toggle="dropdown"
-                        style="border:solid 1px #A9A9A9 !important;padding:5px;">Monthly
+                        style="border:solid 1px #A9A9A9 !important;padding:5px;"> <%= data.response.reportType %>
                         <span class="glyphicon glyphicon-chevron-down" style="margin-left:6px"></span></button>
                 </div>
             </div>
@@ -150,7 +150,7 @@
             <div style="width:40%; float:left;">
                 <div class="dropdown">
                     <button class="btn dropdown-toggle" type="button" data-toggle="dropdown"
-                        style="border:solid 1px #A9A9A9 !important;padding:5px;">Monthly
+                        style="border:solid 1px #A9A9A9 !important;padding:5px;"> <%= data.response.reportType %>
                         <span class="glyphicon glyphicon-chevron-down" style="margin-left:6px"></span></button>
                 </div>
             </div>
