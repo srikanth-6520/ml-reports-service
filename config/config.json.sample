@@ -12,7 +12,7 @@
         "topFiveContentRatings": "01300878319924019218076/top_five_content_ratings.json",
         "mapDataResources": "01300878319924019218076/resource_usage.json",
         "loginTrend": "01300878319924019218076/logging_trend_last_1_month.json",
-        "loginPercentage": "01300878319924019218076/users_usage2.json",
+        "loginPercentage": "01300878319924019218076/users_usage.json",
         "learningTopscoreQuiz": "01300878319924019218076/top_scorers_quiz_percentage.json",
         "participationPercentage": "01300878319924019218076/group_participation_percentage.json",
         "lastUpdatedDate": "01300878319924019218076/last_updated_date.json",
