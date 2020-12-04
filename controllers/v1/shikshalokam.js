@@ -36,11 +36,15 @@ const default_content_api_threshold = 10;
 //Controller for listing Top 5 contents viewed in platform
 exports.contentView = async function (req, res) {
 
-    //get quey from cassandra
-    model.MyModel.findOneAsync({ qid: "content_viewed_in_platform_query" }, { allow_filtering: true })
-        .then(async function (result) {
+    try {
 
-            var bodyParam = JSON.parse(result.query);
+    //get quey from cassandra
+    // model.MyModel.findOneAsync({ qid: "content_viewed_in_platform_query" }, { allow_filtering: true })
+    //     .then(async function (result) {
+
+    //         var bodyParam = JSON.parse(result.query);
+
+            let bodyParam = gen.utils.getDruidQuery("content_viewed_in_platform_query");
 
             if (config.druid.telemetry_datasource_name) {
                 bodyParam.dataSource = config.druid.telemetry_datasource_name;
@@ -71,17 +75,17 @@ exports.contentView = async function (req, res) {
                 var responseObj = await helperFunc.contentViewResponeObj(data[0].result);
                 res.send(responseObj);
             }
-        })
-        .catch(function (err) {
+        // })
+        }
+        catch(err) {
             res.status(400);
-            var response = {
+            let response = {
                 result: false,
                 message: 'Data not found',
                 data: []
             }
             res.send(response);
-        })
-
+        }
 }
 
 
@@ -109,6 +113,9 @@ exports.contentView = async function (req, res) {
 
 //Controller for listing Top 5 contents Downloaded by user in platform
 exports.contentDownloadedByUser = async function (req, res) {
+
+    try {
+
     if (!req.body.usr_id) {
         res.status(400);
         var response = {
@@ -120,10 +127,11 @@ exports.contentDownloadedByUser = async function (req, res) {
     }
     else {
         //get quey from cassandra
-        model.MyModel.findOneAsync({ qid: "content_downloaded_by_user_query" }, { allow_filtering: true })
-            .then(async function (result) {
+        // model.MyModel.findOneAsync({ qid: "content_downloaded_by_user_query" }, { allow_filtering: true })
+        //     .then(async function (result) {
 
-                var bodyParam = JSON.parse(result.query);
+        //         var bodyParam = JSON.parse(result.query);
+               let bodyParam = gen.utils.getDruidQuery("content_downloaded_by_user_query");
 
                 if (config.druid.telemetry_datasource_name) {
                     bodyParam.dataSource = config.druid.telemetry_datasource_name;
@@ -157,18 +165,18 @@ exports.contentDownloadedByUser = async function (req, res) {
                     var responseObj = await helperFunc.contentDownloadResponeObj(data[0].result);
                     res.send(responseObj);
                 }
-            })
-            .catch(function (err) {
+            // })
+               }
+            }
+            catch(err) {
                 res.status(400);
-                var response = {
+                let response = {
                     result: false,
                     message: 'Data not found',
                     data: []
                 }
                 res.send(response);
-            })
-
-    }
+            }
 }
 
 
@@ -192,11 +200,14 @@ exports.contentDownloadedByUser = async function (req, res) {
 
 exports.usageByContent = async function (req, res) {
 
-    //get quey from cassandra
-    model.MyModel.findOneAsync({ qid: "usage_by_content_query" }, { allow_filtering: true })
-        .then(async function (result) {
+    try {
 
-            var bodyParam = JSON.parse(result.query);
+    //get quey from cassandra
+    // model.MyModel.findOneAsync({ qid: "usage_by_content_query" }, { allow_filtering: true })
+    //     .then(async function (result) {
+
+    //         var bodyParam = JSON.parse(result.query);
+            let bodyParam = gen.utils.getDruidQuery("usage_by_content_query");
 
             if (config.druid.telemetry_datasource_name) {
                 bodyParam.dataSource = config.druid.telemetry_datasource_name;
@@ -227,16 +238,17 @@ exports.usageByContent = async function (req, res) {
                 var responseObj = await helperFunc.usageByContentResponeObj(data[0].result);
                 res.send(responseObj);
             }
-        })
-        .catch(function (err) {
+        // })
+        }
+        catch(err) {
             res.status(400);
-            var response = {
+            let response = {
                 result: false,
                 message: 'Data not found',
                 data: []
             }
             res.send(response);
-        })
+        }
 
 }
 
@@ -265,6 +277,9 @@ exports.usageByContent = async function (req, res) {
 
 //Controller for listing the courses enrolled by user
 exports.courseEnrollment = async function (req, res) {
+
+    try {
+
     if (!req.body.user_id) {
         res.status(400);
         var response = {
@@ -277,10 +292,11 @@ exports.courseEnrollment = async function (req, res) {
     else {
 
         //get quey from cassandra
-        model.MyModel.findOneAsync({ qid: "course_enrollment_query" }, { allow_filtering: true })
-            .then(async function (result) {
+        // model.MyModel.findOneAsync({ qid: "course_enrollment_query" }, { allow_filtering: true })
+        //     .then(async function (result) {
 
-                var bodyParam = JSON.parse(result.query);
+        //         var bodyParam = JSON.parse(result.query);
+               let bodyParam = gen.utils.getDruidQuery("course_enrollment_query");
 
                 if (config.druid.enrollment_datasource_name) {
                     bodyParam.dataSource = config.druid.enrollment_datasource_name;
@@ -304,17 +320,19 @@ exports.courseEnrollment = async function (req, res) {
                    var responseObj = await helperFunc.courseEnrollmentResponeObj(data);
                    res.send(responseObj);
                 }
-            })
-            .catch(function (err) {
+            // })
+               }
+            }
+            catch(err) {
                 res.status(400);
-                var response = {
+                let response = {
                     result: false,
                     message: 'Data not found',
                     data:[]
                 }
                 res.send(response);
-            })
-    }
+            }
+    
 }
 
 

@@ -104,11 +104,14 @@ exports.solutionReport = async function (req, res) {
 const getSubmissionIdCount = async function (solutionId) {
    
     return new Promise(async function (resolve, reject) {
+        try {
 
-        model.MyModel.findOneAsync({ qid: "get_submissionId_count_query" }, { allow_filtering: true })
-        .then(async function (result) {
+        // model.MyModel.findOneAsync({ qid: "get_submissionId_count_query" }, { allow_filtering: true })
+        // .then(async function (result) {
     
-            let bodyParam = JSON.parse(result.query);
+        //     let bodyParam = JSON.parse(result.query);
+           
+            let bodyParam =  gen.utils.getDruidQuery("get_submissionId_count_query");
     
             if (config.druid.survey_datasource_name) {
                 bodyParam.dataSource = config.druid.survey_datasource_name;
@@ -129,26 +132,30 @@ const getSubmissionIdCount = async function (solutionId) {
 
              return resolve({submissionCount : submissionIdCount });
     
-            })
-            .catch(function (err) {
+            // })
+            }
+            catch(err) {
     
                 let response = {
                     result: false,
                     message: 'INTERNAL_SERVER_ERROR'
                 };
                 return resolve(response);
-            });
+            }
     })
 }
 
 const getDataOFTextTypeQuestions = async function (req) {
    
     return new Promise(async function (resolve, reject) {
+        try {
 
-    model.MyModel.findOneAsync({ qid: "survey_solutions_report_query" }, { allow_filtering: true })
-    .then(async function (result) {
+    // model.MyModel.findOneAsync({ qid: "survey_solutions_report_query" }, { allow_filtering: true })
+    // .then(async function (result) {
 
-        let bodyParam = JSON.parse(result.query);
+    //     let bodyParam = JSON.parse(result.query);
+
+        let bodyParam = gen.utils.getDruidQuery("survey_solutions_report_query");
 
         if (config.druid.survey_datasource_name) {
             bodyParam.dataSource = config.druid.survey_datasource_name;
@@ -190,15 +197,16 @@ const getDataOFTextTypeQuestions = async function (req) {
 
          return resolve(data);
 
-        })
-        .catch(function (err) {
+        // })
+        }
+        catch(err) {
 
             let response = {
                 result: false,
                 message: 'INTERNAL_SERVER_ERROR'
             };
             return resolve(response);
-        });
+        };
     })
 }
 
@@ -230,11 +238,13 @@ const getDataFromDruid = async function (bodyParam, responseType) {
 const getDataOFChartTypeQuestions = async function (req) {
 
     return new Promise(async function (resolve, reject) {
+        try {
 
-    model.MyModel.findOneAsync({ qid: "survey_solution_chart_report_query" }, { allow_filtering: true })
-    .then(async function (result) {
+    // model.MyModel.findOneAsync({ qid: "survey_solution_chart_report_query" }, { allow_filtering: true })
+    // .then(async function (result) {
 
-        let bodyParam = JSON.parse(result.query);
+    //     let bodyParam = JSON.parse(result.query);
+        let bodyParam = gen.utils.getDruidQuery("survey_solution_chart_report_query");
 
         if (config.druid.survey_datasource_name) {
             bodyParam.dataSource = config.druid.survey_datasource_name;
@@ -256,15 +266,17 @@ const getDataOFChartTypeQuestions = async function (req) {
 
         return resolve(data);
 
-        })
-        .catch(function (err) {
+        // })
+           
+        }
+        catch(err) {
 
             let response = {
                 result: false,
                 message: 'INTERNAL_SERVER_ERROR'
             };
             return resolve(response);
-        });
+        }
     })
 }
 
@@ -294,6 +306,8 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
 
     return new Promise(async function (resolve, reject) {
 
+        try {
+
         let response;
 
         if (!req.body.solutionId) {
@@ -312,10 +326,11 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
             res.send(response);
         }
 
-        model.MyModel.findOneAsync({ qid: "list_all_responses" }, { allow_filtering: true })
-            .then(async function (result) {
+        // model.MyModel.findOneAsync({ qid: "list_all_responses" }, { allow_filtering: true })
+        //     .then(async function (result) {
 
-                let bodyParam = JSON.parse(result.query);
+                // let bodyParam = JSON.parse(result.query);
+                let bodyParam = gen.utils.getDruidQuery("list_all_responses");
 
                 if (config.druid.survey_datasource_name) {
                     bodyParam.dataSource = config.druid.survey_datasource_name;
@@ -346,14 +361,15 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
                     response = await helperFunc.listALLAnswers(data);
                     res.send(response);
                 }
-            })
-            .catch(err => {
+            // })
+            }
+            catch(err) {
                 response = {
                     result: false,
                     message: 'INTERNAL_SERVER_ERROR'
                 };
                 res.send(response);
-            })
+            }
 
     })
 }
@@ -388,6 +404,8 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
 
     return new Promise(async function (resolve, reject) {
 
+        try {
+
         if (!req.query.submissionId) {
 
             let response = {
@@ -398,10 +416,11 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
 
         } else {
 
-            model.MyModel.findOneAsync({ qid: "survey_submission_report_query" }, { allow_filtering: true })
-                .then(async function (result) {
+            // model.MyModel.findOneAsync({ qid: "survey_submission_report_query" }, { allow_filtering: true })
+            //     .then(async function (result) {
 
-                    let bodyParam = JSON.parse(result.query);
+            //         let bodyParam = JSON.parse(result.query);
+                    let bodyParam = gen.utils.getDruidQuery("survey_submission_report_query");
 
                     if (config.druid.survey_datasource_name) {
                         bodyParam.dataSource = config.druid.survey_datasource_name;
@@ -466,16 +485,18 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
 
                         res.send(responseObj);
                     }
-                })
-                .catch(function (err) {
+                // })
+                   }
+                }
+                 catch(err) {
 
                     let response = {
                         result: false,
                         message: 'INTERNAL_SERVER_ERROR'
                     };
                     res.send(response);
-                });
-            }
+                };
+            
         });
     };
 
@@ -510,6 +531,8 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
 
     return new Promise(async function (resolve, reject) {
 
+        try {
+
         if (!req.body.solutionId && !req.body.submissionId) {
             let response = {
               result: false,
@@ -526,10 +549,12 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
             res.send(response);
         }
 
-        model.MyModel.findOneAsync({ qid: "list_all_evidence_query" }, { allow_filtering: true })
-        .then(async function (result) {
+        // model.MyModel.findOneAsync({ qid: "list_all_evidence_query" }, { allow_filtering: true })
+        // .then(async function (result) {
 
-            let bodyParam = JSON.parse(result.query);
+        //     let bodyParam = JSON.parse(result.query);
+
+            let bodyParam = gen.utils.getDruidQuery("list_all_evidence_query");
   
             if (config.druid.survey_evidence_datasource_name) {
               bodyParam.dataSource = config.druid.survey_evidence_datasource_name;
@@ -570,15 +595,16 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
                 res.send({result: true, data: response});
               }
     
-            })
-            .catch(err => {
+            // })
+            }
+            catch(err){
               let response = {
                 result: false,
                 message: 'INTERNAL_SERVER_ERROR'
               };
               res.send(response);
     
-            })
+            }
         })
     };
   
@@ -588,10 +614,13 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
 
     return new Promise(async function (resolve, reject) {
 
-        model.MyModel.findOneAsync({ qid: "get_survey_evidence_query" }, { allow_filtering: true })
-            .then(async function (result) {
+        try {
 
-                let bodyParam = JSON.parse(result.query);
+        // model.MyModel.findOneAsync({ qid: "get_survey_evidence_query" }, { allow_filtering: true })
+        //     .then(async function (result) {
+
+        //         let bodyParam = JSON.parse(result.query);
+                let bodyParam = gen.utils.getDruidQuery("get_survey_evidence_query");
 
                 if (config.druid.survey_evidence_datasource_name) {
                     bodyParam.dataSource = config.druid.survey_evidence_datasource_name;
@@ -642,14 +671,15 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
                 } else {
                     resolve({ "result": true, "data": data });
                 }
-            })
-            .catch(function (err) {
+            // })
+            }
+            catch(err) {
                 let response = {
                     result: false,
                     message: "INTERNAL_SERVER_ERROR"
                 };
                 resolve(response);
-            });
+            }
         })
     }
 

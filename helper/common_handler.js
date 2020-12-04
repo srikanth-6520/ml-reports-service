@@ -3038,13 +3038,13 @@ async function ganttChartObject(data) {
                     }
 
                     dataArray.push(obj);
-                } else if (ele.status.toLowerCase() == "not yet started" || ele.status.toLowerCase() == "not started yet") {
+                } else if (ele.status.toLowerCase() == "not yet started" || ele.status.toLowerCase() == "not started yet" || ele.status.toLowerCase() == "notstarted") {
                     let obj = {
                         y: 4,
                         color: "#F5F5F5"
                     }
                     dataArray.push(obj);
-                } else if (ele.status.toLowerCase() == "in progress") {
+                } else if (ele.status.toLowerCase() == "in progress" || ele.status.toLowerCase() == "inprogress") {
                     let obj = {
                         y: 4,
                         color: "#FF872F"
@@ -3115,6 +3115,274 @@ async function ganttChartObject(data) {
     })
 
 }
+
+
+
+//Unnati redesign entity report pdf generation function
+exports.unnatiEntityReportPdfGeneration = async function (inputData, storeReportsToS3 = false) {
+
+    return new Promise(async function (resolve, reject) {
+
+        let currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
+
+        let imgPath = __dirname + '/../' + currentTempFolder;
+
+        if (!fs.existsSync(imgPath)) {
+            fs.mkdirSync(imgPath);
+        }
+
+        let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
+
+        try {
+            let formData = [];
+            
+            //copy images from public folder
+            let imgSourcePaths = ['/../public/images/note1.svg', '/../public/images/note2.svg', '/../public/images/note3.svg','/../public/images/note4.svg']
+            
+            for (let i=0; i< imgSourcePaths.length; i++) {
+
+                let imgName = "note" + (i+1) + ".svg";
+                let src = __dirname + imgSourcePaths[i];
+                fs.copyFileSync(src, imgPath + ('/' + imgName));
+
+                formData.push({
+                    value: fs.createReadStream(imgPath + ('/' + imgName)),
+                    options: {
+                        filename: imgName,
+                    }
+                })
+            }
+           
+            //get the chart object
+            let chartData = await getEntityReportChartObjects(inputData);
+
+            //generate the chart using highchart server
+            let highChartData = await apiCallToHighChart(chartData, imgPath, "pie");
+
+            formData.push(...highChartData);
+
+            let ejsInputData = {
+                chartData: highChartData,
+                response: inputData
+            }
+
+            ejs.renderFile(__dirname + '/../views/unnatiEntityReport.ejs', {
+                data: ejsInputData
+            })
+                .then(function (dataEjsRender) {
+
+                    let dir = imgPath;
+                    if (!fs.existsSync(dir)) {
+                        fs.mkdirSync(dir);
+                    }
+
+                    fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
+                        if (errWriteFile) {
+                            throw errWriteFile;
+                        } else {
+
+                            let optionsHtmlToPdf = config.optionsHtmlToPdf;
+                            optionsHtmlToPdf.formData = {
+                                files: []
+                            };
+                            formData.push({
+                                value: fs.createReadStream(dir + '/index.html'),
+                                options: {
+                                    filename: 'index.html'
+                                }
+                            });
+                            optionsHtmlToPdf.formData.files = formData;
+
+                            rp(optionsHtmlToPdf)
+                                .then(function (responseHtmlToPdf) {
+
+                                    var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
+                                    if (responseHtmlToPdf.statusCode == 200) {
+
+                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
+                                            if (err) {
+                                                return console.log(err);
+                                            }
+
+                                            else {
+                                                const s3 = new AWS.S3(config.s3_credentials);
+
+                                                const uploadFile = () => {
+
+                                                    fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
+                                                        if (err) throw err;
+
+                                                        const params = {
+                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                            Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
+                                                            Body: Buffer.from(data, null, 2),
+                                                            Expires: 10
+                                                        };
+
+                                                        if (storeReportsToS3 == false) {
+                                                            let folderPath = Buffer.from(currentTempFolder).toString('base64')
+
+                                                            let response = {
+                                                                status: "success",
+                                                                message: 'report generated',
+                                                                pdfUrl: folderPath,
+
+                                                            };
+                                                            resolve(response);
+
+                                                        } else {
+
+
+                                                            s3.upload(params, function (s3Err, data) {
+                                                                if (s3Err) throw s3Err;
+
+                                                                console.log(`File uploaded successfully at ${data.Location}`);
+
+                                                                s3SignedUrl(data.key).then(function (signedRes) {
+
+                                                                    try {
+
+                                                                        fs.readdir(imgPath, (err, files) => {
+                                                                            if (err) throw err;
+
+                                                                            let i = 0;
+                                                                            for (const file of files) {
+
+                                                                                fs.unlink(path.join(imgPath, file), err => {
+                                                                                    if (err) throw err;
+                                                                                });
+
+                                                                                if (i == files.length) {
+                                                                                    fs.unlink('../../' + currentTempFolder, err => {
+                                                                                        if (err) throw err;
+
+                                                                                    });
+                                                                                }
+
+                                                                                i = i + 1;
+
+                                                                            }
+                                                                        });
+                                                                        rimraf(imgPath, function () { console.log("done"); });
+
+                                                                    } catch (ex) {
+                                                                        console.log("ex ", ex);
+                                                                    }
+
+                                                                    let response = {
+                                                                        status: "success",
+                                                                        message: 'report generated',
+                                                                        pdfUrl: signedRes,
+                                                                        downloadPath: data.key
+                                                                    };
+                                                                    resolve(response);
+                                                                })
+                                                            });
+
+                                                        }
+
+                                                    });
+                                                }
+                                                uploadFile();
+                                            }
+                                        });
+                                    }
+
+                                }).catch(err => {
+                                    resolve(err);
+                                })
+                        }
+                    })
+                })
+        }
+        catch (err) {
+            resolve(err);
+        }
+    })
+}
+
+async function getEntityReportChartObjects(data) {
+
+    return new Promise(async function (resolve, reject) {
+
+        let chartData = [];
+
+        let getChartObjects = [
+            getTaskOverviewChart(data.tasks),
+            getCategoryWiseChart(data.categories)
+        ];
+
+        await Promise.all(getChartObjects)
+            .then(function (response) {
+                chartData.push(response[0]);
+                chartData.push(response[1]);
+            });
+
+        return resolve(chartData)
+
+       
+    })
+}
+
+async function getTaskOverviewChart(tasks) {
+    return new Promise( async function(resolve,reject) {
+
+         let seriesData="[";
+         Object.keys(tasks).forEach( eachTask => {
+            let color = "";
+            if(eachTask=="Completed"){
+                color ="green";
+            }else if(eachTask=="Not Started"){
+                color ="red";
+            }
+
+            if(color != ""){
+                seriesData = seriesData + "{ color:'"+color+"',name: '"+eachTask+"',y: "+tasks[eachTask]+"},";
+            } else {
+                seriesData = seriesData + "{ name: '"+eachTask+"',y: "+tasks[eachTask]+"},";
+            }
+            
+        })
+        seriesData = seriesData + "]";
+
+        let chartOptions  = "{ title: { text: '' },chart: { type: 'pie' },"+
+        "plotOptions: { 'pie': { showInLegend: true, dataLabels: { enabled: true, formatter: function () { return this.y ? this.point.y : null; }} }},"
+        +"credits: { enabled: false },"
+        +"series: [{ minPointSize: 50,innerSize: '80%',zMin: 0,name: 'tasks', data: "+seriesData+" }] }"
+   
+        let chartObject = {
+            order: 2,
+            type: "svg",
+            options: chartOptions
+        };
+
+        resolve(chartObject);
+    })
+}
+
+async function getCategoryWiseChart(categories) {
+    return new Promise( async function(resolve,reject) {
+
+        let seriesData="[";
+        Object.keys(categories).forEach( eachCategory => {
+            seriesData = seriesData + "{ name: '"+eachCategory+"',y: "+categories[eachCategory]+"},";
+        })
+        seriesData = seriesData + "]";
+        let chartOptions  = "{ title: { text: '' },chart: { type: 'pie' },"+
+        "plotOptions: { 'pie': { showInLegend: true, dataLabels: { enabled: true, formatter: function () { return this.y ? this.point.y : null; }} }},"
+        +"credits: { enabled: false },"
+        +"series: [{ minPointSize: 50,innerSize: '50%',zMin: 0,name: 'tasks', data: "+seriesData+" }] }"
+   
+        let chartObject = {
+            order: 2,
+            type: "svg",
+            options: chartOptions
+        };
+        resolve(chartObject);
+    })
+}
+
+
 
 async function convertChartDataTofile(radioFilePath, options) {
     try {

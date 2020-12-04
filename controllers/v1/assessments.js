@@ -40,6 +40,7 @@ const storePdfReportsToS3 = (!config.store_pdf_reports_in_s3_on_off || config.st
 
 // Function for listing assement programs
 exports.listPrograms = async function (req, res) {
+    try {
     if (!req.body.entityId || !req.body.entityType) {
         res.status(400);
         var response = {
@@ -51,10 +52,12 @@ exports.listPrograms = async function (req, res) {
     else {
 
         //get quey from cassandra
-        model.MyModel.findOneAsync({ qid: "list_assessment_programs_query" }, { allow_filtering: true })
-            .then(async function (result) {
+        // model.MyModel.findOneAsync({ qid: "list_assessment_programs_query" }, { allow_filtering: true })
+        //     .then(async function (result) {
 
-                let bodyParam = JSON.parse(result.query);
+        //         let bodyParam = JSON.parse(result.query);
+
+                let bodyParam =  gen.utils.getDruidQuery("list_assessment_programs_query");
 
                 if (config.druid.assessment_datasource_name) {
                     bodyParam.dataSource = config.druid.assessment_datasource_name;
@@ -98,17 +101,18 @@ exports.listPrograms = async function (req, res) {
                     var responseObj = await helperFunc.listProgramsObjectCreate(data);
                     res.send(responseObj);
                 }
-            })
-            .catch(function (err) {
+            // })
+               }
+            }
+            catch(err) {
                 res.status(400);
-                var response = {
+                let response = {
                     result: false,
                     message: 'INTERNAL_SERVER_ERROR'
                 }
                 res.send(response);
-            })
+            }
     }
-}
 
 
 
@@ -190,6 +194,8 @@ exports.entity = async function (req, res) {
 async function assessmentReportGetChartData(req, res) {
     return new Promise(async function (resolve, reject) {
 
+        try {
+
         if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
             let response = {
                 result: false,
@@ -200,17 +206,19 @@ async function assessmentReportGetChartData(req, res) {
         else {
 
             let childType = req.body.immediateChildEntityType;
-            let reqBody = req.body
+            // let reqBody = req.body
 
-            let dataAssessIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqBody)
+            // let dataAssessIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqBody)
 
-            if (dataAssessIndexes == undefined) {
+            // if (dataAssessIndexes == undefined) {
 
                 //get domainName and level info
-                model.MyModel.findOneAsync({ qid: "entity_assessment_query" }, { allow_filtering: true })
-                    .then(async function (result) {
+                // model.MyModel.findOneAsync({ qid: "entity_assessment_query" }, { allow_filtering: true })
+                //     .then(async function (result) {
 
-                        let bodyParam = JSON.parse(result.query);
+                //         let bodyParam = JSON.parse(result.query);
+                        let bodyParam = gen.utils.getDruidQuery("entity_assessment_query");
+
                         if (config.druid.assessment_datasource_name) {
                             bodyParam.dataSource = config.druid.assessment_datasource_name;
                         }
@@ -269,7 +277,7 @@ async function assessmentReportGetChartData(req, res) {
                                 responseObj.title = "Performance Report";
                                 responseObj.reportSections[0].chart.grandChildEntityType = "";
                                 resolve(responseObj);
-                                commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
+                                // commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
                             }
                         }
                         else {
@@ -304,20 +312,21 @@ async function assessmentReportGetChartData(req, res) {
                             }
 
                             resolve(responseObj);
-                            commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
+                            // commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
                         }
-                    })
-                    .catch(function (err) {
+                    // })
+                       }
+                    }
+                    catch(err) {
                         let response = {
                             result: false,
                             message: 'INTERNAL_SERVER_ERROR'
                         }
                         resolve(response);
-                    })
-            } else {
-                resolve(JSON.parse(dataAssessIndexes['apiresponse']))
-            }
-        }
+                    }
+            // } else {
+            //     resolve(JSON.parse(dataAssessIndexes['apiresponse']))
+            // }
     });
 }
 
@@ -343,6 +352,8 @@ async function assessmentReportGetChartData(req, res) {
 
 // Function for listing assement programs
 exports.listAssessmentPrograms = async function (req, res) {
+
+    try {
 
     let filter;
 
@@ -378,10 +389,11 @@ exports.listAssessmentPrograms = async function (req, res) {
     });
 
     //get query from cassandra
-    model.MyModel.findOneAsync({ qid: "list_assessment_programs_query" }, { allow_filtering: true })
-        .then(async function (result) {
+    // model.MyModel.findOneAsync({ qid: "list_assessment_programs_query" }, { allow_filtering: true })
+    //     .then(async function (result) {
 
-            let bodyParam = JSON.parse(result.query);
+    //         let bodyParam = JSON.parse(result.query);
+            let bodyParam = gen.utils.getDruidQuery("list_assessment_programs_query");
 
             if (config.druid.assessment_datasource_name) {
                 bodyParam.dataSource = config.druid.assessment_datasource_name;
@@ -405,15 +417,16 @@ exports.listAssessmentPrograms = async function (req, res) {
                 res.send(responseObj);
             }
 
-        })
-        .catch(function (err) {
+        // })
+        } 
+        catch(err) {
             res.status(400);
             let response = {
                 result: false,
                 message: 'INTERNAL SERVER ERROR'
             }
             res.send(response);
-        });
+        };
 }
 
 
@@ -447,6 +460,8 @@ exports.listAssessmentPrograms = async function (req, res) {
 
 // Function for listing assement programs
 exports.listEntities = async function (req, res) {
+    
+    try {
 
     let filter;
     let getUserProfile = await getUserProfileFunc(req, res);
@@ -486,10 +501,11 @@ exports.listEntities = async function (req, res) {
     });
 
     //get query from cassandra
-    model.MyModel.findOneAsync({ qid: "list_entities_query" }, { allow_filtering: true })
-        .then(async function (result) {
+    // model.MyModel.findOneAsync({ qid: "list_entities_query" }, { allow_filtering: true })
+    //     .then(async function (result) {
 
-            let bodyParam = JSON.parse(result.query);
+    //         let bodyParam = JSON.parse(result.query);
+            let bodyParam = gen.utils.getDruidQuery("list_entities_query");
 
             let programFilter = {"type":"selector","dimension":"programId","value":req.body.programId}
 
@@ -535,14 +551,16 @@ exports.listEntities = async function (req, res) {
                 res.send(responseObj);
             }
 
-        })
-        .catch(function (err) {
+        // })
+           
+        }
+        catch(err) {
             let response = {
                 result: false,
                 message: 'INTERNAL SERVER ERROR'
             }
             res.send(response);
-        })
+        }
 }
 
 
@@ -580,6 +598,7 @@ exports.listEntities = async function (req, res) {
 
 // Function for listing assement programs
 exports.listImprovementProjects = async function (req, res) {
+    try {
     if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
         res.status(400);
         let response = {
@@ -591,10 +610,11 @@ exports.listImprovementProjects = async function (req, res) {
     else {
 
         //get quey from cassandra
-        model.MyModel.findOneAsync({ qid: "list_improvement_projects_query" }, { allow_filtering: true })
-            .then(async function (result) {
+        // model.MyModel.findOneAsync({ qid: "list_improvement_projects_query" }, { allow_filtering: true })
+        //     .then(async function (result) {
 
-                let bodyParam = JSON.parse(result.query);
+        //         let bodyParam = JSON.parse(result.query);
+                let bodyParam = gen.utils.getDruidQuery("list_improvement_projects_query");
 
                 if (config.druid.assessment_datasource_name) {
                     bodyParam.dataSource = config.druid.assessment_datasource_name;
@@ -628,15 +648,16 @@ exports.listImprovementProjects = async function (req, res) {
                     let responseObj = await helperFunc.improvementProjectsObjectCreate(data);
                     res.send(responseObj);
                 }
-            })
-            .catch(function (err) {
-                let response = {
-                    result: false,
-                    message: 'INTERNAL SERVER ERROR'
-                }
-                res.send(response);
-            })
-    }
+            // })
+            }
+        } 
+        catch(err) {
+            let response = {
+                result: false,
+                message: 'INTERNAL SERVER ERROR'
+            }
+            res.send(response);
+        }
 }
 
 
@@ -652,68 +673,68 @@ exports.pdfReports = async function (req, res) {
         res.send(response);
     }
     else {
-        reqData = req.body;
-        var dataReportIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqData);
+        // reqData = req.body;
+        // var dataReportIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqData);
 
-        if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
-
-
-            dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
-            let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
+        // if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
 
 
-            var response = {
-                status: "success",
-                message: 'Assessment Pdf Generated successfully',
-                pdfUrl: signedUlr
-            };
-            res.send(response);
+        //     dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
+        //     let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
 
-        } else {
-            var assessmentRes;
-            if (dataReportIndexes) {
-                assessmentRes = JSON.parse(dataReportIndexes['apiresponse']);
-            }
-            else {
+
+        //     var response = {
+        //         status: "success",
+        //         message: 'Assessment Pdf Generated successfully',
+        //         pdfUrl: signedUlr
+        //     };
+        //     res.send(response);
+
+        // } else {
+            let assessmentRes;
+            // if (dataReportIndexes) {
+            //     assessmentRes = JSON.parse(dataReportIndexes['apiresponse']);
+            // }
+            // else {
                 assessmentRes = await assessmentReportGetChartData(req, res);
-            }
+            // }
 
 
             if (assessmentRes.result == true) {
 
-                let storeReportsToS3 = false;
-                if(storePdfReportsToS3 == "ON"){
-                  storeReportsToS3 = true;
-                }
+                // let storeReportsToS3 = false;
+                // if(storePdfReportsToS3 == "ON"){
+                //   storeReportsToS3 = true;
+                // }
 
-                let resData = await pdfHandler.assessmentPdfGeneration(assessmentRes, storeReportsToS3);
+                let resData = await pdfHandler.assessmentPdfGeneration(assessmentRes, storeReportsToS3=false);
 
-                if (storeReportsToS3 == false) {
+                // if (storeReportsToS3 == false) {
                    
                     resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
                     res.send(resData);
-                }
-                else {
-                    if (dataReportIndexes) {
-                        var reqOptions = {
-                            query: dataReportIndexes.id,
-                            downloadPath: resData.downloadPath
-                        }
-                        commonCassandraFunc.updateEntityAssessmentDownloadPath(reqOptions);
-                    } else {
-                        //store download url in cassandra
-                        let dataInsert = commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqData, resData, resData.downloadPath);
-                    }
+                // }
+                // else {
+                //     if (dataReportIndexes) {
+                //         var reqOptions = {
+                //             query: dataReportIndexes.id,
+                //             downloadPath: resData.downloadPath
+                //         }
+                //         commonCassandraFunc.updateEntityAssessmentDownloadPath(reqOptions);
+                //     } else {
+                //         //store download url in cassandra
+                //         let dataInsert = commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqData, resData, resData.downloadPath);
+                //     }
 
-                    //res.send(resData);
-                     res.send(omit(resData,'downloadPath'));
-                }
+                //     //res.send(resData);
+                //      res.send(omit(resData,'downloadPath'));
+                // }
             }
             else {
                 res.send(assessmentRes);
             }
 
-        }
+        // }
     }
 };
 
@@ -836,7 +857,7 @@ exports.entityReport = async function(req,res){
 
 async function entityReportChartCreateFunction(req, res) {
 return new Promise(async function (resolve, reject) {
-
+    try {
     if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
         let response = {
             result: false,
@@ -846,10 +867,12 @@ return new Promise(async function (resolve, reject) {
     }
     else {
            //get domainName and level info
-            model.MyModel.findOneAsync({ qid: "entity_level_assessment_report_query" }, { allow_filtering: true })
-                .then(async function (result) {
+            // model.MyModel.findOneAsync({ qid: "entity_level_assessment_report_query" }, { allow_filtering: true })
+            //     .then(async function (result) {
 
-                    var bodyParam = JSON.parse(result.query);
+            //         var bodyParam = JSON.parse(result.query);
+                    let bodyParam = gen.utils.getDruidQuery("entity_level_assessment_report_query");
+
                     if (config.druid.assessment_datasource_name) {
                         bodyParam.dataSource = config.druid.assessment_datasource_name;
                     }
@@ -886,15 +909,17 @@ return new Promise(async function (resolve, reject) {
                      
                        return resolve(response);
                     }
-                })
-                .catch(function (err) {
-                    let response = {
-                        result: false,
-                        message: 'INTERNAL_SERVER_ERROR',
-                        err: err
-                    }
-                    resolve(response);
-                })
-        }
+                // })
+                }
+            } 
+            catch(err) {
+                let response = {
+                    result: false,
+                    message: 'INTERNAL_SERVER_ERROR',
+                    err: err
+                }
+                resolve(response);
+            }
+        
     })
 }

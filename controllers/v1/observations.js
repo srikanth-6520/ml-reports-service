@@ -61,6 +61,8 @@ exports.instance = async function (req, res) {
 async function instanceObservationData(req, res) {
   
     return new Promise(async function (resolve, reject) {
+
+      try {
   
       if (!req.body.submissionId) {
         let response = {
@@ -70,15 +72,17 @@ async function instanceObservationData(req, res) {
         resolve(response);
       } else {
         let submissionId = req.body.submissionId;
-        bodyData = req.body;
-        let dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(bodyData);
+        // bodyData = req.body;
+        // let dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(bodyData);
   
-       if (dataReportIndexes == undefined) {
-          model.MyModel.findOneAsync({ qid: "instance_observation_query" }, { allow_filtering: true })
-            .then(async function (result) {
+        // if (dataReportIndexes == undefined) {
+          // model.MyModel.findOneAsync({ qid: "instance_observation_query" }, { allow_filtering: true })
+          //   .then(async function (result) {
 
-              let bodyParam = JSON.parse(result.query);
+            //let bodyParam = JSON.parse(result.query);
 
+            let bodyParam = gen.utils.getDruidQuery("instance_observation_query");
+          
               if (config.druid.observation_datasource_name) {
                 bodyParam.dataSource = config.druid.observation_datasource_name;
               }
@@ -139,20 +143,21 @@ async function instanceObservationData(req, res) {
                 }
 
                 resolve(responseObj);
-                commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj);
+               // commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj);
               }
-            })
-            .catch(function (err) {
+              }
+            // })
+            }
+            catch(err) {
               let response = {
                 result: false,
                 message: 'INTERNAL_SERVER_ERROR'
               };
               resolve(response);
-            });
-        } else {
-          resolve(JSON.parse(dataReportIndexes['apiresponse']));
-        }
-      }
+            }
+        // } else {
+        //   resolve(JSON.parse(dataReportIndexes['apiresponse']));
+        // }
     });
   };
   
@@ -162,23 +167,23 @@ async function instancePdfReport(req, res) {
 
   return new Promise(async function (resolve, reject) {
 
-    let reqData = req.query;
-    let dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
+    // let reqData = req.query;
+    // let dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
 
-    if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
+    // if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
 
-      dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
-      let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
+    //   dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
+    //   let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
 
-      let response = {
-        status: "success",
-        message: 'Observation Pdf Generated successfully',
-        pdfUrl: signedUlr
-      };
+    //   let response = {
+    //     status: "success",
+    //     message: 'Observation Pdf Generated successfully',
+    //     pdfUrl: signedUlr
+    //   };
 
-      resolve(response);
+    //   resolve(response);
 
-    } else {
+    // } else {
 
       req.body.submissionId = req.query.submissionId;
 
@@ -186,38 +191,38 @@ async function instancePdfReport(req, res) {
 
       if (("observationName" in instaRes) == true) {
 
-        let storeReportsToS3 = false;
-        if (storePdfReportsToS3 == "ON") {
-          storeReportsToS3 = true;
-        }
-        let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes, storeReportsToS3);
+        // let storeReportsToS3 = false;
+        // if (storePdfReportsToS3 == "ON") {
+        //   storeReportsToS3 = true;
+        // }
+        let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes, storeReportsToS3=false);
 
-        if (storeReportsToS3 == false) {
+        // if (storeReportsToS3 == false) {
 
           resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
           resolve(resData);
 
-        }
-        else {
+        // }
+        // else {
 
-          if (dataReportIndexes) {
-            let reqOptions = {
-              query: dataReportIndexes.id,
-              downloadPath: resData.downloadPath
-            }
-            commonCassandraFunc.updateInstanceDownloadPath(reqOptions);
-          } else {
-            let dataInsert = commonCassandraFunc.insertReqAndResInCassandra(reqData, instaRes, resData.downloadPath);
-          }
+        //   if (dataReportIndexes) {
+        //     let reqOptions = {
+        //       query: dataReportIndexes.id,
+        //       downloadPath: resData.downloadPath
+        //     }
+        //     commonCassandraFunc.updateInstanceDownloadPath(reqOptions);
+        //   } else {
+        //     let dataInsert = commonCassandraFunc.insertReqAndResInCassandra(reqData, instaRes, resData.downloadPath);
+        //   }
 
-          // res.send(resData);
-          resolve(omit(resData, 'downloadPath'));
-        }
+        //   // res.send(resData);
+        //   resolve(omit(resData, 'downloadPath'));
+        // }
       }
       else {
         resolve(instaRes);
       }
-    }
+    // }
   });
 };
   
@@ -291,7 +296,9 @@ exports.instanceObservationScoreReport = async function (req, res) {
   async function instanceScoreReport(req, res) {
   
     return new Promise(async function (resolve, reject) {
-  
+     
+      try {
+
       if (!req.body.submissionId) {
         let response = {
           result: false,
@@ -302,11 +309,12 @@ exports.instanceObservationScoreReport = async function (req, res) {
   
       } else {
   
-        model.MyModel.findOneAsync({ qid: "instance_observation_score_query" }, { allow_filtering: true })
-          .then(async function (result) {
+        // model.MyModel.findOneAsync({ qid: "instance_observation_score_query" }, { allow_filtering: true })
+        //   .then(async function (result) {
   
-            let bodyParam = JSON.parse(result.query);
-  
+        //  let bodyParam = JSON.parse(result.query);
+            let bodyParam = gen.utils.getDruidQuery("instance_observation_score_query");
+            
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
             }
@@ -372,15 +380,15 @@ exports.instanceObservationScoreReport = async function (req, res) {
               }
               resolve(responseObj);
             }
-          })
-          .catch(function (err) {
-            let response = {
-              result: false,
-              message: 'Data not found'
-            };
-            resolve(response);
-          });
-  
+          // })
+        }
+      }
+      catch(err) {
+        let response = {
+          result: false,
+          message: 'Data not found'
+        };
+        resolve(response);
       }
     })
   };
@@ -465,6 +473,8 @@ exports.entity = async function (req, res) {
   async function entityObservationData(req, res) {
   
     return new Promise(async function (resolve, reject) {
+
+      try {
   
       if (!req.body.entityId && !req.body.observationId) {
         let response = {
@@ -475,10 +485,12 @@ exports.entity = async function (req, res) {
       }
       else {
   
-        model.MyModel.findOneAsync({ qid: "entity_observation_query" }, { allow_filtering: true })
-          .then(async function (result) {
+        // model.MyModel.findOneAsync({ qid: "entity_observation_query" }, { allow_filtering: true })
+        //   .then(async function (result) {
   
-            let bodyParam = JSON.parse(result.query);
+        //     let bodyParam = JSON.parse(result.query);
+
+            let bodyParam = gen.utils.getDruidQuery("entity_observation_query");
   
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -538,16 +550,26 @@ exports.entity = async function (req, res) {
               resolve(responseObj);
   
             }
-          })
-          .catch(function (err) {
-            res.status(400);
-            var response = {
-              result: false,
-              message: 'Data not found'
-            }
-            resolve(response);
-          })
+          // })
+          // .catch(function (err) {
+          //   res.status(400);
+          //   var response = {
+          //     result: false,
+          //     message: 'Data not found'
+          //   }
+          //   resolve(response);
+          // })
       }
+      }
+      catch (err) {
+        res.status(400);
+        var response = {
+          result: false,
+          message: 'Data not found'
+        }
+        resolve(response);
+      }
+
     });
   }
   
@@ -640,7 +662,9 @@ exports.entityObservationReport = async function entityObservationReport(req, re
   async function entityObservationReportGeneration(req, res) {
   
     return new Promise(async function (resolve, reject) {
-  
+      
+      try {
+
       if (!req.body.entityId && !req.body.entityType && !req.body.observationId) {
         res.status(400);
         var response = {
@@ -657,10 +681,12 @@ exports.entityObservationReport = async function entityObservationReport(req, re
         immediateChildEntityType = req.body.immediateChildEntityType;
   
         // Fetch query from cassandra
-        model.MyModel.findOneAsync({ qid: "entity_observation_report_query" }, { allow_filtering: true })
-          .then(async function (result) {
+        // model.MyModel.findOneAsync({ qid: "entity_observation_report_query" }, { allow_filtering: true })
+        //   .then(async function (result) {
   
-            var bodyParam = JSON.parse(result.query);
+            // var bodyParam = JSON.parse(result.query);
+
+            let bodyParam = gen.utils.getDruidQuery("entity_observation_report_query");
   
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -695,18 +721,25 @@ exports.entityObservationReport = async function entityObservationReport(req, re
               var responseObj = await helperFunc.entityReportChart(data, req.body.entityId, req.body.entityType)
               resolve(responseObj);
             }
-          })
-          .catch(function (err) {
-            res.status(400);
-            var response = {
-              result: false,
-              message: 'Data not found'
-            }
-            resolve(response);
-          })
-  
+          // })
+          // .catch(function (err) {
+          //   res.status(400);
+          //   var response = {
+          //     result: false,
+          //     message: 'Data not found'
+          //   }
+          //   resolve(response);
+          // })
+        }
       }
-  
+      catch (err) {
+        res.status(400);
+        var response = {
+          result: false,
+          message: 'Data not found'
+        }
+        resolve(response);
+      }
     })
   
   }
@@ -818,7 +851,9 @@ exports.entityScoreReport = async function (req, res) {
   async function entityScoreReport(req, res) {
   
     return new Promise(async function (resolve, reject) {
-  
+      
+      try {
+
       if (!req.body.entityId && !req.body.observationId) {
         var response = {
           result: false,
@@ -829,10 +864,11 @@ exports.entityScoreReport = async function (req, res) {
   
       else {
 
-        model.MyModel.findOneAsync({ qid: "entity_observation_score_query" }, { allow_filtering: true })
-          .then(async function (result) {
+        // model.MyModel.findOneAsync({ qid: "entity_observation_score_query" }, { allow_filtering: true })
+        //   .then(async function (result) {
   
-            var bodyParam = JSON.parse(result.query);
+        //     var bodyParam = JSON.parse(result.query);
+            let bodyParam = gen.utils.getDruidQuery("entity_observation_score_query");
   
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -860,18 +896,24 @@ exports.entityScoreReport = async function (req, res) {
               resolve(responseObj);
   
             }
-          })
+          // })
   
-          .catch(function (err) {
-            var response = {
-              result: false,
-              message: 'Data not found'
-            }
-            resolve(response);
-          })
-  
+          // .catch(function (err) {
+          //   var response = {
+          //     result: false,
+          //     message: 'Data not found'
+          //   }
+          //   resolve(response);
+          // })
+        }
       }
-  
+      catch(err) {
+        var response = {
+          result: false,
+          message: 'Data not found'
+        }
+        resolve(response);
+      }
     })
   
   }
@@ -991,6 +1033,8 @@ exports.entitySolutionScoreReport = async function (req, res) {
 async function entitySolutionScoreReportGeneration(req, res) {
   
     return new Promise(async function (resolve, reject) {
+
+      try {
   
       if (!req.body.entityId && !req.body.entityType && !req.body.solutionId) {
         res.status(400);
@@ -1011,10 +1055,11 @@ async function entitySolutionScoreReportGeneration(req, res) {
       else {
 
         // Fetch query from cassandra
-        model.MyModel.findOneAsync({ qid: "entity_solution_score_query" }, { allow_filtering: true })
-          .then(async function (result) {
+        // model.MyModel.findOneAsync({ qid: "entity_solution_score_query" }, { allow_filtering: true })
+        //   .then(async function (result) {
   
-            var bodyParam = JSON.parse(result.query);
+        //     var bodyParam = JSON.parse(result.query);
+            let bodyParam = gen.utils.getDruidQuery("entity_solution_score_query");
   
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -1072,18 +1117,17 @@ async function entitySolutionScoreReportGeneration(req, res) {
               responseObj.solutionId = req.body.solutionId;
               resolve(responseObj);
             }
-          })
-          .catch(function (err) {
+          // })
+            }
+          }
+          catch(err) {
             res.status(400);
-            var response = {
+            let response = {
               result: false,
               message: 'Data not found'
             }
             resolve(response);
-          })
-  
-      }
-  
+          }
     })
   
   }
@@ -1093,11 +1137,15 @@ async function entitySolutionScoreReportGeneration(req, res) {
 async function schoolSolutionScoreReport(req, res) {
   
     return new Promise(async function (resolve, reject) {
+
+      try {
   
-      model.MyModel.findOneAsync({ qid: "entity_solution_score_query" }, { allow_filtering: true })
-        .then(async function (result) {
+      // model.MyModel.findOneAsync({ qid: "entity_solution_score_query" }, { allow_filtering: true })
+      //   .then(async function (result) {
   
-          let bodyParam = JSON.parse(result.query);
+      //     let bodyParam = JSON.parse(result.query);
+
+          let bodyParam = gen.utils.getDruidQuery("entity_solution_score_query");
   
           if (config.druid.observation_datasource_name) {
             bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -1156,15 +1204,16 @@ async function schoolSolutionScoreReport(req, res) {
             resolve(responseObj);
   
           }
-        })
+        // })
+      }
   
-        .catch(function (err) {
+      catch(err) {
           let response = {
             result: false,
             message: 'Data not found'
           }
           resolve(response);
-        })
+        }
     })
   
   }
@@ -1211,16 +1260,19 @@ exports.byEntity = async function (req, res) {
       res.send(response);
     }
     else {
-      model.MyModel.findOneAsync({
-        qid: "observations_by_entity"
-      }, {
-          allow_filtering: true
-        })
-        .then(async function (result) {
+      // model.MyModel.findOneAsync({
+      //   qid: "observations_by_entity"
+      // }, {
+      //     allow_filtering: true
+      //   })
+      //   .then(async function (result) {
   
           if (req.body.search) {
   
-            var bodyParam = JSON.parse(result.query);
+            // var bodyParam = JSON.parse(result.query);
+
+            let bodyParam = gen.utils.getDruidQuery("observations_by_entity");
+
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
             }
@@ -1277,7 +1329,7 @@ exports.byEntity = async function (req, res) {
             res.send(observationData);
   
            }
-        });
+        // });
     }
   
   }
@@ -1286,7 +1338,8 @@ exports.byEntity = async function (req, res) {
 async function getObsvByentitys(req, result) {
     return new Promise(async function (resolve, reject) {
   
-      var bodyParam = JSON.parse(result.query);
+      // var bodyParam = JSON.parse(result.query);
+      let bodyParam = gen.utils.getDruidQuery("observations_by_entity");
       if (config.druid.observation_datasource_name) {
         bodyParam.dataSource = config.druid.observation_datasource_name;
       }
@@ -1354,10 +1407,11 @@ exports.report = async function (req, res) {
 
 async function observationReportData(req, res) {
     return new Promise(async function (resolve, reject) {
-
+      
+      try {
         if (!req.body.observationId) {
             res.status(400);
-            var response = {
+            let response = {
                 result: false,
                 message: 'observationId is a required field'
             }
@@ -1365,10 +1419,12 @@ async function observationReportData(req, res) {
         }
         else {
             
-            model.MyModel.findOneAsync({ qid: "observation_report_query" }, { allow_filtering: true })
-                .then(async function (result) {
+            // model.MyModel.findOneAsync({ qid: "observation_report_query" }, { allow_filtering: true })
+            //     .then(async function (result) {
 
-                  var bodyParam = JSON.parse(result.query);
+            //       var bodyParam = JSON.parse(result.query);
+
+                let bodyParam = gen.utils.getDruidQuery("observation_report_query");
 
                   if (config.druid.observation_datasource_name) {
                     bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -1421,16 +1477,25 @@ async function observationReportData(req, res) {
                     resolve(responseObj);
 
                   }
-                })
-              .catch(function (err) {
-                    res.status(400);
-                    var response = {
-                        result: false,
-                        message: 'Data not found'
-                    }
-                    resolve(response);
-                })
+              //   })
+              // .catch(function (err) {
+              //       res.status(400);
+              //       var response = {
+              //           result: false,
+              //           message: 'Data not found'
+              //       }
+              //       resolve(response);
+              //   })
+          }
         }
+        catch(err) {
+        res.status(400);
+        let response = {
+          result: false,
+          message: 'Data not found'
+        }
+        resolve(response);
+      }
     });
 }
 
@@ -1548,7 +1613,9 @@ exports.scoreReport = async function (req , res){
 async function observationScoreReport(req, res) {
   
     return new Promise(async function (resolve, reject) {
-  
+
+     try {
+
       if (!req.body.observationId) {
         var response = {
           result: false,
@@ -1559,10 +1626,12 @@ async function observationScoreReport(req, res) {
   
       else {
   
-        model.MyModel.findOneAsync({ qid: "observation_score_report_query" }, { allow_filtering: true })
-          .then(async function (result) {
+        // model.MyModel.findOneAsync({ qid: "observation_score_report_query" }, { allow_filtering: true })
+        //   .then(async function (result) {
   
-            var bodyParam = JSON.parse(result.query);
+        //     var bodyParam = JSON.parse(result.query);
+          
+          let bodyParam = gen.utils.getDruidQuery("observation_score_report_query");
   
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -1631,18 +1700,25 @@ async function observationScoreReport(req, res) {
               resolve(responseObj);
 
             }
-          })
+          // })
   
-          .catch(function (err) {
-            var response = {
-              result: false,
-              message: 'Data not found'
-            }
-            resolve(response);
-          })
-  
+          // .catch(function (err) {
+          //   var response = {
+          //     result: false,
+          //     message: 'Data not found'
+          //   }
+          //   resolve(response);
+          // })
+        }
       }
-  
+      catch(err) {
+        let response = {
+          result: false,
+          message: 'Data not found'
+        }
+          resolve(response);
+      }
+
     })
   
   }
@@ -1728,6 +1804,7 @@ async function observationScorePdfFunc(req, res) {
 
 //Controller for listing observation Names
 exports.listObservationNames = async function (req, res) {
+  try {
     if (!req.body.entityId || !req.body.entityType) {
         res.status(400);
         let response = {
@@ -1739,10 +1816,11 @@ exports.listObservationNames = async function (req, res) {
     else {
 
         //get quey from cassandra
-        model.MyModel.findOneAsync({ qid: "list_observation_names_query" }, { allow_filtering: true })
-            .then(async function (result) {
+        // model.MyModel.findOneAsync({ qid: "list_observation_names_query" }, { allow_filtering: true })
+        //     .then(async function (result) {
 
-                let bodyParam = JSON.parse(result.query);
+        //         let bodyParam = JSON.parse(result.query);
+              let bodyParam = gen.utils.getDruidQuery("list_observation_names_query");
 
                 if (config.druid.observation_datasource_name) {
                     bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -1767,17 +1845,26 @@ exports.listObservationNames = async function (req, res) {
                     let responseObj = await helperFunc.listObservationNamesObjectCreate(data);
                     res.send({ "result": true, "data": responseObj });
                 }
-            })
-            .catch(function (err) {
-                res.status(400);
-                let response = {
-                    result: false,
-                    message: 'Data not found'
-                }
-                res.send(response);
-            })
+            // })
+            // .catch(function (err) {
+            //     res.status(400);
+            //     let response = {
+            //         result: false,
+            //         message: 'Data not found'
+            //     }
+            //     res.send(response);
+            // })
+        }
+      }
+      catch (err) {
+      res.status(400);
+      let response = {
+        result: false,
+        message: 'Data not found'
+      }
+      res.send(response);
     }
-}
+  }
 
 
 
@@ -1807,6 +1894,7 @@ exports.listObservationNames = async function (req, res) {
 
 //Controller for listing solution Names
 exports.listObservationSolutions = async function (req, res) {
+  try {
     if (!req.body.entityId || !req.body.entityType) {
         res.status(400);
         var response = {
@@ -1818,10 +1906,11 @@ exports.listObservationSolutions = async function (req, res) {
     else {
 
         //get query from cassandra
-        model.MyModel.findOneAsync({ qid: "solutions_list_query" }, { allow_filtering: true })
-            .then(async function (result) {
+        // model.MyModel.findOneAsync({ qid: "solutions_list_query" }, { allow_filtering: true })
+        //     .then(async function (result) {
 
-                let bodyParam = JSON.parse(result.query);
+        //         let bodyParam = JSON.parse(result.query);
+             let bodyParam = gen.utils.getDruidQuery("solutions_list_query");
 
                 if (config.druid.observation_datasource_name) {
                     bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -1845,15 +1934,17 @@ exports.listObservationSolutions = async function (req, res) {
                     let responseObj = await helperFunc.listSolutionNamesObjectCreate(data);
                     res.send({ "result": true, "data": responseObj });
                 }
-            })
-            .catch(function (err) {
+            // })
+              }
+            } 
+            catch(err) {
                 let response = {
                     result: false,
                     message: 'INTERNAL_SERVER_ERROR'
                 }
                 res.send(response);
-            })
-    }
+            }
+    
 }
 
 
@@ -1881,6 +1972,8 @@ exports.listObservationSolutions = async function (req, res) {
 
 //Controller for listing observation Names
 exports.submissionsCount = async function (req, res) {
+    
+  try  {
     if (!req.body.entityId && !req.body.observationId) {
         res.status(400);
         var response = {
@@ -1907,11 +2000,13 @@ exports.submissionsCount = async function (req, res) {
         }
 
         //get quey from cassandra
-        model.MyModel.findOneAsync({ qid: query }, { allow_filtering: true })
+        // model.MyModel.findOneAsync({ qid: query }, { allow_filtering: true })
 
-            .then(async function (result) {
+        //     .then(async function (result) {
 
-                var bodyParam = JSON.parse(result.query);
+        //         var bodyParam = JSON.parse(result.query);
+
+              let bodyParam = gen.utils.getDruidQuery(query);
 
                 if (config.druid.observation_datasource_name) {
                     bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -1941,17 +2036,18 @@ exports.submissionsCount = async function (req, res) {
                     var noOfSubmissions = await countNumberOfSubmissions(data);
                     res.send({ "result": true, "data": { "noOfSubmissions" : noOfSubmissions} });
                 }
-            })
-            .catch(function (err) {
-                res.status(400);
-                var response = {
-                    result: false,
-                    message: 'Data not found'
-                }
-                res.send(response);
-            })
-    }
-}
+            // })
+              }
+          }
+          catch(err) {
+            res.status(400);
+            let response = {
+              result: false,
+              message: 'Data not found'
+            }
+            res.send(response);
+          }
+  }
 
 
 async function countNumberOfSubmissions(data){
@@ -2167,6 +2263,8 @@ async function entitySolutionReportGeneration(req, res) {
   
   return new Promise(async function (resolve, reject) {
 
+    try {
+
     if (!req.body.entityId && !req.body.entityType && !req.body.solutionId) {
       var response = {
         result: false,
@@ -2182,10 +2280,11 @@ async function entitySolutionReportGeneration(req, res) {
       immediateChildEntityType = req.body.immediateChildEntityType;
 
       // Fetch query from cassandra
-      model.MyModel.findOneAsync({ qid: "entity_solution_report_query" }, { allow_filtering: true })
-        .then(async function (result) {
+      // model.MyModel.findOneAsync({ qid: "entity_solution_report_query" }, { allow_filtering: true })
+      //   .then(async function (result) {
 
-          var bodyParam = JSON.parse(result.query);
+      //     var bodyParam = JSON.parse(result.query);
+         let bodyParam = gen.utils.getDruidQuery("entity_solution_report_query");
 
           if (config.druid.observation_datasource_name) {
             bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -2244,17 +2343,17 @@ async function entitySolutionReportGeneration(req, res) {
             var responseObj = await helperFunc.entityReportChart(data,req.body.entityId,req.body.entityType)
             resolve(responseObj);
           }
-        })
-        .catch(function (err) {
+        // })
+        }
+      }
+      catch(err) {
           res.status(500);
-          var response = {
+          let response = {
             result: false,
             message: 'Data not found'
           }
           resolve(response);
-        })
-
-    }
+      }
 
   })
 
@@ -2346,6 +2445,8 @@ async function instanceCriteriaReportData(req, res) {
 
   return new Promise(async function (resolve, reject) {
 
+    try {
+
       if (!req.body.submissionId) {
           let response = {
               result: false,
@@ -2356,10 +2457,12 @@ async function instanceCriteriaReportData(req, res) {
 
           let submissionId = req.body.submissionId;
 
-          model.MyModel.findOneAsync({ qid: "instance_criteria_report_query" }, { allow_filtering: true })
-              .then(async function (result) {
+          // model.MyModel.findOneAsync({ qid: "instance_criteria_report_query" }, { allow_filtering: true })
+          //     .then(async function (result) {
 
-                  let bodyParam = JSON.parse(result.query);
+                  // let bodyParam = JSON.parse(result.query);
+
+                  let bodyParam = gen.utils.getDruidQuery("instance_criteria_report_query");
 
                   if (config.druid.observation_datasource_name) {
                       bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -2424,15 +2527,17 @@ async function instanceCriteriaReportData(req, res) {
                       resolve(responseObj);
 
                   }
-              })
-              .catch(function (err) {
+              // })
+                }
+              }
+              catch(err) {
                   let response = {
                       result: false,
                       message: 'INTERNAL_SERVER_ERROR'
                   };
                   resolve(response);
-              });
-      }
+              }
+      
   });
 };
 
@@ -2537,6 +2642,8 @@ exports.instanceScoreReportByCriteria = async function (req, res) {
 async function instanceScoreCriteriaReportData(req, res) {
 
   return new Promise(async function (resolve, reject) {
+    
+    try {
 
     if (!req.body.submissionId) {
       let response = {
@@ -2548,10 +2655,11 @@ async function instanceScoreCriteriaReportData(req, res) {
 
     } else {
 
-      model.MyModel.findOneAsync({ qid: "instance_score_criteria_report_query" }, { allow_filtering: true })
-        .then(async function (result) {
+      // model.MyModel.findOneAsync({ qid: "instance_score_criteria_report_query" }, { allow_filtering: true })
+      //   .then(async function (result) {
 
-          let bodyParam = JSON.parse(result.query);
+      //     let bodyParam = JSON.parse(result.query);
+          let bodyParam = gen.utils.getDruidQuery("instance_score_criteria_report_query");
 
           if (config.druid.observation_datasource_name) {
             bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -2618,15 +2726,17 @@ async function instanceScoreCriteriaReportData(req, res) {
 
             resolve(responseObj);
           }
-        })
-        .catch(function (err) {
-          let response = {
-            result: false,
-            message: 'INTERNAL_SERVER_ERROR'
-          };
-          resolve(response);
-        });
+        // })
+        }
+      }
+      catch (err) {
+      let response = {
+        result: false,
+        message: 'INTERNAL_SERVER_ERROR'
+      };
+      resolve(response);
     }
+
   })
 };
 
@@ -2717,6 +2827,8 @@ async function entityCriteriaReportData(req, res) {
 
   return new Promise(async function (resolve, reject) {
 
+    try {
+
     if (!req.body.entityId && !req.body.observationId) {
       let response = {
         result: false,
@@ -2726,10 +2838,12 @@ async function entityCriteriaReportData(req, res) {
     }
     else {
 
-      model.MyModel.findOneAsync({ qid: "entity_criteria_report_query" }, { allow_filtering: true })
-        .then(async function (result) {
+      // model.MyModel.findOneAsync({ qid: "entity_criteria_report_query" }, { allow_filtering: true })
+      //   .then(async function (result) {
 
-          let bodyParam = JSON.parse(result.query);
+      //     let bodyParam = JSON.parse(result.query);
+
+        let bodyParam = gen.utils.getDruidQuery("entity_criteria_report_query");
 
           if (config.druid.observation_datasource_name) {
             bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -2790,15 +2904,17 @@ async function entityCriteriaReportData(req, res) {
             resolve(responseObj);
 
           }
-        })
-        .catch(function (err) {
+        // })
+        }
+      }
+        catch(err) {
           let response = {
             result: false,
             message: 'INTERNAL_SERVER_ERROR'
           }
           resolve(response);
-        })
-    }
+        }
+    
   });
 }
 
@@ -2913,6 +3029,8 @@ async function entityScoreCriteriaReportData(req, res) {
   
   return new Promise(async function (resolve, reject) {
 
+    try {
+
     if (!req.body.entityId && !req.body.observationId) {
       var response = {
         result: false,
@@ -2923,10 +3041,12 @@ async function entityScoreCriteriaReportData(req, res) {
 
     else {
 
-      model.MyModel.findOneAsync({ qid: "entity_score_criteria_report_query" }, { allow_filtering: true })
-        .then(async function (result) {
+      // model.MyModel.findOneAsync({ qid: "entity_score_criteria_report_query" }, { allow_filtering: true })
+      //   .then(async function (result) {
 
-          var bodyParam = JSON.parse(result.query);
+      //     var bodyParam = JSON.parse(result.query);
+         
+          let bodyParam = gen.utils.getDruidQuery("entity_score_criteria_report_query");
 
           if (config.druid.observation_datasource_name) {
             bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -2988,19 +3108,17 @@ async function entityScoreCriteriaReportData(req, res) {
             resolve(responseObj);
 
           }
-        })
-
-        .catch(function (err) {
+        // })
+        }
+      }
+      catch(err) {
           let response = {
             result: false,
             message: 'INTERNAL_SERVER_ERROR'
           }
           resolve(response);
-        })
-
-    }
-
-  })
+      }
+    })
 
 }
 
@@ -3087,7 +3205,7 @@ exports.observationReportByCriteria = async function (req, res) {
 
 async function observationCriteriaReportData(req, res) {
   return new Promise(async function (resolve, reject) {
-
+    try {
       if (!req.body.observationId) {
           let response = {
               result: false,
@@ -3097,10 +3215,12 @@ async function observationCriteriaReportData(req, res) {
       }
       else {
           
-          model.MyModel.findOneAsync({ qid: "observation_criteria_report_query" }, { allow_filtering: true })
-              .then(async function (result) {
+          // model.MyModel.findOneAsync({ qid: "observation_criteria_report_query" }, { allow_filtering: true })
+          //     .then(async function (result) {
 
-                let bodyParam = JSON.parse(result.query);
+          //       let bodyParam = JSON.parse(result.query);
+              let bodyParam = gen.utils.getDruidQuery("observation_criteria_report_query");
+
                 if (config.druid.observation_datasource_name) {
                   bodyParam.dataSource = config.druid.observation_datasource_name;
                 }
@@ -3152,15 +3272,17 @@ async function observationCriteriaReportData(req, res) {
                   resolve(responseObj);
 
                 }
-              })
-            .catch(function (err) {
-                  let response = {
-                      result: false,
-                      message: 'INTERNAL_SERVER_ERROR'
-                  }
-                  resolve(response);
-              })
-      }
+              // })
+              }
+            }
+            catch(err) {
+              let response = {
+                result: false,
+                message: 'INTERNAL_SERVER_ERROR'
+              }
+                resolve(response);
+            }
+      
   });
 }
 
@@ -3277,6 +3399,8 @@ exports.observationScoreReportByCriteria = async function (req , res){
 async function observationScoreCriteriaReportData(req, res) {
 
   return new Promise(async function (resolve, reject) {
+    
+    try {
 
     if (!req.body.observationId) {
       let response = {
@@ -3288,10 +3412,11 @@ async function observationScoreCriteriaReportData(req, res) {
 
     else {
 
-      model.MyModel.findOneAsync({ qid: "observation_score_criteria_report_query" }, { allow_filtering: true })
-        .then(async function (result) {
+      // model.MyModel.findOneAsync({ qid: "observation_score_criteria_report_query" }, { allow_filtering: true })
+      //   .then(async function (result) {
 
-          var bodyParam = JSON.parse(result.query);
+      //     var bodyParam = JSON.parse(result.query);
+         let bodyParam = gen.utils.getDruidQuery("observation_score_criteria_report_query");
 
           if (config.druid.observation_datasource_name) {
             bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -3358,17 +3483,16 @@ async function observationScoreCriteriaReportData(req, res) {
             resolve(responseObj);
 
           }
-        })
-
-        .catch(function (err) {
+        // })
+        }
+      }
+      catch(err) {
           let response = {
             result: false,
             message: 'INTERNAL_SERVER_ERROR'
           }
           resolve(response);
-        })
-
-    }
+      }
 
   })
 
@@ -3517,6 +3641,8 @@ exports.listAllEvidences = async function (req, res) {
 //Function for getting all the evidences of a question
 async function allEvidencesList(req, res) {
   return new Promise(async function (resolve, reject) {
+    
+    try {
 
     if (!req.body.submissionId && !req.body.questionId) {
       var response = {
@@ -3541,10 +3667,11 @@ async function allEvidencesList(req, res) {
 
     } else {
 
-      model.MyModel.findOneAsync({ qid: "list_all_evidence_query" }, { allow_filtering: true })
-        .then(async function (result) {
+      // model.MyModel.findOneAsync({ qid: "list_all_evidence_query" }, { allow_filtering: true })
+      //   .then(async function (result) {
 
-          var bodyParam = JSON.parse(result.query);
+      //     var bodyParam = JSON.parse(result.query);
+          let bodyParam = gen.utils.getDruidQuery("list_all_evidence_query");
 
           if (config.druid.evidence_datasource_name) {
             bodyParam.dataSource = config.druid.evidence_datasource_name;
@@ -3592,16 +3719,18 @@ async function allEvidencesList(req, res) {
             resolve({"result" : true, "data" : response});
           }
 
-        })
-        .catch(err => {
-          var response = {
+        // })
+        }
+      }
+        catch(err){
+          let response = {
             result: false,
             message: 'Data not found'
           };
           resolve(response);
 
-        })
-    }
+        }
+    
   })
 
 }
@@ -3610,16 +3739,18 @@ async function allEvidencesList(req, res) {
 async function getEvidenceData(inputObj) {
 
   return new Promise(async function (resolve, reject) {
-
-    model.MyModel.findOneAsync({ qid: "get_evidence_query" }, { allow_filtering: true })
-      .then(async function (result) {
+     try {
+    // model.MyModel.findOneAsync({ qid: "get_evidence_query" }, { allow_filtering: true })
+    //   .then(async function (result) {
 
         let submissionId = inputObj.submissionId;
         let entityId = inputObj.entityId;
         let observationId = inputObj.observationId;
         let entityType = inputObj.entityType;
 
-        var bodyParam = JSON.parse(result.query);
+        // var bodyParam = JSON.parse(result.query);
+
+        let bodyParam = gen.utils.getDruidQuery("get_evidence_query");
         
         //based on the given input change the filter
         let filter = {};
@@ -3652,14 +3783,15 @@ async function getEvidenceData(inputObj) {
         } else {
           resolve({"result":true,"data":data});
         }
-      })
-      .catch(function (err) {
-        var response = {
+      // })
+      } 
+      catch(err) {
+        let response = {
           result: false,
           message: "Internal server error"
         };
         resolve(response);
-      });
+      }
   })
 }
 

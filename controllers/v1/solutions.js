@@ -45,6 +45,8 @@ const filesHelper = require('../../common/files_helper');
 //Controller for listing solution Names
 exports.list = async function (req, res) {
 
+    try {
+
     if (!req.body.entityId || !req.body.entityType || !req.body.programId) {
         res.status(400);
         var response = {
@@ -55,10 +57,12 @@ exports.list = async function (req, res) {
     }
     else {
         //get quey from cassandra
-        model.MyModel.findOneAsync({ qid: "solutions_list_query" }, { allow_filtering: true })
-            .then(async function (result) {
+        // model.MyModel.findOneAsync({ qid: "solutions_list_query" }, { allow_filtering: true })
+        //     .then(async function (result) {
 
-                let bodyParam = JSON.parse(result.query);
+        //         let bodyParam = JSON.parse(result.query);
+                let bodyParam = gen.utils.getDruidQuery("solutions_list_query");
+
                 bodyParam.filter.fields[0].dimension = req.body.entityType;
                 bodyParam.filter.fields[0].value = req.body.entityId;
                 bodyParam.filter.fields[1].fields[0].fields[0].value = req.userDetails.userId;
@@ -88,18 +92,18 @@ exports.list = async function (req, res) {
 
                 }
 
-            })
-
-            .catch(function (err) {
+            // })
+               }
+             }
+             catch(err) {
                 res.status(500);
                 let response = {
                     result: false,
                     message: 'INTERNAL_SERVER_ERROR'
                 }
                 res.send(response);
-            })
+            }
     }
-}
 
 //function to get solutions
 const getSolutions = async function(bodyParam, type) {
