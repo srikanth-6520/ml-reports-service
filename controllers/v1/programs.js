@@ -4,7 +4,6 @@ const request = require('request');
 const model = require('../../db');
 const helperFunc = require('../../helper/chart_data');
 const filesHelper = require('../../common/files_helper');
-const cassandraQueries = require('../../common/cassandra_queries.json');
 
 
 /**
@@ -53,7 +52,7 @@ exports.list = async function (req, res) {
 
         //      let bodyParam = JSON.parse(result.query);
 
-             let bodyParam = cassandraQueries.programs_list_query;
+             let bodyParam = gen.utils.getDruidQuery("programs_list_query");
 
              bodyParam.filter.fields[0].dimension = req.body.entityType;
              bodyParam.filter.fields[0].value = req.body.entityId;

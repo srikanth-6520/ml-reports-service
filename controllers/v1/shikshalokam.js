@@ -4,7 +4,6 @@ var request = require('request');
 var model = require('../../db')
 var helperFunc = require('../../helper/chart_data');
 const default_content_api_threshold = 10;
-const cassandraQueries = require('../../common/cassandra_queries.json');
 
 /**
      * @apiDefine errorBody
@@ -45,7 +44,7 @@ exports.contentView = async function (req, res) {
 
     //         var bodyParam = JSON.parse(result.query);
 
-            let bodyParam = cassandraQueries.content_viewed_in_platform_query;
+            let bodyParam = gen.utils.getDruidQuery("content_viewed_in_platform_query");
 
             if (config.druid.telemetry_datasource_name) {
                 bodyParam.dataSource = config.druid.telemetry_datasource_name;
@@ -132,7 +131,7 @@ exports.contentDownloadedByUser = async function (req, res) {
         //     .then(async function (result) {
 
         //         var bodyParam = JSON.parse(result.query);
-               let bodyParam = cassandraQueries.content_downloaded_by_user_query;
+               let bodyParam = gen.utils.getDruidQuery("content_downloaded_by_user_query");
 
                 if (config.druid.telemetry_datasource_name) {
                     bodyParam.dataSource = config.druid.telemetry_datasource_name;
@@ -208,7 +207,7 @@ exports.usageByContent = async function (req, res) {
     //     .then(async function (result) {
 
     //         var bodyParam = JSON.parse(result.query);
-            let bodyParam = cassandraQueries.usage_by_content_query;
+            let bodyParam = gen.utils.getDruidQuery("usage_by_content_query");
 
             if (config.druid.telemetry_datasource_name) {
                 bodyParam.dataSource = config.druid.telemetry_datasource_name;
@@ -297,7 +296,7 @@ exports.courseEnrollment = async function (req, res) {
         //     .then(async function (result) {
 
         //         var bodyParam = JSON.parse(result.query);
-               let bodyParam = cassandraQueries.course_enrollment_query;
+               let bodyParam = gen.utils.getDruidQuery("course_enrollment_query");
 
                 if (config.druid.enrollment_datasource_name) {
                     bodyParam.dataSource = config.druid.enrollment_datasource_name;

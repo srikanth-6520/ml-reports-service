@@ -7,7 +7,7 @@ const commonCassandraFunc = require('../../common/cassandra_func');
 const pdfHandler = require('../../helper/common_handler');
 const assessmentService = require('../../helper/assessment_service');
 const storePdfReportsToS3 = (!config.store_pdf_reports_in_s3_on_off || config.store_pdf_reports_in_s3_on_off != "OFF") ? "ON" : "OFF"
-const cassandraQueries = require('../../common/cassandra_queries.json');
+
 
 /**
    * @api {post} /dhiti/api/v1/assessments/listPrograms
@@ -57,7 +57,7 @@ exports.listPrograms = async function (req, res) {
 
         //         let bodyParam = JSON.parse(result.query);
 
-                let bodyParam =  cassandraQueries.list_assessment_programs_query;
+                let bodyParam =  gen.utils.getDruidQuery("list_assessment_programs_query");
 
                 if (config.druid.assessment_datasource_name) {
                     bodyParam.dataSource = config.druid.assessment_datasource_name;
@@ -217,7 +217,7 @@ async function assessmentReportGetChartData(req, res) {
                 //     .then(async function (result) {
 
                 //         let bodyParam = JSON.parse(result.query);
-                        let bodyParam = cassandraQueries.entity_assessment_query;
+                        let bodyParam = gen.utils.getDruidQuery("entity_assessment_query");
 
                         if (config.druid.assessment_datasource_name) {
                             bodyParam.dataSource = config.druid.assessment_datasource_name;
@@ -393,7 +393,7 @@ exports.listAssessmentPrograms = async function (req, res) {
     //     .then(async function (result) {
 
     //         let bodyParam = JSON.parse(result.query);
-            let bodyParam = cassandraQueries.list_assessment_programs_query;
+            let bodyParam = gen.utils.getDruidQuery("list_assessment_programs_query");
 
             if (config.druid.assessment_datasource_name) {
                 bodyParam.dataSource = config.druid.assessment_datasource_name;
@@ -505,7 +505,7 @@ exports.listEntities = async function (req, res) {
     //     .then(async function (result) {
 
     //         let bodyParam = JSON.parse(result.query);
-            let bodyParam = cassandraQueries.list_entities_query;
+            let bodyParam = gen.utils.getDruidQuery("list_entities_query");
 
             let programFilter = {"type":"selector","dimension":"programId","value":req.body.programId}
 
@@ -614,7 +614,7 @@ exports.listImprovementProjects = async function (req, res) {
         //     .then(async function (result) {
 
         //         let bodyParam = JSON.parse(result.query);
-                let bodyParam = cassandraQueries.list_improvement_projects_query;
+                let bodyParam = gen.utils.getDruidQuery("list_improvement_projects_query");
 
                 if (config.druid.assessment_datasource_name) {
                     bodyParam.dataSource = config.druid.assessment_datasource_name;
@@ -871,7 +871,7 @@ return new Promise(async function (resolve, reject) {
             //     .then(async function (result) {
 
             //         var bodyParam = JSON.parse(result.query);
-                    let bodyParam = cassandraQueries.entity_level_assessment_report_query;
+                    let bodyParam = gen.utils.getDruidQuery("entity_level_assessment_report_query");
 
                     if (config.druid.assessment_datasource_name) {
                         bodyParam.dataSource = config.druid.assessment_datasource_name;
