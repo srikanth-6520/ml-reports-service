@@ -10,7 +10,7 @@ const url = require("url");
 const omit = require('object.omit');
 const assessmentService = require('../../helper/assessment_service');
 const storePdfReportsToS3 = (!config.store_pdf_reports_in_s3_on_off || config.store_pdf_reports_in_s3_on_off != "OFF") ? "ON" : "OFF"
-const cassandraQueries = require('../../common/cassandra_queries.json');
+
 
 //Controller for entity solution report (cluster/block/zone/district)
 exports.entitySolutionReport = async function (req, res) {
@@ -51,7 +51,7 @@ async function entitySolutionReportGeneration(req, res) {
   
         //     var bodyParam = JSON.parse(result.query);
 
-            let bodyParam = cassandraQueries.entity_solution_report_query;
+            let bodyParam = gen.utils.getDruidQuery("entity_solution_report_query");
   
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -203,7 +203,7 @@ exports.entityScoreReport = async function (req, res) {
   
         //     var bodyParam = JSON.parse(result.query);
 
-            let bodyParam = cassandraQueries.entity_observation_score_query;
+            let bodyParam = gen.utils.getDruidQuery("entity_observation_score_query");
   
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -348,7 +348,7 @@ exports.listObservationSolutions = async function (req, res) {
 
         //       let bodyParam = JSON.parse(result.query);
 
-              let bodyParam = cassandraQueries[query];
+              let bodyParam = gen.utils.getDruidQuery(query);
 
               if (config.druid.observation_datasource_name) {
                 bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -623,7 +623,7 @@ async function getEvidenceData(inputObj) {
         let entityType = inputObj.entityType;
 
         // let bodyParam = JSON.parse(result.query);
-        let bodyParam = cassandraQueries.get_evidence_query;
+        let bodyParam = gen.utils.getDruidQuery("get_evidence_query");
         
         //based on the given input change the filter
         let filter = {};
