@@ -14,7 +14,6 @@ const kendraService = require('../../helper/kendra_service');
 const assessmentService = require('../../helper/assessment_service');
 const storePdfReportsToS3 = (!config.store_pdf_reports_in_s3_on_off || config.store_pdf_reports_in_s3_on_off != "OFF") ? "ON" : "OFF"
 const filesHelper = require('../../common/files_helper');
-const cassandraQueries = require('../../common/cassandra_queries.json');
 
 
 /**
@@ -82,7 +81,7 @@ async function instanceObservationData(req, res) {
 
             //let bodyParam = JSON.parse(result.query);
 
-            let bodyParam = cassandraQueries.instance_observation_query;
+            let bodyParam = gen.utils.getDruidQuery("instance_observation_query");
           
               if (config.druid.observation_datasource_name) {
                 bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -314,7 +313,7 @@ exports.instanceObservationScoreReport = async function (req, res) {
         //   .then(async function (result) {
   
         //  let bodyParam = JSON.parse(result.query);
-            let bodyParam = cassandraQueries.instance_observation_score_query;
+            let bodyParam = gen.utils.getDruidQuery("instance_observation_score_query");
             
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -491,7 +490,7 @@ exports.entity = async function (req, res) {
   
         //     let bodyParam = JSON.parse(result.query);
 
-            let bodyParam = cassandraQueries.entity_observation_query;
+            let bodyParam = gen.utils.getDruidQuery("entity_observation_query");
   
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -687,7 +686,7 @@ exports.entityObservationReport = async function entityObservationReport(req, re
   
             // var bodyParam = JSON.parse(result.query);
 
-            let bodyParam = cassandraQueries.entity_observation_report_query;
+            let bodyParam = gen.utils.getDruidQuery("entity_observation_report_query");
   
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -869,7 +868,7 @@ exports.entityScoreReport = async function (req, res) {
         //   .then(async function (result) {
   
         //     var bodyParam = JSON.parse(result.query);
-            let bodyParam = cassandraQueries.entity_observation_score_query;
+            let bodyParam = gen.utils.getDruidQuery("entity_observation_score_query");
   
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -1060,7 +1059,7 @@ async function entitySolutionScoreReportGeneration(req, res) {
         //   .then(async function (result) {
   
         //     var bodyParam = JSON.parse(result.query);
-            let bodyParam = cassandraQueries.entity_solution_score_query;
+            let bodyParam = gen.utils.getDruidQuery("entity_solution_score_query");
   
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -1146,7 +1145,7 @@ async function schoolSolutionScoreReport(req, res) {
   
       //     let bodyParam = JSON.parse(result.query);
 
-          let bodyParam = cassandraQueries.entity_solution_score_query;
+          let bodyParam = gen.utils.getDruidQuery("entity_solution_score_query");
   
           if (config.druid.observation_datasource_name) {
             bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -1272,7 +1271,7 @@ exports.byEntity = async function (req, res) {
   
             // var bodyParam = JSON.parse(result.query);
 
-            let bodyParam = cassandraQueries.observations_by_entity;
+            let bodyParam = gen.utils.getDruidQuery("observations_by_entity");
 
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -1340,7 +1339,7 @@ async function getObsvByentitys(req, result) {
     return new Promise(async function (resolve, reject) {
   
       // var bodyParam = JSON.parse(result.query);
-      let bodyParam = cassandraQueries.observations_by_entity;
+      let bodyParam = gen.utils.getDruidQuery("observations_by_entity");
       if (config.druid.observation_datasource_name) {
         bodyParam.dataSource = config.druid.observation_datasource_name;
       }
@@ -1425,7 +1424,7 @@ async function observationReportData(req, res) {
 
             //       var bodyParam = JSON.parse(result.query);
 
-                let bodyParam = cassandraQueries.observation_report_query;
+                let bodyParam = gen.utils.getDruidQuery("observation_report_query");
 
                   if (config.druid.observation_datasource_name) {
                     bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -1632,7 +1631,7 @@ async function observationScoreReport(req, res) {
   
         //     var bodyParam = JSON.parse(result.query);
           
-          let bodyParam = cassandraQueries.observation_score_report_query;
+          let bodyParam = gen.utils.getDruidQuery("observation_score_report_query");
   
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -1821,7 +1820,7 @@ exports.listObservationNames = async function (req, res) {
         //     .then(async function (result) {
 
         //         let bodyParam = JSON.parse(result.query);
-              let bodyParam = cassandraQueries.list_observation_names_query;
+              let bodyParam = gen.utils.getDruidQuery("list_observation_names_query");
 
                 if (config.druid.observation_datasource_name) {
                     bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -1911,7 +1910,7 @@ exports.listObservationSolutions = async function (req, res) {
         //     .then(async function (result) {
 
         //         let bodyParam = JSON.parse(result.query);
-             let bodyParam = cassandraQueries.solutions_list_query;
+             let bodyParam = gen.utils.getDruidQuery("solutions_list_query");
 
                 if (config.druid.observation_datasource_name) {
                     bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -2007,7 +2006,7 @@ exports.submissionsCount = async function (req, res) {
 
         //         var bodyParam = JSON.parse(result.query);
 
-              let bodyParam = cassandraQueries[query];
+              let bodyParam = gen.utils.getDruidQuery(query);
 
                 if (config.druid.observation_datasource_name) {
                     bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -2285,7 +2284,7 @@ async function entitySolutionReportGeneration(req, res) {
       //   .then(async function (result) {
 
       //     var bodyParam = JSON.parse(result.query);
-         let bodyParam = cassandraQueries.entity_solution_report_query;
+         let bodyParam = gen.utils.getDruidQuery("entity_solution_report_query");
 
           if (config.druid.observation_datasource_name) {
             bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -2463,7 +2462,7 @@ async function instanceCriteriaReportData(req, res) {
 
                   // let bodyParam = JSON.parse(result.query);
 
-                  let bodyParam = cassandraQueries.instance_criteria_report_query;
+                  let bodyParam = gen.utils.getDruidQuery("instance_criteria_report_query");
 
                   if (config.druid.observation_datasource_name) {
                       bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -2660,7 +2659,7 @@ async function instanceScoreCriteriaReportData(req, res) {
       //   .then(async function (result) {
 
       //     let bodyParam = JSON.parse(result.query);
-          let bodyParam = cassandraQueries.instance_score_criteria_report_query;
+          let bodyParam = gen.utils.getDruidQuery("instance_score_criteria_report_query");
 
           if (config.druid.observation_datasource_name) {
             bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -2844,7 +2843,7 @@ async function entityCriteriaReportData(req, res) {
 
       //     let bodyParam = JSON.parse(result.query);
 
-        let bodyParam = cassandraQueries.entity_criteria_report_query;
+        let bodyParam = gen.utils.getDruidQuery("entity_criteria_report_query");
 
           if (config.druid.observation_datasource_name) {
             bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -3047,7 +3046,7 @@ async function entityScoreCriteriaReportData(req, res) {
 
       //     var bodyParam = JSON.parse(result.query);
          
-          let bodyParam = cassandraQueries.entity_score_criteria_report_query;
+          let bodyParam = gen.utils.getDruidQuery("entity_score_criteria_report_query");
 
           if (config.druid.observation_datasource_name) {
             bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -3220,7 +3219,7 @@ async function observationCriteriaReportData(req, res) {
           //     .then(async function (result) {
 
           //       let bodyParam = JSON.parse(result.query);
-              let bodyParam = cassandraQueries.observation_criteria_report_query;
+              let bodyParam = gen.utils.getDruidQuery("observation_criteria_report_query");
 
                 if (config.druid.observation_datasource_name) {
                   bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -3417,7 +3416,7 @@ async function observationScoreCriteriaReportData(req, res) {
       //   .then(async function (result) {
 
       //     var bodyParam = JSON.parse(result.query);
-         let bodyParam = cassandraQueries.observation_score_criteria_report_query;
+         let bodyParam = gen.utils.getDruidQuery("observation_score_criteria_report_query");
 
           if (config.druid.observation_datasource_name) {
             bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -3672,7 +3671,7 @@ async function allEvidencesList(req, res) {
       //   .then(async function (result) {
 
       //     var bodyParam = JSON.parse(result.query);
-          let bodyParam = cassandraQueries.list_all_evidence_query;
+          let bodyParam = gen.utils.getDruidQuery("list_all_evidence_query");
 
           if (config.druid.evidence_datasource_name) {
             bodyParam.dataSource = config.druid.evidence_datasource_name;
@@ -3751,7 +3750,7 @@ async function getEvidenceData(inputObj) {
 
         // var bodyParam = JSON.parse(result.query);
 
-        let bodyParam = cassandraQueries.get_evidence_query;
+        let bodyParam = gen.utils.getDruidQuery("get_evidence_query");
         
         //based on the given input change the filter
         let filter = {};

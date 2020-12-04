@@ -9,7 +9,6 @@ const kendraService = require('../../helper/kendra_service');
 const solutionReportTextResponseLimit = 10;
 const evidenceLimit = 3;
 const numberOfResponsesLimit = 10;
-const cassandraQueries = require('../../common/cassandra_queries.json');
 
    /**
    * @api {get} /dhiti/api/v1/surveys/solutionReport?solutionId=:solutionId solution report
@@ -112,7 +111,7 @@ const getSubmissionIdCount = async function (solutionId) {
     
         //     let bodyParam = JSON.parse(result.query);
            
-            let bodyParam =  cassandraQueries.get_submissionId_count_query;
+            let bodyParam =  gen.utils.getDruidQuery("get_submissionId_count_query");
     
             if (config.druid.survey_datasource_name) {
                 bodyParam.dataSource = config.druid.survey_datasource_name;
@@ -156,7 +155,7 @@ const getDataOFTextTypeQuestions = async function (req) {
 
     //     let bodyParam = JSON.parse(result.query);
 
-        let bodyParam = cassandraQueries.survey_solutions_report_query;
+        let bodyParam = gen.utils.getDruidQuery("survey_solutions_report_query");
 
         if (config.druid.survey_datasource_name) {
             bodyParam.dataSource = config.druid.survey_datasource_name;
@@ -245,7 +244,7 @@ const getDataOFChartTypeQuestions = async function (req) {
     // .then(async function (result) {
 
     //     let bodyParam = JSON.parse(result.query);
-        let bodyParam = cassandraQueries.survey_solution_chart_report_query;
+        let bodyParam = gen.utils.getDruidQuery("survey_solution_chart_report_query");
 
         if (config.druid.survey_datasource_name) {
             bodyParam.dataSource = config.druid.survey_datasource_name;
@@ -331,7 +330,7 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
         //     .then(async function (result) {
 
                 // let bodyParam = JSON.parse(result.query);
-                let bodyParam = cassandraQueries.list_all_responses;
+                let bodyParam = gen.utils.getDruidQuery("list_all_responses");
 
                 if (config.druid.survey_datasource_name) {
                     bodyParam.dataSource = config.druid.survey_datasource_name;
@@ -421,7 +420,7 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
             //     .then(async function (result) {
 
             //         let bodyParam = JSON.parse(result.query);
-                    let bodyParam = cassandraQueries.survey_submission_report_query;
+                    let bodyParam = gen.utils.getDruidQuery("survey_submission_report_query");
 
                     if (config.druid.survey_datasource_name) {
                         bodyParam.dataSource = config.druid.survey_datasource_name;
@@ -555,7 +554,7 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
 
         //     let bodyParam = JSON.parse(result.query);
 
-            let bodyParam = cassandraQueries.list_all_evidence_query;
+            let bodyParam = gen.utils.getDruidQuery("list_all_evidence_query");
   
             if (config.druid.survey_evidence_datasource_name) {
               bodyParam.dataSource = config.druid.survey_evidence_datasource_name;
@@ -621,7 +620,7 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
         //     .then(async function (result) {
 
         //         let bodyParam = JSON.parse(result.query);
-                let bodyParam = cassandraQueries.get_survey_evidence_query;
+                let bodyParam = gen.utils.getDruidQuery("get_survey_evidence_query");
 
                 if (config.druid.survey_evidence_datasource_name) {
                     bodyParam.dataSource = config.druid.survey_evidence_datasource_name;
