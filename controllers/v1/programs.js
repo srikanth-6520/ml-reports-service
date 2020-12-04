@@ -33,10 +33,12 @@ const filesHelper = require('../../common/files_helper');
    */
 
 exports.list = async function (req, res) {
+
+    try {
   
     if (!req.body.entityId || !req.body.entityType) {
         res.status(400);
-        var response = {
+        let response = {
             result: false,
             message: 'entityId and entityType are required fields'
         }
@@ -45,10 +47,12 @@ exports.list = async function (req, res) {
     else {
 
          //get quey from cassandra
-         model.MyModel.findOneAsync({ qid: "programs_list_query" }, { allow_filtering: true })
-         .then(async function (result) {
+        //  model.MyModel.findOneAsync({ qid: "programs_list_query" }, { allow_filtering: true })
+        //  .then(async function (result) {
 
-             let bodyParam = JSON.parse(result.query);
+        //      let bodyParam = JSON.parse(result.query);
+
+             let bodyParam = gen.utils.getDruidQuery("programs_list_query");
 
              bodyParam.filter.fields[0].dimension = req.body.entityType;
              bodyParam.filter.fields[0].value = req.body.entityId;
@@ -75,18 +79,18 @@ exports.list = async function (req, res) {
                  let response = await helperFunc.programsListCreation(programs);
                  res.send(response);
              }
-         })
-            .catch(function (err) {
-                console.log(err);
-                res.status(500);
-                let response = {
-                    result: false,
-                    message: 'INTERNAL_SERVER_ERROR',
-                }
-                res.send(response);
-            })
+        //  })
+            }
         }
-};
+        catch(err) {
+            res.status(500);
+            let response = {
+                result: false,
+                message: 'INTERNAL_SERVER_ERROR',
+            }
+            res.send(response);
+        }
+    };
 
 //Function to get programs
 const getPrograms = async function (bodyParam, type) {
