@@ -10,6 +10,7 @@ const url = require("url");
 const omit = require('object.omit');
 const assessmentService = require('../../helper/assessment_service');
 const storePdfReportsToS3 = (!config.store_pdf_reports_in_s3_on_off || config.store_pdf_reports_in_s3_on_off != "OFF") ? "ON" : "OFF"
+const cassandraQueries = require('../../common/cassandra_queries.json');
 
 //Controller for entity solution report (cluster/block/zone/district)
 exports.entitySolutionReport = async function (req, res) {
@@ -27,6 +28,8 @@ exports.entitySolutionReport = async function (req, res) {
 async function entitySolutionReportGeneration(req, res) {
   
     return new Promise(async function (resolve, reject) {
+
+      try {
   
       if (!req.body.entityId && !req.body.entityType && !req.body.solutionId) {
         let response = {
@@ -43,10 +46,12 @@ async function entitySolutionReportGeneration(req, res) {
         immediateChildEntityType = req.body.immediateChildEntityType;
 
         // Fetch query from cassandra
-        model.MyModel.findOneAsync({ qid: "entity_solution_report_query" }, { allow_filtering: true })
-          .then(async function (result) {
+        // model.MyModel.findOneAsync({ qid: "entity_solution_report_query" }, { allow_filtering: true })
+        //   .then(async function (result) {
   
-            var bodyParam = JSON.parse(result.query);
+        //     var bodyParam = JSON.parse(result.query);
+
+            let bodyParam = cassandraQueries.entity_solution_report_query;
   
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -117,16 +122,18 @@ async function entitySolutionReportGeneration(req, res) {
               let responseObj = await helperFunc.entityReportChart(data,req.body.entityId,req.body.entityType)
               resolve(responseObj);
             }
-          })
-          .catch(function (err) {
+          // })
+            }
+          }
+          catch (err) {
             let response = {
               result: false,
               message: 'Data not found'
             }
             resolve(response);
-          })
+          }
   
-      }
+      
   
     })
   
@@ -178,6 +185,8 @@ exports.entityScoreReport = async function (req, res) {
   async function entityScoreReportGenerate(req, res) {
   
     return new Promise(async function (resolve, reject) {
+
+      try {
   
       if (!req.body.entityId && !req.body.observationId) {
         var response = {
@@ -189,10 +198,12 @@ exports.entityScoreReport = async function (req, res) {
   
       else {
   
-        model.MyModel.findOneAsync({ qid: "entity_observation_score_query" }, { allow_filtering: true })
-          .then(async function (result) {
+        // model.MyModel.findOneAsync({ qid: "entity_observation_score_query" }, { allow_filtering: true })
+        //   .then(async function (result) {
   
-            var bodyParam = JSON.parse(result.query);
+        //     var bodyParam = JSON.parse(result.query);
+
+            let bodyParam = cassandraQueries.entity_observation_score_query;
   
             if (config.druid.observation_datasource_name) {
               bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -262,18 +273,16 @@ exports.entityScoreReport = async function (req, res) {
               resolve(responseObj);
   
             }
-          })
-  
-          .catch(function (err) {
-            var response = {
+          // })
+          }
+        }
+        catch(err) {
+          let response = {
               result: false,
               message: 'Data not found'
             }
             resolve(response);
-          })
-  
-      }
-  
+        }
     })
   
   }
@@ -312,6 +321,9 @@ exports.entityScoreReport = async function (req, res) {
 
 //Controller for listing solution Names
 exports.listObservationSolutions = async function (req, res) {
+    
+    try {
+
     if (!req.body.entityId || !req.body.entityType) {
         res.status(400);
         var response = {
@@ -331,10 +343,12 @@ exports.listObservationSolutions = async function (req, res) {
         }
 
         //get query from cassandra
-        model.MyModel.findOneAsync({ qid: query }, { allow_filtering: true })
-            .then(async function (result) {
+        // model.MyModel.findOneAsync({ qid: query }, { allow_filtering: true })
+        //     .then(async function (result) {
 
-              let bodyParam = JSON.parse(result.query);
+        //       let bodyParam = JSON.parse(result.query);
+
+              let bodyParam = cassandraQueries[query];
 
               if (config.druid.observation_datasource_name) {
                 bodyParam.dataSource = config.druid.observation_datasource_name;
@@ -376,16 +390,17 @@ exports.listObservationSolutions = async function (req, res) {
                     let responseObj = await helperFunc.listSolutionNamesObjectCreate(data);
                     res.send({ "result": true, "data": responseObj });
                 }
-            })
-            .catch(function (err) {
+            // })
+               }
+            }
+            catch(err) {
                 let response = {
                     result: false,
                     message: 'INTERNAL SERVER ERROR'
                 }
                 res.send(response);
-            })
+            }
     }
-}
 
 //Controller function for observation score pdf reports
 exports.observationScorePdfReport = async function (req, res) {
@@ -456,59 +471,71 @@ async function instancePdfReport(req, res) {
   
   return new Promise(async function (resolve, reject) {
 
-    let reqData = req.body;
-    var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
+    // let reqData = req.body;
+    // var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
 
-    if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
+    // if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
 
-      dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
-      let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
+    //   dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
+    //   let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
 
-      var response = {
-        status: "success",
-        message: 'Observation Pdf Generated successfully',
-        pdfUrl: signedUlr
-      };
+    //   var response = {
+    //     status: "success",
+    //     message: 'Observation Pdf Generated successfully',
+    //     pdfUrl: signedUlr
+    //   };
 
-      resolve(response);
+    //   resolve(response);
 
-    } else {
+    // } else {
 
-      var instaRes = await observationController.instanceObservationData(req, res);
+      let instaRes = await observationController.instanceObservationData(req, res);
 
       if (("observationName" in instaRes) == true) {
 
-        let storeReportsToS3 = false;
-        if (storePdfReportsToS3 == "ON"){
-           storeReportsToS3 = true;
-        }
-        let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes, storeReportsToS3);
+        // let storeReportsToS3 = false;
+        // if (storePdfReportsToS3 == "ON"){
+        //    storeReportsToS3 = true;
+        // }
+        let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes, storeReportsToS3=false);
 
-        if (storeReportsToS3 == false) {
-          
-          resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-          resolve(resData);
-        }
-        else {
-          if (dataReportIndexes) {
-            var reqOptions = {
-              query: dataReportIndexes.id,
-              downloadPath: resData.downloadPath
+        // if (storeReportsToS3 == false) {
+
+          if (resData.status && resData.status == "success") {
+
+            let response = {
+              status: "success",
+              message: 'Instance observation Pdf Generated successfully',
+              pdfUrl: config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
             }
-            commonCassandraFunc.updateInstanceDownloadPath(reqOptions);
-          } else {
-            let dataInsert = commonCassandraFunc.insertReqAndResInCassandra(reqData, instaRes, resData.downloadPath);
-          }
+          
+          // resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+            resolve(response);
 
-          // res.send(resData);
-          resolve(omit(resData, 'downloadPath'));
-        }
+          } else {
+            resolve(resData);
+          }
+        // }
+        // else {
+        //   if (dataReportIndexes) {
+        //     var reqOptions = {
+        //       query: dataReportIndexes.id,
+        //       downloadPath: resData.downloadPath
+        //     }
+        //     commonCassandraFunc.updateInstanceDownloadPath(reqOptions);
+        //   } else {
+        //     let dataInsert = commonCassandraFunc.insertReqAndResInCassandra(reqData, instaRes, resData.downloadPath);
+        //   }
+
+        //   // res.send(resData);
+        //   resolve(omit(resData, 'downloadPath'));
+        // }
       }
 
       else {
         resolve(instaRes);
       }
-    }
+    // }
   });
 };
 
@@ -585,15 +612,18 @@ async function getEvidenceData(inputObj) {
 
   return new Promise(async function (resolve, reject) {
 
-    model.MyModel.findOneAsync({ qid: "get_evidence_query" }, { allow_filtering: true })
-      .then(async function (result) {
+    try {
+
+    // model.MyModel.findOneAsync({ qid: "get_evidence_query" }, { allow_filtering: true })
+    //   .then(async function (result) {
 
         let submissionId = inputObj.submissionId;
         let entityId = inputObj.entity;
         let observationId = inputObj.observationId;
         let entityType = inputObj.entityType;
 
-        let bodyParam = JSON.parse(result.query);
+        // let bodyParam = JSON.parse(result.query);
+        let bodyParam = cassandraQueries.get_evidence_query;
         
         //based on the given input change the filter
         let filter = {};
@@ -626,14 +656,15 @@ async function getEvidenceData(inputObj) {
         } else {
           resolve({"result":true,"data":data});
         }
-      })
-      .catch(function (err) {
+      // })
+      }
+      catch(err) {
         let response = {
           result: false,
           message: "Internal server error"
         };
         resolve(response);
-      });
+      };
   })
 }
 
