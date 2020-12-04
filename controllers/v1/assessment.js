@@ -17,67 +17,67 @@ exports.pdfReports = async function (req, res) {
         res.send(response);
     }
     else {
-        reqData = req.body;
-        var dataReportIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqData);
+        // reqData = req.body;
+        // var dataReportIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqData);
 
-        if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
-
-
-            dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
-            let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
+        // if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
 
 
-            var response = {
-                status: "success",
-                message: 'Assessment Pdf Generated successfully',
-                pdfUrl: signedUlr
-            };
-            res.send(response);
+        //     dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
+        //     let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
 
-        } else {
-            var assessmentRes;
-            if (dataReportIndexes) {
-                assessmentRes = JSON.parse(dataReportIndexes['apiresponse']);
-            }
-            else {
+
+        //     var response = {
+        //         status: "success",
+        //         message: 'Assessment Pdf Generated successfully',
+        //         pdfUrl: signedUlr
+        //     };
+        //     res.send(response);
+
+        // } else {
+            let assessmentRes;
+            // if (dataReportIndexes) {
+            //     assessmentRes = JSON.parse(dataReportIndexes['apiresponse']);
+            // }
+            // else {
                 assessmentRes = await assessmentController.assessmentReportGetChartData(req, res);
-            }
+            // }
 
 
             if (assessmentRes.result == true) {
 
-                let storeReportsToS3 = false;
-                if(storePdfReportsToS3 == "ON"){
-                  storeReportsToS3 = true;
-                }
+                // let storeReportsToS3 = false;
+                // if(storePdfReportsToS3 == "ON"){
+                //   storeReportsToS3 = true;
+                // }
                 
-                let resData = await pdfHandler.assessmentPdfGeneration(assessmentRes, storeReportsToS3);
+                let resData = await pdfHandler.assessmentPdfGeneration(assessmentRes, storeReportsToS3 = false);
 
-                if (storeReportsToS3 == false) {
+                // if (storeReportsToS3 == false) {
                     
                     resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
                     res.send(resData);
-                }
-                else {
-                    if (dataReportIndexes) {
-                        var reqOptions = {
-                            query: dataReportIndexes.id,
-                            downloadPath: resData.downloadPath
-                        }
-                        commonCassandraFunc.updateEntityAssessmentDownloadPath(reqOptions);
-                    } else {
-                        //store download url in cassandra
-                        let dataInsert = commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqData, resData, resData.downloadPath);
-                    }
+                // }
+                // else {
+                //     if (dataReportIndexes) {
+                //         var reqOptions = {
+                //             query: dataReportIndexes.id,
+                //             downloadPath: resData.downloadPath
+                //         }
+                //         commonCassandraFunc.updateEntityAssessmentDownloadPath(reqOptions);
+                //     } else {
+                //         //store download url in cassandra
+                //         let dataInsert = commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqData, resData, resData.downloadPath);
+                //     }
 
-                    //res.send(resData);
-                     res.send(omit(resData,'downloadPath'));
-                }
+                //     //res.send(resData);
+                //      res.send(omit(resData,'downloadPath'));
+                // }
             }
             else {
                 res.send(assessmentRes);
             }
 
-        }
+        // }
     }
 };
