@@ -1,4 +1,4 @@
-const cassandraQueries = require('./druid_queries.json');
+const druidQueries = require('./druid_queries.json');
 
 /**
   * Return druid query for the given query name
@@ -9,8 +9,9 @@ const cassandraQueries = require('./druid_queries.json');
 
 function getDruidQuery(name) {
   let query = {};
-  if (cassandraQueries[name]) {
-    query = JSON.parse(JSON.stringify(cassandraQueries[name]));
+  
+  if (druidQueries[name]) {
+    query = JSON.parse(JSON.stringify(druidQueries[name]));
   }
 
   return query;
