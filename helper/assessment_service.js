@@ -101,9 +101,34 @@ async function getObservationSubmissionStatusById(submissionId,token) {
   });
 }
 
+//function to get  status of submissions for the given entity and observationId
+async function getEntityObservationSubmissionsStatus(entityId,observationId,token) {
+
+    return new Promise(async function (resolve) {
+        let options = {
+            method: "GET",
+            json: true,
+            headers: {
+                "Content-Type": "application/json",
+                "X-authenticated-user-token": token
+            },
+            uri: config.samiksha_api.get_entity_observation_submissions_status + "/" + observationId + "?entityId=" + entityId
+        }
+  
+        rp(options).then(function (resp) {
+            return resolve(resp);
+  
+        }).catch(function (err) {
+            return resolve(err);
+        })
+  
+    });
+  }
+
 module.exports = {
     getUserProfile : getUserProfile,
     getEntityList : getEntityList,
     getSurveySubmissionStatusById: getSurveySubmissionStatusById,
-    getObservationSubmissionStatusById: getObservationSubmissionStatusById
+    getObservationSubmissionStatusById: getObservationSubmissionStatusById,
+    getEntityObservationSubmissionsStatus: getEntityObservationSubmissionsStatus
 }
