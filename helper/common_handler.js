@@ -3327,6 +3327,10 @@ async function getEntityReportChartObjects(data) {
 async function getTaskOverviewChart(tasks) {
     return new Promise( async function(resolve,reject) {
 
+
+        let total = tasks['Total'];
+        delete tasks['Total'];
+        
          let seriesData="[";
          Object.keys(tasks).forEach( eachTask => {
             let color = "";
@@ -3336,17 +3340,18 @@ async function getTaskOverviewChart(tasks) {
                 color ="red";
             }
 
+            let percetage = ((tasks[eachTask] / total ) *100 ).toFixed(1);
             if(color != ""){
-                seriesData = seriesData + "{ color:'"+color+"',name: '"+eachTask+"',y: "+tasks[eachTask]+"},";
+                seriesData = seriesData + "{ color:'"+color+"',name: '"+eachTask+"',y:"+percetage+"},";
             } else {
-                seriesData = seriesData + "{ name: '"+eachTask+"',y: "+tasks[eachTask]+"},";
+                seriesData = seriesData + "{ name: '"+eachTask+"',y: "+percetage+"},";
             }
             
         })
         seriesData = seriesData + "]";
 
         let chartOptions  = "{ title: { text: '' },chart: { type: 'pie' },"+
-        "plotOptions: { 'pie': { showInLegend: true, dataLabels: { enabled: true, formatter: function () { return this.y ? this.point.y : null; }} }},"
+        "plotOptions: { 'pie': { showInLegend: true, dataLabels: { enabled: true, formatter: function () { return this.y ? this.point.y+'%' : null; }} }},"
         +"credits: { enabled: false },"
         +"series: [{ minPointSize: 50,innerSize: '80%',zMin: 0,name: 'tasks', data: "+seriesData+" }] }"
    
@@ -3363,13 +3368,18 @@ async function getTaskOverviewChart(tasks) {
 async function getCategoryWiseChart(categories) {
     return new Promise( async function(resolve,reject) {
 
+        let total = categories['Total'];
+        delete categories['Total'];
+        
         let seriesData="[";
         Object.keys(categories).forEach( eachCategory => {
-            seriesData = seriesData + "{ name: '"+eachCategory+"',y: "+categories[eachCategory]+"},";
-        })
+             let percetage = ((categories[eachCategory] / total ) *100 ).toFixed(1);
+            seriesData = seriesData + "{ name: '"+eachCategory+"',y: "+percetage+"},";
+        });
+
         seriesData = seriesData + "]";
         let chartOptions  = "{ title: { text: '' },chart: { type: 'pie' },"+
-        "plotOptions: { 'pie': { showInLegend: true, dataLabels: { enabled: true, formatter: function () { return this.y ? this.point.y : null; }} }},"
+        "plotOptions: { 'pie': { showInLegend: true, dataLabels: { enabled: true, formatter: function () { return this.y ? this.point.y+'%' : null; }} }},"
         +"credits: { enabled: false },"
         +"series: [{ minPointSize: 50,innerSize: '50%',zMin: 0,name: 'tasks', data: "+seriesData+" }] }"
    
@@ -3482,4 +3492,11 @@ async function callChartApiPreparation(ele, imgPath, type, chartData, carrent, f
         console.log(err);
         console.log("error");
     }
+}
+async function getPercentages(data, target=100) {
+    var off = target - _.reduce(data, function(acc, x) { return acc + Math.round(x) }, 0);
+    return _.chain(data).
+            sortBy(function(x) { return Math.round(x) - x }).
+            map(function(x, i) { return Math.round(x) + (off > i) - (i >= (data.length + off)) }).
+            value();
 }

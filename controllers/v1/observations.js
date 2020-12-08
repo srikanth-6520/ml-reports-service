@@ -517,13 +517,34 @@ exports.entity = async function (req, res) {
             }
             
             //pass the query as body param and get the resul from druid
-            var options = config.druid.options;
+            let options = config.druid.options;
             options.method = "POST";
             options.body = bodyParam;
-            var data = await rp(options);
+             let data = await rp(options);
   
             if (!data.length) {
-              resolve({ "data": "No observations made for the entity" })
+              let message;
+              let getEntityObservationSubmissionsStatus = await assessmentService.getEntityObservationSubmissionsStatus
+              (
+                  req.body.entityId,
+                  req.body.observationId,
+                  req.headers["x-auth-token"]
+              )
+             
+              if (getEntityObservationSubmissionsStatus.result && 
+                getEntityObservationSubmissionsStatus.result.length > 0) {
+
+                if(getEntityObservationSubmissionsStatus.result.filter(submission => submission.status === filesHelper.submission_status_completed).length > 0) {
+                  message = filesHelper.submission_not_found_message
+                }
+              }
+              else {
+                  message = "No observations made for the entity";
+              }
+
+              resolve({
+                "data": message
+              });
             }
             else {
 
@@ -2870,11 +2891,30 @@ async function entityCriteriaReportData(req, res) {
           options.method = "POST";
           options.body = bodyParam;
           let data = await rp(options);
-
+         
           if (!data.length) {
+              let message;
+              let getEntityObservationSubmissionsStatus = await assessmentService.getEntityObservationSubmissionsStatus
+              (
+                  req.body.entityId,
+                  req.body.observationId,
+                  req.headers["x-auth-token"]
+              )
+             
+              if (getEntityObservationSubmissionsStatus.result && 
+                getEntityObservationSubmissionsStatus.result.length > 0) {
+
+                if(getEntityObservationSubmissionsStatus.result.filter(submission => submission.status === filesHelper.submission_status_completed).length > 0) {
+                  message = filesHelper.submission_not_found_message
+                }
+              }
+              else {
+                  message = "NO_OBSERVATIONS_MADE_FOR_THE_ENTITY";
+              }
+            
             resolve({ 
               "result": false,
-              "data": "NO_OBSERVATIONS_MADE_FOR_THE_ENTITY" })
+              "data": message })
           }
           else {
 
