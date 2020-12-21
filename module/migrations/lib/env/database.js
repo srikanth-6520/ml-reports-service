@@ -5,7 +5,7 @@ const config = require("../../../../config/config");
 module.exports = {
   async connect() {
 
-    const url = config.mongodb.url
+    const url = config.mongodb.host + ":" + config.mongodb.port
     const databaseName = config.mongodb.db
     const options = {useNewUrlParser: true}
 
@@ -30,7 +30,7 @@ module.exports = {
   },
   async connectToTransferFromDB() {
 
-    const url = config.mongodb.url
+    const url = config.mongodb.host + ":" + config.mongodb.port
     const databaseName = config.mongodb.db
     const options = {useNewUrlParser: true}
 

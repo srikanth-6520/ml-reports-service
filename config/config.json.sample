@@ -1,6 +1,6 @@
 { 
    "application_port_number":4700,
-   "application_host_name": "http://localhost:4201",
+   "application_host_name": "http://localhost:4700",
    "application_base_url":"/dhiti/api/",
    "node_env": "local",
    "apidoc_url": "/apidoc",
@@ -25,8 +25,12 @@
         "multiResource": "01300878319924019218076/user_content_watch.json",
         "multiSelection": "01300878319924019218076/logging_trend_last_1_month.json"
    },
+
    "cloud_storage" : "AWS/GC/AZURE",
    "bucket_name": "BUCKET_NAME",
+   "cloud_storage_on_off" : "ON/OFF",
+
+   "internal_access_token": "INTERNAL_ACCESS_TOKEN",
    
    "cassandra":{ 
       "host":"CASSANDR_HOST_IP_ADDRESS",
@@ -38,11 +42,12 @@
   },
 
    "mongodb":{
-        "url":"MONGO_URL",
+        "host": "mongodb://localhost",
+        "port": "27017"
         "db":"DATABASE_NAME",
         "migration_collection":"COLLECTION_NAME",
         "migration_dir":""
-  },
+   },
 
   "druid": {
   "options" : {
@@ -92,7 +97,10 @@
      "kendra" : {
          "gcp_downloadable_file_url_api": "http://localhost:7001/kendra/api/v1/cloud-services/gcp/getDownloadableUrl",
          "azure_downloadable_file_url_api": "http://localhost:7001/kendra/api/v1/cloud-services/azure/getDownloadableUrl",
-         "aws_downloadable_file_url_api": "http://localhost:7001/kendra/api/v1/cloud-services/aws/getDownloadableUrl"
+         "aws_downloadable_file_url_api": "http://localhost:7001/kendra/api/v1/cloud-services/aws/getDownloadableUrl",
+         "gcp_upload_file_api" : "http://localhost:7001/kendra/api/v1/cloud-services/gcp/uploadFile",
+         "azure_upload_file_api" : "http://localhost:7001/kendra/api/v1/cloud-services/azure/upload",
+         "aws_upload_file_api" : "http://localhost:7001/kendra/api/v1/cloud-services/aws/uploadFile"
     },
 
  "optionsHtmlToPdf":{ 

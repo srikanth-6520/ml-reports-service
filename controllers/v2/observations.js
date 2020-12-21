@@ -10,7 +10,8 @@ const url = require("url");
 const omit = require('object.omit');
 const assessmentService = require('../../helper/assessment_service');
 const storePdfReportsToS3 = (!config.store_pdf_reports_in_s3_on_off || config.store_pdf_reports_in_s3_on_off != "OFF") ? "ON" : "OFF"
-
+const filesHelper = require('../../common/files_helper');
+const dhitiReportsHelper = require(MODULES_BASE_PATH + '/dhitiReports/helper');
 
 //Controller for entity solution report (cluster/block/zone/district)
 exports.entitySolutionReport = async function (req, res) {
@@ -470,7 +471,10 @@ exports.pdfReports = async function (req, res) {
 async function instancePdfReport(req, res) {
   
   return new Promise(async function (resolve, reject) {
+    
+    let report = await dhitiReportsHelper.get(req.body.submissionId, filesHelper.instance_report);
 
+    if (report.success) {
     // let reqData = req.body;
     // var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
 
@@ -479,44 +483,31 @@ async function instancePdfReport(req, res) {
     //   dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
     //   let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
 
-    //   var response = {
-    //     status: "success",
-    //     message: 'Observation Pdf Generated successfully',
-    //     pdfUrl: signedUlr
-    //   };
+      let response = {
+        status: filesHelper.success,
+        message: filesHelper.message,
+        pdfUrl: report.data
+      };
 
-    //   resolve(response);
+      return resolve(response);
 
-    // } else {
-
+    } else {
       let instaRes = await observationController.instanceObservationData(req, res);
 
       if (("observationName" in instaRes) == true) {
 
-        // let storeReportsToS3 = false;
-        // if (storePdfReportsToS3 == "ON"){
-        //    storeReportsToS3 = true;
-        // }
-        let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes, storeReportsToS3=false);
+        let storeReportsToS3 = false;
+        if (storePdfReportsToS3 == "ON"){
+           storeReportsToS3 = true;
+        }
+        
+        let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes, storeReportsToS3);
 
-        // if (storeReportsToS3 == false) {
-
-          if (resData.status && resData.status == "success") {
-
-            let response = {
-              status: "success",
-              message: 'Instance observation Pdf Generated successfully',
-              pdfUrl: config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-            }
-          
-          // resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-            resolve(response);
-
-          } else {
-            resolve(resData);
-          }
-        // }
-        // else {
+        if (!storeReportsToS3) {
+          resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+          resolve(resData);
+        } 
+        else {
         //   if (dataReportIndexes) {
         //     var reqOptions = {
         //       query: dataReportIndexes.id,
@@ -527,15 +518,20 @@ async function instancePdfReport(req, res) {
         //     let dataInsert = commonCassandraFunc.insertReqAndResInCassandra(reqData, instaRes, resData.downloadPath);
         //   }
 
-        //   // res.send(resData);
-        //   resolve(omit(resData, 'downloadPath'));
-        // }
+          resolve(omit(resData, 'downloadPath'));
+
+          dhitiReportsHelper.create(
+            req.body.submissionId,
+            resData.pdfUrl,
+            filesHelper.instance_report
+           )
+        }
       }
 
       else {
         resolve(instaRes);
       }
-    // }
+     }
   });
 };
 

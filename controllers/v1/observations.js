@@ -14,7 +14,8 @@ const kendraService = require('../../helper/kendra_service');
 const assessmentService = require('../../helper/assessment_service');
 const storePdfReportsToS3 = (!config.store_pdf_reports_in_s3_on_off || config.store_pdf_reports_in_s3_on_off != "OFF") ? "ON" : "OFF"
 const filesHelper = require('../../common/files_helper');
-
+const cloud_storage_on_off = (!config.cloud_storage_on_off || config.cloud_storage_on_off != "OFF") ? "ON" : "OFF"
+const dhitiReportsHelper = require(MODULES_BASE_PATH + '/dhitiReports/helper');
 
 /**
    * @api {post} /dhiti/api/v1/observations/instance 
@@ -72,6 +73,27 @@ async function instanceObservationData(req, res) {
         resolve(response);
       } else {
         let submissionId = req.body.submissionId;
+
+        let submissionReportCloudPath =  submissionId + "_" + filesHelper.instance_report;
+
+        let submissionReport = {};
+        if (cloud_storage_on_off == "ON") {
+          let reportFromCloudStorage = await pdfHandler.getReportFromCloudStorage
+            (
+              submissionReportCloudPath,
+              req.headers["x-auth-token"]
+            );
+
+          if (reportFromCloudStorage.success) {
+             submissionReport = reportFromCloudStorage.data;
+          }
+        }
+        
+        if (Object.keys(submissionReport).length > 0) {
+          return resolve(submissionReport);
+        }
+        else {
+
         // bodyData = req.body;
         // let dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(bodyData);
   
@@ -100,10 +122,10 @@ async function instanceObservationData(req, res) {
               }
              
               //pass the query as body param and get the resul from druid
-              var options = config.druid.options;
+              let options = config.druid.options;
               options.method = "POST";
               options.body = bodyParam;
-              var data = await rp(options);
+              let data = await rp(options);
 
               if (!data.length) {
                 let message;
@@ -143,10 +165,12 @@ async function instanceObservationData(req, res) {
                 }
 
                 resolve(responseObj);
+                pdfHandler.uploadReportToCloudStorage(submissionReportCloudPath, responseObj);
                // commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj);
               }
               }
             // })
+            }
             }
             catch(err) {
               let response = {
@@ -170,40 +194,44 @@ async function instancePdfReport(req, res) {
     // let reqData = req.query;
     // let dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
 
+    let report = await dhitiReportsHelper.get(req.query.submissionId, filesHelper.instance_report);
+
+    if (report.success) {
+
     // if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
 
     //   dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
     //   let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
 
-    //   let response = {
-    //     status: "success",
-    //     message: 'Observation Pdf Generated successfully',
-    //     pdfUrl: signedUlr
-    //   };
+      let response = {
+        status: filesHelper.success,
+        message: filesHelper.pdf_generated_successfully,
+        pdfUrl: report.data
+      };
 
-    //   resolve(response);
-
-    // } else {
+      resolve(response);
+    
+    } else {
 
       req.body.submissionId = req.query.submissionId;
 
-      var instaRes = await instanceObservationData(req, res);
-
+      let instaRes = await instanceObservationData(req, res);
+      
       if (("observationName" in instaRes) == true) {
 
-        // let storeReportsToS3 = false;
-        // if (storePdfReportsToS3 == "ON") {
-        //   storeReportsToS3 = true;
-        // }
-        let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes, storeReportsToS3=false);
+        let storeReportsToS3 = false;
+        if (storePdfReportsToS3 == "ON") {
+          storeReportsToS3 = true;
+        }
 
-        // if (storeReportsToS3 == false) {
+        let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes, storeReportsToS3);
+
+        if (!storeReportsToS3) {
 
           resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
           resolve(resData);
-
-        // }
-        // else {
+        }
+        else {
 
         //   if (dataReportIndexes) {
         //     let reqOptions = {
@@ -215,14 +243,21 @@ async function instancePdfReport(req, res) {
         //     let dataInsert = commonCassandraFunc.insertReqAndResInCassandra(reqData, instaRes, resData.downloadPath);
         //   }
 
-        //   // res.send(resData);
-        //   resolve(omit(resData, 'downloadPath'));
-        // }
+            //resolve(resData);
+            resolve(omit(resData, 'downloadPath'));
+            
+            dhitiReportsHelper.create(
+             req.query.submissionId,
+             resData.pdfUrl,
+             filesHelper.instance_report
+            )
+        
+        }
       }
       else {
         resolve(instaRes);
       }
-    // }
+    }
   });
 };
   
@@ -308,7 +343,25 @@ exports.instanceObservationScoreReport = async function (req, res) {
         resolve(response);
   
       } else {
-  
+        
+        let submissionReportCloudPath =  req.body.submissionId + "_" + filesHelper.instance_score_report;
+        let submissionReport = {};
+        if (cloud_storage_on_off == "ON") {
+          let reportFromCloudStorage = await pdfHandler.getReportFromCloudStorage
+            (
+              submissionReportCloudPath,
+              req.headers["x-auth-token"]
+            );
+
+          if (reportFromCloudStorage.success) {
+             submissionReport = reportFromCloudStorage.data;
+          }
+        }
+        
+        if (Object.keys(submissionReport).length > 0) {
+          return resolve(submissionReport);
+        }
+        else {
         // model.MyModel.findOneAsync({ qid: "instance_observation_score_query" }, { allow_filtering: true })
         //   .then(async function (result) {
   
@@ -379,8 +432,10 @@ exports.instanceObservationScoreReport = async function (req, res) {
                 responseObj = chartData;
               }
               resolve(responseObj);
-            }
+              pdfHandler.uploadReportToCloudStorage(submissionReportCloudPath, responseObj);
+             }
           // })
+          }
         }
       }
       catch(err) {
@@ -394,13 +449,26 @@ exports.instanceObservationScoreReport = async function (req, res) {
   };
   
   
-  
-  
+
+
 //Instance observation score pdf generation
 async function instanceObservationScorePdfFunc(req, res) {
-  
-    return new Promise(async function (resolve, reject) {
-   
+
+  return new Promise(async function (resolve, reject) {
+
+    let report = await dhitiReportsHelper.get(req.body.submissionId, filesHelper.instance_score_report);
+
+    if (report.success) {
+
+      resolve({
+        status: filesHelper.success,
+        message: filesHelper.pdf_generated_successfully,
+        pdfUrl: report.data
+      })
+
+    }
+    else {
+
       let instaRes = await instanceScoreReport(req, res);
   
       if (instaRes.result == true) {
@@ -409,22 +477,36 @@ async function instanceObservationScorePdfFunc(req, res) {
           totalScore: instaRes.totalScore,
           scoreAchieved: instaRes.scoreAchieved
         }
-       
-        let resData = await pdfHandler.instanceObservationScorePdfGeneration(instaRes, storeReportsToS3 = false, obj);
-         
-        resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-        resolve(resData);
 
+        let storeReportsToS3 = false;
+        if (storePdfReportsToS3 == "ON") {
+          storeReportsToS3 = true;
         }
+
+        let resData = await pdfHandler.instanceObservationScorePdfGeneration(instaRes, storeReportsToS3, obj);
+
+        if (storePdfReportsToS3) {
+
+          resolve(omit(resData, 'downloadPath'));
+
+          dhitiReportsHelper.create(
+            req.body.submissionId,
+            resData.pdfUrl,
+            filesHelper.instance_score_report
+          )
+
+        } else {
+          resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+          resolve(resData);
+        }
+
+      }
       else {
         resolve(instaRes);
       }
-
-     
-  
-    });
-  
-  };
+    }
+  });
+};
   
 
 /**
@@ -2477,7 +2559,26 @@ async function instanceCriteriaReportData(req, res) {
       } else {
 
           let submissionId = req.body.submissionId;
+          let submissionReportCloudPath = submissionId + "_" + filesHelper.instance_criteria_report;
 
+          let submissionReport = {};
+          if (cloud_storage_on_off == "ON") {
+            let reportFromCloudStorage = await pdfHandler.getReportFromCloudStorage
+              (
+                submissionReportCloudPath,
+                req.headers["x-auth-token"]
+              );
+  
+            if (reportFromCloudStorage.success) {
+               submissionReport = reportFromCloudStorage.data;
+            }
+          }
+          
+          if (Object.keys(submissionReport).length > 0) {
+            return resolve(submissionReport);
+          }
+          else {
+  
           // model.MyModel.findOneAsync({ qid: "instance_criteria_report_query" }, { allow_filtering: true })
           //     .then(async function (result) {
 
@@ -2547,8 +2648,10 @@ async function instanceCriteriaReportData(req, res) {
 
                       resolve(responseObj);
 
-                  }
+                      pdfHandler.uploadReportToCloudStorage(submissionReportCloudPath, responseObj);
+                    }
               // })
+                 }
                 }
               }
               catch(err) {
@@ -2567,22 +2670,55 @@ async function instanceCriteriaReportData(req, res) {
 //Funcion for instance observation pdf generation
 async function instancePdfReportByCriteria(req, res) {
 
-return new Promise(async function (resolve, reject) {
+  return new Promise(async function (resolve, reject) {
 
-  let instaRes = await instanceCriteriaReportData(req, res);
+    let report = await dhitiReportsHelper.get(req.body.submissionId, filesHelper.instance_criteria_report);
+   
+    if (report.success) {
 
-  if (("observationName" in instaRes) == true) {
+      let response = {
+        status: filesHelper.success,
+        message: filesHelper.pdf_generated_successfully,
+        pdfUrl: report.data
+      }
 
-    let resData = await pdfHandler.instanceCriteriaReportPdfGeneration(instaRes, storeReportsToS3 = false);
-    
-    resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-    resolve(resData);
-  }
-  else {
-    resolve(instaRes);
-  }
+      resolve(response);
+    }
+    else {
+     
+      let instaRes = await instanceCriteriaReportData(req, res);
+      
+      if (("observationName" in instaRes) == true) {
 
-});
+        let storeReportsToS3 = false;
+        if (storePdfReportsToS3 == "ON") {
+          storeReportsToS3 = true;
+        }
+
+        let resData = await pdfHandler.instanceCriteriaReportPdfGeneration(instaRes, storeReportsToS3);
+       
+        if (storeReportsToS3) {
+
+          resolve(omit(resData, "downloadPath"));
+
+          dhitiReportsHelper.create
+            (
+              req.body.submissionId,
+              resData.pdfUrl,
+              filesHelper.instance_criteria_report
+            )
+        }
+        else {
+          resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+          resolve(resData);
+        }
+      }
+      else {
+        resolve(instaRes);
+      }
+    }
+
+  });
 };
 
 
@@ -2676,6 +2812,25 @@ async function instanceScoreCriteriaReportData(req, res) {
 
     } else {
 
+        let submissionReportCloudPath = req.body.submissionId + "_" + filesHelper.instance_score_criteria_report;
+        let submissionReport = {};
+        if (cloud_storage_on_off == "ON") {
+        let reportFromCloudStorage = await pdfHandler.getReportFromCloudStorage
+        (
+          submissionReportCloudPath,
+          req.headers["x-auth-token"]
+        );
+  
+        if (reportFromCloudStorage.success) {
+          submissionReport = reportFromCloudStorage.data;
+        }
+        }
+          
+        if (Object.keys(submissionReport).length > 0) {
+          return resolve(submissionReport);
+        }
+        else {
+
       // model.MyModel.findOneAsync({ qid: "instance_score_criteria_report_query" }, { allow_filtering: true })
       //   .then(async function (result) {
 
@@ -2746,6 +2901,9 @@ async function instanceScoreCriteriaReportData(req, res) {
             responseObj = await helperFunc.getCriteriawiseReport(responseObj);
 
             resolve(responseObj);
+
+            pdfHandler.uploadReportToCloudStorage(submissionReportCloudPath, responseObj);
+          }
           }
         // })
         }

@@ -3,8 +3,10 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-var config = require('./config/config');
+// var config = require('./config/config');
+require('./config');
 require('./config/globals')();
+global.config = require('./config/config');
 var router = require('./routes');
 const cors = require('cors');
 
@@ -149,6 +151,11 @@ function onListening() {
 let dir = './tmp';
 if (!fs.existsSync(dir)) {
   fs.mkdirSync(dir);
+}
+
+let reportsPath = './public/reports';
+if (!fs.existsSync(reportsPath)) {
+   fs.mkdirSync(reportsPath);
 }
 
 module.exports = app;

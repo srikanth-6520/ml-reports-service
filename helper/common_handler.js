@@ -12,6 +12,9 @@ var rimraf = require("rimraf");
 
 const s3 = new AWS.S3(config.s3_credentials);
 const myBucket = config.s3_bucketName;
+const request = require('request');
+const kendraService = require('./kendra_service');
+const filesHelper = require('../common/files_helper');
 
 // const signedUrlExpireSeconds=config.s3_signed_url_expire_seconds;
 
@@ -3493,10 +3496,94 @@ async function callChartApiPreparation(ele, imgPath, type, chartData, carrent, f
         console.log("error");
     }
 }
+
+
 async function getPercentages(data, target=100) {
     var off = target - _.reduce(data, function(acc, x) { return acc + Math.round(x) }, 0);
     return _.chain(data).
             sortBy(function(x) { return Math.round(x) - x }).
             map(function(x, i) { return Math.round(x) + (off > i) - (i >= (data.length + off)) }).
             value();
+}
+
+
+// function to upoad report to cloud storage
+exports.uploadReportToCloudStorage = async function (id, data) {
+
+    return new Promise(async function (resolve, reject) {
+
+    try {
+
+        const jsonString = JSON.stringify(data);
+
+        let reportsfolderPath = __dirname + '/../public/reports';
+
+        if (!fs.existsSync(reportsfolderPath)) {
+            fs.mkdirSync(reportsfolderPath)
+        }
+
+        let file = reportsfolderPath + "/" + id + ".json";
+
+        fs.writeFileSync(file, jsonString);
+
+        let uploadFile = await kendraService.uploadFile
+        (
+            file,
+            filesHelper.reports_cloud_path + id + '.json'
+        )
+        console.log(uploadFile);
+        fs.unlinkSync(file);
+
+        return resolve();
+    
+    }
+    catch (error) {
+        return reject(error);
+    }
+    })
+}
+
+//function to get report from cloud storage
+exports.getReportFromCloudStorage = async function (id, token) {
+
+    return new Promise(async function (resolve, reject) {
+
+        try {
+
+            let getDownloadableUrl = await kendraService.getDownloadableUrl(
+                [filesHelper.reports_cloud_path + id + ".json"],
+                token
+            )
+            console.log(getDownloadableUrl);
+            if ( getDownloadableUrl.status && getDownloadableUrl.status == 200 && getDownloadableUrl.result && getDownloadableUrl.result.length > 0) {
+                request(getDownloadableUrl.result[0].url, (error, response, body) => {
+                    if (!error && response.statusCode === 200) {
+                        console.log("coming to success block");
+                        resolve({
+                            success: true,
+                            data: JSON.parse(body)
+                        });
+                    } else {
+                        console.log("coming to error block");
+                        return resolve({
+                            success: false,
+                            data: {}
+                        })
+                    }
+                })
+            }
+            else {
+                return resolve({
+                    success: false,
+                    data: {}
+                })
+            }
+        }
+        catch (error) {
+            return resolve({
+                success: false,
+                data: {}
+            })
+        }
+    })
 }
