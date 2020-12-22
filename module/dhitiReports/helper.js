@@ -20,19 +20,21 @@ module.exports = class DhitiReportsHelper {
      * @param  {submissionId}  - submission Id.
      * @param  {s3Path}  - s3 path.
      * @param {reportType} - report type
-     * @returns {json} creates record in mongodb.
+     * @returns {json} creates record in db.
     */
 
     static create( submissionId, s3Path, reportType ) {
         return new Promise(async (resolve, reject) => {
             try {
 
-            let result = await database.models.dhitiReports.insertMany
-            ([{
+            let result = await database.models.dhitiReports.create
+            ({
                submissionId : submissionId,
                s3Path : s3Path,
-               reportType: reportType
-            }])
+               reportType: reportType,
+               createdAt: new Date(),
+               updatedAt: new Date()
+            })
             
             return resolve({
                success: true,
