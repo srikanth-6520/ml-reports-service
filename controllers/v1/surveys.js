@@ -113,13 +113,13 @@ const getSubmissionIdCount = async function (solutionId) {
            
             let bodyParam =  gen.utils.getDruidQuery("get_submissionId_count_query");
     
-            if (config.druid.survey_datasource_name) {
-                bodyParam.dataSource = config.druid.survey_datasource_name;
+            if (process.env.SURVEY_DATASOURCE_NAME) {
+                bodyParam.dataSource = process.env.SURVEY_DATASOURCE_NAME;
             }
     
             bodyParam.filter.value = solutionId;
 
-            let options = config.druid.options;
+            let options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
     
@@ -157,8 +157,8 @@ const getDataOFTextTypeQuestions = async function (req) {
 
         let bodyParam = gen.utils.getDruidQuery("survey_solutions_report_query");
 
-        if (config.druid.survey_datasource_name) {
-            bodyParam.dataSource = config.druid.survey_datasource_name;
+        if (process.env.SURVEY_DATASOURCE_NAME) {
+            bodyParam.dataSource = process.env.SURVEY_DATASOURCE_NAME;
         }
 
         bodyParam.filter.fields[0].value = req.query.solutionId;
@@ -219,7 +219,7 @@ const getDataFromDruid = async function (bodyParam, responseType) {
 
             bodyParam.filter.fields[1].value = responseType;
 
-            let options = config.druid.options;
+            let options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
 
@@ -246,8 +246,8 @@ const getDataOFChartTypeQuestions = async function (req) {
     //     let bodyParam = JSON.parse(result.query);
         let bodyParam = gen.utils.getDruidQuery("survey_solution_chart_report_query");
 
-        if (config.druid.survey_datasource_name) {
-            bodyParam.dataSource = config.druid.survey_datasource_name;
+        if (process.env.SURVEY_DATASOURCE_NAME) {
+            bodyParam.dataSource = process.env.SURVEY_DATASOURCE_NAME;
         }
 
         bodyParam.filter.fields[1].value = req.query.solutionId;
@@ -258,7 +258,7 @@ const getDataOFChartTypeQuestions = async function (req) {
             bodyParam.filter.fields.push(filter);
         }
 
-        let options = config.druid.options;
+        let options = gen.utils.getDruidConnection();
         options.method = "POST";
         options.body = bodyParam;
 
@@ -332,8 +332,8 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
                 // let bodyParam = JSON.parse(result.query);
                 let bodyParam = gen.utils.getDruidQuery("list_all_responses");
 
-                if (config.druid.survey_datasource_name) {
-                    bodyParam.dataSource = config.druid.survey_datasource_name;
+                if (process.env.SURVEY_DATASOURCE_NAME) {
+                    bodyParam.dataSource = process.env.SURVEY_DATASOURCE_NAME;
                 }
 
                 bodyParam.filter.fields[0].value = req.body.solutionId;
@@ -345,7 +345,7 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
                 }
 
                 //pass the query as body param and get the resul from druid
-                let options = config.druid.options;
+                let options = gen.utils.getDruidConnection();
                 options.method = "POST";
                 options.body = bodyParam;
                 let data = await rp(options);
@@ -422,8 +422,8 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
             //         let bodyParam = JSON.parse(result.query);
                     let bodyParam = gen.utils.getDruidQuery("survey_submission_report_query");
 
-                    if (config.druid.survey_datasource_name) {
-                        bodyParam.dataSource = config.druid.survey_datasource_name;
+                    if (process.env.SURVEY_DATASOURCE_NAME) {
+                        bodyParam.dataSource = process.env.SURVEY_DATASOURCE_NAME;
                     }
 
                     bodyParam.filter.fields[0].value = req.query.submissionId;
@@ -439,7 +439,7 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
                     }
 
                     //pass the query as body param and get the resul from druid
-                    let options = config.druid.options;
+                    let options = gen.utils.getDruidConnection();
                     options.method = "POST";
                     options.body = bodyParam;
                     let data = await rp(options);
@@ -556,8 +556,8 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
 
             let bodyParam = gen.utils.getDruidQuery("list_all_evidence_query");
   
-            if (config.druid.survey_evidence_datasource_name) {
-              bodyParam.dataSource = config.druid.survey_evidence_datasource_name;
+            if (process.env.SURVEY_EVIDENCE_DATASOURCE_NAME) {
+              bodyParam.dataSource = process.env.SURVEY_EVIDENCE_DATASOURCE_NAME;
             }
 
             let filter = {};
@@ -572,7 +572,7 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
             bodyParam.filter = filter;
 
              //pass the query as body param and get the resul from druid
-             let options = config.druid.options;
+             let options = gen.utils.getDruidConnection();
              options.method = "POST";
              options.body = bodyParam;
              let data = await rp(options);
@@ -622,8 +622,8 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
         //         let bodyParam = JSON.parse(result.query);
                 let bodyParam = gen.utils.getDruidQuery("get_survey_evidence_query");
 
-                if (config.druid.survey_evidence_datasource_name) {
-                    bodyParam.dataSource = config.druid.survey_evidence_datasource_name;
+                if (process.env.SURVEY_EVIDENCE_DATASOURCE_NAME) {
+                    bodyParam.dataSource = process.env.SURVEY_EVIDENCE_DATASOURCE_NAME;
                 }
 
                 if (inputObj.submissionId) {
@@ -640,7 +640,7 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
                 }
                 
                 //pass the query as body param and get the result from druid
-                let options = config.druid.options;
+                let options = gen.utils.getDruidConnection();
                 options.method = "POST";
                 let data = [];
                  

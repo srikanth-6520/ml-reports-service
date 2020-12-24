@@ -2,6 +2,7 @@ const config = require('../config/config');
 const rp = require('request-promise');
 const request = require('request');
 const filesHelper = require("../common/files_helper");
+let urlPrefix = process.env.KENDRA_APPLICATION_ENDPOINT + process.env.KENDRA_BASE_URL + process.env.URL_PREFIX; 
 
 //Make API call to sl-kendra-service for getting downloadable link
 async function getDownloadableUrl(evidenceList, token) {
@@ -9,13 +10,13 @@ async function getDownloadableUrl(evidenceList, token) {
 
       let url;
       if (process.env.CLOUD_STORAGE == filesHelper.googleCloud) {
-         url = config.kendra.gcp_downloadable_file_url_api;
+         url = urlPrefix + endpoints.GCP_GET_DOWNLOADABLE_URL;
       }
       else if (process.env.CLOUD_STORAGE == filesHelper.azure) {
-         url = config.kendra.azure_downloadable_file_url_api;
+         url = urlPrefix + endpoints.AZURE_GET_DOWNLOADABLE_URL;
       }
       else if (process.env.CLOUD_STORAGE == filesHelper.aws) {
-         url = config.kendra.aws_downloadable_file_url_api;
+         url = urlPrefix + endpoints.AWS_GET_DOWNLOADABLE_URL;
       }
       
       let options = {

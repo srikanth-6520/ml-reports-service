@@ -46,14 +46,14 @@ exports.contentView = async function (req, res) {
 
             let bodyParam = gen.utils.getDruidQuery("content_viewed_in_platform_query");
 
-            if (config.druid.telemetry_datasource_name) {
-                bodyParam.dataSource = config.druid.telemetry_datasource_name;
+            if (process.env.TELEMETRY_DATASOURCE_NAME) {
+                bodyParam.dataSource = process.env.TELEMETRY_DATASOURCE_NAME;
             }
 
             // get previous month date and append to intervals field
             bodyParam.intervals = await getIntervals();
 
-            let threshold = config.druid.threshold_in_content_api ? config.druid.threshold_in_content_api : default_content_api_threshold
+            let threshold = process.env.CONTENT_REPORT_THRESHOLD ? process.env.CONTENT_REPORT_THRESHOLD : default_content_api_threshold
 
             if(typeof threshold !== "number"){
                 throw new Error("threshold_in_content_api should be integer");
@@ -63,7 +63,7 @@ exports.contentView = async function (req, res) {
             bodyParam.threshold = threshold;
 
             //pass the query as body param and get the result from druid
-            var options = config.druid.options;
+            var options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
             var data = await rp(options);
@@ -133,8 +133,8 @@ exports.contentDownloadedByUser = async function (req, res) {
         //         var bodyParam = JSON.parse(result.query);
                let bodyParam = gen.utils.getDruidQuery("content_downloaded_by_user_query");
 
-                if (config.druid.telemetry_datasource_name) {
-                    bodyParam.dataSource = config.druid.telemetry_datasource_name;
+                if (process.env.TELEMETRY_DATASOURCE_NAME) {
+                    bodyParam.dataSource = process.env.TELEMETRY_DATASOURCE_NAME;
                 }
 
                 //append user id to the filter
@@ -143,7 +143,7 @@ exports.contentDownloadedByUser = async function (req, res) {
                  // get previous month date and append to intervals field
                  bodyParam.intervals = await getIntervals();
 
-                 let threshold = config.druid.threshold_in_content_api ? config.druid.threshold_in_content_api : default_content_api_threshold;
+                 let threshold = process.env.CONTENT_REPORT_THRESHOLD ? process.env.CONTENT_REPORT_THRESHOLD : default_content_api_threshold;
 
                  if(typeof threshold !== "number"){
                      throw new Error("threshold_in_content_api should be integer");
@@ -153,7 +153,7 @@ exports.contentDownloadedByUser = async function (req, res) {
                 bodyParam.threshold = threshold;
 
                 //pass the query as body param and get the result from druid
-                var options = config.druid.options;
+                var options = gen.utils.getDruidConnection();
                 options.method = "POST";
                 options.body = bodyParam;
                 var data = await rp(options);
@@ -209,11 +209,11 @@ exports.usageByContent = async function (req, res) {
     //         var bodyParam = JSON.parse(result.query);
             let bodyParam = gen.utils.getDruidQuery("usage_by_content_query");
 
-            if (config.druid.telemetry_datasource_name) {
-                bodyParam.dataSource = config.druid.telemetry_datasource_name;
+            if (process.env.TELEMETRY_DATASOURCE_NAME) {
+                bodyParam.dataSource = process.env.TELEMETRY_DATASOURCE_NAME;
             }
             
-            let threshold = config.druid.threshold_in_content_api ? config.druid.threshold_in_content_api : default_content_api_threshold;
+            let threshold = process.env.CONTENT_REPORT_THRESHOLD ? process.env.CONTENT_REPORT_THRESHOLD : default_content_api_threshold;
 
             if(typeof threshold !== "number"){
                 throw new Error("threshold_in_content_api should be integer");
@@ -226,7 +226,7 @@ exports.usageByContent = async function (req, res) {
              bodyParam.intervals = await getIntervals();
 
             //pass the query as body param and get the result from druid
-            var options = config.druid.options;
+            var options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
             var data = await rp(options);
@@ -298,15 +298,15 @@ exports.courseEnrollment = async function (req, res) {
         //         var bodyParam = JSON.parse(result.query);
                let bodyParam = gen.utils.getDruidQuery("course_enrollment_query");
 
-                if (config.druid.enrollment_datasource_name) {
-                    bodyParam.dataSource = config.druid.enrollment_datasource_name;
+                if (process.env.ENROLLMENT_DATASOURCE_NAME) {
+                    bodyParam.dataSource = process.env.ENROLLMENT_DATASOURCE_NAME;
                 }
 
                 bodyParam.filter.value = req.body.user_id;
                 bodyParam.intervals = await getIntervals();
                 
                 //pass the query as body param and get the result from druid
-                var options = config.druid.options;
+                var options = gen.utils.getDruidConnection();
                 options.method = "POST";
                 options.body = bodyParam;
                 var data = await rp(options);

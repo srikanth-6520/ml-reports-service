@@ -83,8 +83,8 @@ async function instanceObservationData(req, res) {
 
             let bodyParam = gen.utils.getDruidQuery("instance_observation_query");
           
-              if (config.druid.observation_datasource_name) {
-                bodyParam.dataSource = config.druid.observation_datasource_name;
+              if (process.env.OBSERVATION_DATASOURCE_NAME) {
+                bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
               }
 
               bodyParam.filter.fields[0].value = submissionId;
@@ -100,7 +100,7 @@ async function instanceObservationData(req, res) {
               }
              
               //pass the query as body param and get the resul from druid
-              var options = config.druid.options;
+              var options = gen.utils.getDruidConnection();
               options.method = "POST";
               options.body = bodyParam;
               var data = await rp(options);
@@ -315,8 +315,8 @@ exports.instanceObservationScoreReport = async function (req, res) {
         //  let bodyParam = JSON.parse(result.query);
             let bodyParam = gen.utils.getDruidQuery("instance_observation_score_query");
             
-            if (config.druid.observation_datasource_name) {
-              bodyParam.dataSource = config.druid.observation_datasource_name;
+            if (process.env.OBSERVATION_DATASOURCE_NAME) {
+              bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
             }
 
              //if filter is given
@@ -334,7 +334,7 @@ exports.instanceObservationScoreReport = async function (req, res) {
             }
         
             //pass the query as body param and get the resul from druid
-            let options = config.druid.options;
+            let options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
             let data = await rp(options);
@@ -492,8 +492,8 @@ exports.entity = async function (req, res) {
 
             let bodyParam = gen.utils.getDruidQuery("entity_observation_query");
   
-            if (config.druid.observation_datasource_name) {
-              bodyParam.dataSource = config.druid.observation_datasource_name;
+            if (process.env.OBSERVATION_DATASOURCE_NAME) {
+              bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
             }
 
             let entityType = "school";
@@ -517,7 +517,7 @@ exports.entity = async function (req, res) {
             }
             
             //pass the query as body param and get the resul from druid
-            let options = config.druid.options;
+            let options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
              let data = await rp(options);
@@ -709,8 +709,8 @@ exports.entityObservationReport = async function entityObservationReport(req, re
 
             let bodyParam = gen.utils.getDruidQuery("entity_observation_report_query");
   
-            if (config.druid.observation_datasource_name) {
-              bodyParam.dataSource = config.druid.observation_datasource_name;
+            if (process.env.OBSERVATION_DATASOURCE_NAME) {
+              bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
             }
   
             //Assign values to the query filter object 
@@ -730,7 +730,7 @@ exports.entityObservationReport = async function entityObservationReport(req, re
             }
   
             //pass the query as body param and get the result from druid
-            var options = config.druid.options;
+            var options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
             var data = await rp(options);
@@ -891,8 +891,8 @@ exports.entityScoreReport = async function (req, res) {
         //     var bodyParam = JSON.parse(result.query);
             let bodyParam = gen.utils.getDruidQuery("entity_observation_score_query");
   
-            if (config.druid.observation_datasource_name) {
-              bodyParam.dataSource = config.druid.observation_datasource_name;
+            if (process.env.OBSERVATION_DATASOURCE_NAME) {
+              bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
             }
 
               bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
@@ -900,7 +900,7 @@ exports.entityScoreReport = async function (req, res) {
             
 
             //pass the query as body param and get the resul from druid
-            var options = config.druid.options;
+            var options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
   
@@ -1082,8 +1082,8 @@ async function entitySolutionScoreReportGeneration(req, res) {
         //     var bodyParam = JSON.parse(result.query);
             let bodyParam = gen.utils.getDruidQuery("entity_solution_score_query");
   
-            if (config.druid.observation_datasource_name) {
-              bodyParam.dataSource = config.druid.observation_datasource_name;
+            if (process.env.OBSERVATION_DATASOURCE_NAME) {
+              bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
             }
   
             //Assign values to the query filter object 
@@ -1125,7 +1125,7 @@ async function entitySolutionScoreReportGeneration(req, res) {
             }
   
             //pass the query as body param and get the result from druid
-            var options = config.druid.options;
+            var options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
             var data = await rp(options);
@@ -1168,8 +1168,8 @@ async function schoolSolutionScoreReport(req, res) {
 
           let bodyParam = gen.utils.getDruidQuery("entity_solution_score_query");
   
-          if (config.druid.observation_datasource_name) {
-            bodyParam.dataSource = config.druid.observation_datasource_name;
+          if (process.env.OBSERVATION_DATASOURCE_NAME) {
+            bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
           }
   
           //Assign values to the query filter object 
@@ -1207,7 +1207,7 @@ async function schoolSolutionScoreReport(req, res) {
           }
   
           //pass the query as body param and get the resul from druid
-          let options = config.druid.options;
+          let options = gen.utils.getDruidConnection();
           options.method = "POST";
           options.body = bodyParam;
   
@@ -1294,8 +1294,8 @@ exports.byEntity = async function (req, res) {
 
             let bodyParam = gen.utils.getDruidQuery("observations_by_entity");
 
-            if (config.druid.observation_datasource_name) {
-              bodyParam.dataSource = config.druid.observation_datasource_name;
+            if (process.env.OBSERVATION_DATASOURCE_NAME) {
+              bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
             }
             var query = bodyParam;
             var fieldsArray = [];
@@ -1323,7 +1323,7 @@ exports.byEntity = async function (req, res) {
             query.filter.fields.push(...fieldsArray);
   
             query.filter.type = "and";
-            var options = config.druid.options;
+            var options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = query;
             var data = await rp(options);
@@ -1361,8 +1361,8 @@ async function getObsvByentitys(req, result) {
   
       // var bodyParam = JSON.parse(result.query);
       let bodyParam = gen.utils.getDruidQuery("observations_by_entity");
-      if (config.druid.observation_datasource_name) {
-        bodyParam.dataSource = config.druid.observation_datasource_name;
+      if (process.env.OBSERVATION_DATASOURCE_NAME) {
+        bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
       }
       var query = bodyParam;
       var fieldsArray = [];
@@ -1375,7 +1375,7 @@ async function getObsvByentitys(req, result) {
       ));
   
       query.filter.fields.push(...fieldsArray);
-      var options = config.druid.options;
+      var options = gen.utils.getDruidConnection();
       options.method = "POST";
       options.body = query;
       var data = await rp(options);
@@ -1447,8 +1447,8 @@ async function observationReportData(req, res) {
 
                 let bodyParam = gen.utils.getDruidQuery("observation_report_query");
 
-                  if (config.druid.observation_datasource_name) {
-                    bodyParam.dataSource = config.druid.observation_datasource_name;
+                  if (process.env.OBSERVATION_DATASOURCE_NAME) {
+                    bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
                   }
 
                   bodyParam.filter.fields[0].value = req.body.observationId;
@@ -1464,7 +1464,7 @@ async function observationReportData(req, res) {
                   }
 
                   //pass the query as body param and get the resul from druid
-                  var options = config.druid.options;
+                  var options = gen.utils.getDruidConnection();
                   options.method = "POST";
                   options.body = bodyParam;
                   var data = await rp(options);
@@ -1654,8 +1654,8 @@ async function observationScoreReport(req, res) {
           
           let bodyParam = gen.utils.getDruidQuery("observation_score_report_query");
   
-            if (config.druid.observation_datasource_name) {
-              bodyParam.dataSource = config.druid.observation_datasource_name;
+            if (process.env.OBSERVATION_DATASOURCE_NAME) {
+              bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
             }
             
             let entityType = "school";
@@ -1681,7 +1681,7 @@ async function observationScoreReport(req, res) {
             }
   
             //pass the query as body param and get the resul from druid
-            var options = config.druid.options;
+            var options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
   
@@ -1696,7 +1696,7 @@ async function observationScoreReport(req, res) {
               let chartData = await helperFunc.observationScoreReportChart(data,entityType);
 
                 //Call samiksha API to get total schools count for the given observationId
-                let totalEntities = await getTotalEntities(req.body.observationId,req.headers["x-auth-token"]);
+                let totalEntities = await assessmentService.getTotalEntities(req.body.observationId,req.headers["x-auth-token"]);
 
               if (totalEntities.result) {
                 chartData.totalEntities = totalEntities.result.count;
@@ -1745,29 +1745,7 @@ async function observationScoreReport(req, res) {
   }
   
 
-//Function to make a call to samiksha assessment entities list API
-async function getTotalEntities(observationId,token) {
 
-    return new Promise(async function(resolve){
-    var options = {
-      method: "GET",
-      json: true,
-      headers: {
-          "Content-Type": "application/json",
-          "X-authenticated-user-token": token
-      },
-      uri: config.samiksha_api.observation_details_api + observationId
-  }
-  
-    rp(options).then(function(resp){
-      return resolve(resp);
-  
-    }).catch(function(err){
-      return resolve(err);
-    })
-  
-  });
-}
   
   
 
@@ -1843,8 +1821,8 @@ exports.listObservationNames = async function (req, res) {
         //         let bodyParam = JSON.parse(result.query);
               let bodyParam = gen.utils.getDruidQuery("list_observation_names_query");
 
-                if (config.druid.observation_datasource_name) {
-                    bodyParam.dataSource = config.druid.observation_datasource_name;
+                if (process.env.OBSERVATION_DATASOURCE_NAME) {
+                    bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
                 }
                 
                 bodyParam.filter.fields[0].dimension = req.body.entityType;
@@ -1852,7 +1830,7 @@ exports.listObservationNames = async function (req, res) {
                 bodyParam.filter.fields[1].fields[0].fields[0].value = req.userDetails.userId;
 
                 //pass the query as body param and get the result from druid
-                let options = config.druid.options;
+                let options = gen.utils.getDruidConnection();
                 options.method = "POST";
                 options.body = bodyParam;
                 let data = await rp(options);
@@ -1933,8 +1911,8 @@ exports.listObservationSolutions = async function (req, res) {
         //         let bodyParam = JSON.parse(result.query);
              let bodyParam = gen.utils.getDruidQuery("solutions_list_query");
 
-                if (config.druid.observation_datasource_name) {
-                    bodyParam.dataSource = config.druid.observation_datasource_name;
+                if (process.env.OBSERVATION_DATASOURCE_NAME) {
+                    bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
                 }
 
                 bodyParam.filter.fields[0].dimension = req.body.entityType;
@@ -1942,7 +1920,7 @@ exports.listObservationSolutions = async function (req, res) {
                 bodyParam.filter.fields[1].fields[0].fields[0].value = req.userDetails.userId;
 
                 //pass the query as body param and get the result from druid
-                let options = config.druid.options;
+                let options = gen.utils.getDruidConnection();
                 options.method = "POST";
                 options.body = bodyParam;
                 let data = await rp(options);
@@ -2029,8 +2007,8 @@ exports.submissionsCount = async function (req, res) {
 
               let bodyParam = gen.utils.getDruidQuery(query);
 
-                if (config.druid.observation_datasource_name) {
-                    bodyParam.dataSource = config.druid.observation_datasource_name;
+                if (process.env.OBSERVATION_DATASOURCE_NAME) {
+                    bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
                 }
 
                 if(query == "entity_observation_query"){
@@ -2044,7 +2022,7 @@ exports.submissionsCount = async function (req, res) {
                 }
 
                 //pass the query as body param and get the result from druid
-                var options = config.druid.options;
+                var options = gen.utils.getDruidConnection();
                 options.method = "POST";
                 options.body = bodyParam;
                 var data = await rp(options);
@@ -2307,8 +2285,8 @@ async function entitySolutionReportGeneration(req, res) {
       //     var bodyParam = JSON.parse(result.query);
          let bodyParam = gen.utils.getDruidQuery("entity_solution_report_query");
 
-          if (config.druid.observation_datasource_name) {
-            bodyParam.dataSource = config.druid.observation_datasource_name;
+          if (process.env.OBSERVATION_DATASOURCE_NAME) {
+            bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
           }
           
           //Assign values to the query filter object 
@@ -2352,7 +2330,7 @@ async function entitySolutionReportGeneration(req, res) {
           }
 
           //pass the query as body param and get the result from druid
-          var options = config.druid.options;
+          var options = gen.utils.getDruidConnection();
           options.method = "POST";
           options.body = bodyParam;
           var data = await rp(options);
@@ -2485,8 +2463,8 @@ async function instanceCriteriaReportData(req, res) {
 
                   let bodyParam = gen.utils.getDruidQuery("instance_criteria_report_query");
 
-                  if (config.druid.observation_datasource_name) {
-                      bodyParam.dataSource = config.druid.observation_datasource_name;
+                  if (process.env.OBSERVATION_DATASOURCE_NAME) {
+                      bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
                   }
 
                   bodyParam.filter = {"type":"and","fields":[{ "type": "selector", "dimension": "observationSubmissionId", "value": submissionId },
@@ -2498,7 +2476,7 @@ async function instanceCriteriaReportData(req, res) {
                   }
 
                   //pass the query as body param and get the resul from druid
-                  let options = config.druid.options;
+                  let options = gen.utils.getDruidConnection();
                   options.method = "POST";
                   options.body = bodyParam;
                   let data = await rp(options);
@@ -2682,8 +2660,8 @@ async function instanceScoreCriteriaReportData(req, res) {
       //     let bodyParam = JSON.parse(result.query);
           let bodyParam = gen.utils.getDruidQuery("instance_score_criteria_report_query");
 
-          if (config.druid.observation_datasource_name) {
-            bodyParam.dataSource = config.druid.observation_datasource_name;
+          if (process.env.OBSERVATION_DATASOURCE_NAME) {
+            bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
           }
           
           bodyParam.filter.fields[0].value = req.body.submissionId;
@@ -2695,7 +2673,7 @@ async function instanceScoreCriteriaReportData(req, res) {
            }
       
           //pass the query as body param and get the resul from druid
-          let options = config.druid.options;
+          let options = gen.utils.getDruidConnection();
           options.method = "POST";
           options.body = bodyParam;
           let data = await rp(options);
@@ -2866,8 +2844,8 @@ async function entityCriteriaReportData(req, res) {
 
         let bodyParam = gen.utils.getDruidQuery("entity_criteria_report_query");
 
-          if (config.druid.observation_datasource_name) {
-            bodyParam.dataSource = config.druid.observation_datasource_name;
+          if (process.env.OBSERVATION_DATASOURCE_NAME) {
+            bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
           }
 
           let entityType = "school";
@@ -2887,7 +2865,7 @@ async function entityCriteriaReportData(req, res) {
           }
 
           //pass the query as body param and get the resul from druid
-          let options = config.druid.options;
+          let options = gen.utils.getDruidConnection();
           options.method = "POST";
           options.body = bodyParam;
           let data = await rp(options);
@@ -3088,8 +3066,8 @@ async function entityScoreCriteriaReportData(req, res) {
          
           let bodyParam = gen.utils.getDruidQuery("entity_score_criteria_report_query");
 
-          if (config.druid.observation_datasource_name) {
-            bodyParam.dataSource = config.druid.observation_datasource_name;
+          if (process.env.OBSERVATION_DATASOURCE_NAME) {
+            bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
           }
 
           let entityType = "school";
@@ -3109,7 +3087,7 @@ async function entityScoreCriteriaReportData(req, res) {
            }
 
           //pass the query as body param and get the resul from druid
-          var options = config.druid.options;
+          var options = gen.utils.getDruidConnection();
           options.method = "POST";
           options.body = bodyParam;
 
@@ -3261,8 +3239,8 @@ async function observationCriteriaReportData(req, res) {
           //       let bodyParam = JSON.parse(result.query);
               let bodyParam = gen.utils.getDruidQuery("observation_criteria_report_query");
 
-                if (config.druid.observation_datasource_name) {
-                  bodyParam.dataSource = config.druid.observation_datasource_name;
+                if (process.env.OBSERVATION_DATASOURCE_NAME) {
+                  bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
                 }
 
                 bodyParam.filter = {"type": "and", "fields":[{ "type": "selector", "dimension": "observationId", "value": req.body.observationId},
@@ -3275,7 +3253,7 @@ async function observationCriteriaReportData(req, res) {
                 }
 
                 //pass the query as body param and get the resul from druid
-                let options = config.druid.options;
+                let options = gen.utils.getDruidConnection();
                 options.method = "POST";
                 options.body = bodyParam;
                 let data = await rp(options);
@@ -3458,8 +3436,8 @@ async function observationScoreCriteriaReportData(req, res) {
       //     var bodyParam = JSON.parse(result.query);
          let bodyParam = gen.utils.getDruidQuery("observation_score_criteria_report_query");
 
-          if (config.druid.observation_datasource_name) {
-            bodyParam.dataSource = config.druid.observation_datasource_name;
+          if (process.env.OBSERVATION_DATASOURCE_NAME) {
+            bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
           }
 
           let entityType = "school";
@@ -3478,7 +3456,7 @@ async function observationScoreCriteriaReportData(req, res) {
             }
 
           //pass the query as body param and get the resul from druid
-          let options = config.druid.options;
+          let options = gen.utils.getDruidConnection();
           options.method = "POST";
           options.body = bodyParam;
 
@@ -3495,7 +3473,7 @@ async function observationScoreCriteriaReportData(req, res) {
             let chartData = await helperFunc.observationScoreReportChart(data,entityType,reportType);
 
               //Call samiksha API to get total schools count for the given observationId
-              let totalEntities = await getTotalEntities(req.body.observationId,req.headers["x-auth-token"]);
+              let totalEntities = await  assessmentService.getTotalEntities(req.body.observationId,req.headers["x-auth-token"]);
 
 
             if (totalEntities.result) {
@@ -3713,8 +3691,8 @@ async function allEvidencesList(req, res) {
       //     var bodyParam = JSON.parse(result.query);
           let bodyParam = gen.utils.getDruidQuery("list_all_evidence_query");
 
-          if (config.druid.evidence_datasource_name) {
-            bodyParam.dataSource = config.druid.evidence_datasource_name;
+          if (process.env.OBSERVATION_EVIDENCE_DATASOURCE_NAME) {
+            bodyParam.dataSource = process.env.OBSERVATION_EVIDENCE_DATASOURCE_NAME;
           }
 
           let filter = {};
@@ -3736,7 +3714,7 @@ async function allEvidencesList(req, res) {
           bodyParam.filter = filter;
 
           //pass the query as body param and get the resul from druid
-          var options = config.druid.options;
+          var options = gen.utils.getDruidConnection();
           options.method = "POST";
           options.body = bodyParam;
           var data = await rp(options);
@@ -3803,14 +3781,14 @@ async function getEvidenceData(inputObj) {
           filter = { "type": "selector", "dimension": "observationId", "value": observationId }
         }
 
-        if (config.druid.evidence_datasource_name) {
-          bodyParam.dataSource = config.druid.evidence_datasource_name;
+        if (process.env.OBSERVATION_EVIDENCE_DATASOURCE_NAME) {
+          bodyParam.dataSource = process.env.OBSERVATION_EVIDENCE_DATASOURCE_NAME;
         }
          
         bodyParam.filter = filter;
 
         //pass the query as body param and get the resul from druid
-        var options = config.druid.options;
+        var options = gen.utils.getDruidConnection();
         options.method = "POST";
         options.body = bodyParam;
         var data = await rp(options);

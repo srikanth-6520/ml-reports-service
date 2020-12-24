@@ -99,16 +99,16 @@ const getPrograms = async function (bodyParam, type) {
 
         try {
 
-            let options = config.druid.options;
+            let options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
 
             if (type == filesHelper.assessment) {
-                options.body.dataSource = config.druid.assessment_datasource_name;
+                options.body.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
                 options.body.filter.fields[1].fields[0].fields[0].dimension = "userId";
             }
             else if (type == filesHelper.observation) {
-                options.body.dataSource = config.druid.observation_datasource_name;
+                options.body.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
                 options.body.filter.fields[1].fields[0].fields[0].dimension = "createdBy";
             }
 

@@ -9,8 +9,9 @@ module.exports = function () {
             return Controller
         }
     });
-    global.PROJECT_ROOT_DIRECTORY = path.join(__dirname, '..')
-
+   
     global.ROOT_PATH = path.join(__dirname, '..');
     gen.utils = require(ROOT_PATH + "/common/utils");
+    global.endpoints = require(ROOT_PATH + "/common/endpoints");
+
 }

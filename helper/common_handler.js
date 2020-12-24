@@ -240,7 +240,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, storeReportsToS3 
                                             throw errWriteFile;
                                         } else {
 
-                                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                                            let optionsHtmlToPdf = gen.utils.getHighChartServerConnection() ;
                                             optionsHtmlToPdf.formData = {
                                                 files: [
                                                 ]
@@ -542,7 +542,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
                                             throw errWriteFile;
                                         } else {
 
-                                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                                            let optionsHtmlToPdf = gen.utils.getHighChartServerConnection() ;
                                             optionsHtmlToPdf.formData = {
                                                 files: [
                                                 ]
@@ -791,7 +791,7 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
                                             throw errWriteFile;
                                         } else {
 
-                                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                                            let optionsHtmlToPdf = gen.utils.getHighChartServerConnection() ;
                                             optionsHtmlToPdf.formData = {
                                                 files: [
                                                 ]
@@ -1032,7 +1032,7 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
                                             throw errWriteFile;
                                         } else {
 
-                                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                                            let optionsHtmlToPdf = gen.utils.getHighChartServerConnection() ;
                                             optionsHtmlToPdf.formData = {
                                                 files: [
                                                 ]
@@ -1508,7 +1508,7 @@ exports.unnatiPdfGeneration = async function (responseData, storeReportsToS3 = f
                             throw errWriteFile;
                         } else {
 
-                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                            let optionsHtmlToPdf = gen.utils.getHighChartServerConnection() ;
                             optionsHtmlToPdf.formData = {
                                 files: [
                                 ]
@@ -1692,7 +1692,7 @@ exports.unnatiMonthlyReportPdfGeneration = async function (responseData, storeRe
                             throw errWriteFile;
                         } else {
 
-                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                            let optionsHtmlToPdf = gen.utils.getHighChartServerConnection() ;
                             optionsHtmlToPdf.formData = {
                                 files: [
                                 ]
@@ -1974,7 +1974,7 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData, storeR
                             throw errWriteFile;
                         } else {
 
-                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                            let optionsHtmlToPdf = gen.utils.getHighChartServerConnection() ;
                             optionsHtmlToPdf.formData = {
                                 files: [
                                 ]
@@ -2145,7 +2145,7 @@ exports.addTaskPdfGeneration = async function (responseData, storeReportsToS3 = 
                             throw errWriteFile;
                         } else {
 
-                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                            let optionsHtmlToPdf = gen.utils.getHighChartServerConnection() ;
                             optionsHtmlToPdf.formData = {
                                 files: [
                                 ]
@@ -2334,7 +2334,7 @@ exports.instanceCriteriaReportPdfGeneration = async function (instanceResponse, 
                                             throw errWriteFile;
                                         } else {
 
-                                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                                            let optionsHtmlToPdf = gen.utils.getHighChartServerConnection() ;
                                             optionsHtmlToPdf.formData = {
                                                 files: [
                                                 ]
@@ -2559,7 +2559,7 @@ exports.entityCriteriaPdfReportGeneration = async function (responseData, storeR
                                             throw errWriteFile;
                                         } else {
 
-                                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                                            let optionsHtmlToPdf = gen.utils.getHighChartServerConnection() ;
                                             optionsHtmlToPdf.formData = {
                                                 files: [
                                                 ]
@@ -2841,7 +2841,7 @@ exports.instanceScoreCriteriaPdfGeneration = async function(observationResp, sto
                                             throw errWriteFile;
                                         } else {
 
-                                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                                            let optionsHtmlToPdf = gen.utils.getHighChartServerConnection() ;
                                             optionsHtmlToPdf.formData = {
                                                 files: [
                                                 ]
@@ -3181,7 +3181,7 @@ exports.unnatiEntityReportPdfGeneration = async function (inputData, storeReport
                             throw errWriteFile;
                         } else {
 
-                            let optionsHtmlToPdf = config.optionsHtmlToPdf;
+                            let optionsHtmlToPdf = gen.utils.getHighChartServerConnection() ;
                             optionsHtmlToPdf.formData = {
                                 files: []
                             };
@@ -3455,8 +3455,8 @@ async function apiCallToHighChart(chartData, imgPath, type) {
 async function callChartApiPreparation(ele, imgPath, type, chartData, carrent, formData) {
     try {
         let loop = 0;
-        var options = config.high_chart;
-        var chartImage = "chartPngImage_" + loop + "_" + uuidv4() + "_.svg";
+        let options = gen.utils.getHighChartServerConnection();
+        let chartImage = "chartPngImage_" + loop + "_" + uuidv4() + "_.svg";
         options.method = "POST";
         options.body = JSON.stringify(ele);
         let imgFilePath = imgPath + "/" + chartImage;

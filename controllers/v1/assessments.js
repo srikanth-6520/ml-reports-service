@@ -59,8 +59,8 @@ exports.listPrograms = async function (req, res) {
 
                 let bodyParam =  gen.utils.getDruidQuery("list_assessment_programs_query");
 
-                if (config.druid.assessment_datasource_name) {
-                    bodyParam.dataSource = config.druid.assessment_datasource_name;
+                if (process.env.ASSESSMENT_DATASOURCE_NAME) {
+                    bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
                 }
 
                 bodyParam.filter.fields[0].dimension = req.body.entityType;
@@ -68,7 +68,7 @@ exports.listPrograms = async function (req, res) {
                 bodyParam.filter.fields[1].fields[0].fields[0].value = req.userDetails.userId;
 
                 //pass the query as body param and get the result from druid
-                var options = config.druid.options;
+                var options = gen.utils.getDruidConnection();
                 options.method = "POST";
                 options.body = bodyParam;
                 var data = await rp(options);
@@ -79,7 +79,7 @@ exports.listPrograms = async function (req, res) {
                     bodyParam.filter.fields[0].value = req.body.entityId;
 
                     //pass the query as body param and get the result from druid
-                    let optionsData = config.druid.options;
+                    let optionsData = gen.utils.getDruidConnection();
                     optionsData.method = "POST";
                     optionsData.body = bodyParam;
                     let programData = await rp(options);
@@ -219,8 +219,8 @@ async function assessmentReportGetChartData(req, res) {
                 //         let bodyParam = JSON.parse(result.query);
                         let bodyParam = gen.utils.getDruidQuery("entity_assessment_query");
 
-                        if (config.druid.assessment_datasource_name) {
-                            bodyParam.dataSource = config.druid.assessment_datasource_name;
+                        if (process.env.ASSESSMENT_DATASOURCE_NAME) {
+                            bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
                         }
 
                         //dynamically appending values to filter
@@ -237,7 +237,7 @@ async function assessmentReportGetChartData(req, res) {
                             bodyParam.dimensions.push(req.body.immediateChildEntityType, entityName);
                         }
                         //pass the query as body param and get the resul from druid
-                        let druidOptions = config.druid.options;
+                        let druidOptions = gen.utils.getDruidConnection();
                         druidOptions.method = "POST";
                         druidOptions.body = bodyParam;
                         let data = await rp(druidOptions);
@@ -251,7 +251,7 @@ async function assessmentReportGetChartData(req, res) {
                             childType = "";
 
                             //pass the query as body param and get the resul from druid
-                            // let druidOptions = config.druid.options;
+                            // let druidOptions = gen.utils.getDruidConnection();
                             druidOptions.method = "POST";
                             druidOptions.body = bodyParam;
                             let assessData = await rp(druidOptions);
@@ -395,15 +395,15 @@ exports.listAssessmentPrograms = async function (req, res) {
     //         let bodyParam = JSON.parse(result.query);
             let bodyParam = gen.utils.getDruidQuery("list_assessment_programs_query");
 
-            if (config.druid.assessment_datasource_name) {
-                bodyParam.dataSource = config.druid.assessment_datasource_name;
+            if (process.env.ASSESSMENT_DATASOURCE_NAME) {
+                bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
             }
 
             bodyParam.filter = filter;
             bodyParam.dimensions = ["programId", "programName"];
 
             //pass the query as body param and get the result from druid
-            let options = config.druid.options;
+            let options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
             let data = await rp(options);
@@ -511,14 +511,14 @@ exports.listEntities = async function (req, res) {
 
             bodyParam.filter = programFilter
 
-            if (config.druid.assessment_datasource_name) {
-                bodyParam.dataSource = config.druid.assessment_datasource_name;
+            if (process.env.ASSESSMENT_DATASOURCE_NAME) {
+                bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
             }
 
             bodyParam.dimensions.push("entityType");
 
             //pass the query as body param and get the result from druid
-            let options = config.druid.options;
+            let options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
             let entityData = await rp(options);
@@ -616,8 +616,8 @@ exports.listImprovementProjects = async function (req, res) {
         //         let bodyParam = JSON.parse(result.query);
                 let bodyParam = gen.utils.getDruidQuery("list_improvement_projects_query");
 
-                if (config.druid.assessment_datasource_name) {
-                    bodyParam.dataSource = config.druid.assessment_datasource_name;
+                if (process.env.ASSESSMENT_DATASOURCE_NAME) {
+                    bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
                 }
                 
                 bodyParam.filter.fields.push({"type":"selector","dimension":req.body.entityType,"value":req.body.entityId},
@@ -635,7 +635,7 @@ exports.listImprovementProjects = async function (req, res) {
                 }
 
                 //pass the query as body param and get the result from druid
-                let options = config.druid.options;
+                let options = gen.utils.getDruidConnection();
                 options.method = "POST";
                 options.body = bodyParam;
 
@@ -873,8 +873,8 @@ return new Promise(async function (resolve, reject) {
             //         var bodyParam = JSON.parse(result.query);
                     let bodyParam = gen.utils.getDruidQuery("entity_level_assessment_report_query");
 
-                    if (config.druid.assessment_datasource_name) {
-                        bodyParam.dataSource = config.druid.assessment_datasource_name;
+                    if (process.env.ASSESSMENT_DATASOURCE_NAME) {
+                        bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
                     }
 
                     //dynamically appending values to filter
@@ -886,7 +886,7 @@ return new Promise(async function (resolve, reject) {
                         bodyParam.filter.fields.push({"type":"selector","dimension":"submissionId","value":req.body.submissionId});
                     }
 
-                    let options = config.druid.options;
+                    let options = gen.utils.getDruidConnection();
                     options.method = "POST";
                     options.body = bodyParam;
 

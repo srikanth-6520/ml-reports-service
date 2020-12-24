@@ -1,6 +1,7 @@
 const config = require('../config/config');
 const rp = require('request-promise');
 const request = require('request');
+let urlPrefix = process.env.ASSESSMENT_SERVICE_APPLICATION_ENDPOINT + process.env.ASSESSMENT_SERVICE_BASE_URL + process.env.URL_PREFIX; 
 
 //Function to get user profile
 async function getUserProfile(createdBy,token){
@@ -14,7 +15,7 @@ async function getUserProfile(createdBy,token){
           "x-authenticated-user-token": token,
           "Content-Type": "application/json",
         },
-        uri: config.samiksha_api.get_user_profile_api + "/" + createdBy
+        uri: urlPrefix + endpoints.GET_USER_PROFILE + "/" + createdBy
       }
   
       rp(options)
@@ -39,7 +40,7 @@ async function getEntityList(entityId, childType, token) {
               "Content-Type": "application/json",
               "X-authenticated-user-token": token
           },
-          uri: config.samiksha_api.assessment_entity_list_api + entityId + "?type=" + childType
+          uri: urlPrefix + endpoints.GET_ENTITY_LIST + "/" + entityId + "?type=" + childType
       }
 
       rp(options).then(function (resp) {
@@ -64,7 +65,7 @@ async function getSurveySubmissionStatusById(submissionId,token) {
               "Content-Type": "application/json",
               "X-authenticated-user-token": token
           },
-          uri: config.samiksha_api.get_survey_submission_status_api + "/" + submissionId
+          uri: urlPrefix + endpoints.GET_SURVEY_SUBMISSION_STATUS + "/" + submissionId
       }
 
       rp(options).then(function (resp) {
@@ -88,7 +89,7 @@ async function getObservationSubmissionStatusById(submissionId,token) {
               "Content-Type": "application/json",
               "X-authenticated-user-token": token
           },
-          uri: config.samiksha_api.get_observation_submission_status_api + "/" + submissionId
+          uri: urlPrefix + endpoints.GET_OBSERVATION_SUBMISSION_STATUS + "/" + submissionId
       }
 
       rp(options).then(function (resp) {
@@ -112,7 +113,7 @@ async function getEntityObservationSubmissionsStatus(entityId,observationId,toke
                 "Content-Type": "application/json",
                 "X-authenticated-user-token": token
             },
-            uri: config.samiksha_api.get_entity_observation_submissions_status + "/" + observationId + "?entityId=" + entityId
+            uri: urlPrefix + endpoints.GET_ENTITY_OBSERVATION_SUBMISSIONS_STATUS + "/" + observationId + "?entityId=" + entityId
         }
   
         rp(options).then(function (resp) {
@@ -125,10 +126,36 @@ async function getEntityObservationSubmissionsStatus(entityId,observationId,toke
     });
   }
 
+
+//Function to get total entities 
+async function getTotalEntities(observationId,token) {
+
+    return new Promise(async function(resolve){
+    let options = {
+      method: "GET",
+      json: true,
+      headers: {
+          "Content-Type": "application/json",
+          "X-authenticated-user-token": token
+      },
+      uri: urlPrefix + endpoints.OBSERVATION_DETAILS + "/" + observationId
+  }
+  
+    rp(options).then(function(resp){
+      return resolve(resp);
+  
+    }).catch(function(err){
+      return resolve(err);
+    })
+  
+  });
+}
+
 module.exports = {
     getUserProfile : getUserProfile,
     getEntityList : getEntityList,
-    getSurveySubmissionStatusById: getSurveySubmissionStatusById,
-    getObservationSubmissionStatusById: getObservationSubmissionStatusById,
-    getEntityObservationSubmissionsStatus: getEntityObservationSubmissionsStatus
+    getSurveySubmissionStatusById : getSurveySubmissionStatusById,
+    getObservationSubmissionStatusById : getObservationSubmissionStatusById,
+    getEntityObservationSubmissionsStatus : getEntityObservationSubmissionsStatus,
+    getTotalEntities : getTotalEntities
 }

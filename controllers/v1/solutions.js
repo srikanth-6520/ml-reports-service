@@ -115,22 +115,22 @@ const getSolutions = async function(bodyParam, type) {
             if (type == filesHelper.assessment) {
 
                 bodyParam.dimensions.push("userId");
-                if (config.druid.assessment_datasource_name) {
-                    bodyParam.dataSource = config.druid.assessment_datasource_name;
+                if (process.env.ASSESSMENT_DATASOURCE_NAME) {
+                    bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
                 }
                 bodyParam.filter.fields[1].fields[0].fields[0].dimension = "userId";
             }
             else if (type == filesHelper.observation) {
 
                 bodyParam.dimensions.push("createdBy");
-                if (config.druid.observation_datasource_name) {
-                    bodyParam.dataSource = config.druid.observation_datasource_name;
+                if (process.env.OBSERVATION_DATASOURCE_NAME) {
+                    bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
                 }
                 bodyParam.filter.fields[1].fields[0].fields[0].dimension = "createdBy";
             }
 
             //pass the query as body param and get the result from druid
-            let options = config.druid.options;
+            let options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
 
