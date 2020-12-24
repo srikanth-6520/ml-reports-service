@@ -6,7 +6,7 @@ const helperFunc = require('../../helper/chart_data');
 const commonCassandraFunc = require('../../common/cassandra_func');
 const pdfHandler = require('../../helper/common_handler');
 const assessmentService = require('../../helper/assessment_service');
-const storePdfReportsToS3 = (!config.store_pdf_reports_in_s3_on_off || config.store_pdf_reports_in_s3_on_off != "OFF") ? "ON" : "OFF"
+const storePdfReportsToS3 = (!process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF || process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF != "OFF") ? "ON" : "OFF"
 
 
 /**

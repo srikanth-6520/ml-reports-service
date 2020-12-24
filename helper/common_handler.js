@@ -11,9 +11,9 @@ const path = require('path');
 var rimraf = require("rimraf");
 
 const s3 = new AWS.S3(config.s3_credentials);
-const myBucket = config.s3_bucketName;
+const myBucket = process.env.AWS_BUCKET_NAME;
 
-// const signedUrlExpireSeconds=config.s3_signed_url_expire_seconds;
+// const signedUrlExpireSeconds=process.env.AWS_SIGNED_URL_EXPIRE_SECONDS;
 
 exports.getSignedUrl = async function getSignedUrl(filePath) {
 
@@ -22,7 +22,7 @@ exports.getSignedUrl = async function getSignedUrl(filePath) {
         // let url = s3.getSignedUrl('getObject', {
         //     Bucket: myBucket,
         //     Key: myKey,
-        //     Expires: config.s3_signed_url_expire_seconds
+        //     Expires: process.env.AWS_SIGNED_URL_EXPIRE_SECONDS
         // })
 
         // return resolve(url);
@@ -41,7 +41,7 @@ async function s3SignedUrl(filePath) {
         let url = s3.getSignedUrl('getObject', {
             Bucket: myBucket,
             Key: myKey,
-            Expires: config.s3_signed_url_expire_seconds
+            Expires: process.env.AWS_SIGNED_URL_EXPIRE_SECONDS
         })
 
         return resolve(url);
@@ -287,7 +287,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, storeReportsToS3 
                                                                 fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
                                                                     if (err) throw err;
                                                                     const params = {
-                                                                        Bucket: config.s3_bucketName, // pass your bucket name
+                                                                        Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                                         Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf', // file will be saved as testBucket/contacts.csv
                                                                         Body: Buffer.from(data, null, 2),
                                                                         Expires: 10
@@ -589,7 +589,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
                                                                 fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
                                                                     if (err) throw err;
                                                                     const params = {
-                                                                        Bucket: config.s3_bucketName, // pass your bucket name
+                                                                        Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                                         Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf', // file will be saved as testBucket/contacts.csv
                                                                         Body: Buffer.from(data, null, 2),
                                                                         Expires: 10
@@ -842,7 +842,7 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
                                                                         if (err) throw err;
 
                                                                         const params = {
-                                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                                            Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                                             Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
                                                                             Body: Buffer.from(data, null, 2),
                                                                             Expires: 10
@@ -1080,7 +1080,7 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
                                                                 fs.readFile(dir + '/entityAssessmentReport.pdf', (err, data) => {
                                                                     if (err) throw err;
                                                                     const params = {
-                                                                        Bucket: config.s3_bucketName, // pass your bucket name
+                                                                        Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                                         Key: 'entityAssessmentPdfReports/' + uuidv4() + 'entityAssessmentReport.pdf', // file will be saved as testBucket/contacts.csv
                                                                         Body: Buffer.from(data, null, 2),
                                                                         Expires: 10
@@ -1542,7 +1542,7 @@ exports.unnatiPdfGeneration = async function (responseData, storeReportsToS3 = f
                                                         if (err) throw err;
 
                                                         const params = {
-                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                            Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                             Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
                                                             Body: Buffer.from(data, null, 2),
                                                             Expires: 10
@@ -1726,7 +1726,7 @@ exports.unnatiMonthlyReportPdfGeneration = async function (responseData, storeRe
                                                         if (err) throw err;
 
                                                         const params = {
-                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                            Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                             Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
                                                             Body: Buffer.from(data, null, 2),
                                                             Expires: 10
@@ -2008,7 +2008,7 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData, storeR
                                                         if (err) throw err;
 
                                                         const params = {
-                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                            Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                             Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
                                                             Body: Buffer.from(data, null, 2),
                                                             Expires: 10
@@ -2179,7 +2179,7 @@ exports.addTaskPdfGeneration = async function (responseData, storeReportsToS3 = 
                                                         if (err) throw err;
 
                                                         const params = {
-                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                            Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                             Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
                                                             Body: Buffer.from(data, null, 2),
                                                             Expires: 10
@@ -2381,7 +2381,7 @@ exports.instanceCriteriaReportPdfGeneration = async function (instanceResponse, 
                                                                 fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
                                                                     if (err) throw err;
                                                                     const params = {
-                                                                        Bucket: config.s3_bucketName, // pass your bucket name
+                                                                        Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                                         Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf', // file will be saved as testBucket/contacts.csv
                                                                         Body: Buffer.from(data, null, 2),
                                                                         Expires: 10
@@ -2606,7 +2606,7 @@ exports.entityCriteriaPdfReportGeneration = async function (responseData, storeR
                                                                 fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
                                                                     if (err) throw err;
                                                                     const params = {
-                                                                        Bucket: config.s3_bucketName, // pass your bucket name
+                                                                        Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                                         Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf', // file will be saved as testBucket/contacts.csv
                                                                         Body: Buffer.from(data, null, 2),
                                                                         Expires: 10
@@ -2892,7 +2892,7 @@ exports.instanceScoreCriteriaPdfGeneration = async function(observationResp, sto
                                                                         if (err) throw err;
 
                                                                         const params = {
-                                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                                            Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                                             Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
                                                                             Body: Buffer.from(data, null, 2),
                                                                             Expires: 10
@@ -3213,7 +3213,7 @@ exports.unnatiEntityReportPdfGeneration = async function (inputData, storeReport
                                                         if (err) throw err;
 
                                                         const params = {
-                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                            Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                             Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
                                                             Body: Buffer.from(data, null, 2),
                                                             Expires: 10

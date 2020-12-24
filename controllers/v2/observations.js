@@ -9,7 +9,7 @@ const observationController = require('../v1/observations');
 const url = require("url");
 const omit = require('object.omit');
 const assessmentService = require('../../helper/assessment_service');
-const storePdfReportsToS3 = (!config.store_pdf_reports_in_s3_on_off || config.store_pdf_reports_in_s3_on_off != "OFF") ? "ON" : "OFF"
+const storePdfReportsToS3 = (!process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF || process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF != "OFF") ? "ON" : "OFF"
 
 
 //Controller for entity solution report (cluster/block/zone/district)

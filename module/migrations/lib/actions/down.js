@@ -23,7 +23,7 @@ module.exports = async db => {
       );
     }
   
-    const collectionName = config.mongodb.migration_collection || "migrations";
+    const collectionName = process.env.MONGODB_MIGRATION_COLLECTION || "migrations";
     const collection = db.collection(collectionName);
     try {
       await collection.deleteOne({ fileName: lastAppliedItem.fileName });

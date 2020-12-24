@@ -31,7 +31,7 @@ module.exports = async db => {
       throw error;
     }
 
-    const collectionName = config.mongodb.migration_collection || "migrations";
+    const collectionName = process.env.MONGODB_MIGRATION_COLLECTION || "migrations";
     const collection = db.collection(collectionName);
 
     const { fileName } = item;

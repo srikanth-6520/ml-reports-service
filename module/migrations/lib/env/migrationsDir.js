@@ -8,7 +8,7 @@ async function resolveMigrationsDirPath() {
   let migrationsDir;
   try {
         
-    migrationsDir = config.mongodb.migration_dir; 
+    migrationsDir = process.env.MONGODB_MIGRATION_DIR; 
 
     if (!migrationsDir) {
       migrationsDir = DEFAULT_MIGRATIONS_DIR_NAME;

@@ -5,7 +5,7 @@ const config = require('../../../../config/config');
 const migrationsDir = require("../env/migrationsDir");
 
 function createMigrationsDirectory() {
-  return fs.mkdirs(path.join(process.cwd(), config.mongodb.migration_dir));
+  return fs.mkdirs(path.join(process.cwd(), process.env.MONGODB_MIGRATION_DIR));
 }
 
 module.exports = async () => {

@@ -5,8 +5,8 @@ const config = require("../../../../config/config");
 module.exports = {
   async connect() {
 
-    const url = config.mongodb.url
-    const databaseName = config.mongodb.db
+    const url = process.env.MONGODB_URL
+    const databaseName = process.env.MONGODB_DATABASE
     const options = {useNewUrlParser: true}
 
     if (!url) {
@@ -30,8 +30,8 @@ module.exports = {
   },
   async connectToTransferFromDB() {
 
-    const url = config.mongodb.url
-    const databaseName = config.mongodb.db
+    const url = process.env.MONGODB_URL
+    const databaseName = process.env.MONGODB_DATABASE
     const options = {useNewUrlParser: true}
 
     if (!url) {

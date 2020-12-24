@@ -36,10 +36,10 @@ api.validateToken = validateToken;
 module.exports = api;
 
 var keyCloakConfig = {
-    authServerUrl: config.keycloak.sunbird_keycloak_auth_server_url,
-    realm: config.keycloak.sunbird_keycloak_realm,
-    clientId: config.keycloak.sunbird_keycloak_client_id,
-    public: config.keycloak.sunbird_keycloak_public
+    authServerUrl: process.env.sunbird_keycloak_auth_server_url,
+    realm: process.env.sunbird_keycloak_realm,
+    clientId: process.env.sunbird_keycloak_client_id,
+    public: process.env.sunbird_keycloak_public
 };
 
 
