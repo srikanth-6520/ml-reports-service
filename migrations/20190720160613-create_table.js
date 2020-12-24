@@ -10,11 +10,11 @@ module.exports = {
       throw new Error("Cassandra connection not available.");
     }
 
-    let truncateTable = "DROP TABLE IF EXISTS " + config.cassandra.keyspace + "." + config.cassandra.table;
+    let truncateTable = "DROP TABLE IF EXISTS " + process.env.CASSANDRA_KEYSPACE + "." + process.env.CASSANDRA_TABLE;
 
     await cassandra.execute(truncateTable);
 
-    let query = "CREATE TABLE IF NOT EXISTS " + config.cassandra.table + " (id uuid PRIMARY KEY, qid text, query text)";
+    let query = "CREATE TABLE IF NOT EXISTS " + process.env.CASSANDRA_TABLE + " (id uuid PRIMARY KEY, qid text, query text)";
 
     await cassandra.execute(query);
 

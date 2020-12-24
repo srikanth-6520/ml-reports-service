@@ -10,13 +10,13 @@ module.exports = {
       throw new Error("Cassandra connection not available.");
     }
 
-    const query = 'SELECT id FROM ' + config.cassandra.keyspace + '.' + config.cassandra.table + ' WHERE qid = ? ALLOW FILTERING';
+    const query = 'SELECT id FROM ' + process.env.CASSANDRA_KEYSPACE + '.' + process.env.CASSANDRA_TABLE + ' WHERE qid = ? ALLOW FILTERING';
     const result = await cassandra.execute(query, ['entity_level_assessment_report_query'], { prepare: true });
     const row = result.rows;
 
     if (!row.length) {
 
-    let query = 'INSERT INTO ' + config.cassandra.keyspace + '.' + config.cassandra.table +' (id, qid, query) VALUES (?, ?, ?)';
+    let query = 'INSERT INTO ' + process.env.CASSANDRA_KEYSPACE + '.' + process.env.CASSANDRA_TABLE +' (id, qid, query) VALUES (?, ?, ?)';
    
     let queries = 
       [{

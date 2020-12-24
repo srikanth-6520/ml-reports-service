@@ -3,9 +3,9 @@
 
 // var models = ExpressCassandra.createClient({
 //     clientOptions: {
-//         contactPoints: [config.cassandra.host],
-//         protocolOptions: { port: config.cassandra.port },
-//         keyspace: config.cassandra.keyspace,
+//         contactPoints: [process.env.CASSANDR_HOST],
+//         protocolOptions: { port: process.env.CASSANDRA_PORT },
+//         keyspace: process.env.CASSANDRA_KEYSPACE,
 //         queryOptions: {consistency: ExpressCassandra.consistencies.one}
 //     },
 //     ormOptions: {
@@ -17,7 +17,7 @@
 //     }
 // });
 
-// var MyModel = models.loadSchema(config.cassandra.table, {
+// var MyModel = models.loadSchema(process.env.CASSANDRA_TABLE, {
 //     fields:{
 //         id : "uuid",
 //         qid : "text",
@@ -26,7 +26,7 @@
 //     key:["id"]
 // });
 
-// var reportIndexes = models.loadSchema(config.cassandra.apiReqAndResTable, {
+// var reportIndexes = models.loadSchema(process.env.CASSANDRA_API_REQ_AND_RES_TABLE, {
 //     fields:{
 //         id : {
 //             type: "uuid",
@@ -39,7 +39,7 @@
 //     key:['id']
 // });
 
-// var assessmentModel = models.loadSchema(config.cassandra.assessmentTable, {
+// var assessmentModel = models.loadSchema(process.env.CASSANDRA_ASSESSMENT_TABLE, {
 //     fields:{
 //         id : {
 //             type: "uuid",
@@ -52,7 +52,7 @@
 //     key:['id']
 // });
 
-// // var migrationModel = models.loadSchema(config.cassandra.migrationTable, {
+// // var migrationModel = models.loadSchema(process.env.MIGRATION_TABLE, {
 // //     fields:{
 // //         id : {
 // //             type: "uuid",

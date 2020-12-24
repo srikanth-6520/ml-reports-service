@@ -37,19 +37,19 @@ app.use(function (req, res, next) { //allow cross origin requests
 
 
 //API documentation (apidoc)
-if (config.node_env == "development" || config.node_env == "local") {
+if (process.env.NODE_ENV == "development" || process.env.NODE_ENV == "local") {
   app.use(express.static("apidoc"));
-  if (config.node_env == "local") {
-    app.get(config.apidoc_url, (req, res) => {
-      let apidocPath = config.apidoc_path + "/index.html";
+  if (process.env.NODE_ENV == "local") {
+    app.get(process.env.APIDOC_URL, (req, res) => {
+      let apidocPath = process.env.APIDOC_PATH + "/index.html";
 
       res.sendFile(path.join(__dirname, apidocPath));
     });
   } else {
-    app.get(config.apidoc_url, (req, res) => {
+    app.get(process.env.APIDOC_URL, (req, res) => {
       let urlArray = req.path.split("/");
       urlArray.splice(0, 3);
-      let apidocPath = config.apidoc_path + urlArray.join("/");
+      let apidocPath = process.env.APIDOC_PATH + urlArray.join("/");
 
       res.sendFile(path.join(__dirname, apidocPath));
     });
@@ -61,7 +61,7 @@ if (config.node_env == "development" || config.node_env == "local") {
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || config.application_port_number);
+var port = normalizePort(process.env.PORT || process.env.APPLICATION_PORT_NUMBER);
 app.set('port', port);
 router(app);
 

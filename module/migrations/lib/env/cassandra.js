@@ -5,9 +5,9 @@ module.exports = {
     async connect() {
 
     const client = new cassandra.Client({
-      contactPoints: [config.cassandra.host],
+      contactPoints: [process.env.CASSANDR_HOST],
       localDataCenter: 'datacenter1',
-      keyspace: config.cassandra.keyspace
+      keyspace: process.env.CASSANDRA_KEYSPACE
     });
 
     return client;

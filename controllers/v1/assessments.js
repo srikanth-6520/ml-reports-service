@@ -711,7 +711,7 @@ exports.pdfReports = async function (req, res) {
 
                 // if (storeReportsToS3 == false) {
                    
-                    resData.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+                    resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
                     res.send(resData);
                 // }
                 // else {

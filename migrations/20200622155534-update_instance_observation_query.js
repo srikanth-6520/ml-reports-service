@@ -10,7 +10,7 @@ module.exports = {
       throw new Error("Cassandra connection not available.");
     }
 
-    const query = 'SELECT id FROM ' + config.cassandra.keyspace + '.' + config.cassandra.table + ' WHERE qid = ? ALLOW FILTERING';
+    const query = 'SELECT id FROM ' + process.env.CASSANDRA_KEYSPACE + '.' + process.env.CASSANDRA_TABLE + ' WHERE qid = ? ALLOW FILTERING';
     const result = await cassandra.execute(query, [ 'instance_observation_query' ], { prepare: true });
     const row = result.rows;
    
@@ -18,7 +18,7 @@ module.exports = {
 
     let queries = 
       [{
-        query: 'UPDATE ' + config.cassandra.keyspace + '.' + config.cassandra.table + ' SET query=? WHERE id=?',
+        query: 'UPDATE ' + process.env.CASSANDRA_KEYSPACE + '.' + process.env.CASSANDRA_TABLE + ' SET query=? WHERE id=?',
         params: ['{"queryType":"groupBy","dataSource":"sl_observation","granularity":"all","dimensions":["questionName","questionAnswer","school","districtName","schoolName","remarks","entityType","observationName","observationId","questionResponseType","questionResponseLabel","questionId","questionExternalId","instanceId","instanceParentQuestion","instanceParentResponsetype","instanceParentId","questionSequenceByEcm","instanceParentExternalId","instanceParentEcmSequence"],"filter":{"type":"and","fields":[{"type":"selector","dimension":"observationSubmissionId","value":""}]},"aggregations":[],"postAggregations":[],"limitSpec":{"type":"default","limit":10000,"columns":[{"dimension":"questionExternalId","direction":"ascending"}]},"intervals":["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"]}',row[0].id]
       }];
 
@@ -27,7 +27,7 @@ module.exports = {
      }
      else {
       let id = Uuid.random();
-      let query = 'INSERT INTO ' + config.cassandra.keyspace + '.' + config.cassandra.table +' (id, qid, query) VALUES (?, ?, ?)';
+      let query = 'INSERT INTO ' + process.env.CASSANDRA_KEYSPACE + '.' + process.env.CASSANDRA_TABLE +' (id, qid, query) VALUES (?, ?, ?)';
       
       let queries = 
       [{

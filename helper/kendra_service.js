@@ -8,13 +8,13 @@ async function getDownloadableUrl(evidenceList, token) {
     return new Promise(async function (resolve, reject) {
 
       let url;
-      if (config.cloud_storage == filesHelper.googleCloud) {
+      if (process.env.CLOUD_STORAGE == filesHelper.googleCloud) {
          url = config.kendra.gcp_downloadable_file_url_api;
       }
-      else if (config.cloud_storage == filesHelper.azure) {
+      else if (process.env.CLOUD_STORAGE == filesHelper.azure) {
          url = config.kendra.azure_downloadable_file_url_api;
       }
-      else if (config.cloud_storage == filesHelper.aws) {
+      else if (process.env.CLOUD_STORAGE == filesHelper.aws) {
          url = config.kendra.aws_downloadable_file_url_api;
       }
       
@@ -25,7 +25,7 @@ async function getDownloadableUrl(evidenceList, token) {
           "x-authenticated-user-token": token,
           "Content-Type": "application/json",
         },
-        body: { filePaths: evidenceList, bucketName: config.bucket_name },
+        body: { filePaths: evidenceList, bucketName: process.env.BUCKET_NAME },
         uri: url
       }
   

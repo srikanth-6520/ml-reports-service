@@ -34,7 +34,7 @@ exports.pdfReport = async function(req,res){
 
     let response = await pdfHandler.unnatiPdfGeneration(req.body, storeReportsToS3 = false);
    
-    response.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+    response.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
     res.send(response);
 }
 
@@ -68,7 +68,7 @@ exports.monthlyReport = async function(req,res){
 
     let response = await pdfHandler.unnatiMonthlyReportPdfGeneration(req.body, storeReportsToS3 = false);
   
-    response.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+    response.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
     res.send(response);
 }
 
@@ -101,7 +101,7 @@ exports.viewProjectReport = async function(req,res){
 
     let response = await pdfHandler.unnatiViewFullReportPdfGeneration(req.body, storeReportsToS3 = false);
   
-    response.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+    response.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
     res.send(response);
 }
 
@@ -145,7 +145,7 @@ exports.addTaskReport = async function(req,res){
 
    let response = await pdfHandler.addTaskPdfGeneration(req.body, storeReportsToS3 = false);
  
-   response.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+   response.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
    res.send(response);
 }
 
