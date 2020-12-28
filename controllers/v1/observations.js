@@ -1,4 +1,4 @@
-const config = require('../../config/config');
+
 const rp = require('request-promise');
 const request = require('request');
 const model = require('../../db');

@@ -1,5 +1,4 @@
 const pdfHandler = require('../../helper/common_handler');
-const config = require('../../config/config');
 
 
 /**

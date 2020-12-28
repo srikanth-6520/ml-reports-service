@@ -668,30 +668,3 @@ async function getEvidenceData(inputObj) {
   })
 }
 
-//Function to get the school type and administration type from samiksha
-async function getSchoolTypeFromSamiksha(createdBy,token){
-  
-  return new Promise(async function(resolve,reject){
-
-    let options = {
-      method: "POST",
-      json: true,
-      headers: {
-        "x-authenticated-user-token": token,
-        "Content-Type": "application/json",
-      },
-      uri: config.samiksha.get_user_profile + "/" + createdBy
-    }
-
-    rp(options)
-      .then(result => {
-        return resolve(result);
-      })
-      .catch(err => {
-        return reject(err);
-      })
-
-  });
-
-
-}

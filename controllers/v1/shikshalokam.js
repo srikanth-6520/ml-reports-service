@@ -1,4 +1,3 @@
-var config = require('../../config/config');
 var rp = require('request-promise');
 var request = require('request');
 var model = require('../../db')

@@ -5,11 +5,6 @@
  */
 
 /**
- * Loading Application level configuration data
- */
-var config = require('../config/config.json');
-
-/**
  * helper functions
  */
 
