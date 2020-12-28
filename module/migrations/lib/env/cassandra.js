@@ -1,8 +1,7 @@
-const config = require('../../../../config/config');
 const cassandra = require('cassandra-driver');
 
 module.exports = {
-    async connect() {
+  async connect() {
 
     const client = new cassandra.Client({
       contactPoints: [process.env.CASSANDR_HOST],
@@ -12,5 +11,5 @@ module.exports = {
 
     return client;
 
-}
+  }
 }

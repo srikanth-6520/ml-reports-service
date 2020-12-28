@@ -1,4 +1,3 @@
-const config = require('../config/config');
 const authenticator = require('../middleware/authentication_service');
 
 module.exports = function (app) {
@@ -16,8 +15,8 @@ module.exports = function (app) {
             next();
         }
         try {
-          let result = await controllers[req.params.version][req.params.controller][req.params.method](req,res);
-        } catch(err){
+            let result = await controllers[req.params.version][req.params.controller][req.params.method](req, res);
+        } catch (err) {
 
         }
     }

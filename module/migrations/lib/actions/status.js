@@ -1,18 +1,17 @@
 const { find } = require("lodash");
 const migrationsDir = require("../env/migrationsDir");
-const config = require('../../../../config/config');
 
 module.exports = async db => {
   await migrationsDir.shouldExist();
-  
+
   let fileValue
   const fileNames = await migrationsDir.getFileNames();
 
-  if(alias== "u" && (upgradeOneItem && fileNames.includes(upgradeOneItem))){
+  if (alias == "u" && (upgradeOneItem && fileNames.includes(upgradeOneItem))) {
     fileValue = [upgradeOneItem]
-  }else if(alias == "d" && (downgradeOneItem && fileNames.includes(downgradeOneItem))){
+  } else if (alias == "d" && (downgradeOneItem && fileNames.includes(downgradeOneItem))) {
     fileValue = [downgradeOneItem]
-  }else{
+  } else {
     fileValue = fileNames
   }
   const collectionName = process.env.MONGODB_MIGRATION_COLLECTION || "migrations"

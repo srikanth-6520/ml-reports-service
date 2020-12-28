@@ -1,4 +1,3 @@
-const config = require('../../config/config');
 const commonCassandraFunc = require('../../common/cassandra_func');
 const pdfHandler = require('../../helper/common_handler');
 const assessmentController = require('./assessments');
@@ -35,48 +34,48 @@ exports.pdfReports = async function (req, res) {
         //     res.send(response);
 
         // } else {
-            let assessmentRes;
-            // if (dataReportIndexes) {
-            //     assessmentRes = JSON.parse(dataReportIndexes['apiresponse']);
+        let assessmentRes;
+        // if (dataReportIndexes) {
+        //     assessmentRes = JSON.parse(dataReportIndexes['apiresponse']);
+        // }
+        // else {
+        assessmentRes = await assessmentController.assessmentReportGetChartData(req, res);
+        // }
+
+
+        if (assessmentRes.result == true) {
+
+            // let storeReportsToS3 = false;
+            // if(storePdfReportsToS3 == "ON"){
+            //   storeReportsToS3 = true;
+            // }
+
+            let resData = await pdfHandler.assessmentPdfGeneration(assessmentRes, storeReportsToS3 = false);
+
+            // if (storeReportsToS3 == false) {
+
+            resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+            res.send(resData);
             // }
             // else {
-                assessmentRes = await assessmentController.assessmentReportGetChartData(req, res);
+            //     if (dataReportIndexes) {
+            //         var reqOptions = {
+            //             query: dataReportIndexes.id,
+            //             downloadPath: resData.downloadPath
+            //         }
+            //         commonCassandraFunc.updateEntityAssessmentDownloadPath(reqOptions);
+            //     } else {
+            //         //store download url in cassandra
+            //         let dataInsert = commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqData, resData, resData.downloadPath);
+            //     }
+
+            //     //res.send(resData);
+            //      res.send(omit(resData,'downloadPath'));
             // }
-
-
-            if (assessmentRes.result == true) {
-
-                // let storeReportsToS3 = false;
-                // if(storePdfReportsToS3 == "ON"){
-                //   storeReportsToS3 = true;
-                // }
-                
-                let resData = await pdfHandler.assessmentPdfGeneration(assessmentRes, storeReportsToS3 = false);
-
-                // if (storeReportsToS3 == false) {
-                    
-                    resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-                    res.send(resData);
-                // }
-                // else {
-                //     if (dataReportIndexes) {
-                //         var reqOptions = {
-                //             query: dataReportIndexes.id,
-                //             downloadPath: resData.downloadPath
-                //         }
-                //         commonCassandraFunc.updateEntityAssessmentDownloadPath(reqOptions);
-                //     } else {
-                //         //store download url in cassandra
-                //         let dataInsert = commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqData, resData, resData.downloadPath);
-                //     }
-
-                //     //res.send(resData);
-                //      res.send(omit(resData,'downloadPath'));
-                // }
-            }
-            else {
-                res.send(assessmentRes);
-            }
+        }
+        else {
+            res.send(assessmentRes);
+        }
 
         // }
     }

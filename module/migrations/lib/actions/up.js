@@ -6,7 +6,6 @@ const status = require("./status");
 const migrationsDir = require("../env/migrationsDir");
 const database = require("../env/database");
 const cassandra = require("../env/cassandra");
-const config = require("../../../../config/config");
 
 module.exports = async db => {
   const statusItems = await status(db);
@@ -39,7 +38,7 @@ module.exports = async db => {
     const message = global.migrationMsg
 
     try {
-      await collection.insertOne({ fileName, appliedAt,message });
+      await collection.insertOne({ fileName, appliedAt, message });
     } catch (err) {
       throw new Error(`Could not update changelog: ${err.message}`);
     }

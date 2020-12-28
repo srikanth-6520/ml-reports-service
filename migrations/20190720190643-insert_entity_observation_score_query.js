@@ -1,5 +1,4 @@
 const Uuid = require('cassandra-driver').types.Uuid;
-const config = require('../config/config');
 
 module.exports = {
   async up(db) {

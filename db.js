@@ -1,5 +1,4 @@
 // var ExpressCassandra = require('express-cassandra');
-// var config = require('./config/config')
 
 // var models = ExpressCassandra.createClient({
 //     clientOptions: {
@@ -75,7 +74,7 @@
 //     if (err) throw err;
 //     // result == true if any database schema was updated
 //     // result == false if no schema change was detected in your models
-    
+
 // });
 
 // reportIndexes.syncDB(function(err, result) {

@@ -9,7 +9,7 @@ const druidQueries = require('./druid_queries.json');
 
 function getDruidQuery(name) {
   let query = {};
-  
+
   if (druidQueries[name]) {
     query = JSON.parse(JSON.stringify(druidQueries[name]));
   }
@@ -25,17 +25,17 @@ function getDruidQuery(name) {
 */
 
 function getDruidConnection() {
-  
+
   let options = {
     method: "",
     json: true,
     body: "",
     headers: {
-        "Content-Type": "application/json"
+      "Content-Type": "application/json"
     },
     url: process.env.DRUID_HOST + ":" + process.env.DRUID_PORT + "/druid/v2/?pretty"
   }
-  
+
   return options;
 }
 
@@ -47,14 +47,14 @@ function getDruidConnection() {
 */
 
 function getHighChartConnection() {
-  
+
   let highchart = {
     url: process.env.HIGHCHART_URL,
     headers: {
-        "Content-Type": "application/json"
-    } 
+      "Content-Type": "application/json"
+    }
   }
-  
+
   return highchart;
 }
 
@@ -66,20 +66,38 @@ function getHighChartConnection() {
 */
 
 function getGotenbergConnection() {
-  
-  let options =  {
+
+  let options = {
     method: "POST",
     uri: process.env.GOTENBERG_URL,
     headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
+      "Content-Type": "application/x-www-form-urlencoded"
     },
     resolveWithFullResponse: true,
     encoding: null,
     json: true,
-    formData:""
-}
-  
+    formData: ""
+  }
+
   return options;
+}
+
+/**
+  * Return aws connection credentials
+  * @function
+  * @name getAWSConnection
+  * @returns {Array}  returns aws connection.  
+*/
+
+function getAWSConnection() {
+
+  let s3_credentials = {
+    "accessKeyId": process.env.AWS_ACCESS_KEY_ID,
+    "secretAccessKey": process.env.AWS_SECRET_ACCESS_KEY,
+    "region": process.env.AWS_REGION
+  }
+
+  return s3_credentials;
 }
 
 /**
@@ -91,7 +109,7 @@ function getGotenbergConnection() {
 
 function getPortalReportsFilePaths(fileName) {
 
-  let file_path =  {
+  let file_path = {
     userNeverLoggedIn: process.env.USER_NEVER_LOGGED_IN,
     uniqueActiveUsers: process.env.UNIQUE_ACTIVE_USERS,
     topScoreQuiz: process.env.TOP_SCORE_QUIZ,
@@ -111,7 +129,7 @@ function getPortalReportsFilePaths(fileName) {
     multiResource: process.env.MULTI_RESOURCE,
     multiSelection: process.env.MULTI_SELECTION
   }
-  
+
   return file_path[fileName];
 }
 
@@ -121,5 +139,6 @@ module.exports = {
   getDruidConnection: getDruidConnection,
   getHighChartConnection: getHighChartConnection,
   getGotenbergConnection: getGotenbergConnection,
-  getPortalReportsFilePaths: getPortalReportsFilePaths
+  getPortalReportsFilePaths: getPortalReportsFilePaths,
+  getAWSConnection: getAWSConnection
 }

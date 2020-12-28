@@ -1,13 +1,12 @@
 const { MongoClient } = require("mongodb");
 global.ObjectID = require('mongodb').ObjectID;
-const config = require("../../../../config/config");
 
 module.exports = {
   async connect() {
 
     const url = process.env.MONGODB_URL
     const databaseName = process.env.MONGODB_DATABASE
-    const options = {useNewUrlParser: true}
+    const options = { useNewUrlParser: true }
 
     if (!url) {
       throw new Error("No `url` defined in config file!");
@@ -32,7 +31,7 @@ module.exports = {
 
     const url = process.env.MONGODB_URL
     const databaseName = process.env.MONGODB_DATABASE
-    const options = {useNewUrlParser: true}
+    const options = { useNewUrlParser: true }
 
     if (!url) {
       throw new Error("No `url` defined in config file!");

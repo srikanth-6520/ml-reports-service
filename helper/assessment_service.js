@@ -1,161 +1,160 @@
-const config = require('../config/config');
 const rp = require('request-promise');
 const request = require('request');
-let urlPrefix = process.env.ASSESSMENT_SERVICE_APPLICATION_ENDPOINT + process.env.ASSESSMENT_SERVICE_BASE_URL + process.env.URL_PREFIX; 
+let urlPrefix = process.env.ASSESSMENT_SERVICE_APPLICATION_ENDPOINT + process.env.ASSESSMENT_SERVICE_BASE_URL + process.env.URL_PREFIX;
 
 //Function to get user profile
-async function getUserProfile(createdBy,token){
-  
-    return new Promise(async function(resolve,reject){
-  
-      let options = {
-        method: "GET",
-        json: true,
-        headers: {
-          "x-authenticated-user-token": token,
-          "Content-Type": "application/json",
-        },
-        uri: urlPrefix + endpoints.GET_USER_PROFILE + "/" + createdBy
-      }
-  
-      rp(options)
-        .then(result => {
-          return resolve(result);
-        })
-        .catch(err => {
-          return reject(err);
-        })
-  
-    });
+async function getUserProfile(createdBy, token) {
+
+  return new Promise(async function (resolve, reject) {
+
+    let options = {
+      method: "GET",
+      json: true,
+      headers: {
+        "x-authenticated-user-token": token,
+        "Content-Type": "application/json",
+      },
+      uri: urlPrefix + endpoints.GET_USER_PROFILE + "/" + createdBy
+    }
+
+    rp(options)
+      .then(result => {
+        return resolve(result);
+      })
+      .catch(err => {
+        return reject(err);
+      })
+
+  });
 }
 
 //function to make a call to samiksha assessment entities list API
 async function getEntityList(entityId, childType, token) {
 
   return new Promise(async function (resolve) {
-      let options = {
-          method: "GET",
-          json: true,
-          headers: {
-              "Content-Type": "application/json",
-              "X-authenticated-user-token": token
-          },
-          uri: urlPrefix + endpoints.GET_ENTITY_LIST + "/" + entityId + "?type=" + childType
-      }
+    let options = {
+      method: "GET",
+      json: true,
+      headers: {
+        "Content-Type": "application/json",
+        "X-authenticated-user-token": token
+      },
+      uri: urlPrefix + endpoints.GET_ENTITY_LIST + "/" + entityId + "?type=" + childType
+    }
 
-      rp(options).then(function (resp) {
-          return resolve(resp);
+    rp(options).then(function (resp) {
+      return resolve(resp);
 
-      }).catch(function (err) {
-          return resolve(err);
-      })
+    }).catch(function (err) {
+      return resolve(err);
+    })
 
   });
 }
 
 
 //function to make a call to samiksha assessment entities list API
-async function getSurveySubmissionStatusById(submissionId,token) {
+async function getSurveySubmissionStatusById(submissionId, token) {
 
   return new Promise(async function (resolve) {
-      let options = {
-          method: "GET",
-          json: true,
-          headers: {
-              "Content-Type": "application/json",
-              "X-authenticated-user-token": token
-          },
-          uri: urlPrefix + endpoints.GET_SURVEY_SUBMISSION_STATUS + "/" + submissionId
-      }
+    let options = {
+      method: "GET",
+      json: true,
+      headers: {
+        "Content-Type": "application/json",
+        "X-authenticated-user-token": token
+      },
+      uri: urlPrefix + endpoints.GET_SURVEY_SUBMISSION_STATUS + "/" + submissionId
+    }
 
-      rp(options).then(function (resp) {
-          return resolve(resp);
+    rp(options).then(function (resp) {
+      return resolve(resp);
 
-      }).catch(function (err) {
-          return resolve(err);
-      })
+    }).catch(function (err) {
+      return resolve(err);
+    })
 
   });
 }
 
 //function to make a call to samiksha assessment entities list API
-async function getObservationSubmissionStatusById(submissionId,token) {
+async function getObservationSubmissionStatusById(submissionId, token) {
 
   return new Promise(async function (resolve) {
-      let options = {
-          method: "GET",
-          json: true,
-          headers: {
-              "Content-Type": "application/json",
-              "X-authenticated-user-token": token
-          },
-          uri: urlPrefix + endpoints.GET_OBSERVATION_SUBMISSION_STATUS + "/" + submissionId
-      }
+    let options = {
+      method: "GET",
+      json: true,
+      headers: {
+        "Content-Type": "application/json",
+        "X-authenticated-user-token": token
+      },
+      uri: urlPrefix + endpoints.GET_OBSERVATION_SUBMISSION_STATUS + "/" + submissionId
+    }
 
-      rp(options).then(function (resp) {
-          return resolve(resp);
+    rp(options).then(function (resp) {
+      return resolve(resp);
 
-      }).catch(function (err) {
-          return resolve(err);
-      })
+    }).catch(function (err) {
+      return resolve(err);
+    })
 
   });
 }
 
 //function to get  status of submissions for the given entity and observationId
-async function getEntityObservationSubmissionsStatus(entityId,observationId,token) {
+async function getEntityObservationSubmissionsStatus(entityId, observationId, token) {
 
-    return new Promise(async function (resolve) {
-        let options = {
-            method: "GET",
-            json: true,
-            headers: {
-                "Content-Type": "application/json",
-                "X-authenticated-user-token": token
-            },
-            uri: urlPrefix + endpoints.GET_ENTITY_OBSERVATION_SUBMISSIONS_STATUS + "/" + observationId + "?entityId=" + entityId
-        }
-  
-        rp(options).then(function (resp) {
-            return resolve(resp);
-  
-        }).catch(function (err) {
-            return resolve(err);
-        })
-  
-    });
-  }
-
-
-//Function to get total entities 
-async function getTotalEntities(observationId,token) {
-
-    return new Promise(async function(resolve){
+  return new Promise(async function (resolve) {
     let options = {
       method: "GET",
       json: true,
       headers: {
-          "Content-Type": "application/json",
-          "X-authenticated-user-token": token
+        "Content-Type": "application/json",
+        "X-authenticated-user-token": token
       },
-      uri: urlPrefix + endpoints.OBSERVATION_DETAILS + "/" + observationId
-  }
-  
-    rp(options).then(function(resp){
+      uri: urlPrefix + endpoints.GET_ENTITY_OBSERVATION_SUBMISSIONS_STATUS + "/" + observationId + "?entityId=" + entityId
+    }
+
+    rp(options).then(function (resp) {
       return resolve(resp);
-  
-    }).catch(function(err){
+
+    }).catch(function (err) {
       return resolve(err);
     })
-  
+
+  });
+}
+
+
+//Function to get total entities 
+async function getTotalEntities(observationId, token) {
+
+  return new Promise(async function (resolve) {
+    let options = {
+      method: "GET",
+      json: true,
+      headers: {
+        "Content-Type": "application/json",
+        "X-authenticated-user-token": token
+      },
+      uri: urlPrefix + endpoints.OBSERVATION_DETAILS + "/" + observationId
+    }
+
+    rp(options).then(function (resp) {
+      return resolve(resp);
+
+    }).catch(function (err) {
+      return resolve(err);
+    })
+
   });
 }
 
 module.exports = {
-    getUserProfile : getUserProfile,
-    getEntityList : getEntityList,
-    getSurveySubmissionStatusById : getSurveySubmissionStatusById,
-    getObservationSubmissionStatusById : getObservationSubmissionStatusById,
-    getEntityObservationSubmissionsStatus : getEntityObservationSubmissionsStatus,
-    getTotalEntities : getTotalEntities
+  getUserProfile: getUserProfile,
+  getEntityList: getEntityList,
+  getSurveySubmissionStatusById: getSurveySubmissionStatusById,
+  getObservationSubmissionStatusById: getObservationSubmissionStatusById,
+  getEntityObservationSubmissionsStatus: getEntityObservationSubmissionsStatus,
+  getTotalEntities: getTotalEntities
 }
