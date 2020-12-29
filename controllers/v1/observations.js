@@ -605,7 +605,7 @@ async function entityObservationPdf(req, res) {
   
       let responseData = await entityObservationData(req, res);
   
-      if (("observationName" in responseData) == true) {
+      if (("entityName" in responseData) == true) {
 
         let resData = await pdfHandler.pdfGeneration(responseData, storeReportsToS3 = false);
   
