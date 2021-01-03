@@ -12,7 +12,7 @@ module.exports = {
     GET_OBSERVATION_SUBMISSION_STATUS : "/observationSubmissions/status",
     GET_ENTITY_OBSERVATION_SUBMISSIONS_STATUS: "/observations/submissionStatus",
     OBSERVATION_DETAILS : "/observations/details",
-    GCP_GET_DOWNLOADABLE_URL : "/userProfile/create",
-    AZURE_GET_DOWNLOADABLE_URL : "/userProfile/update",
-    AWS_GET_DOWNLOADABLE_URL : "/userProfile/verify"
+    GCP_GET_DOWNLOADABLE_URL : "/cloud-services/gcp/getDownloadableUrl",
+    AZURE_GET_DOWNLOADABLE_URL : "/cloud-services/azure/getDownloadableUrl",
+    AWS_GET_DOWNLOADABLE_URL : "/cloud-services/aws/getDownloadableUrl"
 }
