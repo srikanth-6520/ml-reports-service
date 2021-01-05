@@ -137,6 +137,78 @@ let enviromentVariables = {
       "ON",
       "OFF"
     ]
+  },
+  "USER_NEVER_LOGGED_IN" : {
+    "message" : "Required",
+    "optional" : true
+  },
+  "UNIQUE_ACTIVE_USERS" : {
+    "message" : "Required",
+    "optional" : true
+  },
+  "TOP_SCORE_QUIZ" : {
+    "message" : "Required",
+    "optional" : true
+  },
+  "CONTENT_RATINGS" : {
+    "message" : "Required",
+    "optional" : true
+  },
+  "MAP_DATA_RESOURCES" : {
+    "message" : "Required",
+    "optional" : true
+  },
+  "LOGIN_TREND" : {
+    "message" : "Required",
+    "optional" : true
+  },
+  "LOGIN_PERCENTAGE" : {
+    "message" : "Required",
+    "optional" : true
+  },
+  "LEARNING_TOP_SCORE_QUIZ" : {
+    "message" : "Required",
+    "optional" : true
+  },
+  "PARTICIPATION_PERCENTAGE" : {
+    "message" : "Required",
+    "optional" : true
+  },
+  "LAST_UPDATED_DATE" : {
+    "message" : "Required",
+    "optional" : true
+  },
+  "DAILY_AVERAGE_GROWTH" : {
+    "message" : "Required",
+    "optional" : true
+  },
+  "COUNT_CONTENT_RATING" : {
+    "message" : "Required",
+    "optional" : true
+  },
+  "AVERAGE_TIME_SPENT" : {
+    "message" : "Required",
+    "optional" : true
+  },
+  "AVERAGE_RATING_CONTENT" : {
+    "message" : "Required",
+    "optional" : true
+  },
+  "APP_COUNT" : {
+    "message" : "Required",
+    "optional" : true
+  },
+  "ADOPTION_CONTENT" : {
+    "message" : "Required",
+    "optional" : true
+  },
+  "MULTI_RESOURCE" : {
+    "message" : "Required",
+    "optional" : true
+  },
+  "MULTI_SELECTION" : {
+    "message" : "Required",
+    "optional" : true
   }
 }
 
