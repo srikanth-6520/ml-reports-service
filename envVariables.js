@@ -120,15 +120,19 @@ let enviromentVariables = {
   },
   "AWS_ACCESS_KEY_ID" : {
     "message" : "Required",
-    "optional" : false
+    "optional" : true
   },
   "AWS_SECRET_ACCESS_KEY" : {
     "message" : "Required",
-    "optional" : false
+    "optional" : true
   },
-  "AWS_BUCKET_NAME" : {
+  "AWS_REGION" : {
     "message" : "Required",
-    "optional" : false
+    "optional" : true
+  },
+  "AWS_SIGNED_URL_EXPIRE_SECONDS" : {
+    "message" : "Required",
+    "optional" : true
   },
   "STORE_PDF_REPORTS_IN_AWS_ON_OFF" : {
     "message" : "Enable/Disable reports storage in s3",
