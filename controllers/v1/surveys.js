@@ -1,6 +1,5 @@
 const rp = require('request-promise');
 const request = require('request');
-const model = require('../../db');
 const helperFunc = require('../../helper/chart_data');
 const filesHelper = require('../../common/files_helper');
 const assessmentService = require('../../helper/assessment_service');
@@ -106,11 +105,6 @@ const getSubmissionIdCount = async function (solutionId) {
     return new Promise(async function (resolve, reject) {
         try {
 
-            // model.MyModel.findOneAsync({ qid: "get_submissionId_count_query" }, { allow_filtering: true })
-            // .then(async function (result) {
-
-            //     let bodyParam = JSON.parse(result.query);
-
             let bodyParam = gen.utils.getDruidQuery("get_submissionId_count_query");
 
             if (process.env.SURVEY_DATASOURCE_NAME) {
@@ -131,8 +125,6 @@ const getSubmissionIdCount = async function (solutionId) {
             }
 
             return resolve({ submissionCount: submissionIdCount });
-
-            // })
         }
         catch (err) {
 
@@ -149,12 +141,7 @@ const getDataOFTextTypeQuestions = async function (req) {
 
     return new Promise(async function (resolve, reject) {
         try {
-
-            // model.MyModel.findOneAsync({ qid: "survey_solutions_report_query" }, { allow_filtering: true })
-            // .then(async function (result) {
-
-            //     let bodyParam = JSON.parse(result.query);
-
+            
             let bodyParam = gen.utils.getDruidQuery("survey_solutions_report_query");
 
             if (process.env.SURVEY_DATASOURCE_NAME) {
@@ -196,8 +183,6 @@ const getDataOFTextTypeQuestions = async function (req) {
                 });
 
             return resolve(data);
-
-            // })
         }
         catch (err) {
 
@@ -240,10 +225,6 @@ const getDataOFChartTypeQuestions = async function (req) {
     return new Promise(async function (resolve, reject) {
         try {
 
-            // model.MyModel.findOneAsync({ qid: "survey_solution_chart_report_query" }, { allow_filtering: true })
-            // .then(async function (result) {
-
-            //     let bodyParam = JSON.parse(result.query);
             let bodyParam = gen.utils.getDruidQuery("survey_solution_chart_report_query");
 
             if (process.env.SURVEY_DATASOURCE_NAME) {
@@ -265,8 +246,6 @@ const getDataOFChartTypeQuestions = async function (req) {
             let data = await rp(options);
 
             return resolve(data);
-
-            // })
 
         }
         catch (err) {
@@ -326,10 +305,6 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
                 res.send(response);
             }
 
-            // model.MyModel.findOneAsync({ qid: "list_all_responses" }, { allow_filtering: true })
-            //     .then(async function (result) {
-
-            // let bodyParam = JSON.parse(result.query);
             let bodyParam = gen.utils.getDruidQuery("list_all_responses");
 
             if (process.env.SURVEY_DATASOURCE_NAME) {
@@ -361,7 +336,6 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
                 response = await helperFunc.listALLAnswers(data);
                 res.send(response);
             }
-            // })
         }
         catch (err) {
             response = {
@@ -370,7 +344,6 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
             };
             res.send(response);
         }
-
     })
 }
 
@@ -416,10 +389,6 @@ exports.submissionReport = async function (req, res) {
 
             } else {
 
-                // model.MyModel.findOneAsync({ qid: "survey_submission_report_query" }, { allow_filtering: true })
-                //     .then(async function (result) {
-
-                //         let bodyParam = JSON.parse(result.query);
                 let bodyParam = gen.utils.getDruidQuery("survey_submission_report_query");
 
                 if (process.env.SURVEY_DATASOURCE_NAME) {
@@ -485,7 +454,6 @@ exports.submissionReport = async function (req, res) {
 
                     res.send(responseObj);
                 }
-                // })
             }
         }
         catch (err) {
@@ -549,11 +517,6 @@ exports.listAllEvidences = async function (req, res) {
                 res.send(response);
             }
 
-            // model.MyModel.findOneAsync({ qid: "list_all_evidence_query" }, { allow_filtering: true })
-            // .then(async function (result) {
-
-            //     let bodyParam = JSON.parse(result.query);
-
             let bodyParam = gen.utils.getDruidQuery("list_all_evidence_query");
 
             if (process.env.SURVEY_EVIDENCE_DATASOURCE_NAME) {
@@ -594,8 +557,6 @@ exports.listAllEvidences = async function (req, res) {
 
                 res.send({ result: true, data: response });
             }
-
-            // })
         }
         catch (err) {
             let response = {
@@ -616,10 +577,6 @@ async function getEvidenceData(inputObj) {
 
         try {
 
-            // model.MyModel.findOneAsync({ qid: "get_survey_evidence_query" }, { allow_filtering: true })
-            //     .then(async function (result) {
-
-            //         let bodyParam = JSON.parse(result.query);
             let bodyParam = gen.utils.getDruidQuery("get_survey_evidence_query");
 
             if (process.env.SURVEY_EVIDENCE_DATASOURCE_NAME) {
@@ -671,7 +628,6 @@ async function getEvidenceData(inputObj) {
             } else {
                 resolve({ "result": true, "data": data });
             }
-            // })
         }
         catch (err) {
             let response = {

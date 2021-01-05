@@ -1,9 +1,7 @@
 const rp = require('request-promise');
 const request = require('request');
-const model = require('../../db')
 const helperFunc = require('../../helper/chart_data');
 const pdfHandler = require('../../helper/common_handler');
-var commonCassandraFunc = require('../../common/cassandra_func');
 const observationController = require('../v1/observations');
 const url = require("url");
 const omit = require('object.omit');
@@ -30,7 +28,7 @@ async function entitySolutionReportGeneration(req, res) {
 
     try {
 
-      if (!req.body.entityId && !req.body.entityType && !req.body.solutionId) {
+      if (!req.body.entityId || !req.body.entityType || !req.body.solutionId) {
         let response = {
           result: false,
           message: 'entityId, entityType, immediateChildEntityType and solutionId are required fields'
@@ -43,12 +41,6 @@ async function entitySolutionReportGeneration(req, res) {
         entityType = req.body.entityType;
         entityId = req.body.entityId;
         immediateChildEntityType = req.body.immediateChildEntityType;
-
-        // Fetch query from cassandra
-        // model.MyModel.findOneAsync({ qid: "entity_solution_report_query" }, { allow_filtering: true })
-        //   .then(async function (result) {
-
-        //     var bodyParam = JSON.parse(result.query);
 
         let bodyParam = gen.utils.getDruidQuery("entity_solution_report_query");
 
@@ -133,21 +125,16 @@ async function entitySolutionReportGeneration(req, res) {
           let responseObj = await helperFunc.entityReportChart(data, req.body.entityId, req.body.entityType)
           resolve(responseObj);
         }
-        // })
       }
     }
     catch (err) {
       let response = {
         result: false,
-        message: 'Data not found'
+        message: 'INTERNAL_SERVER_ERROR'
       }
       resolve(response);
     }
-
-
-
   })
-
 }
 
 
@@ -199,7 +186,7 @@ async function entityScoreReportGenerate(req, res) {
 
     try {
 
-      if (!req.body.entityId && !req.body.observationId) {
+      if (!req.body.entityId || !req.body.observationId) {
         var response = {
           result: false,
           message: 'entityId and observationId are required fields'
@@ -208,11 +195,6 @@ async function entityScoreReportGenerate(req, res) {
       }
 
       else {
-
-        // model.MyModel.findOneAsync({ qid: "entity_observation_score_query" }, { allow_filtering: true })
-        //   .then(async function (result) {
-
-        //     var bodyParam = JSON.parse(result.query);
 
         let bodyParam = gen.utils.getDruidQuery("entity_observation_score_query");
 
@@ -248,11 +230,11 @@ async function entityScoreReportGenerate(req, res) {
 
 
         //pass the query as body param and get the resul from druid
-        var options = gen.utils.getDruidConnection();
+        let options = gen.utils.getDruidConnection();
         options.method = "POST";
         options.body = bodyParam;
 
-        var data = await rp(options);
+        let data = await rp(options);
 
         if (!data.length) {
           resolve({ "data": "No observations made for the entity" })
@@ -284,7 +266,6 @@ async function entityScoreReportGenerate(req, res) {
           resolve(responseObj);
 
         }
-        // })
       }
     }
     catch (err) {
@@ -353,12 +334,6 @@ exports.listObservationSolutions = async function (req, res) {
         query = "solutions_list_query";
       }
 
-      //get query from cassandra
-      // model.MyModel.findOneAsync({ qid: query }, { allow_filtering: true })
-      //     .then(async function (result) {
-
-      //       let bodyParam = JSON.parse(result.query);
-
       let bodyParam = gen.utils.getDruidQuery(query);
 
       if (process.env.OBSERVATION_DATASOURCE_NAME) {
@@ -403,7 +378,6 @@ exports.listObservationSolutions = async function (req, res) {
         let responseObj = await helperFunc.listSolutionNamesObjectCreate(data);
         res.send({ "result": true, "data": responseObj });
       }
-      // })
     }
   }
   catch (err) {
@@ -484,35 +458,11 @@ async function instancePdfReport(req, res) {
 
   return new Promise(async function (resolve, reject) {
 
-    // let reqData = req.body;
-    // var dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
-
-    // if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
-
-    //   dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
-    //   let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
-
-    //   var response = {
-    //     status: "success",
-    //     message: 'Observation Pdf Generated successfully',
-    //     pdfUrl: signedUlr
-    //   };
-
-    //   resolve(response);
-
-    // } else {
-
     let instaRes = await observationController.instanceObservationData(req, res);
 
     if (("observationName" in instaRes) == true) {
-
-      // let storeReportsToS3 = false;
-      // if (storePdfReportsToS3 == "ON"){
-      //    storeReportsToS3 = true;
-      // }
+      
       let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes, storeReportsToS3 = false);
-
-      // if (storeReportsToS3 == false) {
 
       if (resData.status && resData.status == "success") {
 
@@ -522,33 +472,16 @@ async function instancePdfReport(req, res) {
           pdfUrl: process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
         }
 
-        // resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
         resolve(response);
 
       } else {
         resolve(resData);
       }
-      // }
-      // else {
-      //   if (dataReportIndexes) {
-      //     var reqOptions = {
-      //       query: dataReportIndexes.id,
-      //       downloadPath: resData.downloadPath
-      //     }
-      //     commonCassandraFunc.updateInstanceDownloadPath(reqOptions);
-      //   } else {
-      //     let dataInsert = commonCassandraFunc.insertReqAndResInCassandra(reqData, instaRes, resData.downloadPath);
-      //   }
-
-      //   // res.send(resData);
-      //   resolve(omit(resData, 'downloadPath'));
-      // }
+    
     }
-
     else {
       resolve(instaRes);
     }
-    // }
   });
 };
 
@@ -627,9 +560,6 @@ async function getEvidenceData(inputObj) {
 
     try {
 
-      // model.MyModel.findOneAsync({ qid: "get_evidence_query" }, { allow_filtering: true })
-      //   .then(async function (result) {
-
       let submissionId = inputObj.submissionId;
       let entityId = inputObj.entity;
       let observationId = inputObj.observationId;
@@ -669,7 +599,7 @@ async function getEvidenceData(inputObj) {
       } else {
         resolve({ "result": true, "data": data });
       }
-      // })
+
     }
     catch (err) {
       let response = {

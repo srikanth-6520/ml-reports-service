@@ -1,6 +1,5 @@
 const rp = require('request-promise');
 const request = require('request');
-const model = require('../../db');
 const helperFunc = require('../../helper/chart_data');
 const filesHelper = require('../../common/files_helper');
 
@@ -46,63 +45,57 @@ exports.list = async function (req, res) {
 
     try {
 
-    if (!req.body.entityId || !req.body.entityType || !req.body.programId) {
-        res.status(400);
-        var response = {
+        if (!req.body.entityId || !req.body.entityType || !req.body.programId) {
+            res.status(400);
+            var response = {
+                result: false,
+                message: 'entityId,entityType,programId are required fields'
+            }
+            res.send(response);
+        }
+        else {
+
+            let bodyParam = gen.utils.getDruidQuery("solutions_list_query");
+
+            bodyParam.filter.fields[0].dimension = req.body.entityType;
+            bodyParam.filter.fields[0].value = req.body.entityId;
+            bodyParam.filter.fields[1].fields[0].fields[0].value = req.userDetails.userId;
+            bodyParam.filter.fields.push({ "type": "selector", "dimension": "programId", "value": req.body.programId });
+
+            let solutionArray = [getSolutions(bodyParam, filesHelper.assessment),
+            getSolutions(bodyParam, filesHelper.observation)];
+
+            let assessmentSolutions;
+            let observationSolutions;
+
+            await Promise.all(solutionArray)
+                .then(function (response) {
+                    assessmentSolutions = response[0];
+                    observationSolutions = response[1];
+                });
+
+            let solutions = [...assessmentSolutions, ...observationSolutions];
+
+            if (!solutions.length) {
+                res.send({ "result": false, "data": [] });
+            }
+            else {
+
+                let response = await helperFunc.solutionListCreation(solutions, req.userDetails.userId);
+                res.send(response);
+
+            }
+        }
+    }
+    catch (err) {
+        res.status(500);
+        let response = {
             result: false,
-            message: 'entityId,entityType,programId are required fields'
+            message: 'INTERNAL_SERVER_ERROR'
         }
         res.send(response);
     }
-    else {
-        //get quey from cassandra
-        // model.MyModel.findOneAsync({ qid: "solutions_list_query" }, { allow_filtering: true })
-        //     .then(async function (result) {
-
-        //         let bodyParam = JSON.parse(result.query);
-                let bodyParam = gen.utils.getDruidQuery("solutions_list_query");
-
-                bodyParam.filter.fields[0].dimension = req.body.entityType;
-                bodyParam.filter.fields[0].value = req.body.entityId;
-                bodyParam.filter.fields[1].fields[0].fields[0].value = req.userDetails.userId;
-                bodyParam.filter.fields.push({"type":"selector","dimension":"programId","value":req.body.programId});
-
-                let solutionArray = [getSolutions(bodyParam, filesHelper.assessment),
-                getSolutions(bodyParam, filesHelper.observation)];
-
-                let assessmentSolutions;
-                let observationSolutions;
-
-                await Promise.all(solutionArray)
-                    .then(function (response) {
-                        assessmentSolutions = response[0];
-                        observationSolutions = response[1];
-                    });
-
-                let solutions = [...assessmentSolutions, ...observationSolutions];
-
-                if (!solutions.length) {
-                    res.send({ "result": false, "data": [] });
-                }
-                else {
-
-                    let response = await helperFunc.solutionListCreation(solutions, req.userDetails.userId);
-                    res.send(response);
-
-                }
-
-            // })
-               }
-             }
-             catch(err) {
-                res.status(500);
-                let response = {
-                    result: false,
-                    message: 'INTERNAL_SERVER_ERROR'
-                }
-                res.send(response);
-            }
-    }
+}
 
 //function to get solutions
 const getSolutions = async function(bodyParam, type) {

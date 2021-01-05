@@ -1,9 +1,7 @@
 
 const rp = require('request-promise');
 const request = require('request');
-const model = require('../../db');
 const helperFunc = require('../../helper/chart_data');
-const commonCassandraFunc = require('../../common/cassandra_func');
 const pdfHandler = require('../../helper/common_handler');
 const omit = require('object.omit');
 const url = require("url");
@@ -59,11 +57,11 @@ exports.instance = async function (req, res) {
   
   
 async function instanceObservationData(req, res) {
-  
-    return new Promise(async function (resolve, reject) {
 
-      try {
-  
+  return new Promise(async function (resolve, reject) {
+
+    try {
+
       if (!req.body.submissionId) {
         let response = {
           result: false,
@@ -72,94 +70,84 @@ async function instanceObservationData(req, res) {
         resolve(response);
       } else {
         let submissionId = req.body.submissionId;
-        // bodyData = req.body;
-        // let dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(bodyData);
-  
-        // if (dataReportIndexes == undefined) {
-          // model.MyModel.findOneAsync({ qid: "instance_observation_query" }, { allow_filtering: true })
-          //   .then(async function (result) {
 
-            //let bodyParam = JSON.parse(result.query);
+        let bodyParam = gen.utils.getDruidQuery("instance_observation_query");
 
-            let bodyParam = gen.utils.getDruidQuery("instance_observation_query");
-          
-              if (process.env.OBSERVATION_DATASOURCE_NAME) {
-                bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
-              }
+        if (process.env.OBSERVATION_DATASOURCE_NAME) {
+          bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
+        }
 
-              bodyParam.filter.fields[0].value = submissionId;
+        bodyParam.filter.fields[0].value = submissionId;
 
-              //if filter is given
-              if (req.body.filter && req.body.filter.questionId && req.body.filter.questionId.length > 0 ) {
-                  let filter = {"type": "in","dimension":"questionExternalId","values": req.body.filter.questionId};
-                  bodyParam.filter.fields.push(filter);
-              }
-                else {
-                  let filter = {"type":"not","field":{"type":"selector","dimension":"questionAnswer","value":""}};
-                  bodyParam.filter.fields.push(filter);
-              }
-             
-              //pass the query as body param and get the resul from druid
-              var options = gen.utils.getDruidConnection();
-              options.method = "POST";
-              options.body = bodyParam;
-              var data = await rp(options);
+        //if filter is given
+        if (req.body.filter && req.body.filter.questionId && req.body.filter.questionId.length > 0) {
+          let filter = { "type": "in", "dimension": "questionExternalId", "values": req.body.filter.questionId };
+          bodyParam.filter.fields.push(filter);
+        }
+        else {
+          let filter = { "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } };
+          bodyParam.filter.fields.push(filter);
+        }
 
-              if (!data.length) {
-                let message;
-                let getSubmissionStatusResponse = await assessmentService.getObservationSubmissionStatusById
-                (
-                    submissionId,
-                    req.headers["x-auth-token"]
-                )
-              
-                if (getSubmissionStatusResponse.result && 
-                    getSubmissionStatusResponse.result.status == filesHelper.submission_status_completed) {
-                    message = filesHelper.submission_not_found_message
-                }
-                else {
-                    message = "SUBMISSION_ID_NOT_FOUND";
-                }
+        //pass the query as body param and get the resul from druid
+        var options = gen.utils.getDruidConnection();
+        options.method = "POST";
+        options.body = bodyParam;
+        var data = await rp(options);
 
-                resolve({
-                  "data": message
-                });
-              } else {
-               
-                let chartData = await helperFunc.instanceReportChart(data);
+        if (!data.length) {
+          let message;
+          let getSubmissionStatusResponse = await assessmentService.getObservationSubmissionStatusById
+            (
+              submissionId,
+              req.headers["x-auth-token"]
+            )
 
-                //Get evidence data from evidence datasource
-                 let inputObj = {
-                  submissionId : submissionId
-                }
+          if (getSubmissionStatusResponse.result &&
+            getSubmissionStatusResponse.result.status == filesHelper.submission_status_completed) {
+            message = filesHelper.submission_not_found_message
+          }
+          else {
+            message = "SUBMISSION_ID_NOT_FOUND";
+          }
 
-                let evidenceData = await getEvidenceData(inputObj);
-                let responseObj;
+          resolve({
+            "data": message
+          });
+        } else {
 
-                if(evidenceData.result) {
-                    responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-auth-token"]);
-                } else {
-                    responseObj = chartData;
-                }
+          let chartData = await helperFunc.instanceReportChart(data);
 
-                resolve(responseObj);
-               // commonCassandraFunc.insertReqAndResInCassandra(bodyData, responseObj);
-              }
-              }
-            // })
-            }
-            catch(err) {
-              let response = {
-                result: false,
-                message: 'INTERNAL_SERVER_ERROR'
-              };
-              resolve(response);
-            }
-        // } else {
-        //   resolve(JSON.parse(dataReportIndexes['apiresponse']));
-        // }
-    });
-  };
+          //Get evidence data from evidence datasource
+          let inputObj = {
+            submissionId: submissionId
+          }
+
+          let evidenceData = await getEvidenceData(inputObj);
+          let responseObj;
+
+          if (evidenceData.result) {
+            responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+          } else {
+            responseObj = chartData;
+          }
+
+          resolve(responseObj);
+
+        }
+      }
+
+    }
+    catch (err) {
+      let response = {
+        result: false,
+        message: 'INTERNAL_SERVER_ERROR'
+      };
+      resolve(response);
+    }
+
+  });
+};
   
   
 //Funcion for instance observation pdf generation
@@ -167,65 +155,24 @@ async function instancePdfReport(req, res) {
 
   return new Promise(async function (resolve, reject) {
 
-    // let reqData = req.query;
-    // let dataReportIndexes = await commonCassandraFunc.checkReqInCassandra(reqData);
+    req.body.submissionId = req.query.submissionId;
 
-    // if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
+    let instaRes = await instanceObservationData(req, res);
 
-    //   dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
-    //   let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
+    if (("entityName" in instaRes) == true) {
 
-    //   let response = {
-    //     status: "success",
-    //     message: 'Observation Pdf Generated successfully',
-    //     pdfUrl: signedUlr
-    //   };
+      let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes, storeReportsToS3 = false);
+      
+      resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      resolve(resData);
 
-    //   resolve(response);
-
-    // } else {
-
-      req.body.submissionId = req.query.submissionId;
-
-      var instaRes = await instanceObservationData(req, res);
-
-      if (("observationName" in instaRes) == true) {
-
-        // let storeReportsToS3 = false;
-        // if (storePdfReportsToS3 == "ON") {
-        //   storeReportsToS3 = true;
-        // }
-        let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes, storeReportsToS3=false);
-
-        // if (storeReportsToS3 == false) {
-
-          resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-          resolve(resData);
-
-        // }
-        // else {
-
-        //   if (dataReportIndexes) {
-        //     let reqOptions = {
-        //       query: dataReportIndexes.id,
-        //       downloadPath: resData.downloadPath
-        //     }
-        //     commonCassandraFunc.updateInstanceDownloadPath(reqOptions);
-        //   } else {
-        //     let dataInsert = commonCassandraFunc.insertReqAndResInCassandra(reqData, instaRes, resData.downloadPath);
-        //   }
-
-        //   // res.send(resData);
-        //   resolve(omit(resData, 'downloadPath'));
-        // }
-      }
-      else {
-        resolve(instaRes);
-      }
-    // }
+    }
+    else {
+      resolve(instaRes);
+    }
   });
 };
-  
+
 
 /**
    * @api {post} /dhiti/api/v1/observations/instanceObservationScoreReport 
@@ -308,11 +255,7 @@ exports.instanceObservationScoreReport = async function (req, res) {
         resolve(response);
   
       } else {
-  
-        // model.MyModel.findOneAsync({ qid: "instance_observation_score_query" }, { allow_filtering: true })
-        //   .then(async function (result) {
-  
-        //  let bodyParam = JSON.parse(result.query);
+        
             let bodyParam = gen.utils.getDruidQuery("instance_observation_score_query");
             
             if (process.env.OBSERVATION_DATASOURCE_NAME) {
@@ -380,13 +323,12 @@ exports.instanceObservationScoreReport = async function (req, res) {
               }
               resolve(responseObj);
             }
-          // })
         }
       }
       catch(err) {
         let response = {
           result: false,
-          message: 'Data not found'
+          message: 'INTERNAL_SERVER_ERROR'
         };
         resolve(response);
       }
@@ -419,11 +361,7 @@ async function instanceObservationScorePdfFunc(req, res) {
       else {
         resolve(instaRes);
       }
-
-     
-  
     });
-  
   };
   
 
@@ -464,19 +402,19 @@ async function instanceObservationScorePdfFunc(req, res) {
 //Controller for entity observation report
 exports.entity = async function (req, res) {
 
-    let data = await entityObservationData(req, res);
-  
-    res.send(data);
-  }
-  
-  
-  async function entityObservationData(req, res) {
-  
-    return new Promise(async function (resolve, reject) {
+  let data = await entityObservationData(req, res);
 
-      try {
-  
-      if (!req.body.entityId && !req.body.observationId) {
+  res.send(data);
+}
+
+
+async function entityObservationData(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    try {
+
+      if (!req.body.entityId || !req.body.observationId) {
         let response = {
           result: false,
           message: 'entityId and observationId are required fields'
@@ -484,115 +422,101 @@ exports.entity = async function (req, res) {
         resolve(response);
       }
       else {
-  
-        // model.MyModel.findOneAsync({ qid: "entity_observation_query" }, { allow_filtering: true })
-        //   .then(async function (result) {
-  
-        //     let bodyParam = JSON.parse(result.query);
 
-            let bodyParam = gen.utils.getDruidQuery("entity_observation_query");
-  
-            if (process.env.OBSERVATION_DATASOURCE_NAME) {
-              bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
-            }
+        let bodyParam = gen.utils.getDruidQuery("entity_observation_query");
 
-            let entityType = "school";
-            
-            if(req.body.entityType){
-              entityType = req.body.entityType;
-            }
-
-            bodyParam.filter.fields[0].dimension = entityType;
-            bodyParam.filter.fields[0].value = req.body.entityId;
-            bodyParam.filter.fields[1].value = req.body.observationId;
-
-             //if filter is given
-             if (req.body.filter && req.body.filter.questionId && req.body.filter.questionId.length > 0) {
-                let filter = { "type": "in","dimension":"questionExternalId","values":req.body.filter.questionId };
-                bodyParam.filter.fields.push(filter);
-             }
-             else {
-                let filter = {"type":"not","field":{"type":"selector","dimension":"questionAnswer","value":""}};
-                bodyParam.filter.fields.push(filter);
-            }
-            
-            //pass the query as body param and get the resul from druid
-            let options = gen.utils.getDruidConnection();
-            options.method = "POST";
-            options.body = bodyParam;
-             let data = await rp(options);
-  
-            if (!data.length) {
-              let message;
-              let getEntityObservationSubmissionsStatus = await assessmentService.getEntityObservationSubmissionsStatus
-              (
-                  req.body.entityId,
-                  req.body.observationId,
-                  req.headers["x-auth-token"]
-              )
-             
-              if (getEntityObservationSubmissionsStatus.result && 
-                getEntityObservationSubmissionsStatus.result.length > 0) {
-
-                if(getEntityObservationSubmissionsStatus.result.filter(submission => submission.status === filesHelper.submission_status_completed).length > 0) {
-                  message = filesHelper.submission_not_found_message
-                }
-              }
-              else {
-                  message = "No observations made for the entity";
-              }
-
-              resolve({
-                "data": message
-              });
-            }
-            else {
-
-              let chartData = await helperFunc.entityReportChart(data, req.body.entityId, "school")
-
-               //Get evidence data from evidence datasource
-               let inputObj = {
-                entityId : req.body.entityId,
-                observationId : req.body.observationId,
-                entityType : entityType
-              }
-
-              let evidenceData = await getEvidenceData(inputObj);
-              
-              let responseObj;
-
-              if(evidenceData.result) {
-                responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-auth-token"]);
-
-              } else {
-                responseObj = chartData;
-              }
-            
-              resolve(responseObj);
-  
-            }
-          // })
-          // .catch(function (err) {
-          //   res.status(400);
-          //   var response = {
-          //     result: false,
-          //     message: 'Data not found'
-          //   }
-          //   resolve(response);
-          // })
-      }
-      }
-      catch (err) {
-        res.status(400);
-        var response = {
-          result: false,
-          message: 'Data not found'
+        if (process.env.OBSERVATION_DATASOURCE_NAME) {
+          bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
         }
-        resolve(response);
-      }
 
-    });
-  }
+        let entityType = "school";
+
+        if (req.body.entityType) {
+          entityType = req.body.entityType;
+        }
+
+        bodyParam.filter.fields[0].dimension = entityType;
+        bodyParam.filter.fields[0].value = req.body.entityId;
+        bodyParam.filter.fields[1].value = req.body.observationId;
+
+        //if filter is given
+        if (req.body.filter && req.body.filter.questionId && req.body.filter.questionId.length > 0) {
+          let filter = { "type": "in", "dimension": "questionExternalId", "values": req.body.filter.questionId };
+          bodyParam.filter.fields.push(filter);
+        }
+        else {
+          let filter = { "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } };
+          bodyParam.filter.fields.push(filter);
+        }
+
+        //pass the query as body param and get the resul from druid
+        let options = gen.utils.getDruidConnection();
+        options.method = "POST";
+        options.body = bodyParam;
+        let data = await rp(options);
+
+        if (!data.length) {
+          let message;
+          let getEntityObservationSubmissionsStatus = await assessmentService.getEntityObservationSubmissionsStatus
+            (
+              req.body.entityId,
+              req.body.observationId,
+              req.headers["x-auth-token"]
+            )
+
+          if (getEntityObservationSubmissionsStatus.result &&
+            getEntityObservationSubmissionsStatus.result.length > 0) {
+
+            if (getEntityObservationSubmissionsStatus.result.filter(submission => submission.status === filesHelper.submission_status_completed).length > 0) {
+              message = filesHelper.submission_not_found_message
+            }
+          }
+          else {
+            message = "No observations made for the entity";
+          }
+
+          resolve({
+            "data": message
+          });
+        }
+        else {
+
+          let chartData = await helperFunc.entityReportChart(data, req.body.entityId, "school")
+
+          //Get evidence data from evidence datasource
+          let inputObj = {
+            entityId: req.body.entityId,
+            observationId: req.body.observationId,
+            entityType: entityType
+          }
+
+          let evidenceData = await getEvidenceData(inputObj);
+
+          let responseObj;
+
+          if (evidenceData.result) {
+            responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+
+          } else {
+            responseObj = chartData;
+          }
+
+          resolve(responseObj);
+
+        }
+      }
+    }
+    catch (err) {
+      res.status(400);
+      let response = {
+        result: false,
+        message: 'INTERNAL_SERVER_ERROR'
+      }
+      resolve(response);
+    }
+
+  });
+}
   
   
 //Controller for entity observation pdf generation
@@ -679,91 +603,76 @@ exports.entityObservationReport = async function entityObservationReport(req, re
   
   };
   
-  // Function for entity observation report generation 
-  async function entityObservationReportGeneration(req, res) {
-  
-    return new Promise(async function (resolve, reject) {
-      
-      try {
+// Function for entity observation report generation 
+async function entityObservationReportGeneration(req, res) {
 
-      if (!req.body.entityId && !req.body.entityType && !req.body.observationId) {
+  return new Promise(async function (resolve, reject) {
+
+    try {
+
+      if (!req.body.entityId || !req.body.entityType || !req.body.observationId) {
         res.status(400);
-        var response = {
+        let response = {
           result: false,
           message: 'entityId, entityType, immediateChildEntityType and observationId are required fields'
         }
         resolve(response);
       }
-  
+
       else {
 
         entityType = req.body.entityType;
         entityId = req.body.entityId;
         immediateChildEntityType = req.body.immediateChildEntityType;
-  
-        // Fetch query from cassandra
-        // model.MyModel.findOneAsync({ qid: "entity_observation_report_query" }, { allow_filtering: true })
-        //   .then(async function (result) {
-  
-            // var bodyParam = JSON.parse(result.query);
 
-            let bodyParam = gen.utils.getDruidQuery("entity_observation_report_query");
-  
-            if (process.env.OBSERVATION_DATASOURCE_NAME) {
-              bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
-            }
-  
-            //Assign values to the query filter object 
-            bodyParam.filter.fields[0].dimension = req.body.entityType;
-            bodyParam.filter.fields[0].value = req.body.entityId;
-            bodyParam.filter.fields[1].value = req.body.observationId;
-  
-            //Push column names dynamically to the query dimensions array 
-            if (!req.body.immediateChildEntityType) {
-              bodyParam.dimensions.push(entityType, entityType + "Name");
-            }
-            else if (req.body.immediateChildEntityType == "school") {
-              bodyParam.dimensions.push(entityType, entityType + "Name", immediateChildEntityType, immediateChildEntityType + "Name");
-            }
-            else {
-              bodyParam.dimensions.push(entityType, entityType + "Name", immediateChildEntityType, immediateChildEntityType + "Name", "school", "schoolName");
-            }
-  
-            //pass the query as body param and get the result from druid
-            var options = gen.utils.getDruidConnection();
-            options.method = "POST";
-            options.body = bodyParam;
-            var data = await rp(options);
-  
-            if (!data.length) {
-              resolve({ "data": "No observations made for the entity" })
-            }
-            else {
-              var responseObj = await helperFunc.entityReportChart(data, req.body.entityId, req.body.entityType)
-              resolve(responseObj);
-            }
-          // })
-          // .catch(function (err) {
-          //   res.status(400);
-          //   var response = {
-          //     result: false,
-          //     message: 'Data not found'
-          //   }
-          //   resolve(response);
-          // })
+        let bodyParam = gen.utils.getDruidQuery("entity_observation_report_query");
+
+        if (process.env.OBSERVATION_DATASOURCE_NAME) {
+          bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
+        }
+
+        //Assign values to the query filter object 
+        bodyParam.filter.fields[0].dimension = req.body.entityType;
+        bodyParam.filter.fields[0].value = req.body.entityId;
+        bodyParam.filter.fields[1].value = req.body.observationId;
+
+        //Push column names dynamically to the query dimensions array 
+        if (!req.body.immediateChildEntityType) {
+          bodyParam.dimensions.push(entityType, entityType + "Name");
+        }
+        else if (req.body.immediateChildEntityType == "school") {
+          bodyParam.dimensions.push(entityType, entityType + "Name", immediateChildEntityType, immediateChildEntityType + "Name");
+        }
+        else {
+          bodyParam.dimensions.push(entityType, entityType + "Name", immediateChildEntityType, immediateChildEntityType + "Name", "school", "schoolName");
+        }
+
+        //pass the query as body param and get the result from druid
+        let options = gen.utils.getDruidConnection();
+        options.method = "POST";
+        options.body = bodyParam;
+        let data = await rp(options);
+
+        if (!data.length) {
+          resolve({ "data": "No observations made for the entity" })
+        }
+        else {
+          let responseObj = await helperFunc.entityReportChart(data, req.body.entityId, req.body.entityType)
+          resolve(responseObj);
         }
       }
-      catch (err) {
-        res.status(400);
-        var response = {
-          result: false,
-          message: 'Data not found'
-        }
-        resolve(response);
+    }
+    catch (err) {
+      res.status(400);
+      let response = {
+        result: false,
+        message: 'INTERNAL_SERVER_ERROR'
       }
-    })
-  
-  }
+      resolve(response);
+    }
+  })
+
+}
   
   
 //Function for entity observation report PDF generation
@@ -772,13 +681,13 @@ async function entityObservationReportPdfGeneration(req, res) {
     return new Promise(async function (resolve, reject) {
   
       req.body = req.query;
-      var entityResponse = await entityObservationReportGeneration(req, res);
+      let entityResponse = await entityObservationReportGeneration(req, res);
   
       if (("observationName" in entityResponse) == true) {
 
         let resData = await pdfHandler.pdfGeneration(entityResponse, storeReportsToS3 = false);
   
-        var responseObject = {
+        let responseObject = {
           "status": "success",
           "message": "report generated",
           pdfUrl: process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
@@ -869,75 +778,62 @@ exports.entityScoreReport = async function (req, res) {
   
   }
   
-  async function entityScoreReport(req, res) {
-  
-    return new Promise(async function (resolve, reject) {
-      
-      try {
+async function entityScoreReport(req, res) {
 
-      if (!req.body.entityId && !req.body.observationId) {
-        var response = {
+  return new Promise(async function (resolve, reject) {
+
+    try {
+
+      if (!req.body.entityId || !req.body.observationId) {
+        let response = {
           result: false,
           message: 'entityId and observationId are required fields'
         }
         resolve(response);
       }
-  
+
       else {
 
-        // model.MyModel.findOneAsync({ qid: "entity_observation_score_query" }, { allow_filtering: true })
-        //   .then(async function (result) {
-  
-        //     var bodyParam = JSON.parse(result.query);
-            let bodyParam = gen.utils.getDruidQuery("entity_observation_score_query");
-  
-            if (process.env.OBSERVATION_DATASOURCE_NAME) {
-              bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
-            }
+        let bodyParam = gen.utils.getDruidQuery("entity_observation_score_query");
 
-              bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
-              bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
-            
+        if (process.env.OBSERVATION_DATASOURCE_NAME) {
+          bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
+        }
 
-            //pass the query as body param and get the resul from druid
-            var options = gen.utils.getDruidConnection();
-            options.method = "POST";
-            options.body = bodyParam;
-  
-            var data = await rp(options);
-  
-            if (!data.length) {
-              resolve({ "data": "No observations made for the entity" })
-            }
-  
-            else {
-  
-              let responseObj = await helperFunc.entityScoreReportChartObjectCreation(data, "v1");
+        bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+        bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
 
-              resolve(responseObj);
-  
-            }
-          // })
-  
-          // .catch(function (err) {
-          //   var response = {
-          //     result: false,
-          //     message: 'Data not found'
-          //   }
-          //   resolve(response);
-          // })
+
+        //pass the query as body param and get the resul from druid
+        let options = gen.utils.getDruidConnection();
+        options.method = "POST";
+        options.body = bodyParam;
+
+        let data = await rp(options);
+
+        if (!data.length) {
+          resolve({ "data": "No observations made for the entity" })
+        }
+
+        else {
+
+          let responseObj = await helperFunc.entityScoreReportChartObjectCreation(data, "v1");
+
+          resolve(responseObj);
+
         }
       }
-      catch(err) {
-        var response = {
-          result: false,
-          message: 'Data not found'
-        }
-        resolve(response);
+    }
+    catch (err) {
+      let response = {
+        result: false,
+        message: 'INTERNAL_SERVER_ERROR'
       }
-    })
-  
-  }
+      resolve(response);
+    }
+  })
+
+}
   
 //Entity observation score pdf generation
 async function entityObservationScorePdfFunc(req, res) {
@@ -1057,9 +953,9 @@ async function entitySolutionScoreReportGeneration(req, res) {
 
       try {
   
-      if (!req.body.entityId && !req.body.entityType && !req.body.solutionId) {
+      if (!req.body.entityId || !req.body.entityType || !req.body.solutionId) {
         res.status(400);
-        var response = {
+        let response = {
           result: false,
           message: 'entityId, entityType and solutionId are required fields'
         }
@@ -1075,11 +971,6 @@ async function entitySolutionScoreReportGeneration(req, res) {
   
       else {
 
-        // Fetch query from cassandra
-        // model.MyModel.findOneAsync({ qid: "entity_solution_score_query" }, { allow_filtering: true })
-        //   .then(async function (result) {
-  
-        //     var bodyParam = JSON.parse(result.query);
             let bodyParam = gen.utils.getDruidQuery("entity_solution_score_query");
   
             if (process.env.OBSERVATION_DATASOURCE_NAME) {
@@ -1125,27 +1016,26 @@ async function entitySolutionScoreReportGeneration(req, res) {
             }
   
             //pass the query as body param and get the result from druid
-            var options = gen.utils.getDruidConnection();
+            let options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
-            var data = await rp(options);
+            let data = await rp(options);
   
             if (!data.length) {
               resolve({ "data": "No observations made for the entity" })
             }
             else {
-              var responseObj = await helperFunc.observationScoreReportChart(data)
+              let responseObj = await helperFunc.observationScoreReportChart(data)
               responseObj.solutionId = req.body.solutionId;
               resolve(responseObj);
             }
-          // })
             }
           }
           catch(err) {
             res.status(400);
             let response = {
               result: false,
-              message: 'Data not found'
+              message: 'INTERNAL_SERVER_ERROR'
             }
             resolve(response);
           }
@@ -1160,11 +1050,6 @@ async function schoolSolutionScoreReport(req, res) {
     return new Promise(async function (resolve, reject) {
 
       try {
-  
-      // model.MyModel.findOneAsync({ qid: "entity_solution_score_query" }, { allow_filtering: true })
-      //   .then(async function (result) {
-  
-      //     let bodyParam = JSON.parse(result.query);
 
           let bodyParam = gen.utils.getDruidQuery("entity_solution_score_query");
   
@@ -1225,18 +1110,15 @@ async function schoolSolutionScoreReport(req, res) {
             resolve(responseObj);
   
           }
-        // })
       }
-  
       catch(err) {
           let response = {
             result: false,
-            message: 'Data not found'
+            message: 'INTERNAL_SERVER_ERROR'
           }
           resolve(response);
         }
     })
-  
   }
 
   
@@ -1272,25 +1154,16 @@ async function entitySolutionScorePdfFunc(req, res) {
 //API for unnati service
 exports.byEntity = async function (req, res) {
 
-    if (!req.body && !req.body) {
+    if (!req.body.entityId || !req.body.observationId) {
       res.status(400);
-      var response = {
+      let response = {
         result: false,
         message: 'entityId and observationId are required fields'
       }
       res.send(response);
     }
     else {
-      // model.MyModel.findOneAsync({
-      //   qid: "observations_by_entity"
-      // }, {
-      //     allow_filtering: true
-      //   })
-      //   .then(async function (result) {
-  
           if (req.body.search) {
-  
-            // var bodyParam = JSON.parse(result.query);
 
             let bodyParam = gen.utils.getDruidQuery("observations_by_entity");
 
@@ -1350,7 +1223,6 @@ exports.byEntity = async function (req, res) {
             res.send(observationData);
   
            }
-        // });
     }
   
   }
@@ -1427,97 +1299,83 @@ exports.report = async function (req, res) {
 }
 
 async function observationReportData(req, res) {
-    return new Promise(async function (resolve, reject) {
-      
-      try {
-        if (!req.body.observationId) {
-            res.status(400);
-            let response = {
-                result: false,
-                message: 'observationId is a required field'
-            }
-            resolve(response);
-        }
-        else {
-            
-            // model.MyModel.findOneAsync({ qid: "observation_report_query" }, { allow_filtering: true })
-            //     .then(async function (result) {
+  return new Promise(async function (resolve, reject) {
 
-            //       var bodyParam = JSON.parse(result.query);
-
-                let bodyParam = gen.utils.getDruidQuery("observation_report_query");
-
-                  if (process.env.OBSERVATION_DATASOURCE_NAME) {
-                    bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
-                  }
-
-                  bodyParam.filter.fields[0].value = req.body.observationId;
-
-                  //if filter is given
-                  if (req.body.filter && req.body.filter.questionId && req.body.filter.questionId.length > 0) {
-                      let filter = { "type": "in","dimension":"questionExternalId","values":req.body.filter.questionId};
-                      bodyParam.filter.fields.push(filter);
-                  }
-                    else {
-                      let filter = {"type":"not","field":{"type":"selector","dimension":"questionAnswer","value":""}};
-                      bodyParam.filter.fields.push(filter);
-                  }
-
-                  //pass the query as body param and get the resul from druid
-                  var options = gen.utils.getDruidConnection();
-                  options.method = "POST";
-                  options.body = bodyParam;
-                  var data = await rp(options);
-
-                    //if no data throw error message
-                    if (!data.length) {
-                        resolve({ "data": "No entities are observed" })
-                    }
-                  else {
-                    entityId = "";
-                    entityType = "";
-
-                    let chartData = await helperFunc.entityReportChart(data, entityId, entityType);
-
-                    //Get evidence data from evidence datasource
-                    let inputObj = {
-                      observationId: req.body.observationId
-                    }
-
-                    let evidenceData = await getEvidenceData(inputObj);
-
-                    let responseObj;
-
-                    if (evidenceData.result) {
-                      responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
-
-                    } else {
-                      responseObj = chartData;
-                    }
-
-                    resolve(responseObj);
-
-                  }
-              //   })
-              // .catch(function (err) {
-              //       res.status(400);
-              //       var response = {
-              //           result: false,
-              //           message: 'Data not found'
-              //       }
-              //       resolve(response);
-              //   })
-          }
-        }
-        catch(err) {
+    try {
+      if (!req.body.observationId) {
         res.status(400);
         let response = {
           result: false,
-          message: 'Data not found'
+          message: 'observationId is a required field'
         }
         resolve(response);
       }
-    });
+      else {
+
+        let bodyParam = gen.utils.getDruidQuery("observation_report_query");
+
+        if (process.env.OBSERVATION_DATASOURCE_NAME) {
+          bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
+        }
+
+        bodyParam.filter.fields[0].value = req.body.observationId;
+
+        //if filter is given
+        if (req.body.filter && req.body.filter.questionId && req.body.filter.questionId.length > 0) {
+          let filter = { "type": "in", "dimension": "questionExternalId", "values": req.body.filter.questionId };
+          bodyParam.filter.fields.push(filter);
+        }
+        else {
+          let filter = { "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } };
+          bodyParam.filter.fields.push(filter);
+        }
+
+        //pass the query as body param and get the resul from druid
+        let options = gen.utils.getDruidConnection();
+        options.method = "POST";
+        options.body = bodyParam;
+        let data = await rp(options);
+
+        //if no data throw error message
+        if (!data.length) {
+          resolve({ "data": "No entities are observed" })
+        }
+        else {
+          entityId = "";
+          entityType = "";
+
+          let chartData = await helperFunc.entityReportChart(data, entityId, entityType);
+
+          //Get evidence data from evidence datasource
+          let inputObj = {
+            observationId: req.body.observationId
+          }
+
+          let evidenceData = await getEvidenceData(inputObj);
+
+          let responseObj;
+
+          if (evidenceData.result) {
+            responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+
+          } else {
+            responseObj = chartData;
+          }
+
+          resolve(responseObj);
+
+        }
+      }
+    }
+    catch (err) {
+      res.status(400);
+      let response = {
+        result: false,
+        message: 'INTERNAL_SERVER_ERROR'
+      }
+      resolve(response);
+    }
+  });
 }
 
 
@@ -1638,7 +1496,7 @@ async function observationScoreReport(req, res) {
      try {
 
       if (!req.body.observationId) {
-        var response = {
+        let response = {
           result: false,
           message: 'observationId is a required fields'
         }
@@ -1646,11 +1504,6 @@ async function observationScoreReport(req, res) {
       }
   
       else {
-  
-        // model.MyModel.findOneAsync({ qid: "observation_score_report_query" }, { allow_filtering: true })
-        //   .then(async function (result) {
-  
-        //     var bodyParam = JSON.parse(result.query);
           
           let bodyParam = gen.utils.getDruidQuery("observation_score_report_query");
   
@@ -1681,11 +1534,11 @@ async function observationScoreReport(req, res) {
             }
   
             //pass the query as body param and get the resul from druid
-            var options = gen.utils.getDruidConnection();
+            let options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
   
-            var data = await rp(options);
+            let data = await rp(options);
   
             if (!data.length) {
               resolve({ "data": "No entities found" })
@@ -1721,21 +1574,12 @@ async function observationScoreReport(req, res) {
               resolve(responseObj);
 
             }
-          // })
-  
-          // .catch(function (err) {
-          //   var response = {
-          //     result: false,
-          //     message: 'Data not found'
-          //   }
-          //   resolve(response);
-          // })
         }
       }
       catch(err) {
         let response = {
           result: false,
-          message: 'Data not found'
+          message: 'INTERNAL_SERVER_ERROR'
         }
           resolve(response);
       }
@@ -1805,65 +1649,50 @@ async function observationScorePdfFunc(req, res) {
 exports.listObservationNames = async function (req, res) {
   try {
     if (!req.body.entityId || !req.body.entityType) {
-        res.status(400);
-        let response = {
-            result: false,
-            message: 'entityId,entityType are required fields'
-        }
-        res.send(response);
-    }
-    else {
-
-        //get quey from cassandra
-        // model.MyModel.findOneAsync({ qid: "list_observation_names_query" }, { allow_filtering: true })
-        //     .then(async function (result) {
-
-        //         let bodyParam = JSON.parse(result.query);
-              let bodyParam = gen.utils.getDruidQuery("list_observation_names_query");
-
-                if (process.env.OBSERVATION_DATASOURCE_NAME) {
-                    bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
-                }
-                
-                bodyParam.filter.fields[0].dimension = req.body.entityType;
-                bodyParam.filter.fields[0].value = req.body.entityId;
-                bodyParam.filter.fields[1].fields[0].fields[0].value = req.userDetails.userId;
-
-                //pass the query as body param and get the result from druid
-                let options = gen.utils.getDruidConnection();
-                options.method = "POST";
-                options.body = bodyParam;
-                let data = await rp(options);
-
-                if (!data.length) {
-                    res.send({ "result": false, "data": [] })
-                }
-                else {
-
-                    //call the function listObservationNamesObjectCreate to create response object
-                    let responseObj = await helperFunc.listObservationNamesObjectCreate(data);
-                    res.send({ "result": true, "data": responseObj });
-                }
-            // })
-            // .catch(function (err) {
-            //     res.status(400);
-            //     let response = {
-            //         result: false,
-            //         message: 'Data not found'
-            //     }
-            //     res.send(response);
-            // })
-        }
-      }
-      catch (err) {
       res.status(400);
       let response = {
         result: false,
-        message: 'Data not found'
+        message: 'entityId,entityType are required fields'
       }
       res.send(response);
     }
+    else {
+      let bodyParam = gen.utils.getDruidQuery("list_observation_names_query");
+
+      if (process.env.OBSERVATION_DATASOURCE_NAME) {
+        bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
+      }
+
+      bodyParam.filter.fields[0].dimension = req.body.entityType;
+      bodyParam.filter.fields[0].value = req.body.entityId;
+      bodyParam.filter.fields[1].fields[0].fields[0].value = req.userDetails.userId;
+
+      //pass the query as body param and get the result from druid
+      let options = gen.utils.getDruidConnection();
+      options.method = "POST";
+      options.body = bodyParam;
+      let data = await rp(options);
+
+      if (!data.length) {
+        res.send({ "result": false, "data": [] })
+      }
+      else {
+
+        //call the function listObservationNamesObjectCreate to create response object
+        let responseObj = await helperFunc.listObservationNamesObjectCreate(data);
+        res.send({ "result": true, "data": responseObj });
+      }
+    }
   }
+  catch (err) {
+    res.status(400);
+    let response = {
+      result: false,
+      message: 'INTERNAL_SERVER_ERROR'
+    }
+    res.send(response);
+  }
+}
 
 
 
@@ -1895,55 +1724,49 @@ exports.listObservationNames = async function (req, res) {
 exports.listObservationSolutions = async function (req, res) {
   try {
     if (!req.body.entityId || !req.body.entityType) {
-        res.status(400);
-        var response = {
-            result: false,
-            message: 'entityId,entityType are required fields'
-        }
-        res.send(response);
+      res.status(400);
+      let response = {
+        result: false,
+        message: 'entityId,entityType are required fields'
+      }
+      res.send(response);
     }
     else {
 
-        //get query from cassandra
-        // model.MyModel.findOneAsync({ qid: "solutions_list_query" }, { allow_filtering: true })
-        //     .then(async function (result) {
+      let bodyParam = gen.utils.getDruidQuery("solutions_list_query");
 
-        //         let bodyParam = JSON.parse(result.query);
-             let bodyParam = gen.utils.getDruidQuery("solutions_list_query");
+      if (process.env.OBSERVATION_DATASOURCE_NAME) {
+        bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
+      }
 
-                if (process.env.OBSERVATION_DATASOURCE_NAME) {
-                    bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
-                }
+      bodyParam.filter.fields[0].dimension = req.body.entityType;
+      bodyParam.filter.fields[0].value = req.body.entityId;
+      bodyParam.filter.fields[1].fields[0].fields[0].value = req.userDetails.userId;
 
-                bodyParam.filter.fields[0].dimension = req.body.entityType;
-                bodyParam.filter.fields[0].value = req.body.entityId;
-                bodyParam.filter.fields[1].fields[0].fields[0].value = req.userDetails.userId;
+      //pass the query as body param and get the result from druid
+      let options = gen.utils.getDruidConnection();
+      options.method = "POST";
+      options.body = bodyParam;
+      let data = await rp(options);
 
-                //pass the query as body param and get the result from druid
-                let options = gen.utils.getDruidConnection();
-                options.method = "POST";
-                options.body = bodyParam;
-                let data = await rp(options);
+      if (!data.length) {
+        res.send({ "result": false, "data": [] })
+      }
+      else {
+        //call the function listObservationNamesObjectCreate to create response object
+        let responseObj = await helperFunc.listSolutionNamesObjectCreate(data);
+        res.send({ "result": true, "data": responseObj });
+      }
 
-                if (!data.length) {
-                    res.send({ "result": false, "data": [] })
-                }
-                else {
-                    //call the function listObservationNamesObjectCreate to create response object
-                    let responseObj = await helperFunc.listSolutionNamesObjectCreate(data);
-                    res.send({ "result": true, "data": responseObj });
-                }
-            // })
-              }
-            } 
-            catch(err) {
-                let response = {
-                    result: false,
-                    message: 'INTERNAL_SERVER_ERROR'
-                }
-                res.send(response);
-            }
-    
+    }
+  }
+  catch (err) {
+    let response = {
+      result: false,
+      message: 'INTERNAL_SERVER_ERROR'
+    }
+    res.send(response);
+  }
 }
 
 
@@ -1971,82 +1794,74 @@ exports.listObservationSolutions = async function (req, res) {
 
 //Controller for listing observation Names
 exports.submissionsCount = async function (req, res) {
-    
-  try  {
+
+  try {
     if (!req.body.entityId && !req.body.observationId) {
-        res.status(400);
-        var response = {
-            result: false,
-            message: 'entityId and observationId are required fields'
-        }
-        res.send(response);
-    } else if(!req.body.observationId) {
-        res.status(400);
-        var response = {
-            result: false,
-            message: 'observationId is a required fields'
-        }
-        res.send(response);
+      res.status(400);
+      var response = {
+        result: false,
+        message: 'entityId and observationId are required fields'
+      }
+      res.send(response);
+    } else if (!req.body.observationId) {
+      res.status(400);
+      var response = {
+        result: false,
+        message: 'observationId is a required fields'
+      }
+      res.send(response);
     }
     else {
 
-        let query = "";
-        if(req.body.entityId && req.body.observationId){
-            query = "entity_observation_query";
-        }
-        else if (req.body.observationId){
-            query = "observation_report_query";
-        }
+      let query = "";
+      if (req.body.entityId && req.body.observationId) {
+        query = "entity_observation_query";
+      }
+      else if (req.body.observationId) {
+        query = "observation_report_query";
+      }
 
-        //get quey from cassandra
-        // model.MyModel.findOneAsync({ qid: query }, { allow_filtering: true })
+      let bodyParam = gen.utils.getDruidQuery(query);
 
-        //     .then(async function (result) {
+      if (process.env.OBSERVATION_DATASOURCE_NAME) {
+        bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
+      }
 
-        //         var bodyParam = JSON.parse(result.query);
+      if (query == "entity_observation_query") {
 
-              let bodyParam = gen.utils.getDruidQuery(query);
+        bodyParam.filter.fields[0].value = req.body.entityId;
+        bodyParam.filter.fields[1].value = req.body.observationId;
 
-                if (process.env.OBSERVATION_DATASOURCE_NAME) {
-                    bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
-                }
+      } else if (query == "observation_report_query") {
 
-                if(query == "entity_observation_query"){
+        bodyParam.filter.value = req.body.observationId;
+      }
 
-                    bodyParam.filter.fields[0].value = req.body.entityId;
-                    bodyParam.filter.fields[1].value = req.body.observationId;
+      //pass the query as body param and get the result from druid
+      let options = gen.utils.getDruidConnection();
+      options.method = "POST";
+      options.body = bodyParam;
+      let data = await rp(options);
 
-                } else if(query == "observation_report_query"){
-                    
-                    bodyParam.filter.value = req.body.observationId;
-                }
+      if (!data.length) {
+        res.send({ "result": false, "data": { "noOfSubmissions": 0 } })
+      }
+      else {
 
-                //pass the query as body param and get the result from druid
-                var options = gen.utils.getDruidConnection();
-                options.method = "POST";
-                options.body = bodyParam;
-                var data = await rp(options);
-
-                if (!data.length) {
-                    res.send({ "result": false, "data": {"noOfSubmissions" : 0} })
-                }
-                else {
-
-                    var noOfSubmissions = await countNumberOfSubmissions(data);
-                    res.send({ "result": true, "data": { "noOfSubmissions" : noOfSubmissions} });
-                }
-            // })
-              }
-          }
-          catch(err) {
-            res.status(400);
-            let response = {
-              result: false,
-              message: 'Data not found'
-            }
-            res.send(response);
-          }
+        let noOfSubmissions = await countNumberOfSubmissions(data);
+        res.send({ "result": true, "data": { "noOfSubmissions": noOfSubmissions } });
+      }
+    }
   }
+  catch (err) {
+    res.status(400);
+    let response = {
+      result: false,
+      message: 'INTERNAL_SERVER_ERROR'
+    }
+    res.send(response);
+  }
+}
 
 
 async function countNumberOfSubmissions(data){
@@ -2259,103 +2074,106 @@ exports.entitySolutionReport = async function (req, res) {
 
 // Function for entity observation report generation 
 async function entitySolutionReportGeneration(req, res) {
-  
+
   return new Promise(async function (resolve, reject) {
 
     try {
 
-    if (!req.body.entityId && !req.body.entityType && !req.body.solutionId) {
-      var response = {
+      if (!req.body.entityId || !req.body.entityType || !req.body.solutionId) {
+        let response = {
+          result: false,
+          message: 'entityId, entityType, immediateChildEntityType and solutionId are required fields'
+        }
+        resolve(response);
+      }
+
+      else {
+
+        entityType = req.body.entityType;
+        entityId = req.body.entityId;
+        immediateChildEntityType = req.body.immediateChildEntityType;
+
+        let bodyParam = gen.utils.getDruidQuery("entity_solution_report_query");
+
+        if (process.env.OBSERVATION_DATASOURCE_NAME) {
+          bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
+        }
+
+        //Assign values to the query filter object 
+        bodyParam.filter.fields[0].dimension = req.body.entityType;
+        bodyParam.filter.fields[0].value = req.body.entityId;
+        bodyParam.filter.fields[1].value = req.body.solutionId;
+
+        //if programId is given
+        if (req.body.programId) {
+          let programFilter = { "type": "selector", "dimension": "programId", "value": req.body.programId };
+          bodyParam.filter.fields.push(programFilter);
+        }
+
+        if (req.body.reportType == "my") {
+          let filter = {
+            "type": "or", "fields": [{
+              "type": "and", "fields": [{ "type": "selector", "dimension": "createdBy", "value": req.userDetails.userId },
+              { "type": "selector", "dimension": "isAPrivateProgram", "value": true }]
+            },
+            {
+              "type": "and", "fields": [{ "type": "selector", "dimension": "createdBy", "value": req.userDetails.userId },
+              { "type": "selector", "dimension": "isAPrivateProgram", "value": false }]
+            }]
+          };
+          bodyParam.filter.fields.push(filter);
+        }
+        else {
+          let filter = {
+            "type": "or", "fields": [{
+              "type": "and", "fields": [{ "type": "selector", "dimension": "createdBy", "value": req.userDetails.userId },
+              { "type": "selector", "dimension": "isAPrivateProgram", "value": true }]
+            },
+            { "type": "selector", "dimension": "isAPrivateProgram", "value": false }]
+          };
+
+          bodyParam.filter.fields.push(filter);
+        }
+
+        // filter out not answered questions
+        bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
+
+        //Push column names dynamically to the query dimensions array 
+        if (!req.body.immediateChildEntityType) {
+          bodyParam.dimensions.push(entityType, entityType + "Name");
+        }
+        else if (req.body.immediateChildEntityType == "school") {
+          bodyParam.dimensions.push(entityType, entityType + "Name", immediateChildEntityType, immediateChildEntityType + "Name");
+        }
+        else {
+          bodyParam.dimensions.push(entityType, entityType + "Name", immediateChildEntityType, immediateChildEntityType + "Name", "school", "schoolName");
+        }
+
+        //pass the query as body param and get the result from druid
+        let options = gen.utils.getDruidConnection();
+        options.method = "POST";
+        options.body = bodyParam;
+        let data = await rp(options);
+
+        if (!data.length) {
+          resolve({ "data": "No observations made for the entity" })
+        }
+        else {
+          var responseObj = await helperFunc.entityReportChart(data, req.body.entityId, req.body.entityType)
+          resolve(responseObj);
+        }
+
+      }
+    }
+    catch (err) {
+      res.status(500);
+      let response = {
         result: false,
-        message: 'entityId, entityType, immediateChildEntityType and solutionId are required fields'
+        message: 'INTERNAL_SERVER_ERROR'
       }
       resolve(response);
     }
-
-    else {
-      
-      entityType = req.body.entityType;
-      entityId = req.body.entityId;
-      immediateChildEntityType = req.body.immediateChildEntityType;
-
-      // Fetch query from cassandra
-      // model.MyModel.findOneAsync({ qid: "entity_solution_report_query" }, { allow_filtering: true })
-      //   .then(async function (result) {
-
-      //     var bodyParam = JSON.parse(result.query);
-         let bodyParam = gen.utils.getDruidQuery("entity_solution_report_query");
-
-          if (process.env.OBSERVATION_DATASOURCE_NAME) {
-            bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
-          }
-          
-          //Assign values to the query filter object 
-          bodyParam.filter.fields[0].dimension = req.body.entityType;
-          bodyParam.filter.fields[0].value = req.body.entityId;
-          bodyParam.filter.fields[1].value = req.body.solutionId;
-
-           //if programId is given
-           if (req.body.programId) {
-            let programFilter = { "type": "selector", "dimension": "programId", "value": req.body.programId };
-            bodyParam.filter.fields.push(programFilter);
-          }
-
-          if(req.body.reportType == "my"){ 
-            let filter = {"type":"or","fields":[{"type":"and","fields":[{"type":"selector","dimension":"createdBy","value": req.userDetails.userId},
-                           {"type":"selector","dimension":"isAPrivateProgram","value":true}]},
-                           {"type":"and","fields":[{"type":"selector","dimension":"createdBy","value": req.userDetails.userId},
-                           {"type":"selector","dimension":"isAPrivateProgram","value":false}]}]};
-            bodyParam.filter.fields.push(filter);
-          }
-          else {
-            let filter = {"type": "or","fields":[{"type":"and","fields":[{"type":"selector","dimension":"createdBy","value": req.userDetails.userId},
-                         {"type":"selector","dimension":"isAPrivateProgram","value":true}]},
-                         {"type":"selector","dimension":"isAPrivateProgram","value":false}]};
-
-            bodyParam.filter.fields.push(filter);
-          }
-          
-          // filter out not answered questions
-          bodyParam.filter.fields.push({"type":"not","field":{"type":"selector","dimension":"questionAnswer","value":""}});
-
-          //Push column names dynamically to the query dimensions array 
-          if (!req.body.immediateChildEntityType) {
-          bodyParam.dimensions.push(entityType, entityType + "Name");
-          }
-          else if (req.body.immediateChildEntityType == "school") {
-          bodyParam.dimensions.push(entityType, entityType + "Name", immediateChildEntityType, immediateChildEntityType + "Name");
-          }
-          else {
-          bodyParam.dimensions.push(entityType, entityType + "Name", immediateChildEntityType, immediateChildEntityType + "Name", "school", "schoolName");
-          }
-
-          //pass the query as body param and get the result from druid
-          var options = gen.utils.getDruidConnection();
-          options.method = "POST";
-          options.body = bodyParam;
-          var data = await rp(options);
-
-          if (!data.length) {
-            resolve({ "data": "No observations made for the entity" })
-          }
-          else {
-            var responseObj = await helperFunc.entityReportChart(data,req.body.entityId,req.body.entityType)
-            resolve(responseObj);
-          }
-        // })
-        }
-      }
-      catch(err) {
-          res.status(500);
-          let response = {
-            result: false,
-            message: 'Data not found'
-          }
-          resolve(response);
-      }
-
   })
-
 }
 
 //Function for entity solution report PDF generation
@@ -2447,96 +2265,93 @@ async function instanceCriteriaReportData(req, res) {
     try {
 
       if (!req.body.submissionId) {
-          let response = {
-              result: false,
-              message: 'submissionId is a required field'
-          };
-          resolve(response);
+        let response = {
+          result: false,
+          message: 'submissionId is a required field'
+        };
+        resolve(response);
       } else {
 
-          let submissionId = req.body.submissionId;
+        let submissionId = req.body.submissionId;
 
-          // model.MyModel.findOneAsync({ qid: "instance_criteria_report_query" }, { allow_filtering: true })
-          //     .then(async function (result) {
 
-                  // let bodyParam = JSON.parse(result.query);
+        let bodyParam = gen.utils.getDruidQuery("instance_criteria_report_query");
 
-                  let bodyParam = gen.utils.getDruidQuery("instance_criteria_report_query");
+        if (process.env.OBSERVATION_DATASOURCE_NAME) {
+          bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
+        }
 
-                  if (process.env.OBSERVATION_DATASOURCE_NAME) {
-                      bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
-                  }
+        bodyParam.filter = {
+          "type": "and", "fields": [{ "type": "selector", "dimension": "observationSubmissionId", "value": submissionId },
+          { "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } }]
+        };
 
-                  bodyParam.filter = {"type":"and","fields":[{ "type": "selector", "dimension": "observationSubmissionId", "value": submissionId },
-                                     {"type":"not","field":{"type":"selector","dimension":"questionAnswer","value":""}}]};
+        //if filter is given
+        if (req.body.filter && req.body.filter.criteria && req.body.filter.criteria.length > 0) {
+          bodyParam.filter.fields.push({ "type": "in", "dimension": "criteriaId", "values": req.body.filter.criteria });
+        }
 
-                  //if filter is given
-                  if (req.body.filter && req.body.filter.criteria && req.body.filter.criteria.length > 0) {
-                    bodyParam.filter.fields.push({"type": "in", "dimension":"criteriaId","values":req.body.filter.criteria});
-                  }
+        //pass the query as body param and get the resul from druid
+        let options = gen.utils.getDruidConnection();
+        options.method = "POST";
+        options.body = bodyParam;
+        let data = await rp(options);
 
-                  //pass the query as body param and get the resul from druid
-                  let options = gen.utils.getDruidConnection();
-                  options.method = "POST";
-                  options.body = bodyParam;
-                  let data = await rp(options);
+        if (!data.length) {
+          let message;
+          let getSubmissionStatusResponse = await assessmentService.getObservationSubmissionStatusById
+            (
+              submissionId,
+              req.headers["x-auth-token"]
+            )
 
-                  if (!data.length) {
-                    let message;
-                    let getSubmissionStatusResponse = await assessmentService.getObservationSubmissionStatusById
-                    (
-                        submissionId,
-                        req.headers["x-auth-token"]
-                    )
-    
-                    if (getSubmissionStatusResponse.result && 
-                        getSubmissionStatusResponse.result.status == filesHelper.submission_status_completed) {
-                        message = filesHelper.submission_not_found_message;
-                    }
-                    else {
-                        message = "SUBMISSION_ID_NOT_FOUND";
-                    }
-  
-                    resolve({
-                      "result": false,
-                      "data": message
-                    });
+          if (getSubmissionStatusResponse.result &&
+            getSubmissionStatusResponse.result.status == filesHelper.submission_status_completed) {
+            message = filesHelper.submission_not_found_message;
+          }
+          else {
+            message = "SUBMISSION_ID_NOT_FOUND";
+          }
 
-                  } else {
+          resolve({
+            "result": false,
+            "data": message
+          });
 
-                      let reportType = "criteria";
-                      let chartData = await helperFunc.instanceReportChart(data, reportType);
+        } else {
 
-                      //Get evidence data from evidence datasource
-                      let inputObj = {
-                          submissionId: submissionId
-                      }
+          let reportType = "criteria";
+          let chartData = await helperFunc.instanceReportChart(data, reportType);
 
-                      let evidenceData = await getEvidenceData(inputObj);
-                      let responseObj;
+          //Get evidence data from evidence datasource
+          let inputObj = {
+            submissionId: submissionId
+          }
 
-                      if (evidenceData.result) {
-                          responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
-                      } else {
-                          responseObj = chartData;
-                      }
+          let evidenceData = await getEvidenceData(inputObj);
+          let responseObj;
 
-                      responseObj = await helperFunc.getCriteriawiseReport(responseObj);
+          if (evidenceData.result) {
+            responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+          } else {
+            responseObj = chartData;
+          }
 
-                      resolve(responseObj);
+          responseObj = await helperFunc.getCriteriawiseReport(responseObj);
 
-                  }
-              // })
-                }
-              }
-              catch(err) {
-                  let response = {
-                      result: false,
-                      message: 'INTERNAL_SERVER_ERROR'
-                  };
-                  resolve(response);
-              }
-      
+          resolve(responseObj);
+
+        }
+      }
+    }
+    catch (err) {
+      let response = {
+        result: false,
+        message: 'INTERNAL_SERVER_ERROR'
+      };
+      resolve(response);
+    }
+
   });
 };
 
@@ -2654,10 +2469,6 @@ async function instanceScoreCriteriaReportData(req, res) {
 
     } else {
 
-      // model.MyModel.findOneAsync({ qid: "instance_score_criteria_report_query" }, { allow_filtering: true })
-      //   .then(async function (result) {
-
-      //     let bodyParam = JSON.parse(result.query);
           let bodyParam = gen.utils.getDruidQuery("instance_score_criteria_report_query");
 
           if (process.env.OBSERVATION_DATASOURCE_NAME) {
@@ -2725,7 +2536,6 @@ async function instanceScoreCriteriaReportData(req, res) {
 
             resolve(responseObj);
           }
-        // })
         }
       }
       catch (err) {
@@ -2828,7 +2638,7 @@ async function entityCriteriaReportData(req, res) {
 
     try {
 
-    if (!req.body.entityId && !req.body.observationId) {
+    if (!req.body.entityId || !req.body.observationId) {
       let response = {
         result: false,
         message: 'entityId and observationId are required fields'
@@ -2836,11 +2646,6 @@ async function entityCriteriaReportData(req, res) {
       resolve(response);
     }
     else {
-
-      // model.MyModel.findOneAsync({ qid: "entity_criteria_report_query" }, { allow_filtering: true })
-      //   .then(async function (result) {
-
-      //     let bodyParam = JSON.parse(result.query);
 
         let bodyParam = gen.utils.getDruidQuery("entity_criteria_report_query");
 
@@ -2922,7 +2727,6 @@ async function entityCriteriaReportData(req, res) {
             resolve(responseObj);
 
           }
-        // })
         }
       }
         catch(err) {
@@ -3049,8 +2853,8 @@ async function entityScoreCriteriaReportData(req, res) {
 
     try {
 
-    if (!req.body.entityId && !req.body.observationId) {
-      var response = {
+    if (!req.body.entityId || !req.body.observationId) {
+      let response = {
         result: false,
         message: 'entityId and observationId are required fields'
       }
@@ -3058,11 +2862,6 @@ async function entityScoreCriteriaReportData(req, res) {
     }
 
     else {
-
-      // model.MyModel.findOneAsync({ qid: "entity_score_criteria_report_query" }, { allow_filtering: true })
-      //   .then(async function (result) {
-
-      //     var bodyParam = JSON.parse(result.query);
          
           let bodyParam = gen.utils.getDruidQuery("entity_score_criteria_report_query");
 
@@ -3087,11 +2886,11 @@ async function entityScoreCriteriaReportData(req, res) {
            }
 
           //pass the query as body param and get the resul from druid
-          var options = gen.utils.getDruidConnection();
+          let options = gen.utils.getDruidConnection();
           options.method = "POST";
           options.body = bodyParam;
 
-          var data = await rp(options);
+          let data = await rp(options);
 
           if (!data.length) {
             resolve({
@@ -3126,7 +2925,6 @@ async function entityScoreCriteriaReportData(req, res) {
             resolve(responseObj);
 
           }
-        // })
         }
       }
       catch(err) {
@@ -3232,11 +3030,6 @@ async function observationCriteriaReportData(req, res) {
           resolve(response);
       }
       else {
-          
-          // model.MyModel.findOneAsync({ qid: "observation_criteria_report_query" }, { allow_filtering: true })
-          //     .then(async function (result) {
-
-          //       let bodyParam = JSON.parse(result.query);
               let bodyParam = gen.utils.getDruidQuery("observation_criteria_report_query");
 
                 if (process.env.OBSERVATION_DATASOURCE_NAME) {
@@ -3290,7 +3083,6 @@ async function observationCriteriaReportData(req, res) {
                   resolve(responseObj);
 
                 }
-              // })
               }
             }
             catch(err) {
@@ -3430,10 +3222,6 @@ async function observationScoreCriteriaReportData(req, res) {
 
     else {
 
-      // model.MyModel.findOneAsync({ qid: "observation_score_criteria_report_query" }, { allow_filtering: true })
-      //   .then(async function (result) {
-
-      //     var bodyParam = JSON.parse(result.query);
          let bodyParam = gen.utils.getDruidQuery("observation_score_criteria_report_query");
 
           if (process.env.OBSERVATION_DATASOURCE_NAME) {
@@ -3501,7 +3289,6 @@ async function observationScoreCriteriaReportData(req, res) {
             resolve(responseObj);
 
           }
-        // })
         }
       }
       catch(err) {
@@ -3685,10 +3472,6 @@ async function allEvidencesList(req, res) {
 
     } else {
 
-      // model.MyModel.findOneAsync({ qid: "list_all_evidence_query" }, { allow_filtering: true })
-      //   .then(async function (result) {
-
-      //     var bodyParam = JSON.parse(result.query);
           let bodyParam = gen.utils.getDruidQuery("list_all_evidence_query");
 
           if (process.env.OBSERVATION_EVIDENCE_DATASOURCE_NAME) {
@@ -3736,8 +3519,6 @@ async function allEvidencesList(req, res) {
             
             resolve({"result" : true, "data" : response});
           }
-
-        // })
         }
       }
         catch(err){
@@ -3758,15 +3539,11 @@ async function getEvidenceData(inputObj) {
 
   return new Promise(async function (resolve, reject) {
      try {
-    // model.MyModel.findOneAsync({ qid: "get_evidence_query" }, { allow_filtering: true })
-    //   .then(async function (result) {
 
         let submissionId = inputObj.submissionId;
         let entityId = inputObj.entityId;
         let observationId = inputObj.observationId;
         let entityType = inputObj.entityType;
-
-        // var bodyParam = JSON.parse(result.query);
 
         let bodyParam = gen.utils.getDruidQuery("get_evidence_query");
         
@@ -3801,7 +3578,6 @@ async function getEvidenceData(inputObj) {
         } else {
           resolve({"result":true,"data":data});
         }
-      // })
       } 
       catch(err) {
         let response = {

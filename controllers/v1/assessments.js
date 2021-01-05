@@ -1,8 +1,6 @@
 const rp = require('request-promise');
 const request = require('request');
-const model = require('../../db')
 const helperFunc = require('../../helper/chart_data');
-const commonCassandraFunc = require('../../common/cassandra_func');
 const pdfHandler = require('../../helper/common_handler');
 const assessmentService = require('../../helper/assessment_service');
 const storePdfReportsToS3 = (!process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF || process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF != "OFF") ? "ON" : "OFF"
@@ -40,78 +38,71 @@ const storePdfReportsToS3 = (!process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF || pro
 // Function for listing assement programs
 exports.listPrograms = async function (req, res) {
     try {
-    if (!req.body.entityId || !req.body.entityType) {
+        if (!req.body.entityId || !req.body.entityType) {
+            res.status(400);
+            var response = {
+                result: false,
+                message: 'entityId,entityType and immediateChildType are required fields'
+            }
+            res.send(response);
+        }
+        else {
+
+            let bodyParam = gen.utils.getDruidQuery("list_assessment_programs_query");
+
+            if (process.env.ASSESSMENT_DATASOURCE_NAME) {
+                bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
+            }
+
+            bodyParam.filter.fields[0].dimension = req.body.entityType;
+            bodyParam.filter.fields[0].value = req.body.entityId;
+            bodyParam.filter.fields[1].fields[0].fields[0].value = req.userDetails.userId;
+
+            //pass the query as body param and get the result from druid
+            var options = gen.utils.getDruidConnection();
+            options.method = "POST";
+            options.body = bodyParam;
+            var data = await rp(options);
+            if (!data.length) {
+
+                //==========Production hotfix code============================
+                bodyParam.filter.fields[0].dimension = "school";
+                bodyParam.filter.fields[0].value = req.body.entityId;
+
+                //pass the query as body param and get the result from druid
+                let optionsData = gen.utils.getDruidConnection();
+                optionsData.method = "POST";
+                optionsData.body = bodyParam;
+                let programData = await rp(options);
+
+                if (!programData.length) {
+
+                    res.send({ "data": [] })
+                }
+                else {
+
+                    //call the function entityAssessmentChart to get the data for stacked bar chart 
+                    var responseObj = await helperFunc.listProgramsObjectCreate(programData);
+                    res.send(responseObj);
+
+                }
+            }
+            else {
+                //call the function entityAssessmentChart to get the data for stacked bar chart 
+                var responseObj = await helperFunc.listProgramsObjectCreate(data);
+                res.send(responseObj);
+            }
+        }
+    }
+    catch (err) {
         res.status(400);
-        var response = {
+        let response = {
             result: false,
-            message: 'entityId,entityType and immediateChildType are required fields'
+            message: 'INTERNAL_SERVER_ERROR'
         }
         res.send(response);
     }
-    else {
-
-        //get quey from cassandra
-        // model.MyModel.findOneAsync({ qid: "list_assessment_programs_query" }, { allow_filtering: true })
-        //     .then(async function (result) {
-
-        //         let bodyParam = JSON.parse(result.query);
-
-                let bodyParam =  gen.utils.getDruidQuery("list_assessment_programs_query");
-
-                if (process.env.ASSESSMENT_DATASOURCE_NAME) {
-                    bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
-                }
-
-                bodyParam.filter.fields[0].dimension = req.body.entityType;
-                bodyParam.filter.fields[0].value = req.body.entityId;
-                bodyParam.filter.fields[1].fields[0].fields[0].value = req.userDetails.userId;
-
-                //pass the query as body param and get the result from druid
-                var options = gen.utils.getDruidConnection();
-                options.method = "POST";
-                options.body = bodyParam;
-                var data = await rp(options);
-                if (!data.length) {
-
-                    //==========Production hotfix code============================
-                    bodyParam.filter.fields[0].dimension = "school";
-                    bodyParam.filter.fields[0].value = req.body.entityId;
-
-                    //pass the query as body param and get the result from druid
-                    let optionsData = gen.utils.getDruidConnection();
-                    optionsData.method = "POST";
-                    optionsData.body = bodyParam;
-                    let programData = await rp(options);
-
-                    if (!programData.length) {
-
-                        res.send({ "data": [] })
-                    }
-                    else {
-
-                        //call the function entityAssessmentChart to get the data for stacked bar chart 
-                        var responseObj = await helperFunc.listProgramsObjectCreate(programData);
-                        res.send(responseObj);
-
-                    }
-                }
-                else {
-                    //call the function entityAssessmentChart to get the data for stacked bar chart 
-                    var responseObj = await helperFunc.listProgramsObjectCreate(data);
-                    res.send(responseObj);
-                }
-            // })
-               }
-            }
-            catch(err) {
-                res.status(400);
-                let response = {
-                    result: false,
-                    message: 'INTERNAL_SERVER_ERROR'
-                }
-                res.send(response);
-            }
-    }
+}
 
 
 
@@ -195,137 +186,121 @@ async function assessmentReportGetChartData(req, res) {
 
         try {
 
-        if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
+            if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
+                let response = {
+                    result: false,
+                    message: 'entityId,entityType,programId and solutionId are required fields'
+                }
+                resolve(response);
+            }
+            else {
+
+                let childType = req.body.immediateChildEntityType;
+
+                let bodyParam = gen.utils.getDruidQuery("entity_assessment_query");
+
+                if (process.env.ASSESSMENT_DATASOURCE_NAME) {
+                    bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
+                }
+
+                //dynamically appending values to filter
+                bodyParam.filter.fields[0].dimension = req.body.entityType;
+                bodyParam.filter.fields[0].value = req.body.entityId;
+                bodyParam.filter.fields[1].value = req.body.programId;
+                bodyParam.filter.fields[2].value = req.body.solutionId;
+
+                if (req.body.immediateChildEntityType == "") {
+                    bodyParam.dimensions.push(req.body.entityType, req.body.entityType + "Name");
+                }
+                else {
+                    let entityName = req.body.immediateChildEntityType + "Name";
+                    bodyParam.dimensions.push(req.body.immediateChildEntityType, entityName);
+                }
+                //pass the query as body param and get the resul from druid
+                let druidOptions = gen.utils.getDruidConnection();
+                druidOptions.method = "POST";
+                druidOptions.body = bodyParam;
+                let data = await rp(druidOptions);
+
+                if (!data.length) {
+
+                    //==========Production hotfix code============================
+
+                    //dynamically appending values to filter
+                    bodyParam.filter.fields[0].dimension = "school";
+                    childType = "";
+
+                    //pass the query as body param and get the resul from druid
+                    // let druidOptions = gen.utils.getDruidConnection();
+                    druidOptions.method = "POST";
+                    druidOptions.body = bodyParam;
+                    let assessData = await rp(druidOptions);
+
+                    if (!assessData.length) {
+                        resolve({ "result": false, "data": {} })
+                    }
+                    else {
+
+                        let inputObj = {
+                            data: assessData,
+                            entityName: "domainName",
+                            childEntity: "",
+                        }
+
+                        //call the function entityAssessmentChart to get the data for stacked bar chart 
+                        let responseObj = await helperFunc.entityAssessmentChart(inputObj);
+
+                        if (Object.keys(responseObj).length === 0) {
+                            return resolve({ "reportSections": [] });
+                        }
+
+                        responseObj.title = "Performance Report";
+                        responseObj.reportSections[0].chart.grandChildEntityType = "";
+                        resolve(responseObj);
+                    }
+                }
+                else {
+
+                    let inputObj = {
+                        data: data,
+                        parentEntity: req.body.entityType,
+                        entityName: req.body.immediateChildEntityType ? req.body.immediateChildEntityType + "Name" : "domainName",
+                        childEntity: req.body.immediateChildEntityType,
+                    }
+
+                    //call the function entityAssessmentChart to get the data for stacked bar chart 
+                    let responseObj = await helperFunc.entityAssessmentChart(inputObj);
+
+                    if (Object.keys(responseObj).length === 0) {
+                        return resolve({ "reportSections": [] });
+                    }
+
+                    if (childType) {
+
+                        //call samiksha entity list assessment API to get the grandchildEntity type.
+                        let grandChildEntityType = await assessmentService.getEntityList(req.body.entityId, childType, req.headers["x-auth-token"]);
+
+                        if (grandChildEntityType.status == 200 && grandChildEntityType.result[0].subEntityGroups.length > 0) {
+
+                            responseObj.reportSections[0].chart.grandChildEntityType = grandChildEntityType.result[0].immediateSubEntityType
+
+                        }
+                        else {
+                            responseObj.reportSections[0].chart.grandChildEntityType = "";
+                        }
+                    }
+
+                    resolve(responseObj);
+                }
+            }
+        }
+        catch (err) {
             let response = {
                 result: false,
-                message: 'entityId,entityType,programId and solutionId are required fields'
+                message: 'INTERNAL_SERVER_ERROR'
             }
             resolve(response);
         }
-        else {
-
-            let childType = req.body.immediateChildEntityType;
-            // let reqBody = req.body
-
-            // let dataAssessIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqBody)
-
-            // if (dataAssessIndexes == undefined) {
-
-                //get domainName and level info
-                // model.MyModel.findOneAsync({ qid: "entity_assessment_query" }, { allow_filtering: true })
-                //     .then(async function (result) {
-
-                //         let bodyParam = JSON.parse(result.query);
-                        let bodyParam = gen.utils.getDruidQuery("entity_assessment_query");
-
-                        if (process.env.ASSESSMENT_DATASOURCE_NAME) {
-                            bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
-                        }
-
-                        //dynamically appending values to filter
-                        bodyParam.filter.fields[0].dimension = req.body.entityType;
-                        bodyParam.filter.fields[0].value = req.body.entityId;
-                        bodyParam.filter.fields[1].value = req.body.programId;
-                        bodyParam.filter.fields[2].value = req.body.solutionId;
-
-                        if (req.body.immediateChildEntityType == "") {
-                            bodyParam.dimensions.push(req.body.entityType,req.body.entityType + "Name");
-                        }
-                        else {
-                            let entityName = req.body.immediateChildEntityType + "Name";
-                            bodyParam.dimensions.push(req.body.immediateChildEntityType, entityName);
-                        }
-                        //pass the query as body param and get the resul from druid
-                        let druidOptions = gen.utils.getDruidConnection();
-                        druidOptions.method = "POST";
-                        druidOptions.body = bodyParam;
-                        let data = await rp(druidOptions);
-
-                        if (!data.length) {
-
-                            //==========Production hotfix code============================
-
-                            //dynamically appending values to filter
-                            bodyParam.filter.fields[0].dimension = "school";
-                            childType = "";
-
-                            //pass the query as body param and get the resul from druid
-                            // let druidOptions = gen.utils.getDruidConnection();
-                            druidOptions.method = "POST";
-                            druidOptions.body = bodyParam;
-                            let assessData = await rp(druidOptions);
-
-                            if (!assessData.length) {
-                                resolve({ "result": false, "data": {} })
-                            }
-                            else {
-
-                                let inputObj = {
-                                    data: assessData,
-                                    entityName: "domainName",
-                                    childEntity: "",
-                                }
-
-                                //call the function entityAssessmentChart to get the data for stacked bar chart 
-                                let responseObj = await helperFunc.entityAssessmentChart(inputObj);
-
-                                if (Object.keys(responseObj).length === 0) {
-                                    return resolve({ "reportSections": [] });
-                                }
-
-                                responseObj.title = "Performance Report";
-                                responseObj.reportSections[0].chart.grandChildEntityType = "";
-                                resolve(responseObj);
-                                // commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
-                            }
-                        }
-                        else {
-
-                            let inputObj = {
-                                data: data,
-                                parentEntity: req.body.entityType,
-                                entityName: req.body.immediateChildEntityType ? req.body.immediateChildEntityType + "Name" : "domainName",
-                                childEntity: req.body.immediateChildEntityType,
-                            }
-
-                            //call the function entityAssessmentChart to get the data for stacked bar chart 
-                            let responseObj = await helperFunc.entityAssessmentChart(inputObj);
-
-                            if (Object.keys(responseObj).length === 0) {
-                                return resolve({ "reportSections": [] });
-                            }
-
-                            if (childType) {
-
-                                //call samiksha entity list assessment API to get the grandchildEntity type.
-                                let grandChildEntityType = await assessmentService.getEntityList(req.body.entityId, childType, req.headers["x-auth-token"]);
-
-                                if (grandChildEntityType.status == 200 && grandChildEntityType.result[0].subEntityGroups.length > 0) {
-                                
-                                    responseObj.reportSections[0].chart.grandChildEntityType = grandChildEntityType.result[0].immediateSubEntityType
-                                    
-                                }
-                                else {
-                                    responseObj.reportSections[0].chart.grandChildEntityType = "";
-                                }
-                            }
-
-                            resolve(responseObj);
-                            // commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqBody, responseObj)
-                        }
-                    // })
-                       }
-                    }
-                    catch(err) {
-                        let response = {
-                            result: false,
-                            message: 'INTERNAL_SERVER_ERROR'
-                        }
-                        resolve(response);
-                    }
-            // } else {
-            //     resolve(JSON.parse(dataAssessIndexes['apiresponse']))
-            // }
     });
 }
 
@@ -354,78 +329,74 @@ exports.listAssessmentPrograms = async function (req, res) {
 
     try {
 
-    let filter;
+        let filter;
 
-    let getUserProfile = await getUserProfileFunc(req, res);
-    let userProfile = getUserProfile[0];
-    let filterData = getUserProfile[1];
+        let getUserProfile = await getUserProfileFunc(req, res);
+        let userProfile = getUserProfile[0];
+        let filterData = getUserProfile[1];
 
-    let aclLength = Object.keys(userProfile.result.acl);
-    if (userProfile.result.acl && aclLength > 0) {
+        let aclLength = Object.keys(userProfile.result.acl);
+        if (userProfile.result.acl && aclLength > 0) {
 
-        let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
+            let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
 
-        filter = {
-            "type": "and", "fields": [{
-                "type": "or", "fields": [{ "type": "in", "dimension": "schoolType", "values": tagsArray },
-                { "type": "in", "dimension": "administrationType", "values": tagsArray }]
-            }]
-        };
+            filter = {
+                "type": "and", "fields": [{
+                    "type": "or", "fields": [{ "type": "in", "dimension": "schoolType", "values": tagsArray },
+                    { "type": "in", "dimension": "administrationType", "values": tagsArray }]
+                }]
+            };
 
-        //combine entity filter array with acl array
-        filter.fields.push({ "type": "or", "fields": filterData });
+            //combine entity filter array with acl array
+            filter.fields.push({ "type": "or", "fields": filterData });
 
-    } else {
-        filter = {"type":"and","fields":[{"type": "or", "fields": filterData }]};
+        } else {
+            filter = { "type": "and", "fields": [{ "type": "or", "fields": filterData }] };
+        }
+
+        //Add private program filter
+        filter.fields.push({
+            "type": "or", "fields": [
+                {
+                    "type": "and", "fields": [{ "type": "selector", "dimension": "userId", "value": req.userDetails.userId },
+                    { "type": "selector", "dimension": "isAPrivateProgram", "value": true }]
+                },
+                { "type": "selector", "dimension": "isAPrivateProgram", "value": false }
+            ]
+        });
+
+        let bodyParam = gen.utils.getDruidQuery("list_assessment_programs_query");
+
+        if (process.env.ASSESSMENT_DATASOURCE_NAME) {
+            bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
+        }
+
+        bodyParam.filter = filter;
+        bodyParam.dimensions = ["programId", "programName"];
+
+        //pass the query as body param and get the result from druid
+        let options = gen.utils.getDruidConnection();
+        options.method = "POST";
+        options.body = bodyParam;
+        let data = await rp(options);
+
+        if (!data.length) {
+            res.send({ "result": false, "data": [] });
+        }
+        else {
+
+            let responseObj = await helperFunc.listAssessmentProgramsObjectCreate(data);
+            res.send(responseObj);
+        }
     }
-
-    //Add private program filter
-    filter.fields.push({"type":"or","fields":[
-        {"type":"and","fields":[{"type":"selector","dimension":"userId","value":req.userDetails.userId},
-        {"type":"selector","dimension":"isAPrivateProgram","value":true}]},
-        {"type":"selector","dimension":"isAPrivateProgram","value":false}
-        ]
-    });
-
-    //get query from cassandra
-    // model.MyModel.findOneAsync({ qid: "list_assessment_programs_query" }, { allow_filtering: true })
-    //     .then(async function (result) {
-
-    //         let bodyParam = JSON.parse(result.query);
-            let bodyParam = gen.utils.getDruidQuery("list_assessment_programs_query");
-
-            if (process.env.ASSESSMENT_DATASOURCE_NAME) {
-                bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
-            }
-
-            bodyParam.filter = filter;
-            bodyParam.dimensions = ["programId", "programName"];
-
-            //pass the query as body param and get the result from druid
-            let options = gen.utils.getDruidConnection();
-            options.method = "POST";
-            options.body = bodyParam;
-            let data = await rp(options);
-
-            if (!data.length) {
-                res.send({ "result": false, "data": [] });
-            }
-            else {
-
-                let responseObj = await helperFunc.listAssessmentProgramsObjectCreate(data);
-                res.send(responseObj);
-            }
-
-        // })
-        } 
-        catch(err) {
-            res.status(400);
-            let response = {
-                result: false,
-                message: 'INTERNAL SERVER ERROR'
-            }
-            res.send(response);
-        };
+    catch (err) {
+        res.status(400);
+        let response = {
+            result: false,
+            message: 'INTERNAL SERVER ERROR'
+        }
+        res.send(response);
+    };
 }
 
 
@@ -459,107 +430,103 @@ exports.listAssessmentPrograms = async function (req, res) {
 
 // Function for listing assement programs
 exports.listEntities = async function (req, res) {
-    
+
     try {
 
-    let filter;
-    let getUserProfile = await getUserProfileFunc(req, res);
-    let userProfile = getUserProfile[0];
-    let filterData = getUserProfile[1];
-    let dimensionArray = getUserProfile[2];
+        let filter;
+        let getUserProfile = await getUserProfileFunc(req, res);
+        let userProfile = getUserProfile[0];
+        let filterData = getUserProfile[1];
+        let dimensionArray = getUserProfile[2];
 
-    let aclLength = Object.keys(userProfile.result.acl);
+        let aclLength = Object.keys(userProfile.result.acl);
 
-    if (userProfile.result.acl && aclLength > 0) {
+        if (userProfile.result.acl && aclLength > 0) {
 
-        let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
+            let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
 
-        filter = {
-            "type": "and", "fields": [
-                { "type": "selector", "dimension": "programId", "values": req.body.programId },
+            filter = {
+                "type": "and", "fields": [
+                    { "type": "selector", "dimension": "programId", "values": req.body.programId },
+                    {
+                        "type": "or", "fields": [{ "type": "in", "dimension": "schoolType", "values": tagsArray },
+                        { "type": "in", "dimension": "administrationType", "values": tagsArray }]
+                    }]
+            };
+
+            //combine entity filter array with acl array
+            filter.fields.push({ "type": "or", "fields": filterData });
+
+        } else {
+            filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "programId", "value": req.body.programId }] };
+            filter.fields.push({ "type": "or", "fields": filterData });
+        }
+
+        //Add private program filter
+        filter.fields.push({
+            "type": "or", "fields": [
                 {
-                    "type": "or", "fields": [{ "type": "in", "dimension": "schoolType", "values": tagsArray },
-                    { "type": "in", "dimension": "administrationType", "values": tagsArray }]
-                }]
-        };
+                    "type": "and", "fields": [{ "type": "selector", "dimension": "userId", "value": req.userDetails.userId },
+                    { "type": "selector", "dimension": "isAPrivateProgram", "value": true }]
+                },
+                { "type": "selector", "dimension": "isAPrivateProgram", "value": false }
+            ]
+        });
 
-        //combine entity filter array with acl array
-        filter.fields.push({ "type": "or", "fields": filterData });
 
-    } else {
-        filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "programId", "value": req.body.programId }] };
-        filter.fields.push({ "type": "or", "fields": filterData });
+        let bodyParam = gen.utils.getDruidQuery("list_entities_query");
+
+        let programFilter = { "type": "selector", "dimension": "programId", "value": req.body.programId }
+
+        bodyParam.filter = programFilter
+
+        if (process.env.ASSESSMENT_DATASOURCE_NAME) {
+            bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
+        }
+
+        bodyParam.dimensions.push("entityType");
+
+        //pass the query as body param and get the result from druid
+        let options = gen.utils.getDruidConnection();
+        options.method = "POST";
+        options.body = bodyParam;
+        let entityData = await rp(options);
+
+        let entityDimensions = [];
+        if (entityData.length > 0) {
+            entityData.forEach(dimension => {
+                if (!entityDimensions.includes(dimension)) {
+                    entityDimensions.push(dimension.event.entityType, dimension.event.entityType + "Name");
+                }
+            })
+        }
+
+        bodyParam.filter = filter;
+        bodyParam.dimensions = [...bodyParam.dimensions, ...dimensionArray];
+        bodyParam.dimensions = [...bodyParam.dimensions, ...entityDimensions];
+        bodyParam.dimensions.push("entityType");
+        bodyParam.dimensions = [...new Set(bodyParam.dimensions)];
+
+        //pass the query as body param and get the result from druid
+        options.body = bodyParam;
+        let data = await rp(options);
+
+        if (!data.length) {
+            res.send({ "result": false, "data": [] });
+        }
+        else {
+
+            let responseObj = await helperFunc.listEntitesObjectCreation(data);
+            res.send(responseObj);
+        }
     }
-
-    //Add private program filter
-    filter.fields.push({"type":"or","fields":[
-        {"type":"and","fields":[{"type":"selector","dimension":"userId","value":req.userDetails.userId},
-        {"type":"selector","dimension":"isAPrivateProgram","value":true}]},
-        {"type":"selector","dimension":"isAPrivateProgram","value":false}
-        ]
-    });
-
-    //get query from cassandra
-    // model.MyModel.findOneAsync({ qid: "list_entities_query" }, { allow_filtering: true })
-    //     .then(async function (result) {
-
-    //         let bodyParam = JSON.parse(result.query);
-            let bodyParam = gen.utils.getDruidQuery("list_entities_query");
-
-            let programFilter = {"type":"selector","dimension":"programId","value":req.body.programId}
-
-            bodyParam.filter = programFilter
-
-            if (process.env.ASSESSMENT_DATASOURCE_NAME) {
-                bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
-            }
-
-            bodyParam.dimensions.push("entityType");
-
-            //pass the query as body param and get the result from druid
-            let options = gen.utils.getDruidConnection();
-            options.method = "POST";
-            options.body = bodyParam;
-            let entityData = await rp(options);
-
-            let entityDimensions = [];
-            if(entityData.length > 0){
-               entityData.forEach( dimension => {
-                 if(!entityDimensions.includes(dimension)){
-                    entityDimensions.push(dimension.event.entityType,dimension.event.entityType + "Name");
-                  }
-                })
-             }
-
-            bodyParam.filter = filter;
-            bodyParam.dimensions = [...bodyParam.dimensions, ...dimensionArray];
-            bodyParam.dimensions = [...bodyParam.dimensions, ...entityDimensions];
-            bodyParam.dimensions.push("entityType");
-            bodyParam.dimensions = [...new Set(bodyParam.dimensions)];
-
-            //pass the query as body param and get the result from druid
-            options.body = bodyParam;
-            let data = await rp(options);
-            
-            if (!data.length) {
-                res.send({ "result": false, "data": [] });
-            }
-            else {
-
-                let responseObj = await helperFunc.listEntitesObjectCreation(data);
-                res.send(responseObj);
-            }
-
-        // })
-           
+    catch (err) {
+        let response = {
+            result: false,
+            message: 'INTERNAL SERVER ERROR'
         }
-        catch(err) {
-            let response = {
-                result: false,
-                message: 'INTERNAL SERVER ERROR'
-            }
-            res.send(response);
-        }
+        res.send(response);
+    }
 }
 
 
@@ -598,65 +565,60 @@ exports.listEntities = async function (req, res) {
 // Function for listing assement programs
 exports.listImprovementProjects = async function (req, res) {
     try {
-    if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
-        res.status(400);
-        let response = {
-            result: false,
-            message: 'entityId,entityType,programId and solutionId are required fields'
-        }
-        res.send(response);
-    }
-    else {
-
-        //get quey from cassandra
-        // model.MyModel.findOneAsync({ qid: "list_improvement_projects_query" }, { allow_filtering: true })
-        //     .then(async function (result) {
-
-        //         let bodyParam = JSON.parse(result.query);
-                let bodyParam = gen.utils.getDruidQuery("list_improvement_projects_query");
-
-                if (process.env.ASSESSMENT_DATASOURCE_NAME) {
-                    bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
-                }
-                
-                bodyParam.filter.fields.push({"type":"selector","dimension":req.body.entityType,"value":req.body.entityId},
-                                             {"type":"selector","dimension":"programId","value":req.body.programId},
-                                             {"type":"selector","dimension":"solutionId","value":req.body.solutionId});
-
-                //get the acl data from samiksha service
-                let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-auth-token"]);
-                let aclLength = Object.keys(userProfile.result.acl);
-                if (userProfile.result && userProfile.result.acl && aclLength > 0) {
-                    let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
-
-                    bodyParam.filter.fields.push({"type":"or","fields":[{"type": "in", "dimension": "schoolType", "values": tagsArray },
-                        { "type": "in", "dimension": "administrationType", "values": tagsArray }]});
-                }
-
-                //pass the query as body param and get the result from druid
-                let options = gen.utils.getDruidConnection();
-                options.method = "POST";
-                options.body = bodyParam;
-
-                let data = await rp(options);
-                if (!data.length) {
-                    res.send({ "result": false, "data": [] });
-                }
-                else {
-                    //call the function improvementProjectsObjectCreate to get the response object
-                    let responseObj = await helperFunc.improvementProjectsObjectCreate(data);
-                    res.send(responseObj);
-                }
-            // })
-            }
-        } 
-        catch(err) {
+        if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
+            res.status(400);
             let response = {
                 result: false,
-                message: 'INTERNAL SERVER ERROR'
+                message: 'entityId,entityType,programId and solutionId are required fields'
             }
             res.send(response);
         }
+        else {
+            let bodyParam = gen.utils.getDruidQuery("list_improvement_projects_query");
+
+            if (process.env.ASSESSMENT_DATASOURCE_NAME) {
+                bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
+            }
+
+            bodyParam.filter.fields.push({ "type": "selector", "dimension": req.body.entityType, "value": req.body.entityId },
+                { "type": "selector", "dimension": "programId", "value": req.body.programId },
+                { "type": "selector", "dimension": "solutionId", "value": req.body.solutionId });
+
+            //get the acl data from samiksha service
+            let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-auth-token"]);
+            let aclLength = Object.keys(userProfile.result.acl);
+            if (userProfile.result && userProfile.result.acl && aclLength > 0) {
+                let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
+
+                bodyParam.filter.fields.push({
+                    "type": "or", "fields": [{ "type": "in", "dimension": "schoolType", "values": tagsArray },
+                    { "type": "in", "dimension": "administrationType", "values": tagsArray }]
+                });
+            }
+
+            //pass the query as body param and get the result from druid
+            let options = gen.utils.getDruidConnection();
+            options.method = "POST";
+            options.body = bodyParam;
+
+            let data = await rp(options);
+            if (!data.length) {
+                res.send({ "result": false, "data": [] });
+            }
+            else {
+                //call the function improvementProjectsObjectCreate to get the response object
+                let responseObj = await helperFunc.improvementProjectsObjectCreate(data);
+                res.send(responseObj);
+            }
+        }
+    }
+    catch (err) {
+        let response = {
+            result: false,
+            message: 'INTERNAL SERVER ERROR'
+        }
+        res.send(response);
+    }
 }
 
 
@@ -672,68 +634,19 @@ exports.pdfReports = async function (req, res) {
         res.send(response);
     }
     else {
-        // reqData = req.body;
-        // var dataReportIndexes = await commonCassandraFunc.checkAssessmentReqInCassandra(reqData);
-
-        // if (dataReportIndexes && dataReportIndexes.downloadpdfpath) {
-
-
-        //     dataReportIndexes.downloadpdfpath = dataReportIndexes.downloadpdfpath.replace(/^"(.*)"$/, '$1');
-        //     let signedUlr = await pdfHandler.getSignedUrl(dataReportIndexes.downloadpdfpath);
-
-
-        //     var response = {
-        //         status: "success",
-        //         message: 'Assessment Pdf Generated successfully',
-        //         pdfUrl: signedUlr
-        //     };
-        //     res.send(response);
-
-        // } else {
-            let assessmentRes;
-            // if (dataReportIndexes) {
-            //     assessmentRes = JSON.parse(dataReportIndexes['apiresponse']);
-            // }
-            // else {
-                assessmentRes = await assessmentReportGetChartData(req, res);
-            // }
-
-
+       
+            let assessmentRes = await assessmentReportGetChartData(req, res);
+         
             if (assessmentRes.result == true) {
 
-                // let storeReportsToS3 = false;
-                // if(storePdfReportsToS3 == "ON"){
-                //   storeReportsToS3 = true;
-                // }
+               let resData = await pdfHandler.assessmentPdfGeneration(assessmentRes, storeReportsToS3=false);
 
-                let resData = await pdfHandler.assessmentPdfGeneration(assessmentRes, storeReportsToS3=false);
-
-                // if (storeReportsToS3 == false) {
-                   
-                    resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-                    res.send(resData);
-                // }
-                // else {
-                //     if (dataReportIndexes) {
-                //         var reqOptions = {
-                //             query: dataReportIndexes.id,
-                //             downloadPath: resData.downloadPath
-                //         }
-                //         commonCassandraFunc.updateEntityAssessmentDownloadPath(reqOptions);
-                //     } else {
-                //         //store download url in cassandra
-                //         let dataInsert = commonCassandraFunc.insertAssessmentReqAndResInCassandra(reqData, resData, resData.downloadPath);
-                //     }
-
-                //     //res.send(resData);
-                //      res.send(omit(resData,'downloadPath'));
-                // }
+                resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+                res.send(resData);
             }
             else {
                 res.send(assessmentRes);
             }
-
-        // }
     }
 };
 
@@ -855,70 +768,65 @@ exports.entityReport = async function(req,res){
 
 
 async function entityReportChartCreateFunction(req, res) {
-return new Promise(async function (resolve, reject) {
-    try {
-    if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
-        let response = {
-            result: false,
-            message: 'entityId,entityType,programId,solutionId are required fields'
-        }
-        resolve(response);
-    }
-    else {
-           //get domainName and level info
-            // model.MyModel.findOneAsync({ qid: "entity_level_assessment_report_query" }, { allow_filtering: true })
-            //     .then(async function (result) {
-
-            //         var bodyParam = JSON.parse(result.query);
-                    let bodyParam = gen.utils.getDruidQuery("entity_level_assessment_report_query");
-
-                    if (process.env.ASSESSMENT_DATASOURCE_NAME) {
-                        bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
-                    }
-
-                    //dynamically appending values to filter
-                    bodyParam.filter.fields[0].dimension = req.body.entityType;
-                    bodyParam.filter.fields[0].value = req.body.entityId;
-                    bodyParam.filter.fields[1].value = req.body.programId;
-                    bodyParam.filter.fields[2].value = req.body.solutionId;
-                    if(req.body.submissionId) {
-                        bodyParam.filter.fields.push({"type":"selector","dimension":"submissionId","value":req.body.submissionId});
-                    }
-
-                    let options = gen.utils.getDruidConnection();
-                    options.method = "POST";
-                    options.body = bodyParam;
-
-                    let data = await rp(options);
-
-                    if (!data.length) {
-                        resolve({"result":false,"data": "NO_ASSESSMENT_MADE_FOR_THE_ENTITY"})
-                    }
-                    else {
-                        
-                        let response = {
-                                        "result":true,
-                                        "programName": data[0].event.programName,
-                                        "solutionName": data[0].event.solutionName,
-                                       };
-
-                        let reportData = await helperFunc.entityLevelReportData(data);
-
-                        response.reportSections = reportData;
-                     
-                       return resolve(response);
-                    }
-                // })
-                }
-            } 
-            catch(err) {
+    return new Promise(async function (resolve, reject) {
+        try {
+            if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
                 let response = {
                     result: false,
-                    message: 'INTERNAL_SERVER_ERROR',
-                    err: err
+                    message: 'entityId,entityType,programId,solutionId are required fields'
                 }
                 resolve(response);
             }
-        
+            else {
+
+                let bodyParam = gen.utils.getDruidQuery("entity_level_assessment_report_query");
+
+                if (process.env.ASSESSMENT_DATASOURCE_NAME) {
+                    bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
+                }
+
+                //dynamically appending values to filter
+                bodyParam.filter.fields[0].dimension = req.body.entityType;
+                bodyParam.filter.fields[0].value = req.body.entityId;
+                bodyParam.filter.fields[1].value = req.body.programId;
+                bodyParam.filter.fields[2].value = req.body.solutionId;
+                if (req.body.submissionId) {
+                    bodyParam.filter.fields.push({ "type": "selector", "dimension": "submissionId", "value": req.body.submissionId });
+                }
+
+                let options = gen.utils.getDruidConnection();
+                options.method = "POST";
+                options.body = bodyParam;
+
+                let data = await rp(options);
+
+                if (!data.length) {
+                    resolve({ "result": false, "data": "NO_ASSESSMENT_MADE_FOR_THE_ENTITY" })
+                }
+                else {
+
+                    let response = {
+                        "result": true,
+                        "programName": data[0].event.programName,
+                        "solutionName": data[0].event.solutionName,
+                    };
+
+                    let reportData = await helperFunc.entityLevelReportData(data);
+
+                    response.reportSections = reportData;
+
+                    return resolve(response);
+                }
+            }
+        }
+        catch (err) {
+            let response = {
+                result: false,
+                message: 'INTERNAL_SERVER_ERROR',
+                err: err
+            }
+            resolve(response);
+        }
+
     })
 }

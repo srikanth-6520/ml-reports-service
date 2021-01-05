@@ -8,6 +8,14 @@ require('./config/globals')();
 var router = require('./routes');
 const cors = require('cors');
 
+// Check if all environment variables are provided.
+const environmentData = require("./envVariables")();
+
+if (!environmentData.success) {
+  console.log("Server could not start . Not all environment variable is provided");
+  process.exit();
+}
+
 var app = express();
 
 var debug = require('debug')('nodejs-druid-query-app:server');
