@@ -1,19 +1,18 @@
-// var config = require('../config/config.json');
 const AWS = require('aws-sdk')
 var fs = require('fs');
 var uuidv4 = require('uuid/v4');
 
 
-var config = require('../config/config');
+// var config = require('../config/config');
 var rp = require('request-promise');
 var ejs = require('ejs');
 const path = require('path');
 var rimraf = require("rimraf");
 
-const s3 = new AWS.S3(config.s3_credentials);
-const myBucket = config.s3_bucketName;
+const s3 = new AWS.S3(gen.utils.getAWSConnection());
+const myBucket = process.env.AWS_BUCKET_NAME;
 
-// const signedUrlExpireSeconds=config.s3_signed_url_expire_seconds;
+// const signedUrlExpireSeconds=process.env.AWS_SIGNED_URL_EXPIRE_SECONDS;
 
 exports.getSignedUrl = async function getSignedUrl(filePath) {
 
@@ -22,7 +21,7 @@ exports.getSignedUrl = async function getSignedUrl(filePath) {
         // let url = s3.getSignedUrl('getObject', {
         //     Bucket: myBucket,
         //     Key: myKey,
-        //     Expires: config.s3_signed_url_expire_seconds
+        //     Expires: process.env.AWS_SIGNED_URL_EXPIRE_SECONDS
         // })
 
         // return resolve(url);
@@ -41,7 +40,7 @@ async function s3SignedUrl(filePath) {
         let url = s3.getSignedUrl('getObject', {
             Bucket: myBucket,
             Key: myKey,
-            Expires: config.s3_signed_url_expire_seconds
+            Expires: process.env.AWS_SIGNED_URL_EXPIRE_SECONDS
         })
 
         return resolve(url);
@@ -240,7 +239,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, storeReportsToS3 
                                             throw errWriteFile;
                                         } else {
 
-                                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                                            let optionsHtmlToPdf = gen.utils.getGotenbergConnection();
                                             optionsHtmlToPdf.formData = {
                                                 files: [
                                                 ]
@@ -282,12 +281,12 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, storeReportsToS3 
                                                                 return console.log(err);
                                                             }
                                                             // console.log("The PDF was saved!");
-                                                            const s3 = new AWS.S3(config.s3_credentials);
+                                                            const s3 = new AWS.S3(gen.utils.getAWSConnection());
                                                             const uploadFile = () => {
                                                                 fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
                                                                     if (err) throw err;
                                                                     const params = {
-                                                                        Bucket: config.s3_bucketName, // pass your bucket name
+                                                                        Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                                         Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf', // file will be saved as testBucket/contacts.csv
                                                                         Body: Buffer.from(data, null, 2),
                                                                         Expires: 10
@@ -542,7 +541,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
                                             throw errWriteFile;
                                         } else {
 
-                                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                                            let optionsHtmlToPdf = gen.utils.getGotenbergConnection();
                                             optionsHtmlToPdf.formData = {
                                                 files: [
                                                 ]
@@ -584,12 +583,12 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
                                                                 return console.log(err);
                                                             }
                                                             // console.log("The PDF was saved!");
-                                                            const s3 = new AWS.S3(config.s3_credentials);
+                                                            const s3 = new AWS.S3(gen.utils.getAWSConnection());
                                                             const uploadFile = () => {
                                                                 fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
                                                                     if (err) throw err;
                                                                     const params = {
-                                                                        Bucket: config.s3_bucketName, // pass your bucket name
+                                                                        Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                                         Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf', // file will be saved as testBucket/contacts.csv
                                                                         Body: Buffer.from(data, null, 2),
                                                                         Expires: 10
@@ -791,7 +790,7 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
                                             throw errWriteFile;
                                         } else {
 
-                                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                                            let optionsHtmlToPdf = gen.utils.getGotenbergConnection();
                                             optionsHtmlToPdf.formData = {
                                                 files: [
                                                 ]
@@ -834,7 +833,7 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
                                                             }
 
                                                             else {
-                                                                const s3 = new AWS.S3(config.s3_credentials);
+                                                                const s3 = new AWS.S3(gen.utils.getAWSConnection());
 
                                                                 const uploadFile = () => {
 
@@ -842,7 +841,7 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
                                                                         if (err) throw err;
 
                                                                         const params = {
-                                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                                            Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                                             Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
                                                                             Body: Buffer.from(data, null, 2),
                                                                             Expires: 10
@@ -1032,7 +1031,7 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
                                             throw errWriteFile;
                                         } else {
 
-                                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                                            let optionsHtmlToPdf = gen.utils.getGotenbergConnection();
                                             optionsHtmlToPdf.formData = {
                                                 files: [
                                                 ]
@@ -1075,12 +1074,12 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
                                                                 return console.log(err);
                                                             }
                                                             // console.log("The PDF was saved!");
-                                                            const s3 = new AWS.S3(config.s3_credentials);
+                                                            const s3 = new AWS.S3(gen.utils.getAWSConnection());
                                                             const uploadFile = () => {
                                                                 fs.readFile(dir + '/entityAssessmentReport.pdf', (err, data) => {
                                                                     if (err) throw err;
                                                                     const params = {
-                                                                        Bucket: config.s3_bucketName, // pass your bucket name
+                                                                        Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                                         Key: 'entityAssessmentPdfReports/' + uuidv4() + 'entityAssessmentReport.pdf', // file will be saved as testBucket/contacts.csv
                                                                         Body: Buffer.from(data, null, 2),
                                                                         Expires: 10
@@ -1192,11 +1191,11 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
 
 //Prepare chart object to send it to highchart server
 async function getSelectedData(items, type) {
-    
+
     return new Promise(async function (resolve, reject) {
 
         let arrayOfChartData = [];
-       
+
         await Promise.all(items.map(async ele => {
 
             if (ele.responseType && ele.responseType == type) {
@@ -1206,15 +1205,15 @@ async function getSelectedData(items, type) {
                 } else if (type == "stackedbar") {
                     chartType = "stackedbar";
                 }
-                
-               let obj;
 
-               if(chartType == "bar" || chartType == "pie"){
+                let obj;
 
-                  obj = await createChartObject(ele,chartType);
+                if (chartType == "bar" || chartType == "pie") {
+
+                    obj = await createChartObject(ele, chartType);
 
                 } else if (chartType == "stackedbar") {
-                     obj = {
+                    obj = {
                         type: "svg",
                         options: {
                             chart: {
@@ -1294,15 +1293,15 @@ async function getCriteriaScoreChartObject(items) {
 
         await Promise.all(items.map(async element => {
 
-        await Promise.all(element.questionArray.map(async ele => {
+            await Promise.all(element.questionArray.map(async ele => {
 
-            let obj = await createScoreChartObject(ele);
+                let obj = await createScoreChartObject(ele);
 
-            arrayOfChartData.push(obj);
+                arrayOfChartData.push(obj);
+
+            }));
 
         }));
-
-       }));
 
         return resolve(arrayOfChartData);
 
@@ -1311,9 +1310,9 @@ async function getCriteriaScoreChartObject(items) {
 
 
 
-async function createScoreChartObject(ele){
+async function createScoreChartObject(ele) {
 
-    return new Promise(async function(resolve,reject){
+    return new Promise(async function (resolve, reject) {
 
         let obj;
 
@@ -1416,7 +1415,7 @@ async function createScoreChartObject(ele){
                 question: ele.question
             };
         }
-    
+
         return resolve(obj);
 
     })
@@ -1436,7 +1435,7 @@ exports.unnatiPdfGeneration = async function (responseData, storeReportsToS3 = f
         }
 
         let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
-        
+
         //copy images from public folder
         let src = __dirname + '/../public/images/Calendar-Time.svg';
         fs.copyFileSync(src, imgPath + '/Calendar-Time.svg');
@@ -1447,7 +1446,7 @@ exports.unnatiPdfGeneration = async function (responseData, storeReportsToS3 = f
                 filename: 'Calendar-Time.svg',
 
             }
-    }]
+        }]
 
 
         let subTasksCount = 0;
@@ -1508,7 +1507,7 @@ exports.unnatiPdfGeneration = async function (responseData, storeReportsToS3 = f
                             throw errWriteFile;
                         } else {
 
-                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                            let optionsHtmlToPdf = gen.utils.getGotenbergConnection();
                             optionsHtmlToPdf.formData = {
                                 files: [
                                 ]
@@ -1534,7 +1533,7 @@ exports.unnatiPdfGeneration = async function (responseData, storeReportsToS3 = f
                                             }
 
                                             else {
-                                                const s3 = new AWS.S3(config.s3_credentials);
+                                                const s3 = new AWS.S3(gen.utils.getAWSConnection());
 
                                                 const uploadFile = () => {
 
@@ -1542,7 +1541,7 @@ exports.unnatiPdfGeneration = async function (responseData, storeReportsToS3 = f
                                                         if (err) throw err;
 
                                                         const params = {
-                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                            Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                             Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
                                                             Body: Buffer.from(data, null, 2),
                                                             Expires: 10
@@ -1692,7 +1691,7 @@ exports.unnatiMonthlyReportPdfGeneration = async function (responseData, storeRe
                             throw errWriteFile;
                         } else {
 
-                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                            let optionsHtmlToPdf = gen.utils.getGotenbergConnection();
                             optionsHtmlToPdf.formData = {
                                 files: [
                                 ]
@@ -1718,7 +1717,7 @@ exports.unnatiMonthlyReportPdfGeneration = async function (responseData, storeRe
                                             }
 
                                             else {
-                                                const s3 = new AWS.S3(config.s3_credentials);
+                                                const s3 = new AWS.S3(gen.utils.getAWSConnection());
 
                                                 const uploadFile = () => {
 
@@ -1726,7 +1725,7 @@ exports.unnatiMonthlyReportPdfGeneration = async function (responseData, storeRe
                                                         if (err) throw err;
 
                                                         const params = {
-                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                            Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                             Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
                                                             Body: Buffer.from(data, null, 2),
                                                             Expires: 10
@@ -1847,8 +1846,8 @@ async function getTaskStatusPieChart(data) {
                         notStarted = notStarted + 1;
                     }
 
-                
-              }
+
+                }
             }))
 
             let dataArray = [];
@@ -1954,7 +1953,7 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData, storeR
 
             let obj = {
                 chartData: highChartData,
-                reportType:responseData.reportType,
+                reportType: responseData.reportType,
                 projectData: chartObj[1]
             }
 
@@ -1974,7 +1973,7 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData, storeR
                             throw errWriteFile;
                         } else {
 
-                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                            let optionsHtmlToPdf = gen.utils.getGotenbergConnection();
                             optionsHtmlToPdf.formData = {
                                 files: [
                                 ]
@@ -2000,7 +1999,7 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData, storeR
                                             }
 
                                             else {
-                                                const s3 = new AWS.S3(config.s3_credentials);
+                                                const s3 = new AWS.S3(gen.utils.getAWSConnection());
 
                                                 const uploadFile = () => {
 
@@ -2008,7 +2007,7 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData, storeR
                                                         if (err) throw err;
 
                                                         const params = {
-                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                            Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                             Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
                                                             Body: Buffer.from(data, null, 2),
                                                             Expires: 10
@@ -2124,9 +2123,9 @@ exports.addTaskPdfGeneration = async function (responseData, storeReportsToS3 = 
         try {
 
             var FormData = [];
-            
+
             let obj = {
-              response: responseData
+                response: responseData
             }
 
             ejs.renderFile(__dirname + '/../views/unnatiAddTaskReport.ejs', {
@@ -2145,12 +2144,12 @@ exports.addTaskPdfGeneration = async function (responseData, storeReportsToS3 = 
                             throw errWriteFile;
                         } else {
 
-                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                            let optionsHtmlToPdf = gen.utils.getGotenbergConnection();
                             optionsHtmlToPdf.formData = {
                                 files: [
                                 ]
                             };
-                            FormData.push({ 
+                            FormData.push({
                                 value: fs.createReadStream(dir + '/index.html'),
                                 options: {
                                     filename: 'index.html'
@@ -2171,7 +2170,7 @@ exports.addTaskPdfGeneration = async function (responseData, storeReportsToS3 = 
                                             }
 
                                             else {
-                                                const s3 = new AWS.S3(config.s3_credentials);
+                                                const s3 = new AWS.S3(gen.utils.getAWSConnection());
 
                                                 const uploadFile = () => {
 
@@ -2179,7 +2178,7 @@ exports.addTaskPdfGeneration = async function (responseData, storeReportsToS3 = 
                                                         if (err) throw err;
 
                                                         const params = {
-                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                            Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                             Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
                                                             Body: Buffer.from(data, null, 2),
                                                             Expires: 10
@@ -2281,7 +2280,7 @@ exports.addTaskPdfGeneration = async function (responseData, storeReportsToS3 = 
 //PDF generation for instance criteria report
 exports.instanceCriteriaReportPdfGeneration = async function (instanceResponse, storeReportsToS3 = false) {
 
-   
+
     return new Promise(async function (resolve, reject) {
 
         var currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
@@ -2299,7 +2298,7 @@ exports.instanceCriteriaReportPdfGeneration = async function (instanceResponse, 
 
             // let headerFile = await copyBootStrapFile(__dirname + '/../views/header.html', imgPath + '/header.html');
             let footerFile = await copyBootStrapFile(__dirname + '/../views/footer.html', imgPath + '/footer.html');
-            
+
             let formData = [];
 
             let params = {
@@ -2334,7 +2333,7 @@ exports.instanceCriteriaReportPdfGeneration = async function (instanceResponse, 
                                             throw errWriteFile;
                                         } else {
 
-                                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                                            let optionsHtmlToPdf = gen.utils.getGotenbergConnection();
                                             optionsHtmlToPdf.formData = {
                                                 files: [
                                                 ]
@@ -2376,12 +2375,12 @@ exports.instanceCriteriaReportPdfGeneration = async function (instanceResponse, 
                                                                 return console.log(err);
                                                             }
                                                             // console.log("The PDF was saved!");
-                                                            const s3 = new AWS.S3(config.s3_credentials);
+                                                            const s3 = new AWS.S3(gen.utils.getAWSConnection());
                                                             const uploadFile = () => {
                                                                 fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
                                                                     if (err) throw err;
                                                                     const params = {
-                                                                        Bucket: config.s3_bucketName, // pass your bucket name
+                                                                        Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                                         Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf', // file will be saved as testBucket/contacts.csv
                                                                         Body: Buffer.from(data, null, 2),
                                                                         Expires: 10
@@ -2523,8 +2522,8 @@ exports.entityCriteriaPdfReportGeneration = async function (responseData, storeR
             formData.push(...radioFormData);
 
             let params = {
-                    observationName: responseData.observationName
-                }
+                observationName: responseData.observationName
+            }
 
             ejs.renderFile(__dirname + '/../views/header.ejs', {
                 data: params
@@ -2559,7 +2558,7 @@ exports.entityCriteriaPdfReportGeneration = async function (responseData, storeR
                                             throw errWriteFile;
                                         } else {
 
-                                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                                            let optionsHtmlToPdf = gen.utils.getGotenbergConnection();
                                             optionsHtmlToPdf.formData = {
                                                 files: [
                                                 ]
@@ -2601,12 +2600,12 @@ exports.entityCriteriaPdfReportGeneration = async function (responseData, storeR
                                                                 return console.log(err);
                                                             }
                                                             // console.log("The PDF was saved!");
-                                                            const s3 = new AWS.S3(config.s3_credentials);
+                                                            const s3 = new AWS.S3(gen.utils.getAWSConnection());
                                                             const uploadFile = () => {
                                                                 fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
                                                                     if (err) throw err;
                                                                     const params = {
-                                                                        Bucket: config.s3_bucketName, // pass your bucket name
+                                                                        Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                                         Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf', // file will be saved as testBucket/contacts.csv
                                                                         Body: Buffer.from(data, null, 2),
                                                                         Expires: 10
@@ -2706,8 +2705,8 @@ exports.entityCriteriaPdfReportGeneration = async function (responseData, storeR
                 });
 
         } catch (exp) {
-         console.log(exp);
-    } 
+            console.log(exp);
+        }
     })
 
 }
@@ -2725,27 +2724,27 @@ async function getCriteriaChartData(items, type) {
 
             await Promise.all(element.questionArray.map(async ele => {
 
-            if (ele.responseType && ele.responseType == type) {
-                let chartType = "bar";
-                if (type == "radio") {
-                    chartType = "pie";
-                } 
+                if (ele.responseType && ele.responseType == type) {
+                    let chartType = "bar";
+                    if (type == "radio") {
+                        chartType = "pie";
+                    }
 
-                let obj = await createChartObject(ele,chartType);
+                    let obj = await createChartObject(ele, chartType);
 
-                arrayOfChartData.push(obj);
-            }
+                    arrayOfChartData.push(obj);
+                }
 
-           }));
+            }));
         }));
         return resolve(arrayOfChartData);
     });
 }
 
 
-async function createChartObject(ele,chartType){
-  
-    return new Promise(async function (resolve, reject){
+async function createChartObject(ele, chartType) {
+
+    return new Promise(async function (resolve, reject) {
 
         let obj = {
             order: ele.order,
@@ -2772,14 +2771,14 @@ async function createChartObject(ele,chartType){
             question: ele.question
         };
 
-    resolve(obj);
+        resolve(obj);
 
     })
 
 }
 
 //PDF generation for instance observation score report
-exports.instanceScoreCriteriaPdfGeneration = async function(observationResp, storeReportsToS3 = false, obj) {
+exports.instanceScoreCriteriaPdfGeneration = async function (observationResp, storeReportsToS3 = false, obj) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -2803,9 +2802,9 @@ exports.instanceScoreCriteriaPdfGeneration = async function(observationResp, sto
             let highChartData = await apiCallToHighChart(chartObj, imgPath, "pie");
 
             let params = {
-                    observationName: observationResp.observationName
-                }
-            
+                observationName: observationResp.observationName
+            }
+
             ejs.renderFile(__dirname + '/../views/header.ejs', {
                 data: params
             })
@@ -2822,9 +2821,9 @@ exports.instanceScoreCriteriaPdfGeneration = async function(observationResp, sto
                             throw errWr;
                         } else {
 
-                           
-                               obj.response  = observationResp.response;
-                               obj.highChartData = highChartData;
+
+                            obj.response = observationResp.response;
+                            obj.highChartData = highChartData;
 
                             ejs.renderFile(__dirname + '/../views/scoreCriteriaTemplate.ejs', {
                                 data: obj
@@ -2841,7 +2840,7 @@ exports.instanceScoreCriteriaPdfGeneration = async function(observationResp, sto
                                             throw errWriteFile;
                                         } else {
 
-                                            var optionsHtmlToPdf = config.optionsHtmlToPdf;
+                                            let optionsHtmlToPdf = gen.utils.getGotenbergConnection();
                                             optionsHtmlToPdf.formData = {
                                                 files: [
                                                 ]
@@ -2884,7 +2883,7 @@ exports.instanceScoreCriteriaPdfGeneration = async function(observationResp, sto
                                                             }
 
                                                             else {
-                                                                const s3 = new AWS.S3(config.s3_credentials);
+                                                                const s3 = new AWS.S3(gen.utils.getAWSConnection());
 
                                                                 const uploadFile = () => {
 
@@ -2892,7 +2891,7 @@ exports.instanceScoreCriteriaPdfGeneration = async function(observationResp, sto
                                                                         if (err) throw err;
 
                                                                         const params = {
-                                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                                            Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                                             Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
                                                                             Body: Buffer.from(data, null, 2),
                                                                             Expires: 10
@@ -3002,7 +3001,7 @@ exports.instanceScoreCriteriaPdfGeneration = async function(observationResp, sto
         }
 
         catch (err) {
-          console.log(err);
+            console.log(err);
         }
     })
 
@@ -3014,103 +3013,103 @@ async function ganttChartObject(data) {
 
     return new Promise(async function (resolve, reject) {
 
-       
-       
-        let i=1;
+
+
+        let i = 1;
         let arrayOfData = [];
         let projectData = [];
 
-        await Promise.all(data.map( async element => {
+        await Promise.all(data.map(async element => {
 
             let xAxisCategories = [];
             let dataArray = [];
 
 
-        await Promise.all(element.tasks.map(ele => {
+            await Promise.all(element.tasks.map(ele => {
 
                 xAxisCategories.push(ele.title);
-                if(ele.status){
-                if (ele.status.toLowerCase() == "completed") {
+                if (ele.status) {
+                    if (ele.status.toLowerCase() == "completed") {
 
-                    let obj = {
-                        y: 4,
-                        color: "#00c983"
-                    }
+                        let obj = {
+                            y: 4,
+                            color: "#00c983"
+                        }
 
-                    dataArray.push(obj);
-                } else if (ele.status.toLowerCase() == "not yet started" || ele.status.toLowerCase() == "not started yet" || ele.status.toLowerCase() == "notstarted") {
-                    let obj = {
-                        y: 4,
-                        color: "#F5F5F5"
+                        dataArray.push(obj);
+                    } else if (ele.status.toLowerCase() == "not yet started" || ele.status.toLowerCase() == "not started yet" || ele.status.toLowerCase() == "notstarted") {
+                        let obj = {
+                            y: 4,
+                            color: "#F5F5F5"
+                        }
+                        dataArray.push(obj);
+                    } else if (ele.status.toLowerCase() == "in progress" || ele.status.toLowerCase() == "inprogress") {
+                        let obj = {
+                            y: 4,
+                            color: "#FF872F"
+                        }
+                        dataArray.push(obj);
                     }
-                    dataArray.push(obj);
-                } else if (ele.status.toLowerCase() == "in progress" || ele.status.toLowerCase() == "inprogress") {
-                    let obj = {
-                        y: 4,
-                        color: "#FF872F"
-                    }
-                    dataArray.push(obj);
                 }
-              }
             }))
 
-        let chartData = {
-            order:i,
-            type: "svg",
-            options: {
+            let chartData = {
+                order: i,
+                type: "svg",
+                options: {
 
-                chart: {
-                    type: 'bar'
-                },
-                title: {
-                    text: ''
-                },
-
-                xAxis: {
-                    categories: xAxisCategories,
-                    title: {
-                        text: null
-                    }
-                },
-                yAxis: {
-                    min: 1,
-                    max: 4,
-                    allowDecimals: false,
-                    opposite: true,
-                    title: {
-                        text: '',
-
+                    chart: {
+                        type: 'bar'
                     },
-                    labels: {
-                        format: 'Week {value}'
-                    }
-                },
+                    title: {
+                        text: ''
+                    },
 
-                plotOptions: {
-                    bar: {
-                        dataLabels: {
-                            enabled: false
+                    xAxis: {
+                        categories: xAxisCategories,
+                        title: {
+                            text: null
                         }
-                    }
-                },
-                legend: {
-                    enabled: false
-                },
-                credits: {
-                    enabled: false
-                },
-                series: [{
-                    data: dataArray
-                }]
-            }
-        }
+                    },
+                    yAxis: {
+                        min: 1,
+                        max: 4,
+                        allowDecimals: false,
+                        opposite: true,
+                        title: {
+                            text: '',
 
-        arrayOfData.push(chartData);
-        element.order = i;
-        projectData.push(element);
-        i++;
-    }))
-        resolve([arrayOfData,projectData]);
+                        },
+                        labels: {
+                            format: 'Week {value}'
+                        }
+                    },
+
+                    plotOptions: {
+                        bar: {
+                            dataLabels: {
+                                enabled: false
+                            }
+                        }
+                    },
+                    legend: {
+                        enabled: false
+                    },
+                    credits: {
+                        enabled: false
+                    },
+                    series: [{
+                        data: dataArray
+                    }]
+                }
+            }
+
+            arrayOfData.push(chartData);
+            element.order = i;
+            projectData.push(element);
+            i++;
+        }))
+        resolve([arrayOfData, projectData]);
 
     })
 
@@ -3135,13 +3134,13 @@ exports.unnatiEntityReportPdfGeneration = async function (inputData, storeReport
 
         try {
             let formData = [];
-            
-            //copy images from public folder
-            let imgSourcePaths = ['/../public/images/note1.svg', '/../public/images/note2.svg', '/../public/images/note3.svg','/../public/images/note4.svg']
-            
-            for (let i=0; i< imgSourcePaths.length; i++) {
 
-                let imgName = "note" + (i+1) + ".svg";
+            //copy images from public folder
+            let imgSourcePaths = ['/../public/images/note1.svg', '/../public/images/note2.svg', '/../public/images/note3.svg', '/../public/images/note4.svg']
+
+            for (let i = 0; i < imgSourcePaths.length; i++) {
+
+                let imgName = "note" + (i + 1) + ".svg";
                 let src = __dirname + imgSourcePaths[i];
                 fs.copyFileSync(src, imgPath + ('/' + imgName));
 
@@ -3152,7 +3151,7 @@ exports.unnatiEntityReportPdfGeneration = async function (inputData, storeReport
                     }
                 })
             }
-           
+
             //get the chart object
             let chartData = await getEntityReportChartObjects(inputData);
 
@@ -3181,7 +3180,7 @@ exports.unnatiEntityReportPdfGeneration = async function (inputData, storeReport
                             throw errWriteFile;
                         } else {
 
-                            let optionsHtmlToPdf = config.optionsHtmlToPdf;
+                            let optionsHtmlToPdf = gen.utils.getGotenbergConnection();
                             optionsHtmlToPdf.formData = {
                                 files: []
                             };
@@ -3205,7 +3204,7 @@ exports.unnatiEntityReportPdfGeneration = async function (inputData, storeReport
                                             }
 
                                             else {
-                                                const s3 = new AWS.S3(config.s3_credentials);
+                                                const s3 = new AWS.S3(gen.utils.getAWSConnection());
 
                                                 const uploadFile = () => {
 
@@ -3213,7 +3212,7 @@ exports.unnatiEntityReportPdfGeneration = async function (inputData, storeReport
                                                         if (err) throw err;
 
                                                         const params = {
-                                                            Bucket: config.s3_bucketName, // pass your bucket name
+                                                            Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
                                                             Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
                                                             Body: Buffer.from(data, null, 2),
                                                             Expires: 10
@@ -3320,41 +3319,41 @@ async function getEntityReportChartObjects(data) {
 
         return resolve(chartData)
 
-       
+
     })
 }
 
 async function getTaskOverviewChart(tasks) {
-    return new Promise( async function(resolve,reject) {
+    return new Promise(async function (resolve, reject) {
 
 
         let total = tasks['Total'];
         delete tasks['Total'];
-        
-         let seriesData="[";
-         Object.keys(tasks).forEach( eachTask => {
+
+        let seriesData = "[";
+        Object.keys(tasks).forEach(eachTask => {
             let color = "";
-            if(eachTask=="Completed"){
-                color ="green";
-            }else if(eachTask=="Not Started"){
-                color ="red";
+            if (eachTask == "Completed") {
+                color = "green";
+            } else if (eachTask == "Not Started") {
+                color = "red";
             }
 
-            let percetage = ((tasks[eachTask] / total ) *100 ).toFixed(1);
-            if(color != ""){
-                seriesData = seriesData + "{ color:'"+color+"',name: '"+eachTask+"',y:"+percetage+"},";
+            let percetage = ((tasks[eachTask] / total) * 100).toFixed(1);
+            if (color != "") {
+                seriesData = seriesData + "{ color:'" + color + "',name: '" + eachTask + "',y:" + percetage + "},";
             } else {
-                seriesData = seriesData + "{ name: '"+eachTask+"',y: "+percetage+"},";
+                seriesData = seriesData + "{ name: '" + eachTask + "',y: " + percetage + "},";
             }
-            
+
         })
         seriesData = seriesData + "]";
 
-        let chartOptions  = "{ title: { text: '' },chart: { type: 'pie' },"+
-        "plotOptions: { 'pie': { showInLegend: true, dataLabels: { enabled: true, formatter: function () { return this.y ? this.point.y+'%' : null; }} }},"
-        +"credits: { enabled: false },"
-        +"series: [{ minPointSize: 50,innerSize: '80%',zMin: 0,name: 'tasks', data: "+seriesData+" }] }"
-   
+        let chartOptions = "{ title: { text: '' },chart: { type: 'pie' }," +
+            "plotOptions: { 'pie': { showInLegend: true, dataLabels: { enabled: true, formatter: function () { return this.y ? this.point.y+'%' : null; }} }},"
+            + "credits: { enabled: false },"
+            + "series: [{ minPointSize: 50,innerSize: '80%',zMin: 0,name: 'tasks', data: " + seriesData + " }] }"
+
         let chartObject = {
             order: 2,
             type: "svg",
@@ -3366,23 +3365,23 @@ async function getTaskOverviewChart(tasks) {
 }
 
 async function getCategoryWiseChart(categories) {
-    return new Promise( async function(resolve,reject) {
+    return new Promise(async function (resolve, reject) {
 
         let total = categories['Total'];
         delete categories['Total'];
-        
-        let seriesData="[";
-        Object.keys(categories).forEach( eachCategory => {
-             let percetage = ((categories[eachCategory] / total ) *100 ).toFixed(1);
-            seriesData = seriesData + "{ name: '"+eachCategory+"',y: "+percetage+"},";
+
+        let seriesData = "[";
+        Object.keys(categories).forEach(eachCategory => {
+            let percetage = ((categories[eachCategory] / total) * 100).toFixed(1);
+            seriesData = seriesData + "{ name: '" + eachCategory + "',y: " + percetage + "},";
         });
 
         seriesData = seriesData + "]";
-        let chartOptions  = "{ title: { text: '' },chart: { type: 'pie' },"+
-        "plotOptions: { 'pie': { showInLegend: true, dataLabels: { enabled: true, formatter: function () { return this.y ? this.point.y+'%' : null; }} }},"
-        +"credits: { enabled: false },"
-        +"series: [{ minPointSize: 50,innerSize: '50%',zMin: 0,name: 'tasks', data: "+seriesData+" }] }"
-   
+        let chartOptions = "{ title: { text: '' },chart: { type: 'pie' }," +
+            "plotOptions: { 'pie': { showInLegend: true, dataLabels: { enabled: true, formatter: function () { return this.y ? this.point.y+'%' : null; }} }},"
+            + "credits: { enabled: false },"
+            + "series: [{ minPointSize: 50,innerSize: '50%',zMin: 0,name: 'tasks', data: " + seriesData + " }] }"
+
         let chartObject = {
             order: 2,
             type: "svg",
@@ -3455,8 +3454,8 @@ async function apiCallToHighChart(chartData, imgPath, type) {
 async function callChartApiPreparation(ele, imgPath, type, chartData, carrent, formData) {
     try {
         let loop = 0;
-        var options = config.high_chart;
-        var chartImage = "chartPngImage_" + loop + "_" + uuidv4() + "_.svg";
+        let options = gen.utils.getHighChartConnection();
+        let chartImage = "chartPngImage_" + loop + "_" + uuidv4() + "_.svg";
         options.method = "POST";
         options.body = JSON.stringify(ele);
         let imgFilePath = imgPath + "/" + chartImage;
@@ -3493,10 +3492,10 @@ async function callChartApiPreparation(ele, imgPath, type, chartData, carrent, f
         console.log("error");
     }
 }
-async function getPercentages(data, target=100) {
-    var off = target - _.reduce(data, function(acc, x) { return acc + Math.round(x) }, 0);
+async function getPercentages(data, target = 100) {
+    var off = target - _.reduce(data, function (acc, x) { return acc + Math.round(x) }, 0);
     return _.chain(data).
-            sortBy(function(x) { return Math.round(x) - x }).
-            map(function(x, i) { return Math.round(x) + (off > i) - (i >= (data.length + off)) }).
-            value();
+        sortBy(function (x) { return Math.round(x) - x }).
+        map(function (x, i) { return Math.round(x) + (off > i) - (i >= (data.length + off)) }).
+        value();
 }

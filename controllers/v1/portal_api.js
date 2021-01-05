@@ -1,5 +1,4 @@
 const readFile = require('../../helper/read_file')
-const config = require('../../config/config.json');
 var groupBy = require('group-array')
 /**
      * @apiDefine errorBody
@@ -31,7 +30,7 @@ var groupBy = require('group-array')
         var a = {}
         for(let item = 0; item < arrayData.length; item++) {
             
-               var fileName = config.file_path[arrayData[`${item}`]];
+               var fileName = gen.utils.getPortalReportsFilePaths(arrayData[`${item}`]);
                var result = await readFile.readS3File(fileName);   
                a[[arrayData[`${item}`]]]={"result":true,"data":result}
             
@@ -39,7 +38,6 @@ var groupBy = require('group-array')
         res.send(a)
     }
     catch (e) {
-        console.log(e);
         res.status(500).json({ errMessage: "Internal error. Please try again!!" });
     }
 
@@ -68,7 +66,7 @@ var groupBy = require('group-array')
 
 exports.userViewAllResource = async function (req, res) {
     try {
-        var fileName = config.file_path[`${req.body.key}`];
+        var fileName = gen.utils.getPortalReportsFilePaths(`${req.body.key}`);
         let contents = req.body.data;
         const jsonData = await readFile.readS3File(fileName);      
         var jdata = []
@@ -97,7 +95,6 @@ exports.userViewAllResource = async function (req, res) {
     }
 
     catch (e) {
-        console.log(e);
         res.status(500).json({ errMessage: "Internal error. Please try again!!" });
     }
 
@@ -124,7 +121,7 @@ exports.userViewAllResource = async function (req, res) {
    */
 exports.dailyActivityPercentagePerGroup = async function (req, res) {
     try {
-        var fileName = config.file_path[`${req.body.key}`];
+        var fileName = gen.utils.getPortalReportsFilePaths(`${req.body.key}`);
         let list1 = req.body.data;
         const jsonData = await readFile.readS3File(fileName);   
         var jdata = []
@@ -149,7 +146,6 @@ exports.dailyActivityPercentagePerGroup = async function (req, res) {
     }
 
     catch (e) {
-        console.log(e);
         res.status(500).json({ errMessage: "Internal error. Please try again!!" });
     }
 };
