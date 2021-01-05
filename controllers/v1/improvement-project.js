@@ -1,5 +1,4 @@
 const pdfHandler = require('../../helper/common_handler');
-const config = require('../../config/config');
 
 
 /**
@@ -30,7 +29,7 @@ exports.viewProjectReport = async function(req,res){
 
     let response = await pdfHandler.unnatiViewFullReportPdfGeneration(req.body, storeReportsToS3 = false);
   
-    response.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+    response.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
     res.send(response);
 }
 
@@ -86,6 +85,6 @@ exports.entityReport = async function(req,res){
 
    let response = await pdfHandler.unnatiEntityReportPdfGeneration(req.body, storeReportsToS3 = false);
  
-   response.pdfUrl = config.application_host_name + config.application_base_url + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+   response.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
    res.send(response);
 }
