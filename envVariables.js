@@ -216,7 +216,7 @@ let enviromentVariables = {
   },
   "DISABLE_ADMIN_REPORTS" : {
     "message" : "ON/OFF",
-    "optional" : true,
+    "optional" : false,
     "default" : "OFF" 
   }
 }
