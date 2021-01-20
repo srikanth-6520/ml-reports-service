@@ -6,8 +6,8 @@ module.exports = {
     observation: "observation",
     assessment: "assessment",
     googleCloud: "GC",
-    azure: "azure",
-    aws: "aws",
+    azure: "AZURE",
+    aws: "AWS",
     survey: "survey",
     submission_status_completed: "completed",
     submission_not_found_message: "Your report generation is in progress. Please check back after a few minutes"
