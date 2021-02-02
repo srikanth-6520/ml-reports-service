@@ -37,13 +37,13 @@ exports.instanceReportChart = async function (data, reportType = "") {
         }
 
 
-        await Promise.all(data.map(element => {
+        await Promise.all(data.map(async element => {
 
             // Response object creation for text, slider, number and date type of questions
             if (element.event.questionResponseType == "text" && element.event.instanceParentResponsetype != "matrix" || element.event.questionResponseType == "slider" && element.event.instanceParentResponsetype != "matrix" || element.event.questionResponseType == "number" && element.event.instanceParentResponsetype != "matrix" || element.event.questionResponseType == "date" && element.event.instanceParentResponsetype != "matrix") {
 
                 if (element.event.questionResponseType == "date") {
-                    element.event.questionAnswer = moment(element.event.questionAnswer).format('D MMM YYYY, h:mm:ss A');
+                    element.event.questionAnswer = await getISTDate(element.event.questionAnswer);
                 }
 
                 // If answer is null then assign value as not answered
@@ -432,8 +432,9 @@ async function matrixResponseObject(data, noOfInstances, solutionType) {
         let responseObj = await responseObjectCreateFunc(data, solutionType);
 
         if (responseObj.responseType == "date") {
-            await Promise.all(responseObj.answers.map(element => {
-                answers.push(moment(element).format('D MMM YYYY, h:mm:ss A'));
+            await Promise.all(responseObj.answers.map(async element => {
+                let date = await getISTDate(element);
+                answers.push(date);
             }))
 
             responseObj.answers = answers
@@ -469,7 +470,7 @@ async function responseObjectCreateFunc(data, solutionType) {
 
         let answerArray = [];
 
-        await Promise.all(groupBySubmissionId[element].map(ele => {
+        await Promise.all(groupBySubmissionId[element].map(async ele => {
 
             let answer = ele.event.questionAnswer;
 
@@ -480,7 +481,7 @@ async function responseObjectCreateFunc(data, solutionType) {
                 }
 
                 if (ele.event.questionResponseType == "date") {
-                    answer = moment(answer).format('D MMM YYYY, h:mm:ss A');
+                    answer = await getISTDate(answer);
                 }
 
                 answerArray.push(answer);
@@ -2743,10 +2744,10 @@ const getChartObject = async function (data, submissionCount) {
             }
             else {
                 let sortedData = await groupDataByQuestionId[questionKey].sort(getSortOrder("completedDate"));
-                await Promise.all(sortedData.map(singleResponse => {
+                await Promise.all(sortedData.map( async singleResponse => {
 
                     if (singleResponse.event.questionResponseType == "date") {
-                        singleResponse.event.questionAnswer = moment(singleResponse.event.questionAnswer).format('D MMM YYYY, h:mm:ss A');
+                        singleResponse.event.questionAnswer = await getISTDate(singleResponse.event.questionAnswer)
                     }
                     questionObject.answers.push(singleResponse.event.questionAnswer)
                 }))
@@ -2766,4 +2767,9 @@ const getChartObject = async function (data, submissionCount) {
 }
 
 
-
+const getISTDate = async function(date) {
+    let d = new Date(date);
+    let amOrPm = (d.getHours() < 12) ? "AM" : "PM";
+    let hour = (d.getHours() < 12) ? d.getHours() : d.getHours() - 12;
+    return d.getDate() + '-' + (d.getMonth() + 1) + '-' + d.getFullYear() + ' ' + hour + ':' + d.getMinutes() + ':' + d.getSeconds() + ' ' + amOrPm;
+}
