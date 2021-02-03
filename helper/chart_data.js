@@ -2769,7 +2769,7 @@ const getChartObject = async function (data, submissionCount) {
 
 const getISTDate = async function(date) {
     let d = new Date(date);
-    let amOrPm = (d.getHours() < 12) ? "AM" : "PM";
-    let hour = (d.getHours() < 12) ? d.getHours() : d.getHours() - 12;
-    return d.getDate() + '-' + (d.getMonth() + 1) + '-' + d.getFullYear() + ' ' + hour + ':' + d.getMinutes() + ':' + d.getSeconds() + ' ' + amOrPm;
+    let amOrPm = (d.getUTCHours() < 12) ? "AM" : "PM";
+    let hour = (d.getUTCHours() < 12) ? d.getUTCHours() : d.getUTCHours() - 12;
+    return d.getDate() + '-' + (d.getMonth() + 1) + '-' + d.getFullYear() + ' ' + hour + ':' + d.getUTCMinutes() + ':' + d.getUTCSeconds() + ' ' + amOrPm;
 }
