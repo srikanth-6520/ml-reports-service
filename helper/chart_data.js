@@ -428,18 +428,8 @@ async function matrixResponseObjectCreateFunc(data, solutionType) {
 async function matrixResponseObject(data, noOfInstances, solutionType) {
 
     if (data[0].event.questionResponseType == "text" || data[0].event.questionResponseType == "slider" || data[0].event.questionResponseType == "number" || data[0].event.questionResponseType == "date") {
-        let answers = [];
+       
         let responseObj = await responseObjectCreateFunc(data, solutionType);
-
-        if (responseObj.responseType == "date") {
-            await Promise.all(responseObj.answers.map(async element => {
-                let date = await getISTDate(element);
-                answers.push(date);
-            }))
-
-            responseObj.answers = answers
-        }
-        //  responseObj.answers = answers;
         return responseObj;
     }
     else if (data[0].event.questionResponseType == "radio") {
