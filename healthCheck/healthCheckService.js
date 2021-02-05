@@ -10,7 +10,6 @@ const { v1 : uuidv1 } = require('uuid');
 const kendraHealthCheck = require("./kendra");
 const assessmentHealthCheck = require("./assessment");
 const druidHealthCheck = require("./druid");
-const highChartHealthCheck = require("./highChart");
 const gotenbergHealthCheck = require("./gotenberg");
 
 const obj = {
@@ -29,11 +28,6 @@ const obj = {
         FAILED_CODE: 'DRUID_HEALTH_FAILED',
         FAILED_MESSAGE: 'Druid server connection is not healthy'
     },
-    HIGHCHART : {
-        NAME: 'highchart',
-        FAILED_CODE: 'HIGHCHART_HEALTH_FAILED',
-        FAILED_MESSAGE: 'Highchart service is not healthy'
-    },
     GOTENBERG : {
         NAME: 'gotenberg',
         FAILED_CODE: 'GOTENBERG_HEALTH_FAILED',
@@ -48,13 +42,11 @@ let health_check = async function(req,res) {
     let checks = [];
     let kendraServiceStatus = await kendraHealthCheck.health_check();
     let assessmentServiceStatus = await assessmentHealthCheck.health_check();
-    let highchartServiceStatus = await highChartHealthCheck.health_check();
     let gotenbergServiceStatus = await gotenbergHealthCheck.health_check();
     let druidServiceStatus = await druidHealthCheck.health_check();
 
     checks.push(checkResult("KENDRA_SERVICE",kendraServiceStatus));
     checks.push(checkResult("ASSESSMENT_SERVICE",assessmentServiceStatus));
-    checks.push(checkResult('HIGHCHART',highchartServiceStatus));
     checks.push(checkResult('GOTENBERG',gotenbergServiceStatus));
     checks.push(checkResult('DRUID', druidServiceStatus));
 
