@@ -63,11 +63,6 @@ exports.instanceReportChart = async function (data, reportType = "") {
                     criteriaId: element.event.criteriaId
                 }
 
-                // if(element.event.remarks != null){
-                //     resp.remarks = [element.event.remarks]
-                // }
-
-
                 result.response.push(resp);
             }
 
@@ -89,10 +84,6 @@ exports.instanceReportChart = async function (data, reportType = "") {
                     criteriaName: element.event.criteriaName,
                     criteriaId: element.event.criteriaId
                 }
-
-                // if(element.event.remarks != null){
-                //     resp.remarks = [element.event.remarks]
-                // }
 
                 result.response.push(resp);
 
@@ -178,10 +169,6 @@ async function instanceMultiselectFunc(data) {
         criteriaName: data[0].event.criteriaName,
         criteriaId: data[0].event.criteriaId
     }
-
-    // if(data[0].event.remarks != null){
-    //     resp.remarks = [data[0].event.remarks];
-    // }
 
     return resp;
 
@@ -607,8 +594,7 @@ async function multiSelectObjectCreateFunc(data, noOfSubmissions, solutionType) 
         await Promise.all(data.map(ele => {
             dataArray.push(ele.event.questionAnswer);
 
-            if (labelArray.includes(ele.event.questionResponseLabel)) {
-            } else {
+            if (!labelArray.includes(ele.event.questionResponseLabel)) {
                 labelArray.push(ele.event.questionResponseLabel)
             }
         }))
@@ -635,25 +621,35 @@ async function multiSelectObjectCreateFunc(data, noOfSubmissions, solutionType) 
             responseType: data[0].event.questionResponseType,
             answers: [],
             chart: {
-                type: "bar",
-                data: [
-                    {
-                        data: chartdata
-                    }
-                ],
-                xAxis: {
-                    categories: labelMerged,
-                    title: {
-                        text: "Responses"
-                    }
+                type: "horizontalBar",
+                data: {
+                    labels: labelMerged,
+                    datasets: [{
+                            data: chartdata,
+                            backgroundColor: ["#669911", "#119966" ]
+                    }]
                 },
-                yAxis: {
-                    min: 0,
-                    max: 100,
-                    title: {
-                        text: "Responses in percentage"
+                options: {
+                    legend: false,
+                    scales: {
+                        xAxes: [{
+                            ticks: {
+                                min: 0
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: "Responses in percentage"
+                            }
+                        }],
+                        yAxes: [{
+
+                            scaleLabel: {
+                                display: true,
+                                labelString: "Responses"
+                            }
+                        }],
                     }
-                }
+                },            
             },
             instanceQuestions: [],
             criteriaName: data[0].event.criteriaName,
@@ -664,16 +660,6 @@ async function multiSelectObjectCreateFunc(data, noOfSubmissions, solutionType) 
         let groupArrayBySubmissions = await groupArrayByGivenField(data, solutionType + "SubmissionId");
 
         let submissionKeysArray = Object.keys(groupArrayBySubmissions);
-
-        // await Promise.all(submissionKeysArray.map(async element => {
-
-        //     if(groupArrayBySubmissions[element][0].event.remarks != null){
-        //         remarks.push(groupArrayBySubmissions[element][0].event.remarks);
-        //     }
-
-        // }));
-
-        // resp.remarks = remarks ;
 
         // Constructing answer array for matrix questions
         if ("instanceParentResponsetype" in data[0].event != null) {
@@ -712,129 +698,9 @@ function count(arr) {
     return arr.reduce((prev, curr) => (prev[curr] = ++prev[curr] || 1, prev), {})
 }
 
-//Create response object for listObservationNames API
-exports.listObservationNamesObjectCreate = async function (data) {
-    try {
-        let responseObj = []
-
-        for (let i = 0; i < data.length; i++) {
-            responseObj.push(data[i].event);
-        }
-
-        return responseObj;
-    }
-    catch (err) {
-        console.log(err);
-    }
-}
-
-//Create response object for listSolutionNames API
-exports.listSolutionNamesObjectCreate = async function (data) {
-    try {
-        let responseObj = [];
-        let scoring;
-
-        let groupBySolutionId = await groupArrayByGivenField(data, "solutionId")
-
-        let solutionKeys = Object.keys(groupBySolutionId);
-
-        await Promise.all(solutionKeys.map(element => {
-
-            let obj = {
-                solutionName: groupBySolutionId[element][0].event.solutionName,
-                solutionId: groupBySolutionId[element][0].event.solutionId
-            }
-
-            groupBySolutionId[element].forEach(ele => {
-
-                if (ele.event.totalScore >= 1) {
-                    scoring = true;
-                }
-            });
-
-
-            if (scoring == true) {
-                obj.scoring = true;
-            } else {
-                obj.scoring = false;
-            }
-
-            responseObj.push(obj);
-        }))
-
-        return responseObj;
-
-    }
-    catch (err) {
-        console.log(err);
-    }
-}
-
 
 
 //=========================================  assessment chart data ===============================================
-
-exports.listProgramsObjectCreate = async function (data) {
-    try {
-        var responseObj = []
-        var dataArray = []
-
-        for (var i = 0; i < data.length; i++) {
-            dataArray.push(data[i].event);
-        }
-
-        // Function for grouping the array based on program Id
-        result = dataArray.reduce(function (r, a) {
-            r[a.programId] = r[a.programId] || [];
-            r[a.programId].push(a);
-            return r;
-        }, Object.create(null));
-
-        var res = Object.keys(result);
-
-        //loop the keys 
-        await Promise.all(res.map(async ele => {
-            var programListResp = await programListRespObjCreate(result[ele])
-            responseObj.push(programListResp);
-
-        }));
-
-        return responseObj;
-    }
-    catch (err) {
-        console.log(err);
-    }
-}
-
-//Function to create program object and solution array  -- listPrograms API
-async function programListRespObjCreate(data) {
-    try {
-        let pgmObj = {
-            programName: data[0].programName,
-            programId: data[0].programId,
-            programDescription: data[0].programDescription,
-            programExternalId: data[0].programExternalId,
-            solutions: []
-        }
-
-        await Promise.all(data.map(element => {
-            let solutionObj = {
-                solutionName: element.solutionName,
-                solutionId: element.solutionId,
-                solutionDescription: element.solutionDescription,
-                solutionExternalId: element.solutionExternalId
-            }
-
-            pgmObj.solutions.push(solutionObj);
-        }));
-
-        return pgmObj;
-
-    }
-    catch (err) {
-        console.log(err);
-    }
-}
 
 //Function to create stacked bar chart response object for entity assessment API  
 exports.entityAssessmentChart = async function (inputObj) {
@@ -1475,107 +1341,6 @@ function sort_objects(a, b) {
     return new Date(a.event.completedDate).getTime() < new Date(b.event.completedDate).getTime();
 }
 
-
-//function to create the title
-function designationCreateFunction(entityType) {
-    var value;
-    if (entityType == "school") {
-        value = "HM"
-    }
-    else if (entityType == "cluster") {
-        value = "CRP"
-    }
-    else if (entityType == "zone") {
-        value = "ZONE"
-    }
-    else if (entityType == "block") {
-        value = "BEO"
-    }
-    else if (entityType == "district") {
-        value = "DEO"
-    }
-    else if (entityType == "state") {
-        value = "State"
-    }
-    else if (entityType == "hub") {
-        value = "HUB"
-    }
-
-    return value;
-}
-
-
-
-//============================ Container APP API Response object creation ==========================================
-
-exports.courseEnrollmentResponeObj = async function (result) {
-    var response = {
-        result: true,
-        data: []
-    }
-
-    for (var i = 0; i < result.length; i++) {
-        let obj = {}
-        obj.course_name = result[i].event.course_name;
-        obj.status = result[i].event.course_status;
-        response.data.push(obj);
-    }
-
-    return response;
-}
-
-//Chart object creation for usage by content 
-exports.usageByContentResponeObj = async function (result) {
-    var response = {
-        result: true,
-        data: []
-    }
-
-    for (var i = 0; i < result.length; i++) {
-        let obj = {}
-        obj.content_name = result[i].content_name;
-        obj.total_users_viewed = result[i]["Total Users Viewed"];
-        response.data.push(obj);
-    }
-    return response;
-}
-
-
-//Chart object creation for contents downloaded by the user
-exports.contentDownloadResponeObj = async function (result) {
-    var response = {
-        result: true,
-        data: []
-    }
-
-    for (var i = 0; i < result.length; i++) {
-        let obj = {}
-        obj.content_name = result[i].content_name;
-        obj.total_downloads = result[i]["COUNT(content_identifier)"];
-        response.data.push(obj);
-    }
-    return response;
-}
-
-
-//Chart object creation for contents viewed in the platform
-exports.contentViewResponeObj = async function (result) {
-    var response = {
-        result: true,
-        data: []
-    }
-
-    for (var i = 0; i < result.length; i++) {
-        let obj = {}
-        obj.content_name = result[i].content_name;
-        obj.total_views = result[i]["COUNT(content_identifier)"];
-        response.data.push(obj);
-    }
-    return response;
-}
-
-
-
 //Function for sorting the array in ascending order based on a key
 function getSortOrder(prop) {
     return function (a, b) {
@@ -1587,22 +1352,6 @@ function getSortOrder(prop) {
         return 0;
     }
 }
-
-//COnvert questionSequenceByEcm value from string to int
-async function sequenceNumberTypeConvertion(data) {
-
-    await Promise.all(data.map(element => {
-        element.event.questionSequenceByEcm = parseInt(element.event.questionSequenceByEcm);
-
-        if (element.event.instanceParentEcmSequence != null) {
-            element.event.instanceParentEcmSequence = parseInt(element.event, instanceParentEcmSequence);
-        }
-    }));
-
-    return data;
-}
-
-
 
 // question list response object creation
 var questionListObjectCreation = async function (data) {
@@ -1913,57 +1662,6 @@ exports.listAssessmentProgramsObjectCreate = async function (data) {
 }
 
 
-//Function for creating response object for list entities API
-exports.listEntitesObjectCreation = async function (data) {
-
-    let response = {
-        "result": true,
-        "data": []
-    }
-
-    let entityArray = [];
-
-    await Promise.all(data.map(element => {
-
-        let obj = {};
-        let entity = element.event.entityType;
-        obj.entityId = element.event[entity];
-        obj.entityName = element.event[entity + "Name"];
-        obj.entityType = element.event.entityType;
-        obj.solutionId = element.event.solutionId;
-        obj.solutionName = element.event.solutionName;
-
-
-        entityArray.push(obj);
-
-    }));
-
-    let groupEntityData = await groupDataByEntityId(entityArray, "entityId");
-
-    let entityKeys = Object.keys(groupEntityData);
-
-    await Promise.all(entityKeys.map(async ele => {
-
-        let entityObject = {
-            entityId: groupEntityData[ele][0].entityId,
-            entityName: groupEntityData[ele][0].entityName,
-            entityType: groupEntityData[ele][0].entityType,
-            solutions: []
-        }
-
-        await Promise.all(groupEntityData[ele].map(entityData => {
-            let solutionObject = {
-                solutionId: entityData.solutionId,
-                solutionName: entityData.solutionName
-            }
-            entityObject.solutions.push(solutionObject);
-        }));
-
-        response.data.push(entityObject);
-    }));
-
-    return response;
-}
 
 // Function for grouping the array based on certain field name
 function groupDataByEntityId(array, name) {
@@ -1974,71 +1672,6 @@ function groupDataByEntityId(array, name) {
     }, Object.create(null));
 
     return result;
-}
-
-
-
-// Prepare tags array using acl data
-exports.tagsArrayCreateFunc = async function (acl) {
-
-    let aclKeys = Object.keys(acl);
-    let tagsArray = [];
-
-    await Promise.all(aclKeys.map(async element => {
-        let nestedKeys = Object.keys(acl[element]);
-        await Promise.all(nestedKeys.map(ele => {
-            tagsArray.push(acl[element][ele].tags);
-        }));
-    }));
-
-    tagsArray = Array.prototype.concat(...tagsArray);
-
-    return tagsArray;
-}
-
-
-
-// Function for creating response object of listImprovementProjects API
-exports.improvementProjectsObjectCreate = async function (data) {
-
-    let response = {
-        "result": true,
-        "data": []
-    }
-
-    let groupByCriteria = await groupArrayByGivenField(data, "criteriaDescription");
-
-    let criteriaKeys = Object.keys(groupByCriteria);
-
-    await Promise.all(criteriaKeys.map(async element => {
-
-        let criteriaObj = {
-            criteriaName: groupByCriteria[element][0].event.criteriaDescription,
-            level: groupByCriteria[element][0].event.level,
-            label: groupByCriteria[element][0].event.label,
-            improvementProjects: []
-        }
-
-        await Promise.all(groupByCriteria[element].map(ele => {
-
-            if (ele.event.imp_project_title != null) {
-
-                let projectObj = {
-                    projectName: ele.event.imp_project_title,
-                    projectId: ele.event.imp_project_id,
-                    projectGoal: ele.event.imp_project_goal,
-                    projectExternalId: ele.event.imp_project_externalId
-                }
-
-                criteriaObj.improvementProjects.push(projectObj);
-            }
-        }));
-
-        response.data.push(criteriaObj);
-
-    }));
-
-    return response;
 }
 
 
@@ -2102,93 +1735,6 @@ exports.getCriteriawiseReport = async function (responseObj) {
 
     return responseObj;
 
-}
-
-exports.programsListCreation = async function (programs) {
-
-    let programArray = [];
-
-    await Promise.all(programs.map(program => {
-        programArray.push(program.event);
-    }));
-
-    // remove duplicate programs from the array
-    let uniquePrograms = [...new Set(programArray.map(obj => JSON.stringify(obj)))].map(str => JSON.parse(str));
-
-    programList = {
-        result: true,
-        data: uniquePrograms
-    }
-
-    return programList;
-}
-
-
-
-exports.solutionListCreation = async function (solutions, id) {
-
-    let solutionArray = {
-        result: true,
-        data: {
-        }
-    }
-
-    let solutionData = await createSolutionsArray(solutions, id);
-
-    solutionArray.data.mySolutions = solutionData.filter(data => id.includes(data.id));
-
-    solutionArray.data.allSolutions = solutionData;
-
-    return solutionArray;
-}
-
-
-//Create response object for listSolutionNames API
-const createSolutionsArray = async function (data) {
-    try {
-        let responseObj = [];
-
-        let groupBySolutionId = await groupArrayByGivenField(data, "solutionId")
-
-        let solutionKeys = Object.keys(groupBySolutionId);
-
-        await Promise.all(solutionKeys.map(element => {
-
-            let obj = {
-                solutionName: groupBySolutionId[element][0].event.solutionName,
-                solutionId: groupBySolutionId[element][0].event.solutionId,
-                type: groupBySolutionId[element][0].event.type
-            }
-
-            if (groupBySolutionId[element][0].event['createdBy'] != null) {
-                obj.id = groupBySolutionId[element][0].event.createdBy;
-            }
-
-            else if (groupBySolutionId[element][0].event['userId'] != null) {
-                obj.id = groupBySolutionId[element][0].event.userId;
-            }
-            else {
-                obj.id = "";
-            }
-
-            groupBySolutionId[element].forEach(ele => {
-
-                if (ele.event['totalScore'] && ele.event.totalScore >= 1) {
-                    obj.scoring = true;
-                } else {
-                    obj.scoring = false;
-                }
-            });
-
-            responseObj.push(obj);
-        }))
-
-        return responseObj;
-
-    }
-    catch (err) {
-        console.log(err);
-    }
 }
 
 
@@ -2643,31 +2189,26 @@ const getChartObject = async function (data, submissionCount) {
             if (questionObject.responseType == "radio") {
 
                 let chartDataArray = [];
+                let labelArray = [];
 
                 await Promise.all(groupDataByQuestionId[questionKey].map(singleResponse => {
-                    chartDataArray.push({
-                        name: singleResponse.event.questionResponseLabel,
-                        y: ((singleResponse.event.questionAnswerCount / submissionCount) * 100).toFixed(2)
-                    })
+                    labelArray.push(singleResponse.event.questionResponseLabel);
+                    chartDataArray.push(((singleResponse.event.questionAnswerCount / submissionCount) * 100).toFixed(2))
                 }))
 
                 let chart = {
                     type: "pie",
-                    plotOptions: {
-                        pie: {
-                            allowPointSelect: true,
-                            cursor: 'pointer',
-                            dataLabels: {
-                                enabled: false
-                            },
-                            showInLegend: true
-                        }
-                    },
-                    data: [
-                        {
-                            data: chartDataArray
-                        }
-                    ]
+                    data: {
+                        labels: labelArray,
+                        datasets: [{
+                            backgroundColor: [
+                                "#6c4fa1",
+                                "#fff"
+                            ],
+                            data: chartDataArray,
+                            borderColor: 'black',
+                        }]
+                    }
                 }
 
                 questionObject.chart = chart;
