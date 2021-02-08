@@ -17,7 +17,7 @@ function health_check() {
             }
         }
 
-        request.get(process.env.GOTENBERG_URL, options, gotenbergCallback);
+        request.get(process.env.GOTENBERG_URL + "/ping", options, gotenbergCallback);
 
         function gotenbergCallback(err, data) {
 
