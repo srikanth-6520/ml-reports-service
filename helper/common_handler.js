@@ -1069,14 +1069,14 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
                                                     // console.log("optionsHtmlToPdf", optionsHtmlToPdf.formData.files);
                                                     var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
                                                     if (responseHtmlToPdf.statusCode == 200) {
-                                                        fs.writeFile(dir + '/entityAssessmentReport.pdf', pdfBuffer, 'binary', function (err) {
+                                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
                                                             if (err) {
                                                                 return console.log(err);
                                                             }
                                                             // console.log("The PDF was saved!");
                                                             const s3 = new AWS.S3(gen.utils.getAWSConnection());
                                                             const uploadFile = () => {
-                                                                fs.readFile(dir + '/entityAssessmentReport.pdf', (err, data) => {
+                                                                fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
                                                                     if (err) throw err;
                                                                     const params = {
                                                                         Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
@@ -2770,6 +2770,27 @@ async function createChartObject(ele, chartType) {
             },
             question: ele.question
         };
+
+        if (chartType == "pie") {
+            obj.options.chart = {
+                type: chartType,
+                align: 'center',
+                marginLeft: 0,
+                marginBottom: 100
+            }
+
+            obj.options.legend = {
+                align: 'left',
+                layout: 'vertical',
+                itemStyle: {
+                    "word-wrap": "break-word",
+                    color: '#000000',
+                    fontWeight: 'bold',
+                    width: 700,
+                    "overflow-wrap": "break-word"
+                }
+            }
+        }
 
         resolve(obj);
 

@@ -37,13 +37,13 @@ exports.instanceReportChart = async function (data, reportType = "") {
         }
 
 
-        await Promise.all(data.map(element => {
+        await Promise.all(data.map(async element => {
 
             // Response object creation for text, slider, number and date type of questions
             if (element.event.questionResponseType == "text" && element.event.instanceParentResponsetype != "matrix" || element.event.questionResponseType == "slider" && element.event.instanceParentResponsetype != "matrix" || element.event.questionResponseType == "number" && element.event.instanceParentResponsetype != "matrix" || element.event.questionResponseType == "date" && element.event.instanceParentResponsetype != "matrix") {
 
                 if (element.event.questionResponseType == "date") {
-                    element.event.questionAnswer = moment(element.event.questionAnswer).format('D MMM YYYY, h:mm:ss A');
+                    element.event.questionAnswer = await getISTDate(element.event.questionAnswer);
                 }
 
                 // If answer is null then assign value as not answered
@@ -428,17 +428,8 @@ async function matrixResponseObjectCreateFunc(data, solutionType) {
 async function matrixResponseObject(data, noOfInstances, solutionType) {
 
     if (data[0].event.questionResponseType == "text" || data[0].event.questionResponseType == "slider" || data[0].event.questionResponseType == "number" || data[0].event.questionResponseType == "date") {
-        let answers = [];
+       
         let responseObj = await responseObjectCreateFunc(data, solutionType);
-
-        if (responseObj.responseType == "date") {
-            await Promise.all(responseObj.answers.map(element => {
-                answers.push(moment(element).format('D MMM YYYY, h:mm:ss A'));
-            }))
-
-            responseObj.answers = answers
-        }
-        //  responseObj.answers = answers;
         return responseObj;
     }
     else if (data[0].event.questionResponseType == "radio") {
@@ -469,7 +460,7 @@ async function responseObjectCreateFunc(data, solutionType) {
 
         let answerArray = [];
 
-        await Promise.all(groupBySubmissionId[element].map(ele => {
+        await Promise.all(groupBySubmissionId[element].map(async ele => {
 
             let answer = ele.event.questionAnswer;
 
@@ -480,7 +471,7 @@ async function responseObjectCreateFunc(data, solutionType) {
                 }
 
                 if (ele.event.questionResponseType == "date") {
-                    answer = moment(answer).format('D MMM YYYY, h:mm:ss A');
+                    answer = await getISTDate(answer);
                 }
 
                 answerArray.push(answer);
@@ -2743,10 +2734,10 @@ const getChartObject = async function (data, submissionCount) {
             }
             else {
                 let sortedData = await groupDataByQuestionId[questionKey].sort(getSortOrder("completedDate"));
-                await Promise.all(sortedData.map(singleResponse => {
+                await Promise.all(sortedData.map( async singleResponse => {
 
                     if (singleResponse.event.questionResponseType == "date") {
-                        singleResponse.event.questionAnswer = moment(singleResponse.event.questionAnswer).format('D MMM YYYY, h:mm:ss A');
+                        singleResponse.event.questionAnswer = await getISTDate(singleResponse.event.questionAnswer)
                     }
                     questionObject.answers.push(singleResponse.event.questionAnswer)
                 }))
@@ -2766,4 +2757,12 @@ const getChartObject = async function (data, submissionCount) {
 }
 
 
+const getISTDate = async function(date) {
+    let d = new Date(date);
+    d.setUTCHours(d.getUTCHours() + 5);
+    d.setUTCMinutes(d.getUTCMinutes() + 30);
+    let amOrPm = (d.getUTCHours() < 12) ? "AM" : "PM";
+    let hour = (d.getUTCHours() < 12) ? d.getUTCHours() : d.getUTCHours() - 12;
+    return d.getUTCDate() + '-' + (d.getUTCMonth() + 1) + '-' + d.getUTCFullYear() + ' ' + hour + ':' + d.getUTCMinutes() + ':' + d.getUTCSeconds() + ' ' + amOrPm;
 
+}
