@@ -1145,8 +1145,7 @@ async function scoreObjectCreateFunction(data) {
                 labels: [data[0].event.minScore + " out of " + data[0].event.maxScore],
                 datasets: [{
                     backgroundColor: [
-                        "#6c4fa1",
-                        "#fff"
+                        "#6c4fa1"
                     ],
                     data: [scoreAchieved, scoreNotAchieved],
                     borderColor: 'black',

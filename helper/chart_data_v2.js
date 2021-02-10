@@ -522,9 +522,6 @@ async function radioObjectCreateFunc(data, noOfSubmissions) {
         answerArray.push(data[i].event.questionResponseLabel);
 
         if (!labelArray.includes(data[i].event.questionResponseLabel)) {
-            if (data[i].event.questionResponseLabel == null) {
-                data[i].event.questionResponseLabel == "Not answered";
-            }
             labelArray.push(data[i].event.questionResponseLabel);
         } 
     }
@@ -537,20 +534,14 @@ async function radioObjectCreateFunc(data, noOfSubmissions) {
         let element = responseArray[j];
         let value = (element[k + 1] / noOfSubmissions.length) * 100;
         value = parseFloat(value.toFixed(2));
-
-        let dataObj = {
-            name: labelArray[j],
-            y: value
-        }
-
-        chartdata.push(dataObj);
+        chartdata.push(value);
     }
 
     //To get the latest edited question
     let questionObject = data.sort(custom_sort);
     question = questionObject[questionObject.length - 1].event.questionName;
 
-    var resp = {
+    let resp = {
         order: data[0].event.questionExternalId,
         question: question,
         responseType: data[0].event.questionResponseType,
@@ -560,14 +551,9 @@ async function radioObjectCreateFunc(data, noOfSubmissions) {
             data:{
                 labels: labelArray,
                 datasets: [{
-                    backgroundColor: [
-                        "#6c4fa1",
-                        "#fff"
-                    ],
-                    data: [scoreAchieved, scoreNotAchieved],
-                    borderColor: 'black',
+                    backgroundColor: "#de8657",
+                    data: chartdata
                 }]
-
             }
         },
         instanceQuestions: [],
@@ -626,7 +612,7 @@ async function multiSelectObjectCreateFunc(data, noOfSubmissions, solutionType) 
                     labels: labelMerged,
                     datasets: [{
                             data: chartdata,
-                            backgroundColor: ["#669911", "#119966" ]
+                            backgroundColor: "#de8657"
                     }]
                 },
                 options: {
@@ -634,7 +620,8 @@ async function multiSelectObjectCreateFunc(data, noOfSubmissions, solutionType) 
                     scales: {
                         xAxes: [{
                             ticks: {
-                                min: 0
+                                min: 0,
+                                max: 100
                             },
                             scaleLabel: {
                                 display: true,
@@ -642,7 +629,12 @@ async function multiSelectObjectCreateFunc(data, noOfSubmissions, solutionType) 
                             }
                         }],
                         yAxes: [{
-
+                            ticks: {
+                                callback: function (value, index, values) {
+                                  return value.split(' ');
+                                },
+                                fontSize: 12,
+                            },
                             scaleLabel: {
                                 display: true,
                                 labelString: "Responses"
@@ -1012,7 +1004,6 @@ async function scoreObjectCreateFunction(data) {
                 datasets: [{
                     backgroundColor: [
                         "#6c4fa1",
-                        "#fff"
                     ],
                     data: [scoreAchieved, scoreNotAchieved],
                     borderColor: 'black',
@@ -1212,7 +1203,7 @@ exports.observationScoreReportChart = async function (data, entityType, reportTy
 
 
     // Number of schools in this particular observation/solution
-    obj.entitiesObserved = obj.response[0].chart.xAxis.categories.length;
+    obj.entitiesObserved = obj.response[0].chart.data.labels.length;
 
     //sort the response objects using questionExternalId field
     await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
@@ -1271,48 +1262,39 @@ async function observationScoreResponseObj(data, entityType) {
     let chartData = {
         order: data[0].event.questionExternalId,
         question: data[0].event.questionName,
-        chart: {
-            type: "bar",
-            title: "",
-            xAxis: {
-                title: {
-                    text: null
-                },
-                labels: {},
-                categories: entityNames
-            },
-            yAxis: {
-                min: 0,
-                max: yAxisMaxValue,
-                title: {
-                    text: "Score"
-                },
-                labels: {
-                    overflow: 'justify'
-                },
-                allowDecimals: false
-            },
-            plotOptions: {
-                bar: {
-                    dataLabels: {
-                        enabled: true
-                    }
-                }
-            },
-            legend: {
-                enabled: true
-            },
-            credits: {
-                enabled: false
-            },
-            data: [{
-                name: 'observation1',
-                data: obsArray1
-            }, {
-                name: 'observation2',
-                data: obsArray2
-            }]
+        chart:
+        {
+            type: 'horizontalBar',
+            data: {
+                labels: entityNames,
+                datasets: [
+                    {
+                        label: 'observation1',
+                        data: obsArray1,
+                        backgroundColor: '#D35400'
+                    },
+                    {
+                        label: 'observation2',
+                        data: obsArray2,
+                        backgroundColor: '#F1C40F'
+                    }]
 
+            },
+            options: {
+                scales: {
+                    xAxes: [{
+                        ticks: {
+                            min: 0,
+                            max: yAxisMaxValue
+                        },
+
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Score'
+                        }
+                    }],
+                }
+            }
         },
         criteriaName: data[0].event.criteriaName,
         criteriaId: data[0].event.criteriaId
@@ -2201,12 +2183,8 @@ const getChartObject = async function (data, submissionCount) {
                     data: {
                         labels: labelArray,
                         datasets: [{
-                            backgroundColor: [
-                                "#6c4fa1",
-                                "#fff"
-                            ],
-                            data: chartDataArray,
-                            borderColor: 'black',
+                            backgroundColor: "#de8657",
+                            data: chartDataArray
                         }]
                     }
                 }
@@ -2225,23 +2203,33 @@ const getChartObject = async function (data, submissionCount) {
                 }))
 
                 let chart = {
-                    type: "bar",
-                    data: [
-                        {
-                            data: chartDataArray
-                        }
-                    ],
-                    xAxis: {
-                        categories: labelArray,
-                        title: {
-                            text: "Responses"
-                        }
+                    type: "horizontalBar",
+                    data: {
+                        labels: labelArray,
+                        datasets: [{
+                                data: chartDataArray,
+                                backgroundColor: "#de8657"
+                        }]
                     },
-                    yAxis: {
-                        min: 0,
-                        max: 100,
-                        title: {
-                            text: "Responses in percentage"
+                    options: {
+                        legend: false,
+                        scales: {
+                            xAxes: [{
+                                ticks: {
+                                    min: 0,
+                                    max: 100
+                                },
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: "Responses in percentage"
+                                }
+                            }],
+                            yAxes: [{
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: "Responses"
+                                }
+                            }],
                         }
                     }
                 }

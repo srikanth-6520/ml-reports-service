@@ -1,6 +1,6 @@
 const rp = require('request-promise');
 const request = require('request');
-const helperFunc = require('../../helper/chart_data');
+const helperFunc = require('../../helper/chart_data_v2');
 const filesHelper = require('../../common/files_helper');
 const assessmentService = require('../../helper/assessment_service');
 const solutionReportTextResponseLimit = 10;
