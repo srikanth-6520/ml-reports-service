@@ -2771,6 +2771,27 @@ async function createChartObject(ele, chartType) {
             question: ele.question
         };
 
+        if (chartType == "pie") {
+            obj.options.chart = {
+                type: chartType,
+                align: 'center',
+                marginLeft: 0,
+                marginBottom: 100
+            }
+
+            obj.options.legend = {
+                align: 'left',
+                layout: 'vertical',
+                itemStyle: {
+                    "word-wrap": "break-word",
+                    color: '#000000',
+                    fontWeight: 'bold',
+                    width: 700,
+                    "overflow-wrap": "break-word"
+                }
+            }
+        }
+
         resolve(obj);
 
     })

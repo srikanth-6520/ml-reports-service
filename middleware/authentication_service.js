@@ -9,6 +9,7 @@
  */
 
 var ApiInterceptor = require('../helper/key_cloak_authentication');
+const DISABLE_ADMIN_REPORTS = (!process.env.DISABLE_ADMIN_REPORTS || process.env.DISABLE_ADMIN_REPORTS != "OFF") ? "ON" : "OFF"
 
 
 
@@ -48,6 +49,10 @@ var apiInterceptor = new ApiInterceptor(keyCloakConfig, cacheConfig);
 
 function authenticate(req, res, next) {
 
+    if (DISABLE_ADMIN_REPORTS == "ON" && (req.path.includes("entitySolutionReport") || req.path.includes("entitySolutionScoreReport") || req.path.includes("listObservationSolutions"))) {
+        return res.send({ status: "failed", message: "Reports can't be shown" })
+    }
+   
     validateToken(req, res)
         .then(function (result) {
 
@@ -59,10 +64,7 @@ function authenticate(req, res, next) {
             } else {
                 res.send({ status: "failed", message: result.message })
             }
-
-
         });
-
 }
 
 

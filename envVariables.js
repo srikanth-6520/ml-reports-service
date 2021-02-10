@@ -213,6 +213,11 @@ let enviromentVariables = {
   "MULTI_SELECTION" : {
     "message" : "Required",
     "optional" : true
+  },
+  "DISABLE_ADMIN_REPORTS" : {
+    "message" : "ON/OFF",
+    "optional" : false,
+    "default" : "OFF" 
   }
 }
 
