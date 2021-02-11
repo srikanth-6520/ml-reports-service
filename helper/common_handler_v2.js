@@ -2507,13 +2507,15 @@ exports.entityCriteriaPdfReportGeneration = async function (responseData, storeR
             let radioArray = [];
             let formData = [];
 
-            await Promise.all(responseData.response.map(async element => {
-                    if (element.responseType == "multiselect") {
+            await Promise.all(responseData.response.map(async singleResponse => {
+                await Promise.all( singleResponse.questionArray.map( question => {
+                    if (question.responseType == "multiselect") {
                         multiSelectArray.push(element);
                     }
-                    else if (element.responseType == "radio") {
+                    else if (question.responseType == "radio") {
                         radioArray.push(element);
                     }
+                }))
             }))
             
             //Prepare chart object before sending it to highchart server
