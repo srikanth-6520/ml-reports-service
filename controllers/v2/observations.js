@@ -391,26 +391,6 @@ exports.listObservationSolutions = async function (req, res) {
   }
 }
 
-//Controller function for observation score pdf reports
-exports.observationScorePdfReport = async function (req, res) {
-
-  return new Promise(async function (resolve, reject) {
-
-    if (req.body && req.body.entityId && req.body.observationId) {
-
-      let resObj = await entityObservationScorePdfFunc(req, res);
-      res.send(resObj);
-    }
-    else {
-      res.send({
-        status: "failure",
-        message: "Invalid input"
-      });
-    }
-
-  })
-}
-
 
 //Controller function for observation pdf reports
 exports.pdfReports = async function (req, res) {
@@ -1037,6 +1017,293 @@ async function entityObservationData(req, res) {
 
 
 /**
+   * @api {post} /dhiti/api/v2/observations/entitySolutionScoreReport 
+   * Entity solution score report
+   * @apiVersion 1.0.0
+   * @apiGroup Observations
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "entityId": "",
+  "entityType": "",
+  "solutionId": ""
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "result": true,
+       "solutionName": "",
+       "response": [{
+         "order": "",
+         "question": "",
+         "chart": {
+            "type": "bar",
+            "title": "",
+            "xAxis": {
+                "title": {
+                    "text": null
+                },
+                "labels": {},
+                "categories": []
+            },
+            "yAxis": {
+                "min": 0,
+                "max": "",
+                "title": {
+                    "text": "Score"
+                },
+                "labels": {
+                    "overflow": "justify"
+                },
+                "allowDecimals" : false
+            },
+            "plotOptions": {
+                "bar": {
+                    "dataLabels": {
+                        "enabled": true
+                    }
+                }
+            },
+            "legend": {
+               "enabled" : true
+            },
+            "credits": {
+                "enabled": false
+            },
+            "data": [{
+                "name": "observation1",
+                "data": []
+            }, {
+                "name": "observation2",
+                "data": []
+            }]
+
+          }
+        }]
+*     }
+   * @apiUse errorBody
+   */
+
+//Controller for entity solution score report (cluster/block/zone/district/state)
+exports.entitySolutionScoreReport = async function (req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    let responseData = await entitySolutionScoreReportGeneration(req, res);
+    res.send(responseData);
+
+  })
+
+};
+
+
+//Function for entity solution report generation 
+async function entitySolutionScoreReportGeneration(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    try {
+
+    if (!req.body.entityId || !req.body.entityType || !req.body.solutionId) {
+      res.status(400);
+      let response = {
+        result: false,
+        message: 'entityId, entityType and solutionId are required fields'
+      }
+      resolve(response);
+    }
+    
+    else if (req.body.entityType == "school") {
+
+      let response = await schoolSolutionScoreReport(req, res);
+      resolve(response);
+
+    }
+
+    else {
+
+          let bodyParam = gen.utils.getDruidQuery("entity_solution_score_query");
+
+          if (process.env.OBSERVATION_DATASOURCE_NAME) {
+            bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
+          }
+
+          //Assign values to the query filter object 
+          bodyParam.filter.fields[1].fields[0].dimension = req.body.entityType;
+          bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+          bodyParam.filter.fields[1].fields[1].value = req.body.solutionId;
+
+           //if programId is given
+           if (req.body.programId) {
+            let programFilter = { "type": "selector", "dimension": "programId", "value": req.body.programId };
+            bodyParam.filter.fields[1].fields.push(programFilter);
+          }
+          
+          //code for myObservation
+          if (req.body.reportType == "my") {
+            let filter = {"type":"or","fields":[{"type":"and","fields":[{"type":"selector","dimension":"createdBy","value": req.userDetails.userId},
+                         {"type":"selector","dimension":"isAPrivateProgram","value":true}]},
+                         {"type":"and","fields":[{"type":"selector","dimension":"createdBy","value": req.userDetails.userId},
+                         {"type":"selector","dimension":"isAPrivateProgram","value":false}]}]};
+            bodyParam.filter.fields[1].fields.push(filter);
+
+          }
+          else {
+            let filter = {"type": "or","fields":[{"type":"and","fields":[{"type":"selector","dimension":"createdBy","value": req.userDetails.userId},
+            {"type":"selector","dimension":"isAPrivateProgram","value":true}]},
+            {"type":"selector","dimension":"isAPrivateProgram","value":false}]};
+
+            bodyParam.filter.fields[1].fields.push(filter);
+          }
+
+          //get the acl data from samiksha service
+          let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-auth-token"]);
+          let aclLength = Object.keys(userProfile.result.acl);
+          if (userProfile.result && userProfile.result.acl && aclLength > 0) {
+            let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
+
+            bodyParam.filter.fields[1].fields.push({"type":"or","fields":[{"type": "in", "dimension": "schoolType", "values": tagsArray },
+                                         { "type": "in", "dimension": "administrationType", "values": tagsArray }]});
+          }
+
+          //pass the query as body param and get the result from druid
+          let options = gen.utils.getDruidConnection();
+          options.method = "POST";
+          options.body = bodyParam;
+          let data = await rp(options);
+
+          if (!data.length) {
+            resolve({ "data": "No observations made for the entity" })
+          }
+          else {
+            let responseObj = await helperFuncV2.observationScoreReportChart(data)
+            responseObj.solutionId = req.body.solutionId;
+            resolve(responseObj);
+          }
+          }
+        }
+        catch(err) {
+          res.status(400);
+          let response = {
+            result: false,
+            message: 'INTERNAL_SERVER_ERROR'
+          }
+          resolve(response);
+        }
+  })
+
+}
+
+
+//School solution score report creation function
+async function schoolSolutionScoreReport(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    try {
+
+        let bodyParam = gen.utils.getDruidQuery("entity_solution_score_query");
+
+        if (process.env.OBSERVATION_DATASOURCE_NAME) {
+          bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
+        }
+
+        //Assign values to the query filter object 
+        bodyParam.filter.fields[1].fields[0].dimension = req.body.entityType;
+        bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+        bodyParam.filter.fields[1].fields[1].value = req.body.solutionId;
+
+        //if programId is given
+        if (req.body.programId) {
+          let programFilter = { "type": "selector", "dimension": "programId", "value": req.body.programId };
+          bodyParam.filter.fields[1].fields.push(programFilter);
+        }
+        
+        //code for myObservation
+        if (req.body.reportType == "my") {
+          let filter = { "type": "selector", "dimension": "createdBy", "value": req.userDetails.userId }
+          bodyParam.filter.fields[1].fields.push(filter);
+
+          //if programId is given
+          if (req.body.programId) {
+            let programFilter = { "type": "selector", "dimension": "programId", "value": req.body.programId };
+            bodyParam.filter.fields[1].fields.push(programFilter);
+          }
+          
+        }
+
+        //get the acl data from samiksha service
+        let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-auth-token"]);
+        let aclLength = Object.keys(userProfile.result.acl);
+        if (userProfile.result && userProfile.result.acl && aclLength > 0) {
+          let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
+
+          bodyParam.filter.fields[1].fields.push({"type":"or","fields":[{"type": "in", "dimension": "schoolType", "values": tagsArray },
+                                       { "type": "in", "dimension": "administrationType", "values": tagsArray }]});
+        }
+
+        //pass the query as body param and get the resul from druid
+        let options = gen.utils.getDruidConnection();
+        options.method = "POST";
+        options.body = bodyParam;
+
+        let data = await rp(options);
+
+        if (!data.length) {
+          resolve({ "data": "No observations made for the entity" })
+        }
+
+        else {
+
+          let responseObj = await helperFuncV2.entityScoreReportChartObjectCreation(data)
+          delete responseObj.observationName;
+          responseObj.solutionName = data[0].event.solutionName;
+          resolve(responseObj);
+
+        }
+    }
+    catch(err) {
+        let response = {
+          result: false,
+          message: 'INTERNAL_SERVER_ERROR'
+        }
+        resolve(response);
+      }
+  })
+}
+
+
+//Entity solution score pdf generation
+async function entitySolutionScorePdfFunc(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    var entityRes = await entitySolutionScoreReportGeneration(req, res);
+
+    if (entityRes.result == true) {
+
+      let obj = {
+        solutionName: entityRes.solutionName
+      }
+
+      let resData = await pdfHandlerV2.instanceObservationScorePdfGeneration(entityRes, storeReportsToS3 = false, obj);
+
+      resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+
+      resolve(resData);
+    }
+
+    else {
+      resolve(entityRes);
+    }
+
+  });
+
+};
+
+
+
+/**
    * @api {post} /dhiti/api/v2/observations/report
    * Observation report
    * @apiVersion 1.0.0
@@ -1202,9 +1469,215 @@ exports.observationScorePdfReport = async function (req, res) {
       }
 
   })
+}
 
+
+/**
+   * @api {post} /dhiti/api/v2/observations/scoreReport
+   * Observation score report
+   * @apiVersion 1.0.0
+   * @apiGroup Observations
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "observationId": "",
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "result": true,
+       "solutionName": "",
+       "response": [{
+         "order": "",
+         "question": "",
+         "chart": {
+            "type": "bar",
+            "title": "",
+            "xAxis": {
+                "title": {
+                    "text": null
+                },
+                "labels": {},
+                "categories": []
+            },
+            "yAxis": {
+                "min": 0,
+                "max": "",
+                "title": {
+                    "text": "Score"
+                },
+                "labels": {
+                    "overflow": "justify"
+                },
+                "allowDecimals" : false
+            },
+            "plotOptions": {
+                "bar": {
+                    "dataLabels": {
+                        "enabled": true
+                    }
+                }
+            },
+            "legend": {
+               "enabled" : true
+            },
+            "credits": {
+                "enabled": false
+            },
+            "data": [{
+                "name": "observation1",
+                "data": []
+            }, {
+                "name": "observation2",
+                "data": []
+            }]
+        },
+        "evidences":[
+            {"url":"", "extension":""}
+        ]
+      }]
+*     }
+   * @apiUse errorBody
+   */
+
+//Controller for observation Score report  
+exports.scoreReport = async function (req , res){
+
+  let data = await observationScoreReport(req, res);
+
+  res.send(data);
 
 }
+
+
+async function observationScoreReport(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+   try {
+
+    if (!req.body.observationId) {
+      let response = {
+        result: false,
+        message: 'observationId is a required fields'
+      }
+      resolve(response);
+    }
+
+    else {
+        
+        let bodyParam = gen.utils.getDruidQuery("observation_score_report_query");
+
+          if (process.env.OBSERVATION_DATASOURCE_NAME) {
+            bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
+          }
+          
+          let entityType = "school";
+
+          if(req.body.entityType){
+             entityType = req.body.entityType;
+          }
+          
+          bodyParam.dimensions.push(entityType,entityType + "Name");
+          
+           //if filter is given
+           if (req.body.filter) {
+            if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
+              bodyParam.filter.fields[0].value = req.body.observationId;
+              bodyParam.filter.fields.push({"type":"in","dimension":"questionExternalId","values":req.body.filter.questionId});
+            }
+            else {
+              bodyParam.filter.fields[0].value = req.body.observationId;
+            }
+          }
+          else {
+            bodyParam.filter.fields[0].value = req.body.observationId;
+          }
+
+          //pass the query as body param and get the resul from druid
+          let options = gen.utils.getDruidConnection();
+          options.method = "POST";
+          options.body = bodyParam;
+
+          let data = await rp(options);
+
+          if (!data.length) {
+            resolve({ "data": "No entities found" })
+          }
+
+          else {
+
+            let chartData = await helperFuncV2.observationScoreReportChart(data,entityType);
+
+              //Call samiksha API to get total schools count for the given observationId
+              let totalEntities = await assessmentService.getTotalEntities(req.body.observationId,req.headers["x-auth-token"]);
+
+            if (totalEntities.result && totalEntities.result.count) {
+              chartData.totalEntities = totalEntities.result.count;
+            }
+
+            //Get evidence data from evidence datasource
+            let inputObj = {
+              observationId: req.body.observationId
+            }
+
+            let evidenceData = await getEvidenceData(inputObj);
+
+            let responseObj;
+
+            if (evidenceData.result) {
+              responseObj = await helperFuncV2.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+
+            } else {
+              responseObj = chartData;
+            }
+
+            resolve(responseObj);
+
+          }
+      }
+    }
+    catch(err) {
+      let response = {
+        result: false,
+        message: 'INTERNAL_SERVER_ERROR'
+      }
+        resolve(response);
+    }
+
+  })
+
+}
+
+
+//Observation score pdf generation 
+async function observationScorePdfFunc(req, res) {
+
+  return new Promise (async function (resolve,reject){
+
+  let observationRes = await observationScoreReport(req, res);
+
+  if (observationRes.result == true) {
+    
+    let obj = {
+      totalEntities : observationRes.totalEntities,
+      entitiesObserved : observationRes.entitiesObserved,
+      entityType: observationRes.entityType
+    }
+
+    let resData = await pdfHandlerV2.instanceObservationScorePdfGeneration(observationRes, storeReportsToS3 = false, obj);
+
+    resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+
+    res.send(resData);
+  }
+
+  else {
+    res.send(observationRes);
+  }
+});
+};
+
 
 
 /**
@@ -1576,7 +2049,7 @@ async function instanceScorePdfReprtByCriteria(req, res) {
 
 
 /**
-   * @api {post} /dhiti/api/v1/observations/entityReportByCriteria
+   * @api {post} /dhiti/api/v2/observations/entityReportByCriteria
    * Entity report by criteria
    * @apiVersion 1.0.0
    * @apiGroup Observations
@@ -1760,7 +2233,210 @@ async function entityPdfReportByCriteria(req, res) {
 
 
 /**
-   * @api {post} /dhiti/api/v1/observations/observationReportByCriteria
+   * @api {post} /dhiti/api/v2/observations/entityScoreReportByCriteria
+   * Entity score report by criteria
+   * @apiVersion 1.0.0
+   * @apiGroup Observations
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "entityId": "",
+  "observationId": "",
+  "filter":{
+     "criteria": []
+  }
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "result": true,
+       "schoolName": "",
+       "totalObservations": "",
+       "observationName": "",
+       "response" : [{
+          "criteriaName": "",
+          "criteriaId": "",
+          "questionArray": [{
+              "order": "",
+              "question": "",
+              "chart": {
+                  "type": "scatter",
+                  "title": "",
+                  "xAxis": {
+                     "title": {
+                     "enabled": true,
+                     "text": "observations"
+                    },
+                     "labels": {},
+                     "categories": ["Obs1", "Obs2", "Obs3", "Obs4", "Obs5"],
+                     "startOnTick": false,
+                     "endOnTick": false,
+                     "showLastLabel": true
+                  },
+                  "yAxis": {
+                     "min": 0,
+                     "max": "",
+                     "allowDecimals": false,
+                     "title": {
+                        "text": "Score"
+                     }
+                  },
+                  "plotOptions":{
+                     "scatter":{
+                     "lineWidth": 1,
+                     "lineColor": "#F6B343"
+                     }
+                  },
+                  "credits": {
+                     "enabled": false
+                  },
+                  "legend": {
+                     "enabled": false
+                  },
+                  "data": [{
+                    "color": "#F6B343",
+                    "data": []
+                  }]
+              }
+            }]
+        }]
+*     }
+   * @apiUse errorBody
+   */
+
+//Controller for Entity Observation Score Report
+exports.entityScoreReportByCriteria = async function (req, res) {
+
+  let data = await entityScoreCriteriaReportData(req, res);
+
+  res.send(data);
+
+}
+
+async function entityScoreCriteriaReportData(req, res) {
+  
+  return new Promise(async function (resolve, reject) {
+
+    try {
+
+    if (!req.body.entityId || !req.body.observationId) {
+      let response = {
+        result: false,
+        message: 'entityId and observationId are required fields'
+      }
+      resolve(response);
+    }
+
+    else {
+         
+          let bodyParam = gen.utils.getDruidQuery("entity_score_criteria_report_query");
+
+          if (process.env.OBSERVATION_DATASOURCE_NAME) {
+            bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
+          }
+
+          let entityType = "school";
+
+          if(req.body.entityType){
+            entityType = req.body.entityType;
+          }
+
+          bodyParam.filter.fields[1].fields[0].dimension = entityType;
+          bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+          bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
+          bodyParam.filter.fields.push({"type":"not","field":{"type":"selector","dimension":"questionAnswer","value":""}});
+
+           //if filter is given
+           if (req.body.filter && req.body.filter.criteria && req.body.filter.criteria.length > 0) {
+              bodyParam.filter.fields.push({"type":"in","dimension":"criteriaId","values":req.body.filter.criteria});
+           }
+
+          //pass the query as body param and get the resul from druid
+          let options = gen.utils.getDruidConnection();
+          options.method = "POST";
+          options.body = bodyParam;
+
+          let data = await rp(options);
+
+          if (!data.length) {
+            resolve({
+              "result": false,
+              "data": "NO_OBSERVATIONS_MADE_FOR_THE_ENTITY" })
+          }
+
+          else {
+            let reportType = "criteria";
+            let chartData = await helperFuncV2.entityScoreReportChartObjectCreation(data, reportType);
+
+            // send entity name dynamically
+            chartData.entityName = data[0].event[entityType + "Name"];
+
+            //Get evidence data from evidence datasource
+             let inputObj = {
+              entityId : req.body.entityId,
+              observationId: req.body.observationId,
+              entityType: entityType
+            }
+
+            let evidenceData = await getEvidenceData(inputObj);
+            let responseObj;
+
+            if(evidenceData.result) {
+                responseObj = await helperFuncV2.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-auth-token"]);
+            } else {
+                responseObj = chartData;
+            }
+
+            responseObj = await helperFuncV2.getCriteriawiseReport(responseObj);
+            resolve(responseObj);
+
+          }
+        }
+      }
+      catch(err) {
+          let response = {
+            result: false,
+            message: 'INTERNAL_SERVER_ERROR'
+          }
+          resolve(response);
+      }
+    })
+
+}
+
+
+//Entity observation score pdf generation
+async function entityScorePdfReportByCriteria(req, res) {
+  
+  return new Promise(async function (resolve, reject) {
+
+    var entityRes = await entityScoreCriteriaReportData(req, res);
+
+    if (entityRes.result == true) {
+
+      let obj = {
+        entityName: entityRes.entityName,
+        totalObservations: entityRes.totalObservations
+      }
+
+      let resData = await pdfHandlerV2.instanceScoreCriteriaPdfGeneration(entityRes, storeReportsToS3 = false, obj);
+
+      resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+
+      resolve(resData);
+    }
+
+    else {
+      resolve(entityRes);
+    }
+
+  });
+
+};
+
+
+/**
+   * @api {post} /dhiti/api/v2/observations/observationReportByCriteria
    * Observation report by criteria
    * @apiVersion 1.0.0
    * @apiGroup Observations
@@ -1906,6 +2582,218 @@ async function observationPdfReportByCriteria(req, res) {
       resolve(observeRes);
     }
 
+  });
+};
+
+
+/**
+   * @api {post} /dhiti/api/v2/observations/observationScoreReportByCriteria
+   * Observation score report by criteria
+   * @apiVersion 1.0.0
+   * @apiGroup Observations
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+  "observationId": "",
+  "filter":{
+      "criteria": []
+  }
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "result": true,
+       "solutionName": "",
+       "response": [{
+         "criteriaName": "",
+         "criteriaId": "",
+         "questionArray": [{
+            "order": "",
+            "question": "",
+            "chart": {
+               "type": "bar",
+               "title": "",
+               "xAxis": {
+                  "title": {
+                     "text": null
+                  },
+                  "labels": {},
+                  "categories": []
+                },
+                "yAxis": {
+                   "min": 0,
+                   "max": "",
+                   "title": {
+                     "text": "Score"
+                    },
+                   "labels": {
+                      "overflow": "justify"
+                    },
+                   "allowDecimals" : false
+                },
+                "plotOptions": {
+                  "bar": {
+                    "dataLabels": {
+                        "enabled": true
+                    }
+                  } 
+                },
+                "legend": {
+                  "enabled" : true
+                },
+                "credits": {
+                  "enabled": false
+                },
+                "data": [{
+                  "name": "observation1",
+                  "data": []
+                }, {
+                  "name": "observation2",
+                  "data": []
+                }]
+            },
+            "evidences":[
+              {"url":"", "extension":""}
+            ]
+          }]
+        }]
+*     }
+   * @apiUse errorBody
+   */
+
+//Controller for observation Score report  
+exports.observationScoreReportByCriteria = async function (req , res){
+
+  let data = await observationScoreCriteriaReportData(req, res);
+
+  res.send(data);
+
+}
+
+
+async function observationScoreCriteriaReportData(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+    
+    try {
+
+    if (!req.body.observationId) {
+      let response = {
+        result: false,
+        message: 'observationId is a required fields'
+      }
+      resolve(response);
+    }
+
+    else {
+
+         let bodyParam = gen.utils.getDruidQuery("observation_score_criteria_report_query");
+
+          if (process.env.OBSERVATION_DATASOURCE_NAME) {
+            bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
+          }
+
+          let entityType = "school";
+
+            if(req.body.entityType){
+               entityType = req.body.entityType;
+            }
+            
+            bodyParam.dimensions.push(entityType,entityType + "Name");
+            bodyParam.filter.fields[0].value = req.body.observationId;
+            bodyParam.filter.fields.push({"type":"not","field":{"type":"selector","dimension":"questionAnswer","value":""}});
+  
+           //if filter is given
+           if (req.body.filter && req.body.filter.criteria && req.body.filter.criteria.length > 0) {
+              bodyParam.filter.fields.push({"type":"in","dimension":"criteriaId","values":req.body.filter.criteria});
+            }
+
+          //pass the query as body param and get the resul from druid
+          let options = gen.utils.getDruidConnection();
+          options.method = "POST";
+          options.body = bodyParam;
+
+          let data = await rp(options);
+
+          if (!data.length) {
+            resolve({
+               "result": false, 
+               "data": "NO_ENTITIES_FOUND" })
+          }
+
+          else {
+            let reportType = "criteria";
+            let chartData = await helperFuncV2.observationScoreReportChart(data,entityType,reportType);
+
+              //Call samiksha API to get total schools count for the given observationId
+              let totalEntities = await  assessmentService.getTotalEntities(req.body.observationId,req.headers["x-auth-token"]);
+
+
+            if (totalEntities.result && totalEntities.result.count) {
+              chartData.totalEntities = totalEntities.result.count;
+            }
+
+            //Get evidence data from evidence datasource
+            let inputObj = {
+              observationId: req.body.observationId
+            }
+
+            let evidenceData = await getEvidenceData(inputObj);
+
+            let responseObj;
+
+            if (evidenceData.result) {
+              responseObj = await helperFuncV2.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+
+            } else {
+              responseObj = chartData;
+            }
+            
+            //get criteria wise report
+            responseObj = await helperFuncV2.getCriteriawiseReport(responseObj);
+            resolve(responseObj);
+
+          }
+        }
+      }
+      catch(err) {
+          let response = {
+            result: false,
+            message: 'INTERNAL_SERVER_ERROR'
+          }
+          resolve(response);
+      }
+
+  })
+
+}
+
+
+//Observation score pdf generation 
+async function observationScorePdfReportByCriteria(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    let observationRes = await observationScoreCriteriaReportData(req, res);
+
+    if (observationRes.result == true) {
+
+      let obj = {
+        totalEntities: observationRes.totalEntities,
+        entitiesObserved: observationRes.entitiesObserved,
+        entityType: observationRes.entityType
+      }
+
+      let resData = await pdfHandlerV2.instanceScoreCriteriaPdfGeneration(observationRes, storeReportsToS3 = false, obj);
+
+      resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+
+      res.send(resData);
+    }
+
+    else {
+      res.send(observationRes);
+    }
   });
 };
 

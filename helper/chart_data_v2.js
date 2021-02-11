@@ -551,7 +551,7 @@ async function radioObjectCreateFunc(data, noOfSubmissions) {
             data:{
                 labels: labelArray,
                 datasets: [{
-                    backgroundColor: "#de8657",
+                    backgroundColor: ['#FFA971', '#F6DB6C', '#98CBED', '#C9A0DA', '#5DABDC', '#88E5B0'],
                     data: chartdata
                 }]
             }
@@ -1021,7 +1021,7 @@ async function scoreObjectCreateFunction(data) {
 
 
 // Chart object creation for entity observation score report
-exports.entityScoreReportChartObjectCreation = async function (data, version, reportType) {
+exports.entityScoreReportChartObjectCreation = async function (data, reportType) {
 
     let sortedData = await data.sort(sort_objects);
 
@@ -1069,7 +1069,7 @@ exports.entityScoreReportChartObjectCreation = async function (data, version, re
 
     await Promise.all(groupKeys.map(async ele => {
 
-        let responseObj = await entityScoreObjectCreateFunc(groupedData[ele], version, threshold);
+        let responseObj = await entityScoreObjectCreateFunc(groupedData[ele], threshold);
 
         obj.response.push(responseObj);
 
@@ -1089,10 +1089,10 @@ exports.entityScoreReportChartObjectCreation = async function (data, version, re
 }
 
 
-async function entityScoreObjectCreateFunc(data, version, threshold) {
+async function entityScoreObjectCreateFunc(data, threshold) {
 
     let seriesData = [];
-    let yAxisMaxValue;
+    let yAxisMaxValue = 0;
 
     //group the questions based on their observationSubmissionId
     let groupedSubmissionData = await groupArrayByGivenField(data, "observationSubmissionId");
@@ -1120,57 +1120,47 @@ async function entityScoreObjectCreateFunc(data, version, threshold) {
         order: data[0].event.questionExternalId,
         question: data[0].event.questionName,
         chart: {
-            type: "scatter",
-            title: "",
-            xAxis: {
-                title: {
-                    enabled: true,
-                    text: "observations"
-                },
-                labels: {},
-                categories: ["Obs1", "Obs2", "Obs3", "Obs4", "Obs5"],
-                startOnTick: false,
-                endOnTick: false,
-                showLastLabel: true
-            },
-            yAxis: {
-                min: 0,
-                max: yAxisMaxValue,
-                allowDecimals: false,
-                title: {
-                    text: "Score"
-                }
-            },
-            plotOptions: {
-                scatter: {
-                    lineWidth: 1,
-                    lineColor: "#F6B343"
-                }
-            },
-            credits: {
-                enabled: false
-            },
-            legend: {
-                enabled: false
-            },
-            data: [{
-                color: "#F6B343",
-                data: seriesData
-            }]
+            type: 'bar',
+            data: {
+                labels: [
+                    "Obs1",
+                    "Obs2",
+                    "Obs3",
+                    "Obs4",
+                    "Obs5"
+                ],
+                datasets: [
+                    {
 
+                        data: seriesData,
+                        backgroundColor: "#F6B343"
+                    }]
+            },
+            options: {
+                legend: false,
+                scales: {
+                    xAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'observations'
+                        }
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            min: 0,
+                            max: yAxisMaxValue
+                        },
+
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'score'
+                        }
+                    }],
+                }
+            }
         },
         criteriaName: data[0].event.criteriaName,
         criteriaId: data[0].event.criteriaId
-    }
-
-    if (version == "v2") {
-        chartData.chart.type = "column";
-        chartData.chart.plotOptions = {
-            column: {
-                pointPadding: 0.3,
-                borderWidth: 0
-            }
-        }
     }
 
     return chartData;
@@ -1257,8 +1247,7 @@ async function observationScoreResponseObj(data, entityType) {
         }
 
     }))
-
-
+    
     let chartData = {
         order: data[0].event.questionExternalId,
         question: data[0].event.questionName,
@@ -1271,12 +1260,12 @@ async function observationScoreResponseObj(data, entityType) {
                     {
                         label: 'observation1',
                         data: obsArray1,
-                        backgroundColor: '#D35400'
+                        backgroundColor: '#de8657'
                     },
                     {
                         label: 'observation2',
                         data: obsArray2,
-                        backgroundColor: '#F1C40F'
+                        backgroundColor: '#d9b730'
                     }]
 
             },
@@ -2183,7 +2172,7 @@ const getChartObject = async function (data, submissionCount) {
                     data: {
                         labels: labelArray,
                         datasets: [{
-                            backgroundColor: "#de8657",
+                            backgroundColor: ['#FFA971', '#F6DB6C', '#98CBED', '#C9A0DA', '#5DABDC', '#88E5B0'],
                             data: chartDataArray
                         }]
                     }

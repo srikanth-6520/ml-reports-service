@@ -136,6 +136,164 @@ exports.entitySolutionReport = async function (req, res) {
       }
     })
   }
+
+
+//Controller for Entity Observation Score Report
+exports.entityScoreReport = async function (req, res) {
+
+  let data = await entityScoreReportGenerate(req, res);
+
+  res.send(data);
+
+}
+
+async function entityScoreReportGenerate(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    try {
+
+      if (!req.body.entityId || !req.body.observationId) {
+        var response = {
+          result: false,
+          message: 'entityId and observationId are required fields'
+        }
+        resolve(response);
+      }
+
+      else {
+
+        let bodyParam = gen.utils.getDruidQuery("entity_observation_score_query");
+
+        if (process.env.OBSERVATION_DATASOURCE_NAME) {
+          bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
+        }
+
+        let entityType = "school";
+
+        if (req.body.entityType) {
+          entityType = req.body.entityType;
+        }
+
+        //if filter is given
+        if (req.body.filter) {
+          if (req.body.filter.questionId && req.body.filter.questionId.length > 0) {
+            bodyParam.filter.fields[1].fields[0].dimension = entityType;
+            bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+            bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
+            bodyParam.filter.fields.push({ "type": "in", "dimension": "questionExternalId", "values": req.body.filter.questionId });
+          }
+          else {
+            bodyParam.filter.fields[1].fields[0].dimension = entityType;
+            bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+            bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
+          }
+        }
+        else {
+          bodyParam.filter.fields[1].fields[0].dimension = entityType;
+          bodyParam.filter.fields[1].fields[0].value = req.body.entityId;
+          bodyParam.filter.fields[1].fields[1].value = req.body.observationId;
+        }
+
+
+        //pass the query as body param and get the resul from druid
+        let options = gen.utils.getDruidConnection();
+        options.method = "POST";
+        options.body = bodyParam;
+
+        let data = await rp(options);
+
+        if (!data.length) {
+          resolve({ "data": "No observations made for the entity" })
+        }
+
+        else {
+
+          let chartData = await helperFunc.entityScoreReportChartObjectCreation(data);
+
+          // send entity name dynamically
+          chartData.entityName = data[0].event[entityType + "Name"];
+
+          //Get evidence data from evidence datasource
+          let inputObj = {
+            entityId: req.body.entityId,
+            observationId: req.body.observationId,
+            entityType: entityType
+          }
+
+          let evidenceData = await getEvidenceData(inputObj);
+          let responseObj;
+
+          if (evidenceData.result) {
+            responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+          } else {
+            responseObj = chartData;
+          }
+
+          resolve(responseObj);
+
+        }
+      }
+    }
+    catch (err) {
+      let response = {
+        result: false,
+        message: 'INTERNAL_SERVER_ERROR'
+      }
+      resolve(response);
+    }
+  })
+
+}
+
+
+//Entity observation score pdf generation
+async function entityObservationScorePdfFunc(req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    var entityRes = await entityScoreReportGenerate(req, res);
+
+    if (entityRes.result == true) {
+
+      let obj = {
+        entityName: entityRes.entityName,
+        totalObservations: entityRes.totalObservations
+      }
+
+      let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, storeReportsToS3 = false, obj);
+
+      resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+
+      resolve(resData);
+    }
+
+    else {
+      resolve(entityRes);
+    }
+
+  });
+};
+
+//Controller function for observation score pdf reports
+exports.observationScorePdfReport = async function (req, res) {
+
+  return new Promise(async function (resolve, reject) {
+
+    if (req.body && req.body.entityId && req.body.observationId) {
+
+      let resObj = await entityObservationScorePdfFunc(req, res);
+      res.send(resObj);
+    }
+    else {
+      res.send({
+        status: "failure",
+        message: "Invalid input"
+      });
+    }
+
+  })
+}
   
 //Funcion for instance observation pdf generation
 async function instancePdfReport(req, res) {

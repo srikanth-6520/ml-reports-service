@@ -722,7 +722,7 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
 
             let formData = await createChart(chartObject, imgPath);
 
-            var params;
+            let params;
 
             if (observationResp.solutionName) {
                 params = {
