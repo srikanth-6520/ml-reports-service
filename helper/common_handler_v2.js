@@ -3421,22 +3421,23 @@ const getChartObject = async function (data) {
     return chartOptions;
 }
 
+// Chart creation using chartjs
 const createChart = async function (chartData, imgPath) {
 
     return new Promise(async function (resolve, reject) {
 
         try {
 
-            let chartImage;
             let formData = [];
 
             await Promise.all(chartData.map(async data => {
-                chartImage = "chartPngImage_" + uuidv4() + "_.png";
+                let chartImage = "chartPngImage_" + uuidv4() + "_.png";
+
                 let imgFilePath = imgPath + "/" + chartImage;
 
                 let imageBuffer = await chartJSNodeCanvas.renderToBuffer(data.options);
                 fs.writeFileSync(imgFilePath, imageBuffer);
-                
+
                 formData.push({
                     order: data.order,
                     value: fs.createReadStream(imgFilePath),
@@ -3444,7 +3445,7 @@ const createChart = async function (chartData, imgPath) {
                         filename: chartImage,
                     }
                 })
-                formData.push()
+
             }))
 
             return resolve(formData)

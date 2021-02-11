@@ -2930,3 +2930,7 @@ async function getEvidenceData(inputObj) {
   })
 }
 
+
+module.exports.instanceObservationData = instanceObservationData;
+module.exports.entityObservationData = entityObservationData;
+module.exports.observationReportData = observationReportData;
