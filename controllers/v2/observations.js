@@ -9,6 +9,7 @@ const assessmentService = require('../../helper/assessment_service');
 const storePdfReportsToS3 = (!process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF || process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF != "OFF") ? "ON" : "OFF"
 const helperFuncV2 = require('../../helper/chart_data_v2');
 const pdfHandlerV2 =  require('../../helper/common_handler_v2');
+const filesHelper = require('../../common/files_helper');
 
 
 //Controller for entity solution report (cluster/block/zone/district)

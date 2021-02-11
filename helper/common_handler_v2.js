@@ -1,8 +1,10 @@
 const AWS = require('aws-sdk')
 const fs = require('fs');
 const uuidv4 = require('uuid/v4');
-const ChartjsNode = require('chartjs-node');
-const chartNode = new ChartjsNode(600, 350);
+const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
+const width = 600; //px
+const height = 350; //px
+const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height });
 var rp = require('request-promise');
 var ejs = require('ejs');
 const path = require('path');
@@ -3431,27 +3433,24 @@ const createChart = async function (chartData, imgPath) {
             await Promise.all(chartData.map(async data => {
                 chartImage = "chartPngImage_" + uuidv4() + "_.png";
                 let imgFilePath = imgPath + "/" + chartImage;
-                await chartNode.drawChart(data.options)
-                    .then(async function () {
 
-                        await chartNode.writeImageToFile('image/png', imgFilePath);
-
-                        formData.push({
-                            order: data.order,
-                            value: fs.createReadStream(imgFilePath),
-                            options: {
-                                filename: chartImage,
-                            }
-                        })
-                    })
-
+                let imageBuffer = await chartJSNodeCanvas.renderToBuffer(data.options);
+                fs.writeFileSync(imgFilePath, imageBuffer);
+                
+                formData.push({
+                    order: data.order,
+                    value: fs.createReadStream(imgFilePath),
+                    options: {
+                        filename: chartImage,
+                    }
+                })
                 formData.push()
             }))
 
             return resolve(formData)
         }
         catch (err) {
-           return reject(err);
+            return reject(err);
         }
     })
 }
