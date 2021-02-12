@@ -1942,7 +1942,7 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData, storeR
             let chartObj = await ganttChartObject(responseData.projectDetails);
 
             //generate the chart using highchart server
-            let highChartData = await apiCallToHighChart(chartObj[0], imgPath, "gantt");
+            let highChartData = await createChart(chartObj[0], imgPath);
 
             FormData.push(...highChartData);
 
@@ -3143,7 +3143,7 @@ exports.unnatiEntityReportPdfGeneration = async function (inputData, storeReport
             let chartData = await getEntityReportChartObjects(inputData);
 
             //generate the chart using highchart server
-            let highChartData = await apiCallToHighChart(chartData, imgPath, "pie");
+            let highChartData = await createChart(chartData, imgPath);
 
             formData.push(...highChartData);
 
@@ -3314,36 +3314,61 @@ async function getTaskOverviewChart(tasks) {
     return new Promise(async function (resolve, reject) {
 
 
-        let total = tasks['Total'];
-        delete tasks['Total'];
+        // let total = tasks['Total'];
+        // delete tasks['Total'];
 
-        let seriesData = "[";
-        Object.keys(tasks).forEach(eachTask => {
-            let color = "";
-            if (eachTask == "Completed") {
-                color = "green";
-            } else if (eachTask == "Not Started") {
-                color = "red";
-            }
+        // let seriesData = "[";
+        // Object.keys(tasks).forEach(eachTask => {
+        //     let color = "";
+        //     if (eachTask == "Completed") {
+        //         color = "green";
+        //     } else if (eachTask == "Not Started") {
+        //         color = "red";
+        //     }
 
-            let percetage = ((tasks[eachTask] / total) * 100).toFixed(1);
-            if (color != "") {
-                seriesData = seriesData + "{ color:'" + color + "',name: '" + eachTask + "',y:" + percetage + "},";
-            } else {
-                seriesData = seriesData + "{ name: '" + eachTask + "',y: " + percetage + "},";
-            }
+        //     let percetage = ((tasks[eachTask] / total) * 100).toFixed(1);
+        //     if (color != "") {
+        //         seriesData = seriesData + "{ color:'" + color + "',name: '" + eachTask + "',y:" + percetage + "},";
+        //     } else {
+        //         seriesData = seriesData + "{ name: '" + eachTask + "',y: " + percetage + "},";
+        //     }
 
-        })
-        seriesData = seriesData + "]";
+        // })
+        // seriesData = seriesData + "]";
 
-        let chartOptions = "{ title: { text: '' },chart: { type: 'pie' }," +
-            "plotOptions: { 'pie': { showInLegend: true, dataLabels: { enabled: true, formatter: function () { return this.y ? this.point.y+'%' : null; }} }},"
-            + "credits: { enabled: false },"
-            + "series: [{ minPointSize: 50,innerSize: '80%',zMin: 0,name: 'tasks', data: " + seriesData + " }] }"
+        // let chartOptions = "{ title: { text: '' },chart: { type: 'pie' }," +
+        //     "plotOptions: { 'pie': { showInLegend: true, dataLabels: { enabled: true, formatter: function () { return this.y ? this.point.y+'%' : null; }} }},"
+        //     + "credits: { enabled: false },"
+        //     + "series: [{ minPointSize: 50,innerSize: '80%',zMin: 0,name: 'tasks', data: " + seriesData + " }] }"
+        let chartOptions = {
+            type: 'doughnut',
+            data: {
+              labels: [
+                'Overdue',
+                'Completed',
+                'In Progress',
+                'Not Started'
+              ],
+              datasets: [{
+                label: '',
+                data: [50, 60, 70, 40],
+                backgroundColor: [
+                  '#78bbbf',
+                  '#295e28',
+                  '#5bc75b',
+                  '#db0b0b',
+                
+                ],
+                hoverOffset: 4
+              }]
+            },
+            options : {        
+              cutoutPercentage: 80
+           }
+        };
 
         let chartObject = {
-            order: 2,
-            type: "svg",
+            order: 1,
             options: chartOptions
         };
 
@@ -3354,24 +3379,47 @@ async function getTaskOverviewChart(tasks) {
 async function getCategoryWiseChart(categories) {
     return new Promise(async function (resolve, reject) {
 
-        let total = categories['Total'];
-        delete categories['Total'];
+        // let total = categories['Total'];
+        // delete categories['Total'];
 
-        let seriesData = "[";
-        Object.keys(categories).forEach(eachCategory => {
-            let percetage = ((categories[eachCategory] / total) * 100).toFixed(1);
-            seriesData = seriesData + "{ name: '" + eachCategory + "',y: " + percetage + "},";
-        });
+        // let seriesData = "[";
+        // Object.keys(categories).forEach(eachCategory => {
+        //     let percetage = ((categories[eachCategory] / total) * 100).toFixed(1);
+        //     seriesData = seriesData + "{ name: '" + eachCategory + "',y: " + percetage + "},";
+        // });
 
-        seriesData = seriesData + "]";
-        let chartOptions = "{ title: { text: '' },chart: { type: 'pie' }," +
-            "plotOptions: { 'pie': { showInLegend: true, dataLabels: { enabled: true, formatter: function () { return this.y ? this.point.y+'%' : null; }} }},"
-            + "credits: { enabled: false },"
-            + "series: [{ minPointSize: 50,innerSize: '50%',zMin: 0,name: 'tasks', data: " + seriesData + " }] }"
+        // seriesData = seriesData + "]";
+        // let chartOptions = "{ title: { text: '' },chart: { type: 'pie' }," +
+        //     "plotOptions: { 'pie': { showInLegend: true, dataLabels: { enabled: true, formatter: function () { return this.y ? this.point.y+'%' : null; }} }},"
+        //     + "credits: { enabled: false },"
+        //     + "series: [{ minPointSize: 50,innerSize: '50%',zMin: 0,name: 'tasks', data: " + seriesData + " }] }"
+        let chartOptions = {
+            type: 'doughnut',
+            data: {
+              labels: [
+                'Students',
+                'Infrastructure',
+                'Community',
+                'Education Leader',
+                'Teachers'
+              ],
+              datasets: [{
+                label: '',
+                data: [50, 60, 70, 40,100],
+                backgroundColor: [
+                  '#78bbbf',
+                  '#000',
+                  '#5bc75b',
+                  '#d99152',
+                  '#7892bf'
+                ],
+                hoverOffset: 4
+              }]
+            }
+        };
 
         let chartObject = {
             order: 2,
-            type: "svg",
             options: chartOptions
         };
         resolve(chartObject);
