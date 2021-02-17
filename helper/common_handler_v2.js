@@ -1942,14 +1942,15 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData, storeR
             let chartObj = await ganttChartObject(responseData.projectDetails);
 
             //generate the chart using highchart server
-            let highChartData = await createChart(chartObj[0], imgPath);
+            let ganttChartData = await createChart(chartObj[0], imgPath);
 
-            FormData.push(...highChartData);
+            FormData.push(...ganttChartData);
 
             let obj = {
-                chartData: highChartData,
+                chartData: ganttChartData,
                 reportType: responseData.reportType,
-                projectData: chartObj[1]
+                projectData: chartObj[1],
+                chartLibrary : "chartjs"
             }
 
             ejs.renderFile(__dirname + '/../views/unnatiViewFullReport.ejs', {
@@ -2098,178 +2099,6 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData, storeR
 
     })
 }
-
-
-//Unnati monthly report pdf generation function
-exports.addTaskPdfGeneration = async function (responseData, storeReportsToS3 = false) {
-
-    return new Promise(async function (resolve, reject) {
-
-        var currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
-
-        var imgPath = __dirname + '/../' + currentTempFolder;
-
-        if (!fs.existsSync(imgPath)) {
-            fs.mkdirSync(imgPath);
-        }
-
-        let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
-
-        try {
-
-            var FormData = [];
-
-            let obj = {
-                response: responseData
-            }
-
-            ejs.renderFile(__dirname + '/../views/unnatiAddTaskReport.ejs', {
-                data: obj
-
-            })
-                .then(function (dataEjsRender) {
-
-                    var dir = imgPath;
-                    if (!fs.existsSync(dir)) {
-                        fs.mkdirSync(dir);
-                    }
-
-                    fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
-                        if (errWriteFile) {
-                            throw errWriteFile;
-                        } else {
-
-                            let optionsHtmlToPdf = gen.utils.getGotenbergConnection();
-                            optionsHtmlToPdf.formData = {
-                                files: [
-                                ]
-                            };
-                            FormData.push({
-                                value: fs.createReadStream(dir + '/index.html'),
-                                options: {
-                                    filename: 'index.html'
-                                }
-                            });
-                            optionsHtmlToPdf.formData.files = FormData;
-
-
-                            rp(optionsHtmlToPdf)
-                                .then(function (responseHtmlToPdf) {
-
-                                    var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
-                                    if (responseHtmlToPdf.statusCode == 200) {
-
-                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
-                                            if (err) {
-                                                return console.log(err);
-                                            }
-
-                                            else {
-                                                const s3 = new AWS.S3(gen.utils.getAWSConnection());
-
-                                                const uploadFile = () => {
-
-                                                    fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
-                                                        if (err) throw err;
-
-                                                        const params = {
-                                                            Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
-                                                            Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
-                                                            Body: Buffer.from(data, null, 2),
-                                                            Expires: 10
-                                                        };
-
-                                                        if (storeReportsToS3 == false) {
-                                                            var folderPath = Buffer.from(currentTempFolder).toString('base64')
-
-                                                            var response = {
-                                                                status: "success",
-                                                                message: 'report generated',
-                                                                pdfUrl: folderPath,
-
-                                                            };
-                                                            resolve(response);
-
-                                                        } else {
-
-
-                                                            s3.upload(params, function (s3Err, data) {
-                                                                if (s3Err) throw s3Err;
-
-                                                                // console.log("data", data);
-                                                                console.log(`File uploaded successfully at ${data.Location}`);
-
-                                                                s3SignedUrl(data.key).then(function (signedRes) {
-
-                                                                    try {
-
-
-
-                                                                        fs.readdir(imgPath, (err, files) => {
-                                                                            if (err) throw err;
-
-                                                                            // console.log("files",files.length);
-                                                                            var i = 0;
-                                                                            for (const file of files) {
-
-                                                                                fs.unlink(path.join(imgPath, file), err => {
-                                                                                    if (err) throw err;
-                                                                                });
-
-                                                                                if (i == files.length) {
-                                                                                    fs.unlink('../../' + currentTempFolder, err => {
-                                                                                        if (err) throw err;
-
-                                                                                    });
-                                                                                    console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
-                                                                                    // fs.unlink(path.join(imgPath, ""), err => {
-                                                                                    //     if (err) throw err;
-                                                                                    // });
-                                                                                }
-
-                                                                                i = i + 1;
-
-                                                                            }
-                                                                        });
-                                                                        rimraf(imgPath, function () { console.log("done"); });
-
-                                                                    } catch (ex) {
-                                                                        console.log("ex ", ex);
-                                                                    }
-
-                                                                    var response = {
-                                                                        status: "success",
-                                                                        message: 'report generated',
-                                                                        pdfUrl: signedRes,
-                                                                        downloadPath: data.key
-                                                                    };
-                                                                    resolve(response);
-                                                                })
-                                                            });
-
-                                                        }
-
-                                                    });
-                                                }
-                                                uploadFile();
-                                            }
-                                        });
-                                    }
-
-                                }).catch(err => {
-                                    resolve(err);
-                                })
-                        }
-                    })
-                })
-        }
-        catch (err) {
-            resolve(err);
-        }
-
-    })
-}
-
 
 
 //PDF generation for instance criteria report
@@ -2999,110 +2828,99 @@ exports.instanceScoreCriteriaPdfGeneration = async function (observationResp, st
 async function ganttChartObject(data) {
 
     return new Promise(async function (resolve, reject) {
-
-
-
-        let i = 1;
-        let arrayOfData = [];
-        let projectData = [];
-
-        await Promise.all(data.map(async element => {
-
-            let xAxisCategories = [];
-            let dataArray = [];
-
-
-            await Promise.all(element.tasks.map(ele => {
-
-                xAxisCategories.push(ele.title);
-                if (ele.status) {
-                    if (ele.status.toLowerCase() == "completed") {
-
-                        let obj = {
-                            y: 4,
-                            color: "#00c983"
-                        }
-
-                        dataArray.push(obj);
-                    } else if (ele.status.toLowerCase() == "not yet started" || ele.status.toLowerCase() == "not started yet" || ele.status.toLowerCase() == "notstarted") {
-                        let obj = {
-                            y: 4,
-                            color: "#F5F5F5"
-                        }
-                        dataArray.push(obj);
-                    } else if (ele.status.toLowerCase() == "in progress" || ele.status.toLowerCase() == "inprogress") {
-                        let obj = {
-                            y: 4,
-                            color: "#FF872F"
-                        }
-                        dataArray.push(obj);
-                    }
-                }
-            }))
-
-            let chartData = {
-                order: i,
-                type: "svg",
-                options: {
-
-                    chart: {
-                        type: 'bar'
+       
+        let data = [
+            { task: 'Task 1', startDate: '2018-04-08 00:00:00.000', endDate: '2018-06-08 00:00:00.000' },
+            { task: 'Task 2', startDate: '2018-05-08 00:00:00.000', endDate: '2018-07-19 00:00:00.000' },
+            { task: 'Task 3', startDate: '2018-07-08 00:00:00.000', endDate: '2020-09-08 00:00:00.000' },
+          ];
+        let plantingDays = '2018-04-01 00:00:00.000';
+        
+        let arrayOfData = [
+            {
+                order: 1,
+              options: {
+                type: 'horizontalBar',
+                data: {
+                    labels: ['Task 1', 'Task 2', 'Task 3'], 
+                    datasets: [
+                    {
+                    data: data.map((t) => {
+                      console.log(data)
+                      console.log(plantingDays)
+                      return dateDiffInDays(new Date(plantingDays), new Date(t.startDate));
+                    }),
+                    datalabels: {
+                      color: '#025ced',
+                      formatter: function (value, context) {
+                        return '';
+                      },
                     },
-                    title: {
-                        text: ''
+                    backgroundColor: 'rgba(63,103,126,0)',
+                    hoverBackgroundColor: 'rgba(50,90,100,0)',
+                  },
+                  {
+                    data: data.map((t) => {
+                      return dateDiffInDays(new Date(t.startDate), new Date(t.endDate));
+                    }),
+                    datalabels: {
+                      color: '#025ced',
+                      formatter: function (value, context) {
+                        return '';
+                      },
                     },
-
-                    xAxis: {
-                        categories: xAxisCategories,
-                        title: {
-                            text: null
-                        }
-                    },
-                    yAxis: {
-                        min: 1,
-                        max: 4,
-                        allowDecimals: false,
-                        opposite: true,
-                        title: {
-                            text: '',
-
+                  },
+                ]
+                },
+                options : {
+                 maintainAspectRatio: false,
+                 title: {
+                    display: true,
+                    text: 'Project title'
+                   },
+                legend: { display: false },
+                scales: {
+                xAxes: [
+                    {
+                      stacked: true,
+                      ticks: {
+                        callback: function (value, index, values) {
+                          const date = new Date(plantingDays);
+                          date.setDate(value);
+                          return getDate(date);
                         },
-                        labels: {
-                            format: 'Week {value}'
-                        }
+                      },
                     },
-
-                    plotOptions: {
-                        bar: {
-                            dataLabels: {
-                                enabled: false
-                            }
-                        }
+                ],
+                  yAxes: [
+                    {
+                      stacked: true,
                     },
-                    legend: {
-                        enabled: false
-                    },
-                    credits: {
-                        enabled: false
-                    },
-                    series: [{
-                        data: dataArray
-                    }]
+                  ],
+                }
                 }
             }
+            }]
 
-            arrayOfData.push(chartData);
-            element.order = i;
-            projectData.push(element);
-            i++;
-        }))
+            data[0].order = 1;
+            projectData = [];
+            projectData.push(data[0])
         resolve([arrayOfData, projectData]);
-
     })
-
 }
 
-
+function getDate(date) {
+    return (
+      date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).substr(-2) + '-' + ('0' + date.getDate()).substr(-2)
+    );
+  }
+  function dateDiffInDays(a, b) {
+    let MS_PER_DAY = 1000 * 60 * 60 * 24;
+    // Discard the time and time-zone information.
+    const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+    const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+    return Math.floor((utc2 - utc1) / MS_PER_DAY);
+  }
 
 //Unnati redesign entity report pdf generation function
 exports.unnatiEntityReportPdfGeneration = async function (inputData, storeReportsToS3 = false) {

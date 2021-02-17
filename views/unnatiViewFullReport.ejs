@@ -22,7 +22,8 @@
     <br>
     <% let startDate,endDate %>
     <% let months = ["January","February","March","April","May","June","July","August","September","October,","November","December"] %>
-
+    
+    <% if (!data.chartLibrary) { %>
     <% if (data.projectData[i].startDate) { %>
     <% let date = new Date(data.projectData[i].startDate) %>
     <% let day = date.getDate() %>
@@ -38,12 +39,12 @@
     <% let year = date.getFullYear() %>
     <% endDate = day + " " + month + " " + year %>
     <% } %>
-
+    <% } %>
 
     <% for (let j=0;j < data.chartData.length; j++){ %>
-
     <% if(data.chartData[j].order === data.projectData[i].order){ %>
     <div class="row">
+        <% if (!data.chartLibrary) { %>
         <div style="width:50%;float: left;">
             <p style="text-align: center;font-size: 10px !important;margin-left: 70px"><b
                     style="color: #696969 !important">Start Date <br> <%= startDate %> </b></p>
@@ -53,6 +54,7 @@
                     <%= endDate %></b>
             </p>
         </div>
+        <% } %>
         <img src="<%= data.chartData[j].options.filename %>" style="width:85%">
     </div>
     <% } %>
