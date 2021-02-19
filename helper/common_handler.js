@@ -3376,7 +3376,7 @@ async function getTaskOverviewChart(tasks) {
             + "series: [{ minPointSize: 50,innerSize: '80%',zMin: 0,name: 'tasks', data: " + seriesData + " }] }"
 
         let chartObject = {
-            order: 2,
+            order: 1,
             type: "svg",
             options: chartOptions
         };
