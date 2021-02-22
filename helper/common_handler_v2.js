@@ -3,8 +3,8 @@ const fs = require('fs');
 const uuidv4 = require('uuid/v4');
 const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
 const plugins = require("chartjs-plugin-datalabels");
-const width = 600; //px
-const height = 350; //px
+const width = 800; //px
+const height = 450; //px
 const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height });
 var rp = require('request-promise');
 var ejs = require('ejs');
@@ -2705,7 +2705,7 @@ async function getTaskOverviewChart(tasks) {
                         anchor: 'end',
                         align: 'end',
                         font: {
-                            size: 14,
+                            size: 16,
                         }
                     }
                 }
@@ -2741,7 +2741,7 @@ async function getCategoryWiseChart(categories) {
               labels: labels,
               datasets: [{
                 data: data,
-                backgroundColor: ['#FFA971', '#F6DB6C', '#98CBED', '#C9A0DA', '#5DABDC', '#88E5B0', '#d69cd4']
+                backgroundColor: ['rgb(255, 99, 132)','rgb(54, 162, 235)','rgb(255, 206, 86)','rgb(231, 233, 237)','rgb(75, 192, 192)','rgb(151, 187, 205)','rgb(220, 220, 220)','rgb(247, 70, 74)','rgb(70, 191, 189)','rgb(253, 180, 92)','rgb(148, 159, 177)','rgb(77, 83, 96)','rgb(95, 101, 217)','rgb(170, 95, 217)','rgb(140, 48, 57)','rgb(209, 6, 40)','rgb(68, 128, 51)','rgb(125, 128, 51)','rgb(128, 84, 51)','rgb(179, 139, 11)']
               }]
             },
             options: {
@@ -2753,7 +2753,7 @@ async function getCategoryWiseChart(categories) {
                         // anchor: 'end',
                         // align: 'end',
                         font: {
-                            size: 14,
+                            size: 16,
                         }
                     }
                 }
@@ -2806,6 +2806,31 @@ const getChartObject = async function (data) {
             display: true,
             text: chartData.question
         };
+        
+        if (chartObj.options.type == "horizontalBar")
+        if (!chartObj.options.options.scales["yAxes"] || !chartObj.options.options.scales["yAxes"][0]["ticks"] ) {
+            if (!chartObj.options.options.scales["yAxes"]) {
+               chartObj.options.options.scales["yAxes"] = [{}];
+            }
+            
+            chartObj.options.options.scales["yAxes"][0]["ticks"] = {
+                callback: function (value, index, values) {
+                  let strArr = value.split(' ');
+                  let tempString = '';
+                  let result = [];
+                  for (let x = 0; x < strArr.length; x++) {
+                    tempString += ' ' + strArr[x];
+                    if ((x % 5 === 0 && x !== 0) || x == strArr.length - 1) {
+                      tempString = tempString.slice(1);
+                      result.push(tempString);
+                      tempString = '';
+                    }
+                  }
+                  return result || value;
+                },
+                fontSize: 12,
+            }
+        }
 
         chartOptions.push(chartObj)
     }))
