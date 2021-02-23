@@ -68,9 +68,6 @@ exports.entitySolutionReport = async function (req, res) {
        "totalObservations": "",
        "observationName": "",
        "response" : [{
-          "criteriaName": "",
-          "criteriaId": "",
-          "questionArray": [{
               "order": "",
               "question": "",
               "chart": {
@@ -113,7 +110,6 @@ exports.entitySolutionReport = async function (req, res) {
                   }
                 }
               }
-            }]
         }]
 *     }
    * @apiUse errorBody
