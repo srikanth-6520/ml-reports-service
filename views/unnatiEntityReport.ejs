@@ -155,13 +155,21 @@
                 </div>
             </div>
         </div>
+        <% for(var i = 0; i< data.chartData.length; i++) { %>
+        <% if(data.chartData[i].order == 1) { %>
         <img src="<%= data.chartData[0].options.filename %>" style="width:75%">
+        <% } %>
+        <% } %>
         <div class="row">
             <div style="width:40%; float:left;">
                 <h4>Category Wise Reports</h4>
             </div>
         </div>
+        <% for(var j = 0; j< data.chartData.length; j++) { %>
+        <% if(data.chartData[j].order == 2) { %>
         <img src="<%= data.chartData[1].options.filename %>" style="width:75%">
+        <% } %>
+        <% } %>
     </div>
 
 </body>

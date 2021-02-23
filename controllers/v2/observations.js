@@ -688,36 +688,23 @@ return new Promise(async function (resolve, reject) {
        "totalScore": "",
        "scoreAchieved": "",
        "observationName": "",
+       "schoolName" : "",
+       "districtName" : "",
        "response": [{
           "order": "",
           "question": "",
           "chart": {
-            "type": "",
-            "credits": {
-                "enabled": false
-            },
-            "plotOptions": {
-                "pie": {
-                    "allowPointSelect": true,
-                    "cursor": "pointer",
-                    "dataLabels": {
-                        "enabled": false
-                    },
-                    "showInLegend": true,
-                    "borderColor": "#000000"
-                }
-            },
-            "data": [{
-                "data": [{
-                    "name": "",
-                    "y": "",
-                    "color": "#6c4fa1"
-                },{
-                    "name": "",
-                    "y": "",
-                    "color": "#fff"
+            "type": "pie",
+            "data": {
+                "labels": ["2 out of 4"],
+                "datasets": [{
+                    "backgroundColor": [
+                        "#6c4fa1",
+                    ],
+                    "data": [50, 50],
+                    "borderColor": 'black',
                 }]
-            }]
+            }
           },
           "evidences":[
               {"url":"", "extension":""}
@@ -1038,47 +1025,36 @@ async function entityObservationData(req, res) {
          "order": "",
          "question": "",
          "chart": {
-            "type": "bar",
-            "title": "",
-            "xAxis": {
-                "title": {
-                    "text": null
-                },
-                "labels": {},
-                "categories": []
-            },
-            "yAxis": {
-                "min": 0,
-                "max": "",
-                "title": {
-                    "text": "Score"
-                },
-                "labels": {
-                    "overflow": "justify"
-                },
-                "allowDecimals" : false
-            },
-            "plotOptions": {
-                "bar": {
-                    "dataLabels": {
-                        "enabled": true
-                    }
-                }
-            },
-            "legend": {
-               "enabled" : true
-            },
-            "credits": {
-                "enabled": false
-            },
-            "data": [{
-                "name": "observation1",
-                "data": []
-            }, {
-                "name": "observation2",
-                "data": []
-            }]
+             "type": 'horizontalBar',
+             "data": {
+                "labels": ["shiv sai mandir", "ssm public school"],
+                "datasets": [
+                    {
+                        "label": 'observation1',
+                        "data": [5, 10],
+                        "backgroundColor": '#de8657'
+                    },
+                    {
+                        "label": 'observation2',
+                        "data": [3,6],
+                        "backgroundColor": '#d9b730'
+                    }]
+              },
+             "options": {
+                "scales": {
+                    "xAxes": [{
+                        "ticks": {
+                            "min": 0,
+                            "max": 10
+                        },
 
+                        "scaleLabel": {
+                            "display": true,
+                            "labelString": 'Score'
+                        }
+                    }],
+                }
+            }
           }
         }]
 *     }
@@ -1492,46 +1468,36 @@ exports.observationScorePdfReport = async function (req, res) {
          "order": "",
          "question": "",
          "chart": {
-            "type": "bar",
-            "title": "",
-            "xAxis": {
-                "title": {
-                    "text": null
-                },
-                "labels": {},
-                "categories": []
-            },
-            "yAxis": {
-                "min": 0,
-                "max": "",
-                "title": {
-                    "text": "Score"
-                },
-                "labels": {
-                    "overflow": "justify"
-                },
-                "allowDecimals" : false
-            },
-            "plotOptions": {
-                "bar": {
-                    "dataLabels": {
-                        "enabled": true
-                    }
+            "type": 'horizontalBar',
+             "data": {
+                "labels": ["shiv sai mandir", "ssm public school"],
+                "datasets": [
+                    {
+                        "label": 'observation1',
+                        "data": [5, 10],
+                        "backgroundColor": '#de8657'
+                    },
+                    {
+                        "label": 'observation2',
+                        "data": [3,6],
+                        "backgroundColor": '#d9b730'
+                    }]
+              },
+             "options": {
+                "scales": {
+                    "xAxes": [{
+                        "ticks": {
+                            "min": 0,
+                            "max": 10
+                        },
+
+                        "scaleLabel": {
+                            "display": true,
+                            "labelString": 'Score'
+                        }
+                    }],
                 }
-            },
-            "legend": {
-               "enabled" : true
-            },
-            "credits": {
-                "enabled": false
-            },
-            "data": [{
-                "name": "observation1",
-                "data": []
-            }, {
-                "name": "observation2",
-                "data": []
-            }]
+            }
         },
         "evidences":[
             {"url":"", "extension":""}
@@ -1879,32 +1845,17 @@ return new Promise(async function (resolve, reject) {
               "order": "",
               "question": "",
               "chart": {
-                 "type": "",
-                 "credits": {
-                    "enabled": false
-                  },
-                 "plotOptions": {
-                    "pie": {
-                       "allowPointSelect": true,
-                       "cursor": "pointer",
-                       "dataLabels": {
-                          "enabled": false
-                        },
-                    "showInLegend": true,
-                    "borderColor": "#000000"
-                  }
-                },
-                "data": [{
-                  "data": [{
-                    "name": "",
-                    "y": "",
-                    "color": "#6c4fa1"
-                },{
-                    "name": "",
-                    "y": "",
-                    "color": "#fff"
+                "type": "pie",
+                "data": {
+                  "labels": ["2 out of 4"],
+                  "datasets": [{
+                    "backgroundColor": [
+                        "#6c4fa1",
+                    ],
+                    "data": [50, 50],
+                    "borderColor": 'black',
                   }]
-                }]
+                }
               },
               "evidences":[
                  {"url":"", "extension":""},
@@ -2261,43 +2212,44 @@ async function entityPdfReportByCriteria(req, res) {
               "order": "",
               "question": "",
               "chart": {
-                  "type": "scatter",
-                  "title": "",
-                  "xAxis": {
-                     "title": {
-                     "enabled": true,
-                     "text": "observations"
-                    },
-                     "labels": {},
-                     "categories": ["Obs1", "Obs2", "Obs3", "Obs4", "Obs5"],
-                     "startOnTick": false,
-                     "endOnTick": false,
-                     "showLastLabel": true
-                  },
-                  "yAxis": {
-                     "min": 0,
-                     "max": "",
-                     "allowDecimals": false,
-                     "title": {
-                        "text": "Score"
-                     }
-                  },
-                  "plotOptions":{
-                     "scatter":{
-                     "lineWidth": 1,
-                     "lineColor": "#F6B343"
-                     }
-                  },
-                  "credits": {
-                     "enabled": false
-                  },
-                  "legend": {
-                     "enabled": false
-                  },
-                  "data": [{
-                    "color": "#F6B343",
-                    "data": []
-                  }]
+                "type": 'bar',
+                "data": {
+                  "labels": [
+                    "Obs1",
+                    "Obs2",
+                    "Obs3",
+                    "Obs4",
+                    "Obs5"
+                  ],
+                  "datasets": [
+                    {
+
+                        "data": [1,2,3,4,5],
+                        "backgroundColor": "#F6B343"
+                    }]
+                },
+                "options": {
+                  "legend": false,
+                  "scales": {
+                    "xAxes": [{
+                        "scaleLabel": {
+                            "display": true,
+                            "labelString": 'observations'
+                        }
+                    }],
+                    "yAxes": [{
+                        "ticks": {
+                            "min": 0,
+                            "max": 5
+                        },
+
+                        "scaleLabel": {
+                            "display": true,
+                            "labelString": 'score'
+                        }
+                    }],
+                  }
+                }
               }
             }]
         }]
@@ -2612,46 +2564,36 @@ async function observationPdfReportByCriteria(req, res) {
             "order": "",
             "question": "",
             "chart": {
-               "type": "bar",
-               "title": "",
-               "xAxis": {
-                  "title": {
-                     "text": null
-                  },
-                  "labels": {},
-                  "categories": []
-                },
-                "yAxis": {
-                   "min": 0,
-                   "max": "",
-                   "title": {
-                     "text": "Score"
+              "type": 'horizontalBar',
+             "data": {
+                "labels": ["shiv sai mandir", "ssm public school"],
+                "datasets": [
+                    {
+                        "label": 'observation1',
+                        "data": [5, 10],
+                        "backgroundColor": '#de8657'
                     },
-                   "labels": {
-                      "overflow": "justify"
-                    },
-                   "allowDecimals" : false
-                },
-                "plotOptions": {
-                  "bar": {
-                    "dataLabels": {
-                        "enabled": true
-                    }
-                  } 
-                },
-                "legend": {
-                  "enabled" : true
-                },
-                "credits": {
-                  "enabled": false
-                },
-                "data": [{
-                  "name": "observation1",
-                  "data": []
-                }, {
-                  "name": "observation2",
-                  "data": []
-                }]
+                    {
+                        "label": 'observation2',
+                        "data": [3,6],
+                        "backgroundColor": '#d9b730'
+                    }]
+              },
+             "options": {
+                "scales": {
+                    "xAxes": [{
+                        "ticks": {
+                            "min": 0,
+                            "max": 10
+                        },
+
+                        "scaleLabel": {
+                            "display": true,
+                            "labelString": 'Score'
+                        }
+                    }],
+                }
+            }
             },
             "evidences":[
               {"url":"", "extension":""}
