@@ -12,7 +12,8 @@ const kendraService = require('../../helper/kendra_service');
 const assessmentService = require('../../helper/assessment_service');
 const storePdfReportsToS3 = (!process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF || process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF != "OFF") ? "ON" : "OFF"
 const filesHelper = require('../../common/files_helper');
-
+const observationsHelper = require('../../helper/observations');
+const pdfHandlerV2 = require('../../helper/common_handler_v2');
 
 /**
    * @api {post} /dhiti/api/v1/observations/instance 
@@ -341,10 +342,10 @@ exports.instanceObservationScoreReport = async function (req, res) {
 //Instance observation score pdf generation
 async function instanceObservationScorePdfFunc(req, res) {
   
-    return new Promise(async function (resolve, reject) {
+  return new Promise(async function (resolve, reject) {
    
-      let instaRes = await instanceScoreReport(req, res);
-  
+      let instaRes = await observationsHelper.instanceScoreReport(req, res);
+     
       if (instaRes.result == true) {
   
         let obj = {
@@ -352,7 +353,7 @@ async function instanceObservationScorePdfFunc(req, res) {
           scoreAchieved: instaRes.scoreAchieved
         }
        
-        let resData = await pdfHandler.instanceObservationScorePdfGeneration(instaRes, storeReportsToS3 = false, obj);
+        let resData = await pdfHandlerV2.instanceObservationScorePdfGeneration(instaRes, storeReportsToS3 = false, obj);
          
         resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
         resolve(resData);
@@ -361,8 +362,8 @@ async function instanceObservationScorePdfFunc(req, res) {
       else {
         resolve(instaRes);
       }
-    });
-  };
+  });
+};
   
 
 /**
@@ -1127,7 +1128,7 @@ async function entitySolutionScorePdfFunc(req, res) {
   
     return new Promise(async function (resolve, reject) {
   
-      var entityRes = await entitySolutionScoreReportGeneration(req, res);
+      var entityRes = await observationsHelper.entitySolutionScoreReportGeneration(req, res);
   
       if (entityRes.result == true) {
   
@@ -1135,7 +1136,7 @@ async function entitySolutionScorePdfFunc(req, res) {
           solutionName: entityRes.solutionName
         }
 
-        let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, storeReportsToS3 = false, obj);
+        let resData = await pdfHandlerV2.instanceObservationScorePdfGeneration(entityRes, storeReportsToS3 = false, obj);
   
         resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
   
@@ -1598,7 +1599,7 @@ async function observationScorePdfFunc(req, res) {
 
     return new Promise (async function (resolve,reject){
   
-    let observationRes = await observationScoreReport(req, res);
+    let observationRes = await observationsHelper.observationScoreReport(req, res);
   
     if (observationRes.result == true) {
 
@@ -1608,7 +1609,7 @@ async function observationScorePdfFunc(req, res) {
         entityType: observationRes.entityType
       }
 
-      let resData = await pdfHandler.instanceObservationScorePdfGeneration(observationRes, storeReportsToS3 = false, obj);
+      let resData = await pdfHandlerV2.instanceObservationScorePdfGeneration(observationRes, storeReportsToS3 = false, obj);
   
       resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
   
@@ -1966,7 +1967,7 @@ exports.observationScorePdfReport = async function (req, res) {
         else {
             res.send({
                 status: "failure",
-                message: "Invalid input"
+                message: "Invalid Input"
             });
         }
 
@@ -2362,11 +2363,11 @@ async function instancePdfReportByCriteria(req, res) {
 
 return new Promise(async function (resolve, reject) {
 
-  let instaRes = await instanceCriteriaReportData(req, res);
+  let instaRes = await observationsHelper.instanceCriteriaReportData(req, res);
 
   if (("observationName" in instaRes) == true) {
 
-    let resData = await pdfHandler.instanceCriteriaReportPdfGeneration(instaRes, storeReportsToS3 = false);
+    let resData = await pdfHandlerV2.instanceCriteriaReportPdfGeneration(instaRes, storeReportsToS3 = false);
     
     resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
     resolve(resData);
@@ -2555,7 +2556,7 @@ async function instanceScorePdfReprtByCriteria(req, res) {
 
 return new Promise(async function (resolve, reject) {
 
-  let instaRes = await instanceScoreCriteriaReportData(req, res);
+  let instaRes = await observationsHelper.instanceScoreCriteriaReportData(req, res);
 
   if (instaRes.result == true) {
 
@@ -2564,7 +2565,7 @@ return new Promise(async function (resolve, reject) {
       scoreAchieved: instaRes.scoreAchieved
     }
 
-    let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(instaRes, storeReportsToS3 = false, obj);
+    let resData = await pdfHandlerV2.instanceScoreCriteriaPdfGeneration(instaRes, storeReportsToS3 = false, obj);
     
        resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
        resolve(resData);
@@ -2746,11 +2747,11 @@ async function entityPdfReportByCriteria(req, res) {
   
   return new Promise(async function (resolve, reject) {
 
-    let entityRes = await entityCriteriaReportData(req, res);
+    let entityRes = await observationsHelper.entityCriteriaReportData(req, res);
   
     if (("observationName" in entityRes) == true) {
      
-      let resData = await pdfHandler.entityCriteriaPdfReportGeneration(entityRes, storeReportsToS3 = false);
+      let resData = await pdfHandlerV2.entityCriteriaPdfReportGeneration(entityRes, storeReportsToS3 = false);
 
       resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
@@ -2944,7 +2945,7 @@ async function entityScorePdfReportByCriteria(req, res) {
   
   return new Promise(async function (resolve, reject) {
 
-    var entityRes = await entityScoreCriteriaReportData(req, res);
+    var entityRes = await observationsHelper.entityScoreCriteriaReportData(req, res);
 
     if (entityRes.result == true) {
 
@@ -2953,7 +2954,7 @@ async function entityScorePdfReportByCriteria(req, res) {
         totalObservations: entityRes.totalObservations
       }
 
-      let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(entityRes, storeReportsToS3 = false, obj);
+      let resData = await pdfHandlerV2.instanceScoreCriteriaPdfGeneration(entityRes, storeReportsToS3 = false, obj);
 
       resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
@@ -3102,11 +3103,11 @@ async function observationPdfReportByCriteria(req, res) {
   
   return new Promise(async function (resolve, reject) {
 
-    let observeRes = await observationCriteriaReportData(req, res);
+    let observeRes = await observationsHelper.observationCriteriaReportData(req, res);
   
     if (("observationName" in observeRes) == true) {
      
-      let resData = await pdfHandler.entityCriteriaPdfReportGeneration(observeRes, storeReportsToS3 = false);
+      let resData = await pdfHandlerV2.entityCriteriaPdfReportGeneration(observeRes, storeReportsToS3 = false);
 
       resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
@@ -3309,7 +3310,7 @@ async function observationScorePdfReportByCriteria(req, res) {
 
   return new Promise (async function (resolve,reject){
 
-  let observationRes = await observationScoreCriteriaReportData(req, res);
+  let observationRes = await observationsHelper.observationScoreCriteriaReportData(req, res);
 
   if (observationRes.result == true) {
 
@@ -3319,7 +3320,7 @@ async function observationScorePdfReportByCriteria(req, res) {
         entityType: observationRes.entityType
     }
 
-    let resData = await pdfHandler.instanceScoreCriteriaPdfGeneration(observationRes, storeReportsToS3 = false, obj);
+    let resData = await pdfHandlerV2.instanceScoreCriteriaPdfGeneration(observationRes, storeReportsToS3 = false, obj);
 
     resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
@@ -3590,6 +3591,3 @@ async function getEvidenceData(inputObj) {
 }
 
 
-module.exports.instanceObservationData = instanceObservationData;
-module.exports.entityObservationData = entityObservationData;
-module.exports.observationReportData = observationReportData;
