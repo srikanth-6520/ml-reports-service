@@ -2,8 +2,9 @@ const AWS = require('aws-sdk')
 const fs = require('fs');
 const uuidv4 = require('uuid/v4');
 const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
-const width = 600; //px
-const height = 350; //px
+const plugins = require("chartjs-plugin-datalabels");
+const width = 800; //px
+const height = 450; //px
 const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height });
 var rp = require('request-promise');
 var ejs = require('ejs');
@@ -1416,509 +1417,6 @@ async function createScoreChartObject(ele) {
     })
 }
 
-//Unnati pdf generate function
-exports.unnatiPdfGeneration = async function (responseData, storeReportsToS3 = false) {
-
-    return new Promise(async function (resolve, reject) {
-
-        var currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
-
-        var imgPath = __dirname + '/../' + currentTempFolder;
-
-        if (!fs.existsSync(imgPath)) {
-            fs.mkdirSync(imgPath);
-        }
-
-        let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
-
-        //copy images from public folder
-        let src = __dirname + '/../public/images/Calendar-Time.svg';
-        fs.copyFileSync(src, imgPath + '/Calendar-Time.svg');
-
-        let fileData = [{
-            value: fs.createReadStream(imgPath + '/Calendar-Time.svg'),
-            options: {
-                filename: 'Calendar-Time.svg',
-
-            }
-        }]
-
-
-        let subTasksCount = 0;
-
-        responseData.tasks.forEach(element => {
-            subTasksCount = subTasksCount + element.subTasks.length;
-        });
-
-        let startDate, endDate;
-        let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-
-        if (responseData.startDate) {
-            let date = new Date(responseData.startDate);
-            let day = date.getDate();
-            let month = months[date.getMonth()];
-            let year = date.getFullYear();
-            startDate = day + " " + month + " " + year;
-        }
-
-        if (responseData.endDate) {
-            let date = new Date(responseData.endDate);
-            let day = date.getDate();
-            let month = months[date.getMonth()];
-            let year = date.getFullYear();
-            endDate = day + " " + month + " " + year;
-        }
-
-        try {
-
-            var FormData = [];
-
-            FormData.push(...fileData);
-
-            let obj = {
-                subTasks: subTasksCount,
-                duration: responseData.duration,
-                goal: responseData.goal,
-                tasksArray: responseData.tasks,
-                projectName: responseData.title,
-                category: responseData.category,
-                status: responseData.status,
-                startDate: startDate,
-                endDate: endDate
-            }
-
-            ejs.renderFile(__dirname + '/../views/unnatiTemplate.ejs', {
-                data: obj
-            })
-                .then(function (dataEjsRender) {
-
-                    var dir = imgPath;
-                    if (!fs.existsSync(dir)) {
-                        fs.mkdirSync(dir);
-                    }
-
-                    fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
-                        if (errWriteFile) {
-                            throw errWriteFile;
-                        } else {
-
-                            let optionsHtmlToPdf = gen.utils.getGotenbergConnection();
-                            optionsHtmlToPdf.formData = {
-                                files: [
-                                ]
-                            };
-                            FormData.push({
-                                value: fs.createReadStream(dir + '/index.html'),
-                                options: {
-                                    filename: 'index.html'
-                                }
-                            });
-                            optionsHtmlToPdf.formData.files = FormData;
-
-
-                            rp(optionsHtmlToPdf)
-                                .then(function (responseHtmlToPdf) {
-
-                                    var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
-                                    if (responseHtmlToPdf.statusCode == 200) {
-
-                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
-                                            if (err) {
-                                                return console.log(err);
-                                            }
-
-                                            else {
-                                                const s3 = new AWS.S3(gen.utils.getAWSConnection());
-
-                                                const uploadFile = () => {
-
-                                                    fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
-                                                        if (err) throw err;
-
-                                                        const params = {
-                                                            Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
-                                                            Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
-                                                            Body: Buffer.from(data, null, 2),
-                                                            Expires: 10
-                                                        };
-
-                                                        if (storeReportsToS3 == false) {
-                                                            var folderPath = Buffer.from(currentTempFolder).toString('base64')
-
-                                                            var response = {
-                                                                status: "success",
-                                                                message: 'report generated',
-                                                                pdfUrl: folderPath,
-
-                                                            };
-                                                            resolve(response);
-
-                                                        } else {
-
-
-                                                            s3.upload(params, function (s3Err, data) {
-                                                                if (s3Err) throw s3Err;
-
-                                                                // console.log("data", data);
-                                                                console.log(`File uploaded successfully at ${data.Location}`);
-
-                                                                s3SignedUrl(data.key).then(function (signedRes) {
-
-                                                                    try {
-
-
-
-                                                                        fs.readdir(imgPath, (err, files) => {
-                                                                            if (err) throw err;
-
-                                                                            // console.log("files",files.length);
-                                                                            var i = 0;
-                                                                            for (const file of files) {
-
-                                                                                fs.unlink(path.join(imgPath, file), err => {
-                                                                                    if (err) throw err;
-                                                                                });
-
-                                                                                if (i == files.length) {
-                                                                                    fs.unlink('../../' + currentTempFolder, err => {
-                                                                                        if (err) throw err;
-
-                                                                                    });
-                                                                                    console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
-                                                                                    // fs.unlink(path.join(imgPath, ""), err => {
-                                                                                    //     if (err) throw err;
-                                                                                    // });
-                                                                                }
-
-                                                                                i = i + 1;
-
-                                                                            }
-                                                                        });
-                                                                        rimraf(imgPath, function () { console.log("done"); });
-
-                                                                    } catch (ex) {
-                                                                        console.log("ex ", ex);
-                                                                    }
-
-                                                                    var response = {
-                                                                        status: "success",
-                                                                        message: 'report generated',
-                                                                        pdfUrl: signedRes,
-                                                                        downloadPath: data.key
-                                                                    };
-                                                                    resolve(response);
-                                                                })
-                                                            });
-
-                                                        }
-
-                                                    });
-                                                }
-                                                uploadFile();
-                                            }
-                                        });
-                                    }
-
-                                }).catch(err => {
-                                    resolve(err);
-                                })
-                        }
-                    })
-                })
-        }
-        catch (err) {
-            resolve(err);
-        }
-
-    })
-}
-
-
-
-//Unnati monthly report pdf generation function
-exports.unnatiMonthlyReportPdfGeneration = async function (responseData, storeReportsToS3 = false) {
-
-    return new Promise(async function (resolve, reject) {
-
-        var currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
-
-        var imgPath = __dirname + '/../' + currentTempFolder;
-
-        if (!fs.existsSync(imgPath)) {
-            fs.mkdirSync(imgPath);
-        }
-
-        let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
-
-        try {
-            var FormData = [];
-
-            //get the chart object
-            let chartObj = await getTaskStatusPieChart(responseData.projectDetails);
-
-            //generate the chart using highchart server
-            let highChartData = await apiCallToHighChart(chartObj[0], imgPath, "pie");
-
-            FormData.push(...highChartData);
-
-            let projectData = chartObj[1];
-
-            let obj = {
-                schoolName: responseData.schoolName,
-                reportType: responseData.reportType,
-                projectArray: projectData,
-                chartData: highChartData
-            }
-
-            ejs.renderFile(__dirname + '/../views/unnatiMonthlyReport.ejs', {
-                data: obj
-
-            })
-                .then(function (dataEjsRender) {
-
-                    var dir = imgPath;
-                    if (!fs.existsSync(dir)) {
-                        fs.mkdirSync(dir);
-                    }
-
-                    fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
-                        if (errWriteFile) {
-                            throw errWriteFile;
-                        } else {
-
-                            let optionsHtmlToPdf = gen.utils.getGotenbergConnection();
-                            optionsHtmlToPdf.formData = {
-                                files: [
-                                ]
-                            };
-                            FormData.push({
-                                value: fs.createReadStream(dir + '/index.html'),
-                                options: {
-                                    filename: 'index.html'
-                                }
-                            });
-                            optionsHtmlToPdf.formData.files = FormData;
-
-
-                            rp(optionsHtmlToPdf)
-                                .then(function (responseHtmlToPdf) {
-
-                                    var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
-                                    if (responseHtmlToPdf.statusCode == 200) {
-
-                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
-                                            if (err) {
-                                                return console.log(err);
-                                            }
-
-                                            else {
-                                                const s3 = new AWS.S3(gen.utils.getAWSConnection());
-
-                                                const uploadFile = () => {
-
-                                                    fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
-                                                        if (err) throw err;
-
-                                                        const params = {
-                                                            Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
-                                                            Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
-                                                            Body: Buffer.from(data, null, 2),
-                                                            Expires: 10
-                                                        };
-
-                                                        if (storeReportsToS3 == false) {
-                                                            var folderPath = Buffer.from(currentTempFolder).toString('base64')
-
-                                                            var response = {
-                                                                status: "success",
-                                                                message: 'report generated',
-                                                                pdfUrl: folderPath,
-
-                                                            };
-                                                            resolve(response);
-
-                                                        } else {
-
-
-                                                            s3.upload(params, function (s3Err, data) {
-                                                                if (s3Err) throw s3Err;
-
-                                                                console.log(`File uploaded successfully at ${data.Location}`);
-
-                                                                s3SignedUrl(data.key).then(function (signedRes) {
-
-                                                                    try {
-
-
-
-                                                                        fs.readdir(imgPath, (err, files) => {
-                                                                            if (err) throw err;
-
-                                                                            // console.log("files",files.length);
-                                                                            var i = 0;
-                                                                            for (const file of files) {
-
-                                                                                fs.unlink(path.join(imgPath, file), err => {
-                                                                                    if (err) throw err;
-                                                                                });
-
-                                                                                if (i == files.length) {
-                                                                                    fs.unlink('../../' + currentTempFolder, err => {
-                                                                                        if (err) throw err;
-
-                                                                                    });
-                                                                                    console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
-                                                                                    // fs.unlink(path.join(imgPath, ""), err => {
-                                                                                    //     if (err) throw err;
-                                                                                    // });
-                                                                                }
-
-                                                                                i = i + 1;
-
-                                                                            }
-                                                                        });
-                                                                        rimraf(imgPath, function () { console.log("done"); });
-
-                                                                    } catch (ex) {
-                                                                        console.log("ex ", ex);
-                                                                    }
-
-                                                                    var response = {
-                                                                        status: "success",
-                                                                        message: 'report generated',
-                                                                        pdfUrl: signedRes,
-                                                                        downloadPath: data.key
-                                                                    };
-                                                                    resolve(response);
-                                                                })
-                                                            });
-
-                                                        }
-
-                                                    });
-                                                }
-                                                uploadFile();
-                                            }
-                                        });
-                                    }
-
-                                }).catch(err => {
-                                    resolve(err);
-                                })
-                        }
-                    })
-                })
-        }
-        catch (err) {
-            resolve(err);
-        }
-
-    })
-}
-
-async function getTaskStatusPieChart(data) {
-
-    return new Promise(async function (resolve, reject) {
-
-        let seriesData = [];
-        var i = 0;
-        let projectData = [];
-
-        await Promise.all(data.map(async element => {
-
-            let complete = 0, inProgress = 0, notStarted = 0;
-
-            await Promise.all(element.tasks.map(async ele => {
-
-                if (ele.status) {
-                    if (ele.status.toLowerCase() == "completed") {
-                        complete = complete + 1;
-                    }
-                    else if (ele.status.toLowerCase() == "in progress") {
-                        inProgress = inProgress + 1;
-                    }
-                    else if (ele.status.toLowerCase() == "not started yet" || ele.status.toLowerCase() == "not yet started") {
-                        notStarted = notStarted + 1;
-                    }
-
-
-                }
-            }))
-
-            let dataArray = [];
-
-            if (complete >= 1) {
-                let obj = {
-                    name: 'Complete',
-                    y: complete,
-                    color: "#6abf34"
-                }
-
-                dataArray.push(obj);
-            }
-            if (notStarted >= 1) {
-                let obj = {
-                    name: 'Not Started',
-                    y: notStarted,
-                    color: "#81d6f0"
-                }
-
-                dataArray.push(obj);
-            }
-            if (inProgress >= 1) {
-                let obj = {
-                    name: 'In Progress',
-                    y: inProgress,
-                    color: "#91d050"
-                }
-
-                dataArray.push(obj);
-            }
-
-            let chartData = {
-                type: "svg",
-                order: i,
-                options: {
-                    chart: {
-                        type: 'pie'
-                    },
-                    title: {
-                        text: 'TASK STATUS %'
-                    },
-                    plotOptions: {
-                        pie: {
-                            dataLabels: {
-                                enabled: true,
-                                format: "{point.y}"
-                            },
-                            showInLegend: true
-                        }
-                    },
-                    credits: {
-                        enabled: false
-                    },
-                    series: [{
-                        data: dataArray
-                    }]
-                }
-            }
-
-            seriesData.push(chartData);
-
-            element.order = i;
-            projectData.push(element);
-
-            i++;
-
-        }))
-
-        resolve([seriesData, projectData]);
-
-
-    })
-}
-
-
 //Unnati monthly report pdf generation function
 exports.unnatiViewFullReportPdfGeneration = async function (responseData, storeReportsToS3 = false) {
 
@@ -1942,14 +1440,15 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData, storeR
             let chartObj = await ganttChartObject(responseData.projectDetails);
 
             //generate the chart using highchart server
-            let highChartData = await createChart(chartObj[0], imgPath);
+            let ganttChartData = await createChart(chartObj[0], imgPath);
 
-            FormData.push(...highChartData);
+            FormData.push(...ganttChartData);
 
             let obj = {
-                chartData: highChartData,
+                chartData: ganttChartData,
                 reportType: responseData.reportType,
-                projectData: chartObj[1]
+                projectData: chartObj[1],
+                chartLibrary : "chartjs"
             }
 
             ejs.renderFile(__dirname + '/../views/unnatiViewFullReport.ejs', {
@@ -2098,178 +1597,6 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData, storeR
 
     })
 }
-
-
-//Unnati monthly report pdf generation function
-exports.addTaskPdfGeneration = async function (responseData, storeReportsToS3 = false) {
-
-    return new Promise(async function (resolve, reject) {
-
-        var currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
-
-        var imgPath = __dirname + '/../' + currentTempFolder;
-
-        if (!fs.existsSync(imgPath)) {
-            fs.mkdirSync(imgPath);
-        }
-
-        let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
-
-        try {
-
-            var FormData = [];
-
-            let obj = {
-                response: responseData
-            }
-
-            ejs.renderFile(__dirname + '/../views/unnatiAddTaskReport.ejs', {
-                data: obj
-
-            })
-                .then(function (dataEjsRender) {
-
-                    var dir = imgPath;
-                    if (!fs.existsSync(dir)) {
-                        fs.mkdirSync(dir);
-                    }
-
-                    fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
-                        if (errWriteFile) {
-                            throw errWriteFile;
-                        } else {
-
-                            let optionsHtmlToPdf = gen.utils.getGotenbergConnection();
-                            optionsHtmlToPdf.formData = {
-                                files: [
-                                ]
-                            };
-                            FormData.push({
-                                value: fs.createReadStream(dir + '/index.html'),
-                                options: {
-                                    filename: 'index.html'
-                                }
-                            });
-                            optionsHtmlToPdf.formData.files = FormData;
-
-
-                            rp(optionsHtmlToPdf)
-                                .then(function (responseHtmlToPdf) {
-
-                                    var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
-                                    if (responseHtmlToPdf.statusCode == 200) {
-
-                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
-                                            if (err) {
-                                                return console.log(err);
-                                            }
-
-                                            else {
-                                                const s3 = new AWS.S3(gen.utils.getAWSConnection());
-
-                                                const uploadFile = () => {
-
-                                                    fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
-                                                        if (err) throw err;
-
-                                                        const params = {
-                                                            Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
-                                                            Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
-                                                            Body: Buffer.from(data, null, 2),
-                                                            Expires: 10
-                                                        };
-
-                                                        if (storeReportsToS3 == false) {
-                                                            var folderPath = Buffer.from(currentTempFolder).toString('base64')
-
-                                                            var response = {
-                                                                status: "success",
-                                                                message: 'report generated',
-                                                                pdfUrl: folderPath,
-
-                                                            };
-                                                            resolve(response);
-
-                                                        } else {
-
-
-                                                            s3.upload(params, function (s3Err, data) {
-                                                                if (s3Err) throw s3Err;
-
-                                                                // console.log("data", data);
-                                                                console.log(`File uploaded successfully at ${data.Location}`);
-
-                                                                s3SignedUrl(data.key).then(function (signedRes) {
-
-                                                                    try {
-
-
-
-                                                                        fs.readdir(imgPath, (err, files) => {
-                                                                            if (err) throw err;
-
-                                                                            // console.log("files",files.length);
-                                                                            var i = 0;
-                                                                            for (const file of files) {
-
-                                                                                fs.unlink(path.join(imgPath, file), err => {
-                                                                                    if (err) throw err;
-                                                                                });
-
-                                                                                if (i == files.length) {
-                                                                                    fs.unlink('../../' + currentTempFolder, err => {
-                                                                                        if (err) throw err;
-
-                                                                                    });
-                                                                                    console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
-                                                                                    // fs.unlink(path.join(imgPath, ""), err => {
-                                                                                    //     if (err) throw err;
-                                                                                    // });
-                                                                                }
-
-                                                                                i = i + 1;
-
-                                                                            }
-                                                                        });
-                                                                        rimraf(imgPath, function () { console.log("done"); });
-
-                                                                    } catch (ex) {
-                                                                        console.log("ex ", ex);
-                                                                    }
-
-                                                                    var response = {
-                                                                        status: "success",
-                                                                        message: 'report generated',
-                                                                        pdfUrl: signedRes,
-                                                                        downloadPath: data.key
-                                                                    };
-                                                                    resolve(response);
-                                                                })
-                                                            });
-
-                                                        }
-
-                                                    });
-                                                }
-                                                uploadFile();
-                                            }
-                                        });
-                                    }
-
-                                }).catch(err => {
-                                    resolve(err);
-                                })
-                        }
-                    })
-                })
-        }
-        catch (err) {
-            resolve(err);
-        }
-
-    })
-}
-
 
 
 //PDF generation for instance criteria report
@@ -2996,116 +2323,132 @@ exports.instanceScoreCriteriaPdfGeneration = async function (observationResp, st
 
 
 // gantt chart for unnati pdf report
-async function ganttChartObject(data) {
+async function ganttChartObject(projects) {
 
     return new Promise(async function (resolve, reject) {
-
-
-
-        let i = 1;
-        let arrayOfData = [];
+        
+        let arrayOfChartData = [];
         let projectData = [];
+        let i = 1;
 
-        await Promise.all(data.map(async element => {
+        await Promise.all(projects.map(async eachProject => {
+             
+            let data = [];
+            let labels = [];
+            let leastStartDate = "";
 
-            let xAxisCategories = [];
-            let dataArray = [];
-
-
-            await Promise.all(element.tasks.map(ele => {
-
-                xAxisCategories.push(ele.title);
-                if (ele.status) {
-                    if (ele.status.toLowerCase() == "completed") {
-
-                        let obj = {
-                            y: 4,
-                            color: "#00c983"
-                        }
-
-                        dataArray.push(obj);
-                    } else if (ele.status.toLowerCase() == "not yet started" || ele.status.toLowerCase() == "not started yet" || ele.status.toLowerCase() == "notstarted") {
-                        let obj = {
-                            y: 4,
-                            color: "#F5F5F5"
-                        }
-                        dataArray.push(obj);
-                    } else if (ele.status.toLowerCase() == "in progress" || ele.status.toLowerCase() == "inprogress") {
-                        let obj = {
-                            y: 4,
-                            color: "#FF872F"
-                        }
-                        dataArray.push(obj);
-                    }
+            await Promise.all(eachProject.tasks.map(eachTask => {
+                if(eachTask.startDate) {
+                  leastStartDate = eachTask.startDate;
                 }
+                labels.push(eachTask.title);
+                data.push({
+                    task: eachTask.title,
+                    startDate:eachTask.startDate,
+                    endDate: eachTask.endDate
+                })
             }))
 
-            let chartData = {
-                order: i,
-                type: "svg",
-                options: {
-
-                    chart: {
-                        type: 'bar'
-                    },
-                    title: {
-                        text: ''
-                    },
-
-                    xAxis: {
-                        categories: xAxisCategories,
-                        title: {
-                            text: null
-                        }
-                    },
-                    yAxis: {
-                        min: 1,
-                        max: 4,
-                        allowDecimals: false,
-                        opposite: true,
-                        title: {
-                            text: '',
-
-                        },
-                        labels: {
-                            format: 'Week {value}'
-                        }
-                    },
-
-                    plotOptions: {
-                        bar: {
-                            dataLabels: {
-                                enabled: false
-                            }
-                        }
-                    },
-                    legend: {
-                        enabled: false
-                    },
-                    credits: {
-                        enabled: false
-                    },
-                    series: [{
-                        data: dataArray
-                    }]
-                }
+            if (data.length > 0) {
+                data.forEach(v => {
+                leastStartDate = new Date(v.startDate) < new Date(leastStartDate) ? v.startDate : leastStartDate;
+                })
             }
 
-            arrayOfData.push(chartData);
-            element.order = i;
-            projectData.push(element);
+            let chartOptions = {
+                order: 1,
+                options: {
+                    type: 'horizontalBar',
+                    data: {
+                        labels: labels, 
+                        datasets: [
+                        {
+                        data: data.map((t) => {
+                          if (leastStartDate && t.startDate) {
+                          return dateDiffInDays(new Date(leastStartDate), new Date(t.startDate));
+                          }
+                        }),
+                        datalabels: {
+                          color: '#025ced',
+                        //   formatter: function (value, context) {
+                        //     return '';
+                        //   },
+                        },
+                        backgroundColor: 'rgba(63,103,126,0)',
+                        hoverBackgroundColor: 'rgba(50,90,100,0)',
+                      },
+                      {
+                        data: data.map((t) => {
+                            if (t.startDate && t.endDate) {
+                              return dateDiffInDays(new Date(t.startDate), new Date(t.endDate));
+                            }
+                        }),
+                        datalabels: {
+                          color: '#025ced',
+                        //   formatter: function (value, context) {
+                        //     return '';
+                        //   },
+                        },
+                      },
+                    ]
+                    },
+                    options : {
+                     maintainAspectRatio: false,
+                     title: {
+                        display: true,
+                        text: eachProject.title
+                       },
+                    legend: { display: false },
+                    scales: {
+                    xAxes: [
+                        {
+                          stacked: true,
+                          ticks: {
+                            callback: function (value, index, values) {
+                              if (leastStartDate) {
+                              const date = new Date(leastStartDate);
+                              date.setDate(value);
+                              return getDate(date);
+                              }
+                            },
+                          },
+                        },
+                    ],
+                      yAxes: [
+                        {
+                          stacked: true,
+                        },
+                      ],
+                    }
+                    }
+                }
+            }
+            
+            arrayOfChartData.push(chartOptions);
+            eachProject.order = i;
+            projectData.push(eachProject);
             i++;
+        
         }))
-        resolve([arrayOfData, projectData]);
 
+        resolve([arrayOfChartData, projectData]);
     })
-
 }
 
+function getDate(date) {
+    return (
+      date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).substr(-2) + '-' + ('0' + date.getDate()).substr(-2)
+    );
+}
 
+function dateDiffInDays(a, b) {
+    const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+    const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+    return Math.floor((utc2 - utc1) / (1000 * 60 * 60 * 24));
+}
 
 //Unnati redesign entity report pdf generation function
-exports.unnatiEntityReportPdfGeneration = async function (inputData, storeReportsToS3 = false) {
+exports.unnatiEntityReportPdfGeneration = async function (entityReportData, storeReportsToS3 = false) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -3140,16 +2483,16 @@ exports.unnatiEntityReportPdfGeneration = async function (inputData, storeReport
             }
 
             //get the chart object
-            let chartData = await getEntityReportChartObjects(inputData);
+            let chartData = await getEntityReportChartObjects(entityReportData);
 
             //generate the chart using highchart server
-            let highChartData = await createChart(chartData, imgPath);
+            let entityReportCharts = await createChart(chartData, imgPath);
 
-            formData.push(...highChartData);
+            formData.push(...entityReportCharts);
 
             let ejsInputData = {
-                chartData: highChartData,
-                response: inputData
+                chartData: entityReportCharts,
+                response: entityReportData
             }
 
             ejs.renderFile(__dirname + '/../views/unnatiEntityReport.ejs', {
@@ -3314,57 +2657,59 @@ async function getTaskOverviewChart(tasks) {
     return new Promise(async function (resolve, reject) {
 
 
-        // let total = tasks['Total'];
-        // delete tasks['Total'];
+        let total = tasks['Total'];
+        delete tasks['Total'];
 
-        // let seriesData = "[";
-        // Object.keys(tasks).forEach(eachTask => {
-        //     let color = "";
-        //     if (eachTask == "Completed") {
-        //         color = "green";
-        //     } else if (eachTask == "Not Started") {
-        //         color = "red";
-        //     }
+        let labels = [];
+        let data = [];
+        let backgroundColor = [];
 
-        //     let percetage = ((tasks[eachTask] / total) * 100).toFixed(1);
-        //     if (color != "") {
-        //         seriesData = seriesData + "{ color:'" + color + "',name: '" + eachTask + "',y:" + percetage + "},";
-        //     } else {
-        //         seriesData = seriesData + "{ name: '" + eachTask + "',y: " + percetage + "},";
-        //     }
+        if (tasks["Completed"]) {
+            labels.push("Completed");
+            data.push(((tasks["Completed"] / total) * 100).toFixed(1));
+            backgroundColor.push("#295e28");
+            delete tasks["Completed"];
+        }
 
-        // })
-        // seriesData = seriesData + "]";
+        if (tasks["Not Started"]) {
+            labels.push("Not Started");
+            data.push(((tasks["Not Started"] / total) * 100).toFixed(1));
+            backgroundColor.push("#db0b0b");
+            delete tasks["Not Started"];
+        }
 
-        // let chartOptions = "{ title: { text: '' },chart: { type: 'pie' }," +
-        //     "plotOptions: { 'pie': { showInLegend: true, dataLabels: { enabled: true, formatter: function () { return this.y ? this.point.y+'%' : null; }} }},"
-        //     + "credits: { enabled: false },"
-        //     + "series: [{ minPointSize: 50,innerSize: '80%',zMin: 0,name: 'tasks', data: " + seriesData + " }] }"
+        Object.keys(tasks).forEach(eachTask => {
+            let percetage = ((tasks[eachTask] / total) * 100).toFixed(1);
+            labels.push(eachTask);
+            data.push(percetage);
+        })
+        
+        backgroundColor = [...backgroundColor, ...['#FFA971', '#F6DB6C', '#98CBED', '#C9A0DA', '#5DABDC', '#88E5B0']];
+      
         let chartOptions = {
             type: 'doughnut',
             data: {
-              labels: [
-                'Overdue',
-                'Completed',
-                'In Progress',
-                'Not Started'
-              ],
-              datasets: [{
-                label: '',
-                data: [50, 60, 70, 40],
-                backgroundColor: [
-                  '#78bbbf',
-                  '#295e28',
-                  '#5bc75b',
-                  '#db0b0b',
-                
-                ],
-                hoverOffset: 4
-              }]
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: backgroundColor,
+                }]
             },
-            options : {        
-              cutoutPercentage: 80
-           }
+            options: {
+                cutoutPercentage: 80,
+                legend: {
+                    position: "bottom"
+                },
+                plugins: {
+                    datalabels: {
+                        anchor: 'end',
+                        align: 'end',
+                        font: {
+                            size: 16,
+                        }
+                    }
+                }
+            },
         };
 
         let chartObject = {
@@ -3379,42 +2724,39 @@ async function getTaskOverviewChart(tasks) {
 async function getCategoryWiseChart(categories) {
     return new Promise(async function (resolve, reject) {
 
-        // let total = categories['Total'];
-        // delete categories['Total'];
+        let total = categories['Total'];
+        delete categories['Total'];
+        let labels = [];
+        let data = [];
 
-        // let seriesData = "[";
-        // Object.keys(categories).forEach(eachCategory => {
-        //     let percetage = ((categories[eachCategory] / total) * 100).toFixed(1);
-        //     seriesData = seriesData + "{ name: '" + eachCategory + "',y: " + percetage + "},";
-        // });
+        Object.keys(categories).forEach(eachCategory => {
+            let percetage = ((categories[eachCategory] / total) * 100).toFixed(1);
+            labels.push(eachCategory);
+            data.push(percetage);
+        });
 
-        // seriesData = seriesData + "]";
-        // let chartOptions = "{ title: { text: '' },chart: { type: 'pie' }," +
-        //     "plotOptions: { 'pie': { showInLegend: true, dataLabels: { enabled: true, formatter: function () { return this.y ? this.point.y+'%' : null; }} }},"
-        //     + "credits: { enabled: false },"
-        //     + "series: [{ minPointSize: 50,innerSize: '50%',zMin: 0,name: 'tasks', data: " + seriesData + " }] }"
         let chartOptions = {
             type: 'doughnut',
             data: {
-              labels: [
-                'Students',
-                'Infrastructure',
-                'Community',
-                'Education Leader',
-                'Teachers'
-              ],
+              labels: labels,
               datasets: [{
-                label: '',
-                data: [50, 60, 70, 40,100],
-                backgroundColor: [
-                  '#78bbbf',
-                  '#000',
-                  '#5bc75b',
-                  '#d99152',
-                  '#7892bf'
-                ],
-                hoverOffset: 4
+                data: data,
+                backgroundColor: ['rgb(255, 99, 132)','rgb(54, 162, 235)','rgb(255, 206, 86)','rgb(231, 233, 237)','rgb(75, 192, 192)','rgb(151, 187, 205)','rgb(220, 220, 220)','rgb(247, 70, 74)','rgb(70, 191, 189)','rgb(253, 180, 92)','rgb(148, 159, 177)','rgb(77, 83, 96)','rgb(95, 101, 217)','rgb(170, 95, 217)','rgb(140, 48, 57)','rgb(209, 6, 40)','rgb(68, 128, 51)','rgb(125, 128, 51)','rgb(128, 84, 51)','rgb(179, 139, 11)']
               }]
+            },
+            options: {
+                legend: {
+                   position: "bottom"
+                },
+                plugins: {
+                    datalabels: {
+                        // anchor: 'end',
+                        // align: 'end',
+                        font: {
+                            size: 16,
+                        }
+                    }
+                }
             }
         };
 
@@ -3464,6 +2806,31 @@ const getChartObject = async function (data) {
             display: true,
             text: chartData.question
         };
+        
+        if (chartObj.options.type == "horizontalBar")
+        if (!chartObj.options.options.scales["yAxes"] || !chartObj.options.options.scales["yAxes"][0]["ticks"] ) {
+            if (!chartObj.options.options.scales["yAxes"]) {
+               chartObj.options.options.scales["yAxes"] = [{}];
+            }
+            
+            chartObj.options.options.scales["yAxes"][0]["ticks"] = {
+                callback: function (value, index, values) {
+                  let strArr = value.split(' ');
+                  let tempString = '';
+                  let result = [];
+                  for (let x = 0; x < strArr.length; x++) {
+                    tempString += ' ' + strArr[x];
+                    if ((x % 5 === 0 && x !== 0) || x == strArr.length - 1) {
+                      tempString = tempString.slice(1);
+                      result.push(tempString);
+                      tempString = '';
+                    }
+                  }
+                  return result || value;
+                },
+                fontSize: 12,
+            }
+        }
 
         chartOptions.push(chartObj)
     }))
@@ -3504,14 +2871,4 @@ const createChart = async function (chartData, imgPath) {
             return reject(err);
         }
     })
-}
-
-
-
-async function getPercentages(data, target = 100) {
-    var off = target - _.reduce(data, function (acc, x) { return acc + Math.round(x) }, 0);
-    return _.chain(data).
-        sortBy(function (x) { return Math.round(x) - x }).
-        map(function (x, i) { return Math.round(x) + (off > i) - (i >= (data.length + off)) }).
-        value();
 }
