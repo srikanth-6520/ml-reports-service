@@ -2804,7 +2804,8 @@ const getChartObject = async function (data) {
         }
         chartObj.options.options.title = {
             display: true,
-            text: chartData.question
+            text: chartData.question,
+            fontSize: 22
         };
         
         if (chartObj.options.type == "horizontalBar")

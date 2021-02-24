@@ -1,4 +1,4 @@
-const pdfHandler = require('../../helper/common_handler');
+const pdfHandler = require('../../helper/common_handler_v2');
 
 
 /**
