@@ -2,7 +2,7 @@ const rp = require('request-promise');
 const request = require('request');
 const helperFunc = require('../../helper/chart_data');
 const assessmentService = require('../../helper/assessment_service');
-const pdfHandlerV2 =  require('../../helper/common_handler_v2');
+const pdfHandler =  require('../../helper/common_handler_v2');
 const observationsHelper = require('../../helper/observations');
 
 
@@ -182,7 +182,7 @@ async function entitySolutionReportPdfGeneration(req, res) {
         solutionName: entityResponse.solutionName
       }
 
-      let resData = await pdfHandlerV2.pdfGeneration(entityResponse, storeReportsToS3 = false, obj);
+      let resData = await pdfHandler.pdfGeneration(entityResponse, storeReportsToS3 = false, obj);
 
       var responseObject = {
         "status": "success",
@@ -324,7 +324,7 @@ async function entityObservationScorePdfFunc(req, res) {
         totalObservations: entityRes.totalObservations
       }
 
-      let resData = await pdfHandlerV2.instanceObservationScorePdfGeneration(entityRes, storeReportsToS3 = false, obj);
+      let resData = await pdfHandler.instanceObservationScorePdfGeneration(entityRes, storeReportsToS3 = false, obj);
 
       resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
 
@@ -472,7 +472,7 @@ async function instancePdfReport(req, res) {
 
     if (("observationName" in instaRes) == true) {
       
-      let resData = await pdfHandlerV2.instanceObservationPdfGeneration(instaRes, storeReportsToS3 = false);
+      let resData = await pdfHandler.instanceObservationPdfGeneration(instaRes, storeReportsToS3 = false);
 
       if (resData.status && resData.status == "success") {
 
@@ -506,7 +506,7 @@ async function entityObservationPdf(req, res) {
 
     if (("observationName" in responseData) == true) {
 
-      let resData = await pdfHandlerV2.pdfGeneration(responseData, storeReportsToS3 = false);
+      let resData = await pdfHandler.pdfGeneration(responseData, storeReportsToS3 = false);
 
       if (resData.status && resData.status == "success") {
 
@@ -538,7 +538,7 @@ async function observationGenerateReport(req, res) {
 
     if (("observationName" in responseData) == true) {
 
-      let resData = await pdfHandlerV2.pdfGeneration(responseData, storeReportsToS3 = false);
+      let resData = await pdfHandler.pdfGeneration(responseData, storeReportsToS3 = false);
 
       if (resData.status && resData.status == "success") {
 

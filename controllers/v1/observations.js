@@ -345,7 +345,7 @@ async function instanceObservationScorePdfFunc(req, res) {
   return new Promise(async function (resolve, reject) {
    
       let instaRes = await observationsHelper.instanceScoreReport(req, res);
-      console.log(instaRes.result);
+     
       if (instaRes.result == true) {
   
         let obj = {
