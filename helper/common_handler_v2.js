@@ -2684,7 +2684,7 @@ async function getTaskOverviewChart(tasks) {
             data.push(percetage);
         })
         
-        backgroundColor = [...backgroundColor, ...['#FFA971', '#F6DB6C', '#98CBED', '#C9A0DA', '#5DABDC', '#88E5B0']];
+        backgroundColor = [...backgroundColor, ...['rgb(255, 99, 132)','rgb(54, 162, 235)','rgb(255, 206, 86)','rgb(231, 233, 237)','rgb(75, 192, 192)','rgb(151, 187, 205)','rgb(220, 220, 220)','rgb(247, 70, 74)','rgb(70, 191, 189)','rgb(253, 180, 92)','rgb(148, 159, 177)','rgb(77, 83, 96)','rgb(95, 101, 217)','rgb(170, 95, 217)','rgb(140, 48, 57)','rgb(209, 6, 40)','rgb(68, 128, 51)','rgb(125, 128, 51)','rgb(128, 84, 51)','rgb(179, 139, 11)']];
       
         let chartOptions = {
             type: 'doughnut',
@@ -2705,7 +2705,10 @@ async function getTaskOverviewChart(tasks) {
                         anchor: 'end',
                         align: 'end',
                         font: {
-                            size: 16,
+                            size: 18,
+                        },
+                        formatter: (value) => {
+                          return value + '%';;
                         }
                     }
                 }
@@ -2746,14 +2749,26 @@ async function getCategoryWiseChart(categories) {
             },
             options: {
                 legend: {
-                   position: "bottom"
+                   position: "bottom",
+                   labels: {
+                    padding: 30,
+                }
+                },
+                layout: {
+                    padding: {
+                      top: 15,
+                      bottom: 25
+                    },
                 },
                 plugins: {
                     datalabels: {
-                        // anchor: 'end',
-                        // align: 'end',
+                        anchor: 'end',
+                        align: 'end',
                         font: {
-                            size: 16,
+                            size: 18,
+                        },
+                        formatter: (value) => {
+                          return value + '%';
                         }
                     }
                 }
