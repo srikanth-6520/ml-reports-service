@@ -1343,7 +1343,7 @@ exports.entityScoreReportGenerate = async function(req, res) {
         catch (err) {
             let response = {
                 result: false,
-                message: 'INTERNAL_SERVER_ERROR'
+                message: err.message
             }
             resolve(response);
         }
