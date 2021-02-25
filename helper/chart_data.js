@@ -1196,7 +1196,7 @@ exports.entityScoreReportChartObjectCreation = async function (data, version, re
     let submissionId = [];
     let responseData = [];
 
-    let threshold = process.env.ENTITY_SCORE_REPORT_THRESHOLD ? process.env.ENTITY_SCORE_REPORT_THRESHOLD : default_entity_score_api_threshold;
+    let threshold = process.env.ENTITY_SCORE_REPORT_THRESHOLD ? parseInt(process.env.ENTITY_SCORE_REPORT_THRESHOLD) : default_entity_score_api_threshold;
 
     if (typeof threshold !== "number") {
         throw new Error("threshold_in_entity_score_api should be integer");
@@ -1756,8 +1756,8 @@ async function evidenceArrayCreation(questionExternalId, evidenceData) {
 
     evidence_count = filePaths.length;
 
-    if (filePaths.length > process.env.EVIDENCE_THRESHOLD) {
-        filesArray.push(filePaths.slice(0, process.env.EVIDENCE_THRESHOLD));
+    if (filePaths.length > parseInt(process.env.EVIDENCE_THRESHOLD)) {
+        filesArray.push(filePaths.slice(0, parseInt(process.env.EVIDENCE_THRESHOLD)));
     } else {
         filesArray.push(filePaths);
     }
@@ -2229,7 +2229,7 @@ exports.entityLevelReportData = async function (data) {
 
         let totalSubmissions = completedDateKeys.length;
 
-        let threshold = process.env.ASSESSMENT_SUBMISSION_REPORT_THRESHOLD ? process.env.ASSESSMENT_SUBMISSION_REPORT_THRESHOLD : default_no_of_assessment_submissions_threshold;
+        let threshold = process.env.ASSESSMENT_SUBMISSION_REPORT_THRESHOLD ? parseInt(process.env.ASSESSMENT_SUBMISSION_REPORT_THRESHOLD) : default_no_of_assessment_submissions_threshold;
 
         if (typeof threshold !== "number") {
             throw new Error("no_of_assessment_submissions_threshold value should be integer");

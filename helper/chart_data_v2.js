@@ -1146,7 +1146,7 @@ exports.entityScoreReportChartObjectCreation = async function (data, reportType)
     let submissionId = [];
     let responseData = [];
 
-    let threshold = process.env.ENTITY_SCORE_REPORT_THRESHOLD ? process.env.ENTITY_SCORE_REPORT_THRESHOLD : default_entity_score_api_threshold;
+    let threshold = process.env.ENTITY_SCORE_REPORT_THRESHOLD ? parseInt(process.env.ENTITY_SCORE_REPORT_THRESHOLD) : default_entity_score_api_threshold;
 
     if (typeof threshold !== "number") {
         throw new Error("threshold_in_entity_score_api should be integer");
@@ -1224,7 +1224,7 @@ async function entityScoreObjectCreateFunc(data, threshold) {
         }
 
         if (seriesData.length != threshold) {
-            seriesData.push([parseInt(groupedSubmissionData[scoreData][0].event.minScore)]);
+            seriesData.push(parseInt(groupedSubmissionData[scoreData][0].event.minScore));
         }
 
         if (groupedSubmissionData[scoreData][0].event.maxScore != null) {
@@ -1686,8 +1686,8 @@ async function evidenceArrayCreation(questionExternalId, evidenceData) {
 
     evidence_count = filePaths.length;
 
-    if (filePaths.length > process.env.EVIDENCE_THRESHOLD) {
-        filesArray.push(filePaths.slice(0, process.env.EVIDENCE_THRESHOLD));
+    if (filePaths.length >  parseInt(process.env.EVIDENCE_THRESHOLD)) {
+        filesArray.push(filePaths.slice(0, parseInt(process.env.EVIDENCE_THRESHOLD)));
     } else {
         filesArray.push(filePaths);
     }
