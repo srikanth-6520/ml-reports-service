@@ -1,10 +1,10 @@
 const rp = require('request-promise');
 const request = require('request');
 const helperFunc = require('../../helper/chart_data');
-const pdfHandler = require('../../helper/common_handler');
+const pdfHandler = require('../../helper/common_handler_v2');
 const assessmentService = require('../../helper/assessment_service');
 const storePdfReportsToS3 = (!process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF || process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF != "OFF") ? "ON" : "OFF"
-
+const helperFuncV2 = require('../../helper/chart_data_v2');
 
 /**
    * @api {post} /dhiti/api/v1/assessments/listPrograms
@@ -120,53 +120,83 @@ exports.listPrograms = async function (req, res) {
 * "solutionId": ""
 * "immediateChildEntityType": ""
 * }
-   * @apiSuccessExample {json} Success-Response:
+* @apiSuccessExample {json} Success-Response:
 *     HTTP/1.1 200 OK
 *     {
 *       "result": true,
-*       "title": "",
+*       "title": "DCPCR program",
 *       "reportSections":[
         {
-          "order": "",
+          "order": 1,
           "chart": {
-             "type": "",
-             "nextChildEntityType": "",
-             "stacking": "",
-             "title": "",
-             "xAxis": {
-               "categories": [],
-               "title": "",
-             },
-             "yAxis": {
-                "title": {
-                    "text": ""
+            "type": "horizontalBar",
+            "data": {
+                "datasets": [
+                    {
+                        "label": "L1",
+                        "data": [
+                            2,
+                            5,
+                            9
+                        ]
+                    },
+                    {
+                        "label": "L2",
+                        "data": [
+                            4,
+                            9,
+                            5
+                        ]
+                    }]
+                },
+                "options": {
+                    "title": {
+                        "display": true,
+                        "text": "Criteria vs level mapping aggregated at Entity level"
+                    },
+                    "scales": {
+                        "xAxes": [
+                            {
+                                "stacked": true,
+                                "gridLines": {
+                                    "display": false
+                                },
+                                "scaleLabel": {
+                                    "display": true,
+                                    "labelString": "Criteria"
+                                }
+                            }
+                        ],
+                        "yAxes": [
+                            {
+                                "stacked": true
+                            }
+                        ]
+                    },
+                    "legend": {
+                        "display": true
+                    }
                 }
-             },
-             "data": [{
-                 "name": "",
-                 "data": []
-             }]
-          }
+            }
         },
         {
-         "order": "",
+         "order": 2,
          "chart": {
-            "type": "",
-            "title": "",
+            "type": "expansion",
+            "title": "Descriptive view",
             "entities": [{
-                "entityName": "",
-                "entityId": "",
+                "entityName": "Nigam Pratibha Vidyalaya (Girls), Jauna Pur, New Delhi",
+                "entityId": "5c0bbab881bdbe330655da7f",
                 "domains": [{
-                    "domainName": "",
-                    "domainId": "",
+                    "domainName": "Community Participation and EWS/DG Integration ",
                     "criterias":[{
-                        "name": "",
-                        "level": ""
+                        "name": "Entitlement Provisioning",
+                        "level": "L1"
                     }]
                 }]
             }]
          }
-        }
+        }]
 *    }
    * @apiUse errorBody
    */
@@ -187,6 +217,7 @@ async function assessmentReportGetChartData(req, res) {
         try {
 
             if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
+                res.status(400);
                 let response = {
                     result: false,
                     message: 'entityId,entityType,programId and solutionId are required fields'
@@ -195,6 +226,7 @@ async function assessmentReportGetChartData(req, res) {
             }
             else {
 
+                let requestToPdf = req.body.requestToPdf ? req.body.requestToPdf : false;
                 let childType = req.body.immediateChildEntityType;
 
                 let bodyParam = gen.utils.getDruidQuery("entity_assessment_query");
@@ -248,7 +280,7 @@ async function assessmentReportGetChartData(req, res) {
                         }
 
                         //call the function entityAssessmentChart to get the data for stacked bar chart 
-                        let responseObj = await helperFunc.entityAssessmentChart(inputObj);
+                        let responseObj = await helperFuncV2.entityAssessmentChart(inputObj, requestToPdf);
 
                         if (Object.keys(responseObj).length === 0) {
                             return resolve({ "reportSections": [] });
@@ -269,7 +301,7 @@ async function assessmentReportGetChartData(req, res) {
                     }
 
                     //call the function entityAssessmentChart to get the data for stacked bar chart 
-                    let responseObj = await helperFunc.entityAssessmentChart(inputObj);
+                    let responseObj = await helperFuncV2.entityAssessmentChart(inputObj, requestToPdf);
 
                     if (Object.keys(responseObj).length === 0) {
                         return resolve({ "reportSections": [] });
@@ -297,7 +329,7 @@ async function assessmentReportGetChartData(req, res) {
         catch (err) {
             let response = {
                 result: false,
-                message: 'INTERNAL_SERVER_ERROR'
+                message: err.message
             }
             resolve(response);
         }
@@ -627,28 +659,47 @@ exports.pdfReports = async function (req, res) {
 
     if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
         res.status(400);
-        var response = {
+        let response = {
             result: false,
             message: 'entityId,entityType,programId,solutionId and immediateChildEntityType are required fields'
         }
         res.send(response);
     }
     else {
-       
-            let assessmentRes = await assessmentReportGetChartData(req, res);
-         
+
+        req.body.requestToPdf = true;
+
+        if (req.body.isAssessAgain) {
+
+            let assessmentRes = await entityReportChartCreateFunction(req, res);
+
             if (assessmentRes.result == true) {
 
-               let resData = await pdfHandler.assessmentPdfGeneration(assessmentRes, storeReportsToS3=false);
+                let response = await pdfHandler.assessmentAgainPdfReport(assessmentRes, storeReportsToS3 = false);
 
-                resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-                res.send(resData);
+                response.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+                res.send(response);
             }
             else {
                 res.send(assessmentRes);
             }
+        } else {
+            let assessmentRes = await assessmentReportGetChartData(req, res);
+
+            if (assessmentRes.result == true) {
+
+                let response = await pdfHandler.assessmentPdfGeneration(assessmentRes, storeReportsToS3 = false);
+
+                response.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+                res.send(response);
+            }
+            else {
+                res.send(assessmentRes);
+            }
+        }
     }
 };
+
 
 // Function to get user profile data from assessment service
 async function getUserProfileFunc(req,res){
@@ -707,41 +758,39 @@ async function getUserProfileFunc(req,res){
     "reportSections": [{
         "order": 1,
         "chart": {
-        "type": "bar",
-        "title": "",
-        "xAxis": [
-            {
-                "categories": []
-            },
-            {
-                "opposite": true,
-                "reversed": false,
-                "categories": [],
-                "linkedTo": 0
-            }
-        ],
-        "yAxis": {
-            "min": 0,
-            "title": {
-                "text": ""
+            "type": "horizontalBar",
+            "title": "",
+            "submissionDateArray": [
+                "26 September 2019",
+                "26 September 2019",
+                "26 September 2019"
+            ],
+            "data": {
+                "labels": [
+                    "Community Participation and EWS/DG Integration ",
+                    "Safety and Security",
+                    "Teaching and Learning",
+                ],
+                "datasets": [
+                    {
+                        "label": "L1",
+                        "data": [
+                            2,
+                            2,
+                            5
+                        ]
+                    },
+                    {
+                        "label": "L2",
+                        "data": [
+                            4,
+                            3,
+                            9
+                        ]
+                    }
+                ]
             }
         },
-        "legend": {
-            "reversed": true
-        },
-        "plotOptions": {
-            "series": {
-                "stacking": "percent"
-            }
-        },
-        "data": [
-            {
-                "name": "Level 1",
-                "data": []
-            }
-        ]
-      }
-    },
     {
        "order": 2,
        "chart": {
@@ -749,10 +798,10 @@ async function getUserProfileFunc(req,res){
             "title": "Descriptive view",
             "heading": ["Assess. 1","Assess. 2"],
             "domains": [{
-                "domainName": "",
+                "domainName": "Community Participation and EWS/DG Integration",
                 "criterias": [{
-                   "criteriaName": "",
-                   "levels": []
+                   "criteriaName": "Academic Integration",
+                   "levels": [ "Level 4"]
                 }]
             }]
         }
@@ -771,6 +820,7 @@ async function entityReportChartCreateFunction(req, res) {
     return new Promise(async function (resolve, reject) {
         try {
             if (!req.body.entityId || !req.body.entityType || !req.body.programId || !req.body.solutionId) {
+                res.status(400);
                 let response = {
                     result: false,
                     message: 'entityId,entityType,programId,solutionId are required fields'
@@ -778,6 +828,8 @@ async function entityReportChartCreateFunction(req, res) {
                 resolve(response);
             }
             else {
+                
+                let requestToPdf = req.body.requestToPdf ? req.body.requestToPdf : false;
 
                 let bodyParam = gen.utils.getDruidQuery("entity_level_assessment_report_query");
 
@@ -811,7 +863,7 @@ async function entityReportChartCreateFunction(req, res) {
                         "solutionName": data[0].event.solutionName,
                     };
 
-                    let reportData = await helperFunc.entityLevelReportData(data);
+                     let reportData = await helperFuncV2.entityLevelReportData(data, requestToPdf);
 
                     response.reportSections = reportData;
 
@@ -822,7 +874,7 @@ async function entityReportChartCreateFunction(req, res) {
         catch (err) {
             let response = {
                 result: false,
-                message: 'INTERNAL_SERVER_ERROR',
+                message: err.message,
                 err: err
             }
             resolve(response);

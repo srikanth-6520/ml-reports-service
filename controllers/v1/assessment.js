@@ -1,4 +1,4 @@
-const pdfHandler = require('../../helper/common_handler');
+const pdfHandler = require('../../helper/common_handler_v2');
 const assessmentController = require('./assessments');
 const storePdfReportsToS3 = (!process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF || process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF != "OFF") ? "ON" : "OFF"
 
@@ -15,7 +15,7 @@ exports.pdfReports = async function (req, res) {
         res.send(response);
     }
     else {
-
+        req.body.requestToPdf = true;
         let assessmentRes = await assessmentController.assessmentReportGetChartData(req, res);
         
         if (assessmentRes.result == true) {
