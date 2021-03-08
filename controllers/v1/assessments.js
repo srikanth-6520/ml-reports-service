@@ -867,6 +867,10 @@ async function entityReportChartCreateFunction(req, res) {
 
                     response.reportSections = reportData;
 
+                    if(req.body.submissionId) {
+                      response.reportSections[0].chart.submissionDateArray = [];
+                    }
+
                     return resolve(response);
                 }
             }

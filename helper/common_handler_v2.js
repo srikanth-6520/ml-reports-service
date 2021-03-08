@@ -1427,10 +1427,14 @@ const getAssessmentAgainChartData = async function(assessmentData) {
             formatter: function(value, data) {
                 if ((data.datasetIndex + 1) % chartData.length == 0) {
                     let barValue = actualChartData[j]
-                     j++;
-                     let submissionValue = assessmentData.reportSections[0].chart.submissionDateArray[k];
-                     k++;
-                    return  [barValue, "" , submissionValue];
+                    j++;
+                    if (assessmentData.reportSections[0].chart.submissionDateArray.length > 0) {
+                        let submissionValue = assessmentData.reportSections[0].chart.submissionDateArray[k];
+                        k++;
+                        return [barValue, "", submissionValue];
+                    } else {
+                        return barValue;
+                    }
                 }
                 else {
                      let barValue = actualChartData[j];
@@ -1445,7 +1449,7 @@ const getAssessmentAgainChartData = async function(assessmentData) {
 }
 
 const convertAssessAgainChartDataToPercentage = async function(domainObj) {
-    console.log("coming hereee");
+    
     let dynamicLevelObj = {};
     let domainKeys = Object.keys(domainObj);
 
