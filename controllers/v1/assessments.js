@@ -4,7 +4,7 @@ const helperFunc = require('../../helper/chart_data');
 const pdfHandler = require('../../helper/common_handler');
 const assessmentService = require('../../helper/assessment_service');
 const storePdfReportsToS3 = (!process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF || process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF != "OFF") ? "ON" : "OFF"
-
+const assessmentsHelper =  require('../../helper/assessments.js');
 
 /**
    * @api {post} /dhiti/api/v1/assessments/listPrograms
@@ -635,7 +635,7 @@ exports.pdfReports = async function (req, res) {
     }
     else {
        
-            let assessmentRes = await assessmentReportGetChartData(req, res);
+            let assessmentRes = await assessmentsHelper.assessmentReportGetChartData(req, res);
          
             if (assessmentRes.result == true) {
 
