@@ -813,7 +813,7 @@ async function programListRespObjCreate(data) {
 }
 
 //Function to create stacked bar chart response object for entity assessment API  
-exports.entityAssessmentChart = async function (inputObj, requestToPdf= false) {
+exports.entityAssessmentChart = async function (inputObj) {
     return new Promise(async function (resolve, reject) {
 
         let entityName = inputObj.entityName;
@@ -959,6 +959,7 @@ exports.entityAssessmentChart = async function (inputObj, requestToPdf= false) {
         let chartObj = {
             result: true,
             title: inputObj.data[0].event.programName + " report",
+            domainLevelObject : domainObj,
             reportSections: [
                 {
                     order: 1,
@@ -996,10 +997,6 @@ exports.entityAssessmentChart = async function (inputObj, requestToPdf= false) {
                     }
                 }
             ]
-        }
-
-        if (requestToPdf) {
-            chartObj.domainLevelObject = domainObj; 
         }
 
         let domainCriteriaArray = [];
@@ -2167,7 +2164,7 @@ const createSolutionsArray = async function (data) {
 
 
 //Report for entity level report in assessments
-exports.entityLevelReportData = async function (data, requestToPdf= false) {
+exports.entityLevelReportData = async function (data) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -2193,7 +2190,7 @@ exports.entityLevelReportData = async function (data, requestToPdf= false) {
             completedDateKeys = dateArray;
         }
 
-        let response = await entityLevelReportChartCreateFunc(groupedSubmissionData, completedDateKeys.sort(), requestToPdf);
+        let response = await entityLevelReportChartCreateFunc(groupedSubmissionData, completedDateKeys.sort());
 
         let result = [];
         if (response.length > 0) {
@@ -2213,7 +2210,7 @@ exports.entityLevelReportData = async function (data, requestToPdf= false) {
 }
 
 //Chart data preparation for entity level assessment report
-const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, completedDateArray,  requestToPdf= false) {
+const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, completedDateArray) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -2398,6 +2395,7 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
 
         let chartObj = {
             order: 1,
+            domainLevelObject: domainObj,
             chart: {
                 type: 'horizontalBar',
                 title: "",
@@ -2430,10 +2428,6 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
                         }
                 }
             }
-        }
-        
-        if (requestToPdf) {
-            chartObj.domainLevelObject = domainObj;
         }
 
         let domainCriteriaKeys = Object.keys(domainCriteriaObj);

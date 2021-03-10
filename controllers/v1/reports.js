@@ -1,5 +1,3 @@
-const observationsHelper = require('../../helper/observations');
-const assessmentsHelper = require('../../helper/assessments');
 const reportsHelper = require('../../helper/reports');
 
 exports.fetch = async function (req, res) {
@@ -8,30 +6,34 @@ exports.fetch = async function (req, res) {
        
         //  submission observation report
         if (req.body.submissionId && req.body.observation == true ) {
-           let response = await instaceObservationReport(req, res);
+           let response = await reportsHelper.instaceObservationReport(req, res);
            res.send(response);
         }
 
         // entity observation report
         if (req.body.entityId && req.body.observationId && req.body.observation == true) {
-            let response = await entityObservationReport(req, res);
+            let response = await reportsHelper.entityObservationReport(req, res);
             res.send(response);
         }
         
         //survey report
         if ( req.body.survey == true ) {
-           let response = await surveyReport(req, res);
+           let response = await reportsHelper.surveyReport(req, res);
            res.send(response);
         }
 
-
-       
+        //entity assessment report
+        if ( req.body.programId && req.body.solutionId && req.body.entityId && req.body.entityType && req.body.observation == true ) {
+            let response =  await reportsHelper.assessmentReport(req, res);
+            res.send(response);
+        } 
+    
     }
     catch (err) {
         res.status(500);
         let response = {
             result: false,
-            message: 'INTERNAL_SERVER_ERROR',
+            message: err.message
         }
         res.send(response);
     }
