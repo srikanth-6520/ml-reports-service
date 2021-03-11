@@ -23,13 +23,11 @@ exports.assessmentReportGetChartData = async function(req, res) {
 
                 let bodyParam = gen.utils.getDruidQuery("entity_assessment_query");
                 
-                if (req.body.dataSource) {
-                    bodyParam.dataSource = req.body.dataSource
-                } else {
+                if (process.env.ASSESSMENT_DATASOURCE_NAME) {
                     bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
                 }
-
-                //dynamically appending values to filter
+        
+               //dynamically appending values to filter
                 bodyParam.filter.fields[0].dimension = req.body.entityType;
                 bodyParam.filter.fields[0].value = req.body.entityId;
                 bodyParam.filter.fields[1].value = req.body.programId;

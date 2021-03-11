@@ -1,6 +1,5 @@
 const rp = require('request-promise');
 const request = require('request');
-const assessmentsHelper = require('./assessments');
 const assessmentService = require('./assessment_service');
 const helperFunc = require('./chart_data_v2');
 const pdfHandler = require('./common_handler_v2');
@@ -295,7 +294,8 @@ exports.entityObservationReport = async function (req, res) {
         }
 
         if (req.body.scores == true && req.body.criteriaWise == false && scoringSystem !== filesHelper.scoringSystem) {
-            bodyParam.dimensions.push("submissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "programName", "solutionName", "childExternalid", "childName", "childType");
+            bodyParam.filter.fields.push({"type":"selector","dimension":"createdBy","value": req.userDetails.userId});
+            bodyParam.dimensions.push("observationSubmissionId", "submissionTitle", "completedDate", "domainName", "criteriaDescription", "level", "label", "programName", "solutionName", "childExternalid", "childName", "childType");
         }
 
         //pass the query get the result from druid
@@ -464,6 +464,10 @@ exports.entityObservationReport = async function (req, res) {
 
                 response.reportSections = chartData;
 
+                if (response.reportSections[1].chart.totalSubmissions == 1) {
+                    response.reportSections[0].chart.submissionDateArray = [];
+                }
+
                 if (req.body.pdf) {
 
                     let pdfReport = await pdfHandler.assessmentAgainPdfReport(response, storeReportsToS3 = false);
@@ -494,19 +498,6 @@ exports.surveyReport = async function (req, res) {
             let response = await surveysHelper.surveySolutionReport(req, res);
             return resolve(response);
         }
-    })
-}
-
-
-//Assessment report
-exports.assessmentReport = async function (req, res) {
-    return new Promise(async function (resolve, reject) {
-      
-        req.body.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
-
-        let response = await assessmentsHelper.assessmentReportGetChartData( req, res);
-
-        return resolve(response);
     })
 }
 

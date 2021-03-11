@@ -2170,8 +2170,16 @@ exports.entityLevelReportData = async function (data) {
 
         //group the data based on completed date   
         let groupedSubmissionData = await groupArrayByGivenField(data, "completedDate");
+        let submissions = [];
 
         let completedDateKeys = Object.keys(groupedSubmissionData);
+
+        await Promise.all(completedDateKeys.map(completedDateKey => {
+            submissions.push({
+               _id: groupedSubmissionData[completedDateKey][0].event.observationSubmissionId,
+               name: groupedSubmissionData[completedDateKey][0].event.submissionTitle
+            })
+        }))
 
         let totalSubmissions = completedDateKeys.length;
 
@@ -2199,6 +2207,7 @@ exports.entityLevelReportData = async function (data) {
 
             //append total number of submissions value
             response[1].chart.totalSubmissions = totalSubmissions;
+            response[1].chart.submissions = submissions;
             result.push(response[1]);
         }
 
@@ -2222,6 +2231,7 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
         let heading = [];
         let dynamicLevelObj = {};
         let scoresExists = false;
+        
 
         //loop the data and construct domain name and level object
         for (completedDate = 0; completedDate < completedDateArray.length; completedDate++) {

@@ -21,12 +21,6 @@ exports.fetch = async function (req, res) {
            let response = await reportsHelper.surveyReport(req, res);
            res.send(response);
         }
-
-        //entity assessment report
-        if ( req.body.programId && req.body.solutionId && req.body.entityId && req.body.entityType && req.body.observation == true ) {
-            let response =  await reportsHelper.assessmentReport(req, res);
-            res.send(response);
-        } 
     
     }
     catch (err) {
