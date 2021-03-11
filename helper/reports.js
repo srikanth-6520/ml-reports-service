@@ -5,6 +5,7 @@ const assessmentService = require('./assessment_service');
 const helperFunc = require('./chart_data_v2');
 const pdfHandler = require('./common_handler_v2');
 const filesHelper = require('../common/files_helper');
+const surveysHelper = require('./surveys');
 
 // Instance observation report
 exports.instaceObservationReport = async function (req, res) {
@@ -271,26 +272,26 @@ exports.entityObservationReport = async function (req, res) {
                 entityType: req.body.entityType
             });
         }
-        
+
         bodyParam.dimensions = [];
 
         //Push dimensions to the query based on report type
         if (req.body.scores == false && req.body.criteriaWise == false) {
-            bodyParam.dimensions.push("completedDate","questionName","questionAnswer","school","schoolName","entityType","observationName","observationId","questionResponseType","questionResponseLabel","observationSubmissionId","questionId","questionExternalId","instanceId","instanceParentQuestion","instanceParentResponsetype","instanceParentId","instanceParentEcmSequence","instanceParentExternalId");
+            bodyParam.dimensions.push("completedDate", "questionName", "questionAnswer", "school", "schoolName", "entityType", "observationName", "observationId", "questionResponseType", "questionResponseLabel", "observationSubmissionId", "questionId", "questionExternalId", "instanceId", "instanceParentQuestion", "instanceParentResponsetype", "instanceParentId", "instanceParentEcmSequence", "instanceParentExternalId");
         }
 
         if (req.body.scores == true && req.body.criteriaWise == false && scoringSystem == filesHelper.scoringSystem) {
-            bodyParam.dimensions.push("questionName","questionExternalId","questionResponseType","minScore","maxScore","observationSubmissionId","school","schoolName","districtName","questionId","completedDate","observationName");
-            bodyParam.filter.fields.push({"type":"or","fields":[{"type":"selector","dimension":"questionResponseType","value":"radio"},{"type":"selector","dimension":"questionResponseType","value":"multiselect"},{"type":"selector","dimension":"questionResponseType","value":"slider"}]})
+            bodyParam.dimensions.push("questionName", "questionExternalId", "questionResponseType", "minScore", "maxScore", "observationSubmissionId", "school", "schoolName", "districtName", "questionId", "completedDate", "observationName");
+            bodyParam.filter.fields.push({ "type": "or", "fields": [{ "type": "selector", "dimension": "questionResponseType", "value": "radio" }, { "type": "selector", "dimension": "questionResponseType", "value": "multiselect" }, { "type": "selector", "dimension": "questionResponseType", "value": "slider" }] })
         }
 
         if (req.body.scores == false && req.body.criteriaWise == true) {
-            bodyParam.dimensions.push("completedDate","questionName","questionAnswer","school","schoolName","entityType","observationName","observationId","questionResponseType","questionResponseLabel","observationSubmissionId","questionId","questionExternalId","instanceId","instanceParentQuestion","instanceParentResponsetype","instanceParentId","instanceParentEcmSequence","instanceParentExternalId","criteriaName","criteriaId","instanceParentCriteriaName","instanceParentCriteriaId");
+            bodyParam.dimensions.push("completedDate", "questionName", "questionAnswer", "school", "schoolName", "entityType", "observationName", "observationId", "questionResponseType", "questionResponseLabel", "observationSubmissionId", "questionId", "questionExternalId", "instanceId", "instanceParentQuestion", "instanceParentResponsetype", "instanceParentId", "instanceParentEcmSequence", "instanceParentExternalId", "criteriaName", "criteriaId", "instanceParentCriteriaName", "instanceParentCriteriaId");
         }
 
         if (req.body.scores == true && req.body.criteriaWise == true && scoringSystem == filesHelper.scoringSystem) {
-            bodyParam.dimensions.push("questionName","questionExternalId","questionResponseType","minScore","maxScore","observationSubmissionId","school","schoolName","districtName","questionId","completedDate","observationName","criteriaName","criteriaId");
-            bodyParam.filter.fields.push({"type":"or","fields":[{"type":"selector","dimension":"questionResponseType","value":"radio"},{"type":"selector","dimension":"questionResponseType","value":"multiselect"},{"type":"selector","dimension":"questionResponseType","value":"slider"}]})
+            bodyParam.dimensions.push("questionName", "questionExternalId", "questionResponseType", "minScore", "maxScore", "observationSubmissionId", "school", "schoolName", "districtName", "questionId", "completedDate", "observationName", "criteriaName", "criteriaId");
+            bodyParam.filter.fields.push({ "type": "or", "fields": [{ "type": "selector", "dimension": "questionResponseType", "value": "radio" }, { "type": "selector", "dimension": "questionResponseType", "value": "multiselect" }, { "type": "selector", "dimension": "questionResponseType", "value": "slider" }] })
         }
 
         if (req.body.scores == true && req.body.criteriaWise == false && scoringSystem !== filesHelper.scoringSystem) {
@@ -340,9 +341,9 @@ exports.entityObservationReport = async function (req, res) {
                     entityType: req.body.entityType
                 });
 
-            if (req.body.scoring == false && req.body.criteriaWise == false) {
-               
-                chartData = await helperFunc.entityReportChart(data,  req.body.entityId, req.body.entityType);
+            if (req.body.scores == false && req.body.criteriaWise == false) {
+
+                chartData = await helperFunc.entityReportChart(data, req.body.entityId, req.body.entityType);
 
                 if (evidenceData.result) {
                     response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
@@ -363,39 +364,38 @@ exports.entityObservationReport = async function (req, res) {
                 }
             }
 
-        }
 
-        if (req.body.scores == true && req.body.criteriaWise == false && scoringSystem == filesHelper.scoringSystem) {
+            if (req.body.scores == true && req.body.criteriaWise == false && scoringSystem == filesHelper.scoringSystem) {
 
-            chartData = await helperFunc.entityScoreReportChartObjectCreation(data);
-            chartData.entityName = data[0].event[req.body.entityType + "Name"];
+                chartData = await helperFunc.entityScoreReportChartObjectCreation(data);
+                chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
-            if (evidenceData.result) {
-                response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
-            } else {
-                response = chartData;
-            }
-
-            if (req.body.pdf) {
-                let pdfHeaderInput = {
-                    entityName: response.entityName,
-                    totalObservations: response.totalObservations
-                }
-                let pdfReport = await pdfHandler.instanceObservationScorePdfGeneration(response, storeReportsToS3 = false, pdfHeaderInput);
-                if (pdfReport.status && pdfReport.status == "success") {
-                    pdfReport.pdfUrl = pdfReportUrl + pdfReport.pdfUrl
-                    return resolve(pdfReport);
+                if (evidenceData.result) {
+                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
                 } else {
-                    return resolve(pdfReport);
+                    response = chartData;
                 }
-            } else {
-                return resolve(response);
+
+                if (req.body.pdf) {
+                    let pdfHeaderInput = {
+                        entityName: response.entityName,
+                        totalObservations: response.totalObservations
+                    }
+                    let pdfReport = await pdfHandler.instanceObservationScorePdfGeneration(response, storeReportsToS3 = false, pdfHeaderInput);
+                    if (pdfReport.status && pdfReport.status == "success") {
+                        pdfReport.pdfUrl = pdfReportUrl + pdfReport.pdfUrl
+                        return resolve(pdfReport);
+                    } else {
+                        return resolve(pdfReport);
+                    }
+                } else {
+                    return resolve(response);
+                }
             }
-        }
 
-        if (req.body.scores == false && req.body.criteriaWise == true) {
+            if (req.body.scores == false && req.body.criteriaWise == true) {
 
-            let reportType = "criteria";
+                let reportType = "criteria";
                 chartData = await helperFunc.entityReportChart(data, req.body.entityId, req.body.entityType, reportType);
 
                 if (evidenceData.result) {
@@ -403,7 +403,7 @@ exports.entityObservationReport = async function (req, res) {
                 } else {
                     response = chartData;
                 }
-               
+
                 response = await helperFunc.getCriteriawiseReport(response);
 
                 if (req.body.pdf) {
@@ -417,64 +417,65 @@ exports.entityObservationReport = async function (req, res) {
                 } else {
                     return resolve(response);
                 }
-        }
-
-        if (req.body.scores == true && req.body.criteriaWise == true && scoringSystem == filesHelper.scoringSystem) {
-            
-            let reportType = "criteria";
-            chartData = await helperFunc.instanceScoreReportChartObjectCreation(data, reportType);
-            chartData.entityName = data[0].event[req.body.entityType + "Name"];
-
-            if (evidenceData.result) {
-                response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
-            } else {
-                response = chartData;
             }
 
-            response = await helperFunc.getCriteriawiseReport(response);
+            if (req.body.scores == true && req.body.criteriaWise == true && scoringSystem == filesHelper.scoringSystem) {
 
-            if (req.body.pdf) {
-                let pdfHeaderInput = {
-                    entityName: response.entityName,
-                    totalObservations: response.totalObservations
+                let reportType = "criteria";
+                chartData = await helperFunc.instanceScoreReportChartObjectCreation(data, reportType);
+                chartData.entityName = data[0].event[req.body.entityType + "Name"];
+
+                if (evidenceData.result) {
+                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                } else {
+                    response = chartData;
                 }
 
-                let pdfReport = await pdfHandler.instanceScoreCriteriaPdfGeneration(response, storeReportsToS3 = false, pdfHeaderInput);
-                if (pdfReport.status && pdfReport.status == "success") {
+                response = await helperFunc.getCriteriawiseReport(response);
+
+                if (req.body.pdf) {
+                    let pdfHeaderInput = {
+                        entityName: response.entityName,
+                        totalObservations: response.totalObservations
+                    }
+
+                    let pdfReport = await pdfHandler.instanceScoreCriteriaPdfGeneration(response, storeReportsToS3 = false, pdfHeaderInput);
+                    if (pdfReport.status && pdfReport.status == "success") {
+                        pdfReport.pdfUrl = pdfReportUrl + pdfReport.pdfUrl
+                        return resolve(pdfReport);
+                    } else {
+                        return resolve(pdfReport);
+                    }
+
+                } else {
+                    return resolve(response);
+                }
+            }
+
+            if (req.body.scores == true && req.body.criteriaWise == false && scoringSystem !== filesHelper.scoringSystem) {
+
+                let response = {
+                    "result": true,
+                    "programName": data[0].event.programName,
+                    "solutionName": data[0].event.solutionName,
+                };
+
+                chartData = await helperFunc.entityLevelReportData(data);
+
+                response.reportSections = chartData;
+
+                if (req.body.pdf) {
+
+                    let pdfReport = await pdfHandler.assessmentAgainPdfReport(response, storeReportsToS3 = false);
                     pdfReport.pdfUrl = pdfReportUrl + pdfReport.pdfUrl
                     return resolve(pdfReport);
+
                 } else {
-                    return resolve(pdfReport);
+                    return resolve(response);
                 }
-
-            } else {
-                return resolve(response);
             }
+
         }
-
-        if (req.body.scores == true && req.body.criteriaWise == false && scoringSystem !== filesHelper.scoringSystem) {
-
-            let response = {
-                "result": true,
-                "programName": data[0].event.programName,
-                "solutionName": data[0].event.solutionName,
-            };
-
-            chartData = await helperFunc.entityLevelReportData(data);
-
-            response.reportSections = chartData;
-
-            if (req.body.pdf) {
-
-                let pdfReport = await pdfHandler.assessmentAgainPdfReport(response, storeReportsToS3 = false);
-                pdfReport.pdfUrl = pdfReportUrl + pdfReport.pdfUrl
-                return resolve(pdfReport);
-
-            } else {
-               return resolve(response);
-            }
-        }
-
     })
 }
 

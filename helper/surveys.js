@@ -119,7 +119,7 @@ exports.surveySolutionReport = async function (req, res) {
                 })
 
             if (!data.length) {
-                res.send({
+                return resolve({
                     result: false,
                     message: "SUBMISSIONS_NOT_FOUND"
                 })
@@ -141,7 +141,7 @@ exports.surveySolutionReport = async function (req, res) {
                     response = chartData;
                 }
 
-                res.send(response);
+                return resolve(response);
             }
         }
         catch (err) {
@@ -391,8 +391,3 @@ async function getEvidenceData(inputObj) {
     })
 }
 
-
-
-module.exports = {
-    getEvidenceData: getEvidenceData
-}
