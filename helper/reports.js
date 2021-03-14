@@ -135,7 +135,7 @@ exports.instaceObservationReport = async function (req, res) {
                         totalScore: response.totalScore,
                         scoreAchieved: response.scoreAchieved
                     }
-                    let pdfReport = await pdfHandler.instanceScoreCriteriaPdfGeneration(response, storeReportsToS3 = false, pdfHeaderInput);
+                    let pdfReport = await pdfHandler.instanceObservationScorePdfGeneration(response, storeReportsToS3 = false, pdfHeaderInput);
                     if (pdfReport.status && pdfReport.status == "success") {
                         pdfReport.pdfUrl = pdfReportUrl + pdfReport.pdfUrl
                         return resolve(pdfReport);
@@ -422,7 +422,7 @@ exports.entityObservationReport = async function (req, res) {
             if (req.body.scores == true && req.body.criteriaWise == true && scoringSystem == filesHelper.scoringSystem) {
 
                 let reportType = "criteria";
-                chartData = await helperFunc.instanceScoreReportChartObjectCreation(data, reportType);
+                chartData = await helperFunc.entityScoreReportChartObjectCreation(data, reportType);
                 chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
@@ -511,11 +511,11 @@ const getScoringSystem = async function (inputData) {
         let scoringSystem = "";
 
         if (inputData.submissionId) {
-            query = { "queryType": "groupBy", "dataSource": process.env.OBSERVATION_DATASOURCE_NAME, "granularity": "all", "dimensions": ["scoringSystem"], "filter": { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }, "aggregations": [], "postAggregations": [], "limitSpec": {}, "intervals": ["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"] }
+            query = { "queryType": "groupBy", "dataSource": process.env.OBSERVATION_DATASOURCE_NAME, "granularity": "all", "dimensions": ["scoringSystem"], "filter": { "type": "selector", "dimension": "observationSubmissionId", "value": inputData.submissionId }, "aggregations": [], "postAggregations": [], "limitSpec": {}, "intervals": ["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"] }
         }
 
         if (inputData.entityId && inputData.observationId) {
-            query = { "queryType": "groupBy", "dataSource": process.env.OBSERVATION_DATASOURCE_NAME, "granularity": "all", "dimensions": ["scoringSystem"], "filter": { "type": "and", "fileds": [{ "type": "selector", "dimension": entityType, "value": entityId }, { "type": "selector", "dimension": "observationId", "value": observationId }] }, "aggregations": [], "postAggregations": [], "limitSpec": {}, "intervals": ["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"] }
+            query = { "queryType": "groupBy", "dataSource": process.env.OBSERVATION_DATASOURCE_NAME, "granularity": "all", "dimensions": ["scoringSystem"], "filter": { "type": "and", "fields": [{ "type": "selector", "dimension": inputData.entityType, "value": inputData.entityId }, { "type": "selector", "dimension": "observationId", "value": inputData.observationId }] }, "aggregations": [], "postAggregations": [], "limitSpec": {}, "intervals": ["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"] }
         }
 
         //pass the query get the result from druid
@@ -556,10 +556,8 @@ async function getEvidenceData(inputObj) {
           filter = { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }
         } else if (entityId && observationId) {
           filter = { "type": "and", "fileds": [{ "type": "selector", "dimension": entityType, "value": entityId }, { "type": "selector", "dimension": "observationId", "value": observationId }] }
-        } else if (observationId) {
-          filter = { "type": "selector", "dimension": "observationId", "value": observationId }
-        }
-  
+        } 
+
         if (process.env.OBSERVATION_EVIDENCE_DATASOURCE_NAME) {
           bodyParam.dataSource = process.env.OBSERVATION_EVIDENCE_DATASOURCE_NAME;
         }

@@ -1282,7 +1282,7 @@ async function entityScoreObjectCreateFunc(data, threshold) {
                     yAxes: [{
                         ticks: {
                             min: 0,
-                            max: yAxisMaxValue
+                            max: parseInt(yAxisMaxValue)
                         },
 
                         scaleLabel: {

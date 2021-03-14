@@ -2919,7 +2919,7 @@ const getChartObject = async function (data) {
             };
         }
         
-        if (chartObj.options.type == "horizontalBar")
+        if (chartObj.options.type == "horizontalBar") {
         if (!chartObj.options.options.scales["yAxes"] || !chartObj.options.options.scales["yAxes"][0]["ticks"] ) {
             if (!chartObj.options.options.scales["yAxes"]) {
                chartObj.options.options.scales["yAxes"] = [{}];
@@ -2942,6 +2942,7 @@ const getChartObject = async function (data) {
                 },
                 fontSize: 12,
             }
+        }
         }
 
         chartOptions.push(chartObj)
