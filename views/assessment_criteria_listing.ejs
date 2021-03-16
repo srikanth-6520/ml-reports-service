@@ -2,7 +2,36 @@
 
   <h4><%= assessmentRes.chart.title %></h4>
 
-  <% for(var i =0; i < assessmentRes.chart.entities.length; i++) { %>
+  <% if (assessmentRes.isAssessAgain) { %> 
+     <div style="border: solid 1px #D8D8D8;background-color: #fff">
+    <% for(let i=0; i < assessmentRes.chart.domains.length; i++) { %>
+    <h5 style="margin-top:10px"><%= assessmentRes.chart.domains[i].domainName%></h5>
+    <table class="table table-striped">
+      <thead>
+      <tr>
+        <th>Criterias</th>
+        <% for(let j=0; j < assessmentRes.chart.heading.length; j++) { %>
+          <th><%= assessmentRes.chart.heading[j] %></th>
+        <% } %>
+      </tr>
+      </thead>
+      <tbody>
+        <% for(let k=0; k < assessmentRes.chart.domains[i].criterias.length; k++) { %>
+        <tr>
+          <td><%= assessmentRes.chart.domains[i].criterias[k].name%></td>
+          <% for(let level=0; level < assessmentRes.chart.domains[i].criterias[k].levels.length; level++) { %>
+          <td><%= assessmentRes.chart.domains[i].criterias[k].levels[level]%></td>
+          <% } %>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>  
+    <% } %>
+  </div>
+
+
+  <% } else {%>
+     <% for(var i =0; i < assessmentRes.chart.entities.length; i++) { %>
 
     <h4><%= assessmentRes.chart.entities[i].entityName %></h4>
 
@@ -12,26 +41,29 @@
 
       <h5 style="margin-top:10px"><%= assessmentRes.chart.entities[i].domains[j].domainName%></h5>
 
-      <table class="table table-striped">
-        <thead>
-        <tr>
-          <th>Criterias</th>
-          <th>Level</th>
-        </tr>
-        </thead>
-        <tbody>
-          <% for(var k=0; k < assessmentRes.chart.entities[i].domains[j].criterias.length; k++) { %>
+     
+        <table class="table table-striped">
+          <thead>
           <tr>
-            <td><%= assessmentRes.chart.entities[i].domains[j].criterias[k].name%></td>
-            <td><%= assessmentRes.chart.entities[i].domains[j].criterias[k].level%></td>
+            <th>Criterias</th>
+            <th>Level</th>
           </tr>
-          <% } %>
-        </tbody>
-      </table>
-
+          </thead>
+          <tbody>
+            <% for(var k=0; k < assessmentRes.chart.entities[i].domains[j].criterias.length; k++) { %>
+            <tr>
+              <td><%= assessmentRes.chart.entities[i].domains[j].criterias[k].name%></td>
+              <td><%= assessmentRes.chart.entities[i].domains[j].criterias[k].level%></td>
+            </tr>
+            <% } %>
+          </tbody>
+        </table>  
+      <% } %>
+   
     </div>
 
     <% } %>
     <% } %>
-  
-  </div>
+   
+ 
+</div>
