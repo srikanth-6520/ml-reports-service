@@ -813,7 +813,7 @@ async function programListRespObjCreate(data) {
 }
 
 //Function to create stacked bar chart response object for entity assessment API  
-exports.entityAssessmentChart = async function (inputObj) {
+exports.entityAssessmentChart = async function (inputObj, requestToPdf= false) {
     return new Promise(async function (resolve, reject) {
 
         let entityName = inputObj.entityName;
@@ -915,7 +915,7 @@ exports.entityAssessmentChart = async function (inputObj) {
 
         //loop the domain keys and construct level array for stacked bar chart
         let domainKeys = Object.keys(domainObj);
-        let obj = {};
+        let levelCountbject = {};
         domainArray = domainKeys;
 
         for (let domainKey = 0; domainKey < domainKeys.length; domainKey++) {
@@ -923,30 +923,29 @@ exports.entityAssessmentChart = async function (inputObj) {
             let levelKeys = Object.keys(levels);
             for (level in dynamicLevelObj) {
                 if (levelKeys.includes(level)) {
-                    dynamicLevelObj[level].push({
-                        y: levels[level][level],
-                        entityId: levels[level].entityId
-                    });
+                    dynamicLevelObj[level].push(levels[level][level]);
                 } else {
-                    dynamicLevelObj[level].push({
-                        y: 0,
-                        entityId: ""
-                    });
+                    dynamicLevelObj[level].push(0);
                 }
             }
         }
 
         //sort the levels
         Object.keys(dynamicLevelObj).sort().forEach(function (key) {
-            obj[key] = dynamicLevelObj[key];
+            levelCountbject[key] = dynamicLevelObj[key];
         });
 
-        let series = [];
-        for (level in obj) {
-            series.push({
-                name: level,
-                data: obj[level]
+        let datasets = [];
+        let backgroundColors = ['rgb(255, 99, 132)','rgb(54, 162, 235)','rgb(255, 206, 86)','rgb(231, 233, 237)','rgb(75, 192, 192)','rgb(151, 187, 205)','rgb(220, 220, 220)','rgb(247, 70, 74)','rgb(70, 191, 189)','rgb(253, 180, 92)','rgb(148, 159, 177)','rgb(77, 83, 96)','rgb(95, 101, 217)','rgb(170, 95, 217)','rgb(140, 48, 57)','rgb(209, 6, 40)','rgb(68, 128, 51)','rgb(125, 128, 51)','rgb(128, 84, 51)','rgb(179, 139, 11)']
+        let i = 0;
+
+        for (level in levelCountbject) {
+            datasets.push({
+                label: level,
+                data: levelCountbject[level],
+                backgroundColor: backgroundColors[i]
             })
+            i++;
         }
 
         let chartTitle = "";
@@ -964,23 +963,43 @@ exports.entityAssessmentChart = async function (inputObj) {
                 {
                     order: 1,
                     chart: {
-                        type: "bar",
+                        type: "horizontalBar",
                         nextChildEntityType: inputObj.childEntity,
-                        stacking: "percent",
-                        title: "Criteria vs level mapping aggregated at " + chartTitle + " level",
-                        xAxis: {
-                            categories: domainArray,
-                            title: ""
+                        data: {
+                            labels: domainArray,
+                            datasets: datasets
                         },
-                        yAxis: {
+                        options: {
                             title: {
-                                text: "Criteria"
-                            }
-                        },
-                        data: series
+                                display: true,
+                                text: "Criteria vs level mapping aggregated at " + chartTitle + " level",
+                                fontSize: 24
+                            },
+                            scales: {
+                                xAxes: [{
+                                    stacked: true,
+                                    gridLines: { display: false },
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Criteria'
+                                    }
+                                }],
+                                yAxes: [{
+                                    stacked: true
+                                }],
+                            },
+                            legend: { 
+                                    display: true,
+                                    position : "bottom" 
+                                }
+                        }
                     }
                 }
             ]
+        }
+
+        if (requestToPdf) {
+            chartObj.domainLevelObject = domainObj; 
         }
 
         let domainCriteriaArray = [];
@@ -2148,7 +2167,7 @@ const createSolutionsArray = async function (data) {
 
 
 //Report for entity level report in assessments
-exports.entityLevelReportData = async function (data) {
+exports.entityLevelReportData = async function (data, requestToPdf= false) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -2159,7 +2178,7 @@ exports.entityLevelReportData = async function (data) {
 
         let totalSubmissions = completedDateKeys.length;
 
-        let threshold = process.env.ASSESSMENT_SUBMISSION_REPORT_THRESHOLD ? process.env.ASSESSMENT_SUBMISSION_REPORT_THRESHOLD : default_no_of_assessment_submissions_threshold;
+        let threshold = process.env.ASSESSMENT_SUBMISSION_REPORT_THRESHOLD ? parseInt(process.env.ASSESSMENT_SUBMISSION_REPORT_THRESHOLD) : default_no_of_assessment_submissions_threshold;
 
         if (typeof threshold !== "number") {
             throw new Error("no_of_assessment_submissions_threshold value should be integer");
@@ -2174,7 +2193,7 @@ exports.entityLevelReportData = async function (data) {
             completedDateKeys = dateArray;
         }
 
-        let response = await entityLevelReportChartCreateFunc(groupedSubmissionData, completedDateKeys.sort());
+        let response = await entityLevelReportChartCreateFunc(groupedSubmissionData, completedDateKeys.sort(), requestToPdf);
 
         let result = [];
         if (response.length > 0) {
@@ -2194,7 +2213,7 @@ exports.entityLevelReportData = async function (data) {
 }
 
 //Chart data preparation for entity level assessment report
-const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, completedDateArray) {
+const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, completedDateArray,  requestToPdf= false) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -2361,12 +2380,18 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
             obj[key] = dynamicLevelObj[key];
         });
 
+        let backgroundColors = ['rgb(255, 99, 132)','rgb(54, 162, 235)','rgb(255, 206, 86)','rgb(231, 233, 237)','rgb(75, 192, 192)','rgb(151, 187, 205)','rgb(220, 220, 220)','rgb(247, 70, 74)','rgb(70, 191, 189)','rgb(253, 180, 92)','rgb(148, 159, 177)','rgb(77, 83, 96)','rgb(95, 101, 217)','rgb(170, 95, 217)','rgb(140, 48, 57)','rgb(209, 6, 40)','rgb(68, 128, 51)','rgb(125, 128, 51)','rgb(128, 84, 51)','rgb(179, 139, 11)'];
+        let i = 0;
+  
         let series = [];
         for (level in obj) {
             series.push({
-                name: level,
-                data: obj[level]
+                label: level,
+                data: obj[level],
+                backgroundColor: backgroundColors[i]
             })
+
+            i++;
         }
 
         submissionDateArray = await getDateTime(submissionDateArray);
@@ -2374,38 +2399,42 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
         let chartObj = {
             order: 1,
             chart: {
-                type: 'bar',
+                type: 'horizontalBar',
                 title: "",
-                xAxis: [{
-                    categories: domainNameArray
-
+                submissionDateArray: submissionDateArray,
+                data: {
+                    labels: domainNameArray,
+                    datasets: series,
                 },
-                {
-                    opposite: true,
-                    reversed: false,
-                    categories: submissionDateArray,
-                    linkedTo: 0
-                },
-                ],
-                yAxis: {
-                    min: 0,
+                options: {
                     title: {
-                        text: 'Criteria'
-                    }
-                },
-                legend: {
-                    reversed: true
-                },
-                plotOptions: {
-                    series: {
-                        stacking: 'percent'
-                    }
-                },
-                data: series
-
+                        display: true,
+                        text: ""
+                    },
+                    scales: {
+                        xAxes: [{
+                            stacked: true,
+                            gridLines: { display: false },
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Criteria'
+                            }
+                        }],
+                        yAxes: [{
+                            stacked: true
+                        }],
+                    },
+                    legend: { 
+                            display: true,
+                            position : "bottom" 
+                        }
+                }
             }
         }
-
+        
+        if (requestToPdf) {
+            chartObj.domainLevelObject = domainObj;
+        }
 
         let domainCriteriaKeys = Object.keys(domainCriteriaObj);
 
