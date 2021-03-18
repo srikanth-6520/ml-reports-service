@@ -462,7 +462,8 @@ exports.entityObservationReport = async function (req, res) {
 
                 chartData = await helperFunc.entityLevelReportData(data);
 
-                response.reportSections = chartData;
+                response.reportSections = chartData.result; 
+                response.filters = chartData.filters
 
                 if (response.reportSections[1].chart.totalSubmissions == 1) {
                     response.reportSections[0].chart.submissionDateArray = [];

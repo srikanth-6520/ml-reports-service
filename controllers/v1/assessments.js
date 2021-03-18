@@ -813,8 +813,9 @@ async function entityReportChartCreateFunction(req, res) {
 
                     let reportData = await helperFunc.entityLevelReportData(data);
 
-                    response.reportSections = reportData;
-
+                    response.reportSections = reportData.result; 
+                    response.filters = reportData.filters
+                   
                     return resolve(response);
                 }
             }

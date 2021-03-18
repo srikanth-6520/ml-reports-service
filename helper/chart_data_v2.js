@@ -2207,11 +2207,23 @@ exports.entityLevelReportData = async function (data) {
 
             //append total number of submissions value
             response[1].chart.totalSubmissions = totalSubmissions;
-            response[1].chart.submissions = submissions;
             result.push(response[1]);
         }
 
-        return resolve(result);
+        return resolve({
+            result : result,
+            filters =  [{
+                order: "",
+                filter: {
+                    type: "dropdown",
+                    title: "",
+                    keyToSend: "submissionId",
+                    data: submissions 
+                },
+            }]
+            
+
+        });
     }).
         catch(err => {
             return reject(err);
