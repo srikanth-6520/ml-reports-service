@@ -11,6 +11,8 @@ exports.instaceObservationReport = async function (req, res) {
 
     return new Promise(async function (resolve, reject) {
 
+        try {
+
         let bodyParam = gen.utils.getDruidQuery("instance_observation_query");
 
         if (process.env.OBSERVATION_DATASOURCE_NAME) {
@@ -227,6 +229,13 @@ exports.instaceObservationReport = async function (req, res) {
             }
 
         }
+    }
+    catch(err) {
+        return resolve({
+            result: false,
+            message: err.message
+        });
+    }
     })
 
 }
@@ -235,6 +244,8 @@ exports.instaceObservationReport = async function (req, res) {
 exports.entityObservationReport = async function (req, res) {
 
     return new Promise(async function (resolve, reject) {
+
+        try {
 
         let bodyParam = gen.utils.getDruidQuery("entity_observation_query");
 
@@ -480,6 +491,13 @@ exports.entityObservationReport = async function (req, res) {
                 }
             }
 
+        }
+        }
+        catch(err) {
+            return resolve({
+                result: false,
+                message: err.message
+            });
         }
     })
 }

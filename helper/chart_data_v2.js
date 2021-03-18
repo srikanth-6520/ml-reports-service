@@ -2212,7 +2212,7 @@ exports.entityLevelReportData = async function (data) {
 
         return resolve({
             result : result,
-            filters =  [{
+            filters :  [{
                 order: "",
                 filter: {
                     type: "dropdown",
