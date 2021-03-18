@@ -1,7 +1,5 @@
-const pdfHandler = require('../../helper/common_handler');
-const assessmentController = require('./assessments');
-const storePdfReportsToS3 = (!process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF || process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF != "OFF") ? "ON" : "OFF"
-
+const pdfHandler = require('../../helper/common_handler_v2');
+const assessmentsHelper =  require('../../helper/assessments.js');
 
 //Function to generate PDF for entity assessment API (For earlier version of the app)
 exports.pdfReports = async function (req, res) {
@@ -15,8 +13,8 @@ exports.pdfReports = async function (req, res) {
         res.send(response);
     }
     else {
-
-        let assessmentRes = await assessmentController.assessmentReportGetChartData(req, res);
+       
+        let assessmentRes = await assessmentsHelper.assessmentReportGetChartData(req, res);
         
         if (assessmentRes.result == true) {
 

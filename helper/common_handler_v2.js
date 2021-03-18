@@ -965,20 +965,15 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
 
     return new Promise(async function (resolve, reject) {
 
-        var currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
+        let currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
 
-        var imgPath = __dirname + '/../' + currentTempFolder;
-
-        // var FormData = [];
-
+        let imgPath = __dirname + '/../' + currentTempFolder;
 
         try {
+            
+            let assessmentChartData = await getAssessmentChartData(assessmentRes);
+            let chartData = await getChartObject([assessmentChartData.reportSections[0]]);
 
-            var assessmentData = [assessmentRes.reportSections[0]]
-            assessmentData[0].responseType = "stackedbar";
-            var chartData = await getSelectedData(assessmentData, "stackedbar");
-
-            // console.log("imgPath",imgPath);
             if (!fs.existsSync(imgPath)) {
                 fs.mkdirSync(imgPath);
             }
@@ -990,10 +985,10 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
 
             let FormData = [];
 
-            let formDataAssessment = await apiCallToHighChart(chartData, imgPath, "stackedbar");
+            let formDataAssessment = await createChart(chartData, imgPath);
 
             FormData.push(...formDataAssessment);
-            var params = {
+            let params = {
                 assessmentName: "Institutional Assessment Report"
             }
             ejs.renderFile(__dirname + '/../views/assessment_header.ejs', {
@@ -1065,18 +1060,18 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
                                                     // console.log("optionsHtmlToPdf", optionsHtmlToPdf.formData.files);
                                                     var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
                                                     if (responseHtmlToPdf.statusCode == 200) {
-                                                        fs.writeFile(dir + '/entityAssessmentReport.pdf', pdfBuffer, 'binary', function (err) {
+                                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
                                                             if (err) {
                                                                 return console.log(err);
                                                             }
                                                             // console.log("The PDF was saved!");
                                                             const s3 = new AWS.S3(gen.utils.getAWSConnection());
                                                             const uploadFile = () => {
-                                                                fs.readFile(dir + '/entityAssessmentReport.pdf', (err, data) => {
+                                                                fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
                                                                     if (err) throw err;
                                                                     const params = {
                                                                         Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
-                                                                        Key: 'entityAssessmentPdfReports/' + uuidv4() + 'entityAssessmentReport.pdf', // file will be saved as testBucket/contacts.csv
+                                                                        Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf', // file will be saved as testBucket/contacts.csv
                                                                         Body: Buffer.from(data, null, 2),
                                                                         Expires: 10
                                                                     };
@@ -1185,237 +1180,335 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
 
 }
 
-//Prepare chart object to send it to highchart server
-async function getSelectedData(items, type) {
+const getAssessmentChartData = async function(assessmentData) {
+
+    let dataArray = [];
+    let j = 0;
+
+    for (let i =0; i < assessmentData.reportSections[0].chart.data.datasets.length; i++) {
+       dataArray = [...dataArray, ...assessmentData.reportSections[0].chart.data.datasets[i].data]
+    }
+    
+    let chartData = await convertChartDataToPercentage(assessmentData.domainLevelObject);
+
+    assessmentData.reportSections[0].chart.data.datasets = chartData;
+
+    assessmentData.reportSections[0].chart.options["plugins"] = {
+        datalabels: {
+            formatter: function(value, data) {
+             let labelValue = dataArray[j];
+             j++;
+             return labelValue;
+             }
+         }
+    }
+    
+    return assessmentData;
+
+}
+
+const convertChartDataToPercentage = async function (domainObj) {
+    let dynamicLevelObj = {};
+    let domainKeys = Object.keys(domainObj);
+
+    for (let i = 0; i < domainKeys.length; i++) {
+        let levels = Object.keys(domainObj[domainKeys[i]]);
+        let sum = 0;
+        for (let j = 0; j < levels.length; j++) {
+            if (!dynamicLevelObj[levels[j]]) {
+                dynamicLevelObj[levels[j]] = []
+            }
+            let levelObj = domainObj[domainKeys[i]][levels[j]];
+            sum += levelObj[levels[j]];
+        }
+        for (let k = 0; k < levels.length; k++) {
+            let levelObj = domainObj[domainKeys[i]][levels[k]];
+            levelObj[levels[k]] = ((levelObj[levels[k]] / sum) * 100).toFixed(2);
+        }
+    }
+   
+    let levelCountbject = {};
+   
+    for (let domainKey = 0; domainKey < domainKeys.length; domainKey++) {
+        let levels = domainObj[domainKeys[domainKey]];
+        let levelKeys = Object.keys(levels);
+        for (level in dynamicLevelObj) {
+            if (levelKeys.includes(level)) {
+                dynamicLevelObj[level].push(levels[level][level]);
+            } else {
+                dynamicLevelObj[level].push(0);
+            }
+        }
+    }
+   
+    //sort the levels
+    Object.keys(dynamicLevelObj).sort().forEach(function (key) {
+        levelCountbject[key] = dynamicLevelObj[key];
+    });
+
+    let datasets = [];
+    let backgroundColors = ['rgb(255, 99, 132)','rgb(54, 162, 235)','rgb(255, 206, 86)','rgb(231, 233, 237)','rgb(75, 192, 192)','rgb(151, 187, 205)','rgb(220, 220, 220)','rgb(247, 70, 74)','rgb(70, 191, 189)','rgb(253, 180, 92)','rgb(148, 159, 177)','rgb(77, 83, 96)','rgb(95, 101, 217)','rgb(170, 95, 217)','rgb(140, 48, 57)','rgb(209, 6, 40)','rgb(68, 128, 51)','rgb(125, 128, 51)','rgb(128, 84, 51)','rgb(179, 139, 11)']
+    let incrementor = 0;
+
+    for (level in levelCountbject) {
+        datasets.push({
+            label: level,
+            data: levelCountbject[level],
+            backgroundColor: backgroundColors[incrementor]
+        })
+        incrementor++;
+    }
+    
+    return datasets;
+}
+
+// Single submission and multiple submission assessment report
+exports.assessmentAgainPdfReport = async function (assessmentResponse, storeReportsToS3 = false) {
 
     return new Promise(async function (resolve, reject) {
 
-        let arrayOfChartData = [];
+        let currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
 
-        await Promise.all(items.map(async ele => {
+        let imgPath = __dirname + '/../' + currentTempFolder;
 
-            if (ele.responseType && ele.responseType == type) {
-                var chartType = "bar";
-                if (type == "radio") {
-                    chartType = "pie";
-                } else if (type == "stackedbar") {
-                    chartType = "stackedbar";
-                }
+        try {
 
-                let obj;
+            let assessmentChartData = await getAssessmentAgainChartData(assessmentResponse);
+            let chartData = await getChartObject([assessmentChartData.reportSections[0]]);
 
-                if (chartType == "bar" || chartType == "pie") {
+            // console.log("imgPath",imgPath);
+            if (!fs.existsSync(imgPath)) {
+                fs.mkdirSync(imgPath);
+            }
 
-                    obj = await createChartObject(ele, chartType);
+            let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
 
-                } else if (chartType == "stackedbar") {
-                    obj = {
-                        type: "svg",
-                        options: {
-                            chart: {
-                                type: 'bar'
-                            },
-                            colors: ['#D35400', '#F1C40F', '#3498DB', '#8E44AD', '#154360', '#145A32'],
+            // let headerFile = await copyBootStrapFile(__dirname + '/../views/header.html', imgPath + '/header.html');
+            let footerFile = await copyBootStrapFile(__dirname + '/../views/footer.html', imgPath + '/footer.html');
 
-                            title: {
-                                text: ele.chart.title
-                            },
-                            xAxis: {
-                                categories: ele.chart.xAxis.categories
-                            },
-                            yAxis: {
-                                min: 0,
-                                title: {
-                                    text: ele.chart.yAxis.title.text
-                                }
-                            },
-                            legend: {
-                                reversed: true
-                            },
-                            plotOptions: {
-                                series: {
-                                    stacking: ele.chart.stacking,
-                                    dataLabels: {
-                                        enabled: true
-                                    }
-                                }
-                            },
-                            credits: {
-                                enabled: false
-                            },
-                            series: ele.chart.data
-                        }
+            let FormData = [];
+
+            let formDataAssessment = await createChart(chartData, imgPath);
+
+            FormData.push(...formDataAssessment);
+            let params = {
+                assessmentName: assessmentResponse.programName
+            }
+            ejs.renderFile(__dirname + '/../views/assessment_header.ejs', {
+                data: params
+            })
+                .then(function (headerHtml) {
+                    var dir = imgPath;
+                    if (!fs.existsSync(dir)) {
+                        fs.mkdirSync(dir);
                     }
+                    fs.writeFile(dir + '/header.html', headerHtml, function (errWr, dataWr) {
+                        if (errWr) {
+                            throw errWr;
+                        } else {
 
-                }
-                arrayOfChartData.push(obj);
-            }
-        }));
-        return resolve(arrayOfChartData);
-    });
-}
+                            let obj = {
+                                path: formDataAssessment,
+                            };
 
+                            assessmentResponse.reportSections[1].isAssessAgain = true;
 
+                            ejs.renderFile(__dirname + '/../views/stacked_bar_assessment_template.ejs', {
+                                data: obj.path[0].options.filename,
+                                assessmentData: assessmentResponse.reportSections[1]
+                            })
+                                .then(function (dataEjsRender) {
+                                   
+                                    var dir = imgPath;
+                                    if (!fs.existsSync(dir)) {
+                                        fs.mkdirSync(dir);
+                                    }
+                                    fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
+                                        if (errWriteFile) {
+                                            throw errWriteFile;
+                                        } else {
 
-//Prepare chart object to send it to highchart server for observation score report
-async function getScoreChartObject(items) {
+                                            let optionsHtmlToPdf = gen.utils.getGotenbergConnection();
+                                            optionsHtmlToPdf.formData = {
+                                                files: [
+                                                ]
+                                            };
+                                            FormData.push({
+                                                value: fs.createReadStream(dir + '/index.html'),
+                                                options: {
+                                                    filename: 'index.html'
+                                                }
+                                            });
+                                            FormData.push({
+                                                value: fs.createReadStream(dir + '/style.css'),
+                                                options: {
+                                                    filename: 'style.css'
+                                                }
+                                            });
+                                            FormData.push({
+                                                value: fs.createReadStream(dir + '/header.html'),
+                                                options: {
+                                                    filename: 'header.html'
+                                                }
+                                            });
+                                            FormData.push({
+                                                value: fs.createReadStream(dir + '/footer.html'),
+                                                options: {
+                                                    filename: 'footer.html'
+                                                }
+                                            });
+                                            optionsHtmlToPdf.formData.files = FormData;
+                                            rp(optionsHtmlToPdf)
+                                                .then(function (responseHtmlToPdf) {
 
-    return new Promise(async function (resolve, reject) {
+                                                    let pdfBuffer = Buffer.from(responseHtmlToPdf.body);
+                                                    if (responseHtmlToPdf.statusCode == 200) {
+                                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
+                                                            if (err) {
+                                                                return console.log(err);
+                                                            }
+                                                            else {
+                                                                let folderPath = Buffer.from(currentTempFolder).toString('base64')
+                                                               
+                                                                let response = {
+                                                                    status: "success",
+                                                                    message: 'report generated',
+                                                                    pdfUrl: folderPath,
 
-        let arrayOfChartData = [];
+                                                                };
+                                                                return resolve(response);
+                                                            }
+                                                        });
+                                                    }
+                                                })
+                                                .catch(function (err) {
+                                                    resolve(err);
+                                                    throw err;
+                                                });
+                                        }
+                                    });
+                                })
+                                .catch(function (errEjsRender) {
+                                    console.log(errEjsRender);
+                                    resolve(errEjsRender);
+                                });
+                        }
+                    });
+                });
 
-        await Promise.all(items.map(async ele => {
-
-            let obj = await createScoreChartObject(ele);
-
-            arrayOfChartData.push(obj);
-
-        }));
-
-        return resolve(arrayOfChartData);
-
-    });
-}
-
-
-
-
-//Prepare chart object to send it to highchart server for criteria score report
-async function getCriteriaScoreChartObject(items) {
-
-    return new Promise(async function (resolve, reject) {
-
-        let arrayOfChartData = [];
-
-        await Promise.all(items.map(async element => {
-
-            await Promise.all(element.questionArray.map(async ele => {
-
-                let obj = await createScoreChartObject(ele);
-
-                arrayOfChartData.push(obj);
-
-            }));
-
-        }));
-
-        return resolve(arrayOfChartData);
-
-    });
-}
-
-
-
-async function createScoreChartObject(ele) {
-
-    return new Promise(async function (resolve, reject) {
-
-        let obj;
-
-        if (ele.chart.type == "pie") {
-
-            obj = {
-                order: ele.order,
-                type: "svg",
-                options: {
-                    title: {
-                        text: ele.question
-                    },
-                    // colors: ['#6c4fa1'],
-
-                    chart: {
-                        type: ele.chart.type
-                    },
-                    xAxis: ele.chart.xAxis,
-                    yAxis: ele.chart.yAxis,
-                    credits: ele.chart.credits,
-                    plotOptions: ele.chart.plotOptions,
-                    series: ele.chart.data
-                },
-                question: ele.question
-            };
+        } catch (err) {
+            return reject(err);
         }
-        else if (ele.chart.type == "bar") {
-
-            obj = {
-                order: ele.order,
-                type: "svg",
-                options: {
-                    title: {
-                        text: ele.question
-                    },
-                    chart: {
-                        type: ele.chart.type
-                    },
-                    colors: ['#D35400', '#F1C40F', '#3498DB', '#8E44AD', '#154360', '#145A32'],
-                    xAxis: ele.chart.xAxis,
-                    yAxis: ele.chart.yAxis,
-                    credits: ele.chart.credits,
-                    plotOptions: ele.chart.plotOptions,
-                    legend: ele.chart.legend,
-                    series: ele.chart.data
-                },
-                question: ele.question
-            };
-        }
-        else if (ele.chart.type == "scatter") {
-
-            obj = {
-                order: ele.order,
-                type: "svg",
-                options: {
-                    title: {
-                        text: ""
-                    },
-                    chart: {
-                        type: ele.chart.type
-                    },
-                    xAxis: ele.chart.xAxis,
-                    yAxis: ele.chart.yAxis,
-                    plotOptions: ele.chart.plotOptions,
-                    credits: ele.chart.credits,
-                    legend: ele.chart.legend,
-                    series: ele.chart.data
-                }
-            };
-
-            if (ele.question) {
-                obj.question = ele.question;
-                obj.options.title.text = ele.question;
-            }
-
-            if (ele.schoolName) {
-                obj.options.title.text = ele.schoolName;
-            }
-
-        }
-        else if (ele.chart.type == "column") {
-
-            obj = {
-                order: ele.order,
-                type: "svg",
-                options: {
-                    title: {
-                        text: ele.question
-                    },
-                    chart: {
-                        type: ele.chart.type
-                    },
-                    xAxis: ele.chart.xAxis,
-                    yAxis: ele.chart.yAxis,
-                    plotOptions: ele.chart.plotOptions,
-                    credits: ele.chart.credits,
-                    legend: ele.chart.legend,
-                    series: ele.chart.data
-                },
-                question: ele.question
-            };
-        }
-
-        return resolve(obj);
-
     })
 }
+
+const getAssessmentAgainChartData = async function(assessmentData) {
+
+    let actualChartData = [];
+    let j = 0;
+    let k = 0;
+   
+    for (let i =0; i < assessmentData.reportSections[0].chart.data.datasets.length; i++) {
+        actualChartData = [...actualChartData, ...assessmentData.reportSections[0].chart.data.datasets[i].data]
+    }
+   
+    let chartData = await convertAssessAgainChartDataToPercentage(assessmentData.reportSections[0].domainLevelObject);
+    
+    assessmentData.reportSections[0].chart.data.datasets = chartData;
+
+    assessmentData.reportSections[0].chart.options["plugins"] = {
+        datalabels: {
+            offset: 0,
+            anchor: "",
+            align: "top",
+            font: {
+              size: 8
+            },
+            formatter: function(value, data) {
+                if ((data.datasetIndex + 1) % chartData.length == 0) {
+                    let barValue = actualChartData[j]
+                    j++;
+                    if (assessmentData.reportSections[0].chart.submissionDateArray.length > 0) {
+                        let submissionValue = assessmentData.reportSections[0].chart.submissionDateArray[k];
+                        k++;
+                        return [barValue, "", submissionValue];
+                    } else {
+                        return barValue;
+                    }
+                }
+                else {
+                     let barValue = actualChartData[j];
+                     j++;
+                     return barValue;
+                }
+            }
+        }
+    }
+
+    return assessmentData;
+}
+
+const convertAssessAgainChartDataToPercentage = async function(domainObj) {
+    
+    let dynamicLevelObj = {};
+    let domainKeys = Object.keys(domainObj);
+
+    for (let i = 0; i < domainKeys.length; i++) {
+        let dateKeys = Object.keys(domainObj[domainKeys[i]]);
+        for (let dateKey = 0; dateKey < dateKeys.length; dateKey++) {
+            let levels = domainObj[domainKeys[i]][dateKeys[dateKey]];
+            let sum = 0;
+            for (level in levels) {
+                if (!dynamicLevelObj[level]) {
+                   dynamicLevelObj[level] = []
+                }
+                sum += levels[level];
+            }
+    
+            for (level in levels) {
+                 levels[level] = ((levels[level] / sum) * 100).toFixed(2);
+            }
+        }
+    }
+    
+    let levelCountbject = {};
+   
+    for (let i = 0; i < domainKeys.length; i++) {
+        let dateKeys = Object.keys(domainObj[domainKeys[i]]);
+        for (let dateKey = 0; dateKey < dateKeys.length; dateKey++) {
+            let levels = domainObj[domainKeys[i]][dateKeys[dateKey]];
+           
+            for (level in dynamicLevelObj) {
+                if (Object.keys(levels).includes(level)) {
+                    dynamicLevelObj[level].push(levels[level]);
+                } else {
+                    dynamicLevelObj[level].push(0);
+                }
+            }
+        }
+    }
+
+    //sort the levels
+    Object.keys(dynamicLevelObj).sort().forEach(function (key) {
+        levelCountbject[key] = dynamicLevelObj[key];
+    });
+
+    let datasets = [];
+    let backgroundColors = ['rgb(255, 99, 132)','rgb(54, 162, 235)','rgb(255, 206, 86)','rgb(231, 233, 237)','rgb(75, 192, 192)','rgb(151, 187, 205)','rgb(220, 220, 220)','rgb(247, 70, 74)','rgb(70, 191, 189)','rgb(253, 180, 92)','rgb(148, 159, 177)','rgb(77, 83, 96)','rgb(95, 101, 217)','rgb(170, 95, 217)','rgb(140, 48, 57)','rgb(209, 6, 40)','rgb(68, 128, 51)','rgb(125, 128, 51)','rgb(128, 84, 51)','rgb(179, 139, 11)']
+    let incrementor = 0;
+  
+    for (level in levelCountbject) {
+        datasets.push({
+            label: level,
+            data: levelCountbject[level],
+            backgroundColor: backgroundColors[incrementor]
+        })
+        incrementor++;
+    }
+    
+    return datasets;
+}
+
 
 //Unnati monthly report pdf generation function
 exports.unnatiViewFullReportPdfGeneration = async function (responseData, storeReportsToS3 = false) {
@@ -2817,13 +2910,16 @@ const getChartObject = async function (data) {
                plugin : {}
            };
         }
-        chartObj.options.options.title = {
-            display: true,
-            text: chartData.question,
-            fontSize: 22
-        };
+
+        if (!chartObj.options.options.title) {
+            chartObj.options.options.title = {
+                display: true,
+                text: chartData.question,
+                fontSize: 22
+            };
+        }
         
-        if (chartObj.options.type == "horizontalBar")
+        if (chartObj.options.type == "horizontalBar") {
         if (!chartObj.options.options.scales["yAxes"] || !chartObj.options.options.scales["yAxes"][0]["ticks"] ) {
             if (!chartObj.options.options.scales["yAxes"]) {
                chartObj.options.options.scales["yAxes"] = [{}];
@@ -2846,6 +2942,7 @@ const getChartObject = async function (data) {
                 },
                 fontSize: 12,
             }
+        }
         }
 
         chartOptions.push(chartObj)
