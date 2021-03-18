@@ -61,7 +61,7 @@ exports.instaceObservationReport = async function (req, res) {
         }
 
         if (req.body.scores == true && req.body.criteriaWise == false && scoringSystem !== filesHelper.scoringSystem) {
-            bodyParam.dimensions.push("submissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "programName", "solutionName", "childExternalid", "childName", "childType");
+            bodyParam.dimensions.push("observationSubmissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "programName", "solutionName", "childExternalid", "childName", "childType");
         }
 
         //pass the query get the result from druid

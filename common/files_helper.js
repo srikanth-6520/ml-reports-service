@@ -11,5 +11,5 @@ module.exports = {
     survey: "survey",
     submission_status_completed: "completed",
     submission_not_found_message: "Your report generation is in progress. Please check back after a few minutes",
-    scoringSystem: "pointBasedScoring"
+    scoringSystem: "pointsBasedScoring"
 }
