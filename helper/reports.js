@@ -25,18 +25,25 @@ exports.instaceObservationReport = async function (req, res) {
         //Push criteriaId or questionId filter based on the report Type (question wise and criteria wise)
         if (req.body.criteriaWise == false && req.body.filter && req.body.filter.questionId && req.body.filter.questionId.length > 0) {
             bodyParam.filter.fields.push({ "type": "in", "dimension": "questionExternalId", "values": req.body.filter.questionId });
-            bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
         }
 
         if (req.body.criteriaWise == true && req.body.filter && req.body.filter.criteria && req.body.filter.criteria.length > 0) {
             bodyParam.filter.fields.push({ "type": "in", "dimension": "criteriaId", "values": req.body.filter.criteria });
-            bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
         }
+
+        bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
 
         let scoringSystem = "";
 
         if (req.body.scores == true) {
             scoringSystem = await getScoringSystem({ submissionId: req.body.submissionId});
+        }
+
+        if (req.body.scores == true && !scoringSystem) {
+            return resolve({
+                result: false,
+                message: "Report can't be generated for the invalid scoring system"
+            });
         }
 
         bodyParam.dimensions = [];
@@ -61,6 +68,7 @@ exports.instaceObservationReport = async function (req, res) {
         }
 
         if (req.body.scores == true && req.body.criteriaWise == false && scoringSystem !== filesHelper.scoringSystem) {
+            bodyParam.filter.fields.push({"type":"selector","dimension":"childType","value":"criteria"})
             bodyParam.dimensions.push("observationSubmissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "programName", "solutionName", "childExternalid", "childName", "childType");
         }
 
@@ -217,7 +225,14 @@ exports.instaceObservationReport = async function (req, res) {
 
                 chartData = await helperFunc.entityLevelReportData(data);
 
-                response.reportSections = chartData;
+                response.reportSections = chartData.result;
+
+                if (response.reportSections.length == 0) {
+                    return resolve({
+                        result: false,
+                        message: "Score values does not exists for the submissions"
+                    })
+                }
 
                 if (req.body.pdf) {
                     let pdfReport = await pdfHandler.assessmentAgainPdfReport(response, storeReportsToS3 = false);
@@ -283,6 +298,13 @@ exports.entityObservationReport = async function (req, res) {
             });
         }
 
+        if (req.body.scores == true && !scoringSystem) {
+            return resolve({
+                result: false,
+                message: "Report can't be generated for the invalid scoring system"
+            });
+        }
+
         bodyParam.dimensions = [];
 
         //Push dimensions to the query based on report type
@@ -305,6 +327,7 @@ exports.entityObservationReport = async function (req, res) {
         }
 
         if (req.body.scores == true && req.body.criteriaWise == false && scoringSystem !== filesHelper.scoringSystem) {
+            bodyParam.filter.fields.push({"type":"selector","dimension":"childType","value":"criteria"});
             bodyParam.filter.fields.push({"type":"selector","dimension":"createdBy","value": req.userDetails.userId});
             bodyParam.dimensions.push("observationSubmissionId", "submissionTitle", "completedDate", "domainName", "criteriaDescription", "level", "label", "programName", "solutionName", "childExternalid", "childName", "childType");
         }
@@ -474,7 +497,14 @@ exports.entityObservationReport = async function (req, res) {
                 chartData = await helperFunc.entityLevelReportData(data);
 
                 response.reportSections = chartData.result; 
-                response.filters = chartData.filters
+                response.filters = chartData.filters;
+
+                if (response.reportSections.length == 0) {
+                    return resolve({
+                        result: false,
+                        message: "Score values does not exists for the submissions"
+                    })
+                }
 
                 if (response.reportSections[1].chart.totalSubmissions == 1) {
                     response.reportSections[0].chart.submissionDateArray = [];
@@ -511,12 +541,18 @@ exports.surveyReport = async function (req, res) {
         if (req.body.submissionId) {
             let response = await surveysHelper.surveySubmissionReport(req, res);
             return resolve(response);
-        }
 
-        if (req.body.solutionId) {
+        } else if (req.body.solutionId) {
             let response = await surveysHelper.surveySolutionReport(req, res);
             return resolve(response);
+
+        } else {
+            return resolve({
+                result: false,
+                message: "Report can't be generated for invalid request"
+            })
         }
+
     })
 }
 
@@ -530,11 +566,11 @@ const getScoringSystem = async function (inputData) {
         let scoringSystem = "";
 
         if (inputData.submissionId) {
-            query = { "queryType": "groupBy", "dataSource": process.env.OBSERVATION_DATASOURCE_NAME, "granularity": "all", "dimensions": ["scoringSystem"], "filter": { "type": "selector", "dimension": "observationSubmissionId", "value": inputData.submissionId }, "aggregations": [], "postAggregations": [], "limitSpec": {}, "intervals": ["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"] }
+            query = { "queryType": "groupBy", "dataSource": process.env.OBSERVATION_DATASOURCE_NAME, "granularity": "all", "dimensions": ["scoringSystem"], "filter": { "type": "and", "fields": [{"type": "selector", "dimension": "observationSubmissionId", "value": inputData.submissionId },{ "type": "not", "field": { "type": "selector", "dimension": "scoringSystem", "value": "" }}]}, "aggregations": [], "postAggregations": [], "limitSpec": {}, "intervals": ["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"] }
         }
 
-        if (inputData.entityId && inputData.observationId) {
-            query = { "queryType": "groupBy", "dataSource": process.env.OBSERVATION_DATASOURCE_NAME, "granularity": "all", "dimensions": ["scoringSystem"], "filter": { "type": "and", "fields": [{ "type": "selector", "dimension": inputData.entityType, "value": inputData.entityId }, { "type": "selector", "dimension": "observationId", "value": inputData.observationId }] }, "aggregations": [], "postAggregations": [], "limitSpec": {}, "intervals": ["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"] }
+        if (inputData.entityId && inputData.observationId && inputData.entityType) {
+            query = { "queryType": "groupBy", "dataSource": process.env.OBSERVATION_DATASOURCE_NAME, "granularity": "all", "dimensions": ["scoringSystem"], "filter": { "type": "and", "fields": [{ "type": "selector", "dimension": inputData.entityType, "value": inputData.entityId }, { "type": "selector", "dimension": "observationId", "value": inputData.observationId },{ "type": "not", "field": { "type": "selector", "dimension": "scoringSystem", "value": "" } }] }, "aggregations": [], "postAggregations": [], "limitSpec": {}, "intervals": ["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"] }
         }
 
         //pass the query get the result from druid
@@ -543,7 +579,7 @@ const getScoringSystem = async function (inputData) {
         options.body = query;
         let data = await rp(options);
 
-        if (data.length) {
+        if (data.length > 0) {
             scoringSystem = data[0].event.scoringSystem;
         }
 

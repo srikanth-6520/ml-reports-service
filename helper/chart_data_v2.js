@@ -1118,7 +1118,7 @@ async function scoreObjectCreateFunction(data) {
     }
 
     let scoreAchieved = (data[0].event.minScore / data[0].event.maxScore) * 100;
-    value = parseFloat(scoreAchieved.toFixed(2));
+    scoreAchieved = parseFloat(scoreAchieved.toFixed(2));
 
     let scoreNotAchieved = 0;
 
