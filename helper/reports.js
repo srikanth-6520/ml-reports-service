@@ -25,13 +25,13 @@ exports.instaceObservationReport = async function (req, res) {
         //Push criteriaId or questionId filter based on the report Type (question wise and criteria wise)
         if (req.body.criteriaWise == false && req.body.filter && req.body.filter.questionId && req.body.filter.questionId.length > 0) {
             bodyParam.filter.fields.push({ "type": "in", "dimension": "questionExternalId", "values": req.body.filter.questionId });
+            bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
         }
 
         if (req.body.criteriaWise == true && req.body.filter && req.body.filter.criteria && req.body.filter.criteria.length > 0) {
             bodyParam.filter.fields.push({ "type": "in", "dimension": "criteriaId", "values": req.body.filter.criteria });
+            bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
         }
-
-        bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
 
         let scoringSystem = "";
 
@@ -67,7 +67,7 @@ exports.instaceObservationReport = async function (req, res) {
             bodyParam.filter.fields.push({"type":"or","fields":[{"type":"selector","dimension":"questionResponseType","value":"radio"},{"type":"selector","dimension":"questionResponseType","value":"multiselect"},{"type":"selector","dimension":"questionResponseType","value":"slider"}]})
         }
 
-        if (req.body.scores == true && req.body.criteriaWise == false && scoringSystem !== filesHelper.scoringSystem) {
+        if (req.body.scores == true && scoringSystem !== filesHelper.scoringSystem) {
             bodyParam.filter.fields.push({"type":"selector","dimension":"childType","value":"criteria"})
             bodyParam.dimensions.push("observationSubmissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "programName", "solutionName", "childExternalid", "childName", "childType");
         }
@@ -282,15 +282,17 @@ exports.entityObservationReport = async function (req, res) {
         bodyParam.filter.fields[0].dimension = entityType;
         bodyParam.filter.fields[0].value = req.body.entityId;
         bodyParam.filter.fields[1].value = req.body.observationId;
-        bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
+       
 
         // Push criteriaId or questionId filter based on the report Type (question wise and criteria wise)
         if (req.body.filter && req.body.filter.questionId && req.body.filter.questionId.length > 0) {
             bodyParam.filter.fields.push({ "type": "in", "dimension": "questionExternalId", "values": req.body.filter.questionId });
+            bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
         }
 
         if (req.body.filter && req.body.filter.criteria && req.body.filter.criteria.length > 0) {
             bodyParam.filter.fields.push({ "type": "in", "dimension": "criteriaId", "values": req.body.filter.criteria });
+            bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
         }
 
         let scoringSystem = "";
@@ -306,7 +308,7 @@ exports.entityObservationReport = async function (req, res) {
         if (req.body.scores == true && !scoringSystem) {
             return resolve({
                 result: false,
-                message: "Report can't be generated for the invalid scoring system"
+                message: "Data not found , for the given request"
             });
         }
 
@@ -331,7 +333,7 @@ exports.entityObservationReport = async function (req, res) {
             bodyParam.filter.fields.push({ "type": "or", "fields": [{ "type": "selector", "dimension": "questionResponseType", "value": "radio" }, { "type": "selector", "dimension": "questionResponseType", "value": "multiselect" }, { "type": "selector", "dimension": "questionResponseType", "value": "slider" }] })
         }
 
-        if (req.body.scores == true && req.body.criteriaWise == false && scoringSystem !== filesHelper.scoringSystem) {
+        if (req.body.scores == true && scoringSystem !== filesHelper.scoringSystem) {
             bodyParam.filter.fields.push({"type":"selector","dimension":"childType","value":"criteria"});
             bodyParam.filter.fields.push({"type":"selector","dimension":"createdBy","value": req.userDetails.userId});
             bodyParam.dimensions.push("observationSubmissionId", "submissionTitle", "completedDate", "domainName", "criteriaDescription", "level", "label", "programName", "solutionName", "childExternalid", "childName", "childType");
