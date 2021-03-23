@@ -42,7 +42,7 @@ exports.instaceObservationReport = async function (req, res) {
         if (req.body.scores == true && !scoringSystem) {
             return resolve({
                 result: false,
-                message: "Report can't be generated for the invalid scoring system"
+                message: "Data not found , for the given request"
             });
         }
 
@@ -216,7 +216,7 @@ exports.instaceObservationReport = async function (req, res) {
                 }
             }
 
-            if (req.body.scores == true && req.body.criteriaWise == false && scoringSystem !== filesHelper.scoringSystem) {
+            if (req.body.scores == true && scoringSystem !== filesHelper.scoringSystem) {
                 let response = {
                     "result": true,
                     "programName": data[0].event.programName,
@@ -230,14 +230,19 @@ exports.instaceObservationReport = async function (req, res) {
                 if (response.reportSections.length == 0) {
                     return resolve({
                         result: false,
-                        message: "Score values does not exists for the submissions"
+                        message: "Report can't be generated since Score values does not exists for the submission"
                     })
+                }
+
+  
+                if (response.reportSections[1].chart.totalSubmissions == 1) {
+                    response.reportSections[0].chart.submissionDateArray = [];
                 }
 
                 if (req.body.pdf) {
                     let pdfReport = await pdfHandler.assessmentAgainPdfReport(response, storeReportsToS3 = false);
                     pdfReport.pdfUrl = pdfReportUrl + pdfReport.pdfUrl
-                    return resolve(response);
+                    return resolve(pdfReport);
                 } else {
                    return resolve(response);
                 }
@@ -486,7 +491,7 @@ exports.entityObservationReport = async function (req, res) {
                 }
             }
 
-            if (req.body.scores == true && req.body.criteriaWise == false && scoringSystem !== filesHelper.scoringSystem) {
+            if (req.body.scores == true && scoringSystem !== filesHelper.scoringSystem) {
 
                 let response = {
                     "result": true,
