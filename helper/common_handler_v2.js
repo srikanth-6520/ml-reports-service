@@ -1419,10 +1419,10 @@ const getAssessmentAgainChartData = async function(assessmentData) {
     assessmentData.reportSections[0].chart.options["plugins"] = {
         datalabels: {
             offset: 0,
-            anchor: "",
-            align: "top",
+            anchor: "end",
+            align: "left",
             font: {
-              size: 8
+              size: 7
             },
             formatter: function(value, data) {
                 if ((data.datasetIndex + 1) % chartData.length == 0) {

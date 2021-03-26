@@ -33,17 +33,19 @@ exports.instaceObservationReport = async function (req, res) {
             bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
         }
 
-        let scoringSystem = "";
+        let criteriaLevelReport = false;
 
         if (req.body.scores == true) {
-            scoringSystem = await getScoringSystem({ submissionId: req.body.submissionId});
-        }
 
-        if (req.body.scores == true && !scoringSystem) {
-            return resolve({
-                result: false,
-                message: "Data not found , for the given request"
-            });
+            let getReportType = await getCriteriaLevelReportKey({ submissionId: req.body.submissionId});
+
+            if (!getReportType.length) {
+                return resolve({
+                    "data": filesHelper.submission_not_found_message
+                });
+            } else {
+                criteriaLevelReport = getReportType[0].event.criteriaLevelReport;
+            }
         }
 
         bodyParam.dimensions = [];
@@ -53,7 +55,7 @@ exports.instaceObservationReport = async function (req, res) {
             bodyParam.dimensions.push("questionName", "questionAnswer", "school", "districtName", "schoolName", "remarks", "entityType", "observationName", "observationId", "questionResponseType", "questionResponseLabel", "questionId", "questionExternalId", "instanceId", "instanceParentQuestion", "instanceParentResponsetype", "instanceParentId", "questionSequenceByEcm", "instanceParentExternalId", "instanceParentEcmSequence");
         }
 
-        if (req.body.scores == true && req.body.criteriaWise == false && scoringSystem == filesHelper.scoringSystem) {
+        if (req.body.scores == true && req.body.criteriaWise == false && criteriaLevelReport == false) {
             bodyParam.dimensions.push("questionName", "questionAnswer", "questionExternalId", "questionResponseType", "minScore", "maxScore", "totalScore", "scoreAchieved", "observationName");
             bodyParam.filter.fields.push({"type":"or","fields":[{"type":"selector","dimension":"questionResponseType","value":"radio"},{"type":"selector","dimension":"questionResponseType","value":"multiselect"},{"type":"selector","dimension":"questionResponseType","value":"slider"}]})
         }
@@ -62,12 +64,12 @@ exports.instaceObservationReport = async function (req, res) {
             bodyParam.dimensions.push("questionName", "questionAnswer", "school", "districtName", "schoolName", "remarks", "entityType", "observationName", "observationId", "questionResponseType", "questionResponseLabel", "questionId", "questionExternalId", "instanceId", "instanceParentQuestion", "instanceParentResponsetype", "instanceParentId", "questionSequenceByEcm", "instanceParentExternalId", "instanceParentEcmSequence", "criteriaName", "criteriaId", "instanceParentCriteriaName", "instanceParentCriteriaId");
         }
 
-        if (req.body.scores == true && req.body.criteriaWise == true && scoringSystem == filesHelper.scoringSystem) {
+        if (req.body.scores == true && req.body.criteriaWise == true && criteriaLevelReport == false) {
             bodyParam.dimensions.push("questionName", "schoolName", "districtName", "questionAnswer", "questionExternalId", "questionResponseType", "minScore", "maxScore", "totalScore", "scoreAchieved", "observationName", "criteriaName", "criteriaId");
             bodyParam.filter.fields.push({"type":"or","fields":[{"type":"selector","dimension":"questionResponseType","value":"radio"},{"type":"selector","dimension":"questionResponseType","value":"multiselect"},{"type":"selector","dimension":"questionResponseType","value":"slider"}]})
         }
 
-        if (req.body.scores == true && scoringSystem !== filesHelper.scoringSystem) {
+        if (req.body.scores == true && criteriaLevelReport == true) {
             bodyParam.filter.fields.push({"type":"selector","dimension":"childType","value":"criteria"})
             bodyParam.dimensions.push("observationSubmissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "programName", "solutionName", "childExternalid", "childName", "childType");
         }
@@ -130,7 +132,7 @@ exports.instaceObservationReport = async function (req, res) {
                 }
             }
 
-            if (req.body.scores == true && req.body.criteriaWise == false && scoringSystem == filesHelper.scoringSystem) {
+            if (req.body.scores == true && req.body.criteriaWise == false && criteriaLevelReport == false) {
 
                 chartData = await helperFunc.instanceScoreReportChartObjectCreation(data);
 
@@ -184,7 +186,7 @@ exports.instaceObservationReport = async function (req, res) {
                 }
             }
 
-            if (req.body.scores == true && req.body.criteriaWise == true && scoringSystem == filesHelper.scoringSystem) {
+            if (req.body.scores == true && req.body.criteriaWise == true && criteriaLevelReport == false) {
 
                 let reportType = "criteria";
                 chartData = await helperFunc.instanceScoreReportChartObjectCreation(data, reportType);
@@ -216,7 +218,7 @@ exports.instaceObservationReport = async function (req, res) {
                 }
             }
 
-            if (req.body.scores == true && scoringSystem !== filesHelper.scoringSystem) {
+            if (req.body.scores == true && criteriaLevelReport == true) {
                 let response = {
                     "result": true,
                     "programName": data[0].event.programName,
@@ -295,21 +297,22 @@ exports.entityObservationReport = async function (req, res) {
             bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
         }
 
-        let scoringSystem = "";
+        let criteriaLevelReport = false;
 
         if (req.body.scores == true) {
-            scoringSystem = await getScoringSystem({
+            let getReportType = await getCriteriaLevelReportKey({
                 entityId: req.body.entityId,
                 observationId: req.body.observationId,
                 entityType: req.body.entityType
             });
-        }
 
-        if (req.body.scores == true && !scoringSystem) {
-            return resolve({
-                result: false,
-                message: "Data not found , for the given request"
-            });
+            if (!getReportType.length) {
+                return resolve({
+                    "data": filesHelper.submission_not_found_message
+                });
+            } else {
+                criteriaLevelReport = getReportType[0].event.criteriaLevelReport;
+            }
         }
 
         bodyParam.dimensions = [];
@@ -319,7 +322,7 @@ exports.entityObservationReport = async function (req, res) {
             bodyParam.dimensions.push("completedDate", "questionName", "questionAnswer", "school", "schoolName", "entityType", "observationName", "observationId", "questionResponseType", "questionResponseLabel", "observationSubmissionId", "questionId", "questionExternalId", "instanceId", "instanceParentQuestion", "instanceParentResponsetype", "instanceParentId", "instanceParentEcmSequence", "instanceParentExternalId");
         }
 
-        if (req.body.scores == true && req.body.criteriaWise == false && scoringSystem == filesHelper.scoringSystem) {
+        if (req.body.scores == true && req.body.criteriaWise == false && criteriaLevelReport == false) {
             bodyParam.dimensions.push("questionName", "questionExternalId", "questionResponseType", "minScore", "maxScore", "observationSubmissionId", "school", "schoolName", "districtName", "questionId", "completedDate", "observationName");
             bodyParam.filter.fields.push({ "type": "or", "fields": [{ "type": "selector", "dimension": "questionResponseType", "value": "radio" }, { "type": "selector", "dimension": "questionResponseType", "value": "multiselect" }, { "type": "selector", "dimension": "questionResponseType", "value": "slider" }] })
         }
@@ -328,12 +331,12 @@ exports.entityObservationReport = async function (req, res) {
             bodyParam.dimensions.push("completedDate", "questionName", "questionAnswer", "school", "schoolName", "entityType", "observationName", "observationId", "questionResponseType", "questionResponseLabel", "observationSubmissionId", "questionId", "questionExternalId", "instanceId", "instanceParentQuestion", "instanceParentResponsetype", "instanceParentId", "instanceParentEcmSequence", "instanceParentExternalId", "criteriaName", "criteriaId", "instanceParentCriteriaName", "instanceParentCriteriaId");
         }
 
-        if (req.body.scores == true && req.body.criteriaWise == true && scoringSystem == filesHelper.scoringSystem) {
+        if (req.body.scores == true && req.body.criteriaWise == true && criteriaLevelReport == false) {
             bodyParam.dimensions.push("questionName", "questionExternalId", "questionResponseType", "minScore", "maxScore", "observationSubmissionId", "school", "schoolName", "districtName", "questionId", "completedDate", "observationName", "criteriaName", "criteriaId");
             bodyParam.filter.fields.push({ "type": "or", "fields": [{ "type": "selector", "dimension": "questionResponseType", "value": "radio" }, { "type": "selector", "dimension": "questionResponseType", "value": "multiselect" }, { "type": "selector", "dimension": "questionResponseType", "value": "slider" }] })
         }
 
-        if (req.body.scores == true && scoringSystem !== filesHelper.scoringSystem) {
+        if (req.body.scores == true && criteriaLevelReport == true) {
             bodyParam.filter.fields.push({"type":"selector","dimension":"childType","value":"criteria"});
             bodyParam.filter.fields.push({"type":"selector","dimension":"createdBy","value": req.userDetails.userId});
             bodyParam.dimensions.push("observationSubmissionId", "submissionTitle", "completedDate", "domainName", "criteriaDescription", "level", "label", "programName", "solutionName", "childExternalid", "childName", "childType");
@@ -406,7 +409,7 @@ exports.entityObservationReport = async function (req, res) {
             }
 
 
-            if (req.body.scores == true && req.body.criteriaWise == false && scoringSystem == filesHelper.scoringSystem) {
+            if (req.body.scores == true && req.body.criteriaWise == false && criteriaLevelReport == false) {
 
                 chartData = await helperFunc.entityScoreReportChartObjectCreation(data);
                 chartData.entityName = data[0].event[req.body.entityType + "Name"];
@@ -460,7 +463,7 @@ exports.entityObservationReport = async function (req, res) {
                 }
             }
 
-            if (req.body.scores == true && req.body.criteriaWise == true && scoringSystem == filesHelper.scoringSystem) {
+            if (req.body.scores == true && req.body.criteriaWise == true && criteriaLevelReport == false) {
 
                 let reportType = "criteria";
                 chartData = await helperFunc.entityScoreReportChartObjectCreation(data, reportType);
@@ -493,7 +496,7 @@ exports.entityObservationReport = async function (req, res) {
                 }
             }
 
-            if (req.body.scores == true && scoringSystem !== filesHelper.scoringSystem) {
+            if (req.body.scores == true && criteriaLevelReport == true) {
 
                 let response = {
                     "result": true,
@@ -509,7 +512,7 @@ exports.entityObservationReport = async function (req, res) {
                 if (response.reportSections.length == 0) {
                     return resolve({
                         result: false,
-                        message: "Score values does not exists for the submissions"
+                        message: "Report can't be generated since Score values does not exists for the submissions"
                     })
                 }
 
@@ -564,20 +567,19 @@ exports.surveyReport = async function (req, res) {
 }
 
 
-// Get scoring system
-const getScoringSystem = async function (inputData) {
+// Get criteriaLevelReport key value
+const getCriteriaLevelReportKey = async function (inputData) {
 
     return new Promise(async function (resolve, reject) {
 
         let query = {};
-        let scoringSystem = "";
 
         if (inputData.submissionId) {
-            query = { "queryType": "groupBy", "dataSource": process.env.OBSERVATION_DATASOURCE_NAME, "granularity": "all", "dimensions": ["scoringSystem"], "filter": { "type": "and", "fields": [{"type": "selector", "dimension": "observationSubmissionId", "value": inputData.submissionId },{ "type": "not", "field": { "type": "selector", "dimension": "scoringSystem", "value": "" }}]}, "aggregations": [], "postAggregations": [], "limitSpec": {}, "intervals": ["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"] }
+            query = { "queryType": "groupBy", "dataSource": process.env.OBSERVATION_DATASOURCE_NAME, "granularity": "all", "dimensions": ["criteriaLevelReport"], "filter": { "type": "and", "fields": [{"type": "selector", "dimension": "observationSubmissionId", "value": inputData.submissionId },{ "type": "not", "field": { "type": "selector", "dimension": "criteriaLevelReport", "value": "" }}]}, "aggregations": [], "postAggregations": [], "limitSpec": {}, "intervals": ["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"] }
         }
 
         if (inputData.entityId && inputData.observationId && inputData.entityType) {
-            query = { "queryType": "groupBy", "dataSource": process.env.OBSERVATION_DATASOURCE_NAME, "granularity": "all", "dimensions": ["scoringSystem"], "filter": { "type": "and", "fields": [{ "type": "selector", "dimension": inputData.entityType, "value": inputData.entityId }, { "type": "selector", "dimension": "observationId", "value": inputData.observationId },{ "type": "not", "field": { "type": "selector", "dimension": "scoringSystem", "value": "" } }] }, "aggregations": [], "postAggregations": [], "limitSpec": {}, "intervals": ["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"] }
+            query = { "queryType": "groupBy", "dataSource": process.env.OBSERVATION_DATASOURCE_NAME, "granularity": "all", "dimensions": ["criteriaLevelReport"], "filter": { "type": "and", "fields": [{ "type": "selector", "dimension": inputData.entityType, "value": inputData.entityId }, { "type": "selector", "dimension": "observationId", "value": inputData.observationId },{ "type": "not", "field": { "type": "selector", "dimension": "criteriaLevelReport", "value": "" } }] }, "aggregations": [], "postAggregations": [], "limitSpec": {}, "intervals": ["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"] }
         }
 
         //pass the query get the result from druid
@@ -586,11 +588,7 @@ const getScoringSystem = async function (inputData) {
         options.body = query;
         let data = await rp(options);
 
-        if (data.length > 0) {
-            scoringSystem = data[0].event.scoringSystem;
-        }
-
-        return resolve(scoringSystem);
+        return resolve(data);
 
     })
 }
