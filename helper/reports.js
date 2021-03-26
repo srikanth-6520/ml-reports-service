@@ -40,7 +40,8 @@ exports.instaceObservationReport = async function (req, res) {
              let getReportType = await getCriteriaLevelReportKey({ submissionId: req.body.submissionId});
             if (!getReportType.length) {
                 return resolve({
-                    "data": filesHelper.submission_not_found_message
+                    result: false,
+                    message: filesHelper.submission_not_found_message
                 });
             } else {
                 criteriaLevelReport = getReportType[0].event.criteriaLevelReport == "true";
@@ -97,7 +98,8 @@ exports.instaceObservationReport = async function (req, res) {
             }
 
             return resolve({
-                "data": message
+                result: false,
+                message: message
             });
         }
         else {
@@ -309,7 +311,8 @@ exports.entityObservationReport = async function (req, res) {
 
             if (!getReportType.length) {
                 return resolve({
-                    "data": filesHelper.submission_not_found_message
+                    result: false,
+                    message: filesHelper.submission_not_found_message
                 });
             } else {
                 criteriaLevelReport = getReportType[0].event.criteriaLevelReport == "true";
@@ -370,7 +373,8 @@ exports.entityObservationReport = async function (req, res) {
             }
 
             return resolve({
-                "data": message
+                result: false,
+                message: message
             });
         }
         else {
