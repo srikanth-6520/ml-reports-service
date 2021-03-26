@@ -37,17 +37,16 @@ exports.instaceObservationReport = async function (req, res) {
 
         if (req.body.scores == true) {
 
-            let getReportType = await getCriteriaLevelReportKey({ submissionId: req.body.submissionId});
-            console.log(getReportType);
+             let getReportType = await getCriteriaLevelReportKey({ submissionId: req.body.submissionId});
             if (!getReportType.length) {
                 return resolve({
                     "data": filesHelper.submission_not_found_message
                 });
             } else {
-                criteriaLevelReport = getReportType[0].event.criteriaLevelReport;
+                criteriaLevelReport = getReportType[0].event.criteriaLevelReport == "true";
             }
         }
-        console.log(criteriaLevelReport);
+
         bodyParam.dimensions = [];
 
         //Push dimensions to the query based on report type
@@ -313,7 +312,7 @@ exports.entityObservationReport = async function (req, res) {
                     "data": filesHelper.submission_not_found_message
                 });
             } else {
-                criteriaLevelReport = getReportType[0].event.criteriaLevelReport;
+                criteriaLevelReport = getReportType[0].event.criteriaLevelReport == "true";
             }
         }
 
