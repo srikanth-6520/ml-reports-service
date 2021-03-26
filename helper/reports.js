@@ -38,7 +38,7 @@ exports.instaceObservationReport = async function (req, res) {
         if (req.body.scores == true) {
 
             let getReportType = await getCriteriaLevelReportKey({ submissionId: req.body.submissionId});
-
+            console.log(getReportType);
             if (!getReportType.length) {
                 return resolve({
                     "data": filesHelper.submission_not_found_message
@@ -47,7 +47,7 @@ exports.instaceObservationReport = async function (req, res) {
                 criteriaLevelReport = getReportType[0].event.criteriaLevelReport;
             }
         }
-
+        console.log(criteriaLevelReport);
         bodyParam.dimensions = [];
 
         //Push dimensions to the query based on report type
@@ -70,6 +70,7 @@ exports.instaceObservationReport = async function (req, res) {
         }
 
         if (req.body.scores == true && criteriaLevelReport == true) {
+            console.log("coming inside assessment report");
             bodyParam.filter.fields.push({"type":"selector","dimension":"childType","value":"criteria"})
             bodyParam.dimensions.push("observationSubmissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "programName", "solutionName", "childExternalid", "childName", "childType");
         }
@@ -219,6 +220,7 @@ exports.instaceObservationReport = async function (req, res) {
             }
 
             if (req.body.scores == true && criteriaLevelReport == true) {
+                console.log("coming inside assessment report chart create function");
                 let response = {
                     "result": true,
                     "programName": data[0].event.programName,
