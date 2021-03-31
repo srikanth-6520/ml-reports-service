@@ -1,10 +1,10 @@
 const rp = require('request-promise');
 const request = require('request');
 const assessmentService = require('./assessment_service');
-const helperFunc = require('./chart_data_v2');
+const helperFunc = require('./chart_data_v3');
 const pdfHandler = require('./common_handler_v2');
 const filesHelper = require('../common/files_helper');
-const surveysHelper = require('./surveys');
+const surveysHelper = require('./surveys_v2');
 
 // Instance observation report
 exports.instaceObservationReport = async function (req, res) {
@@ -48,7 +48,7 @@ exports.instaceObservationReport = async function (req, res) {
             }
         }
 
-        bodyParam.dimensions = [];
+        bodyParam.dimensions = ["programName","solutionName"];
 
         //Push dimensions to the query based on report type
         if (req.body.scores == false && req.body.criteriaWise == false) {
@@ -72,7 +72,7 @@ exports.instaceObservationReport = async function (req, res) {
         if (req.body.scores == true && criteriaLevelReport == true) {
             console.log("coming inside assessment report");
             bodyParam.filter.fields.push({"type":"selector","dimension":"childType","value":"criteria"})
-            bodyParam.dimensions.push("observationSubmissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "programName", "solutionName", "childExternalid", "childName", "childType");
+            bodyParam.dimensions.push("observationSubmissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "childExternalid", "childName", "childType");
         }
 
         //pass the query get the result from druid
@@ -319,7 +319,7 @@ exports.entityObservationReport = async function (req, res) {
             }
         }
 
-        bodyParam.dimensions = [];
+        bodyParam.dimensions = ["programName","solutionName","submissionTitle"]
 
         //Push dimensions to the query based on report type
         if (req.body.scores == false && req.body.criteriaWise == false) {
@@ -343,7 +343,7 @@ exports.entityObservationReport = async function (req, res) {
         if (req.body.scores == true && criteriaLevelReport == true) {
             bodyParam.filter.fields.push({"type":"selector","dimension":"childType","value":"criteria"});
             bodyParam.filter.fields.push({"type":"selector","dimension":"createdBy","value": req.userDetails.userId});
-            bodyParam.dimensions.push("observationSubmissionId", "submissionTitle", "completedDate", "domainName", "criteriaDescription", "level", "label", "programName", "solutionName", "childExternalid", "childName", "childType");
+            bodyParam.dimensions.push("observationSubmissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "childExternalid", "childName", "childType");
         }
 
         //pass the query get the result from druid

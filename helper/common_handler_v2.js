@@ -458,7 +458,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
 
 
             var params = {
-                observationName: instaRes.observationName
+                observationName: instaRes.solutionName
             }
             ejs.renderFile(__dirname + '/../views/header.ejs', {
                 data: params
@@ -1717,7 +1717,7 @@ exports.instanceCriteriaReportPdfGeneration = async function (instanceResponse, 
             let formData = [];
 
             let params = {
-                observationName: instanceResponse.observationName
+                observationName: instanceResponse.solutionName
             }
             ejs.renderFile(__dirname + '/../views/header.ejs', {
                 data: params
@@ -1950,7 +1950,7 @@ exports.entityCriteriaPdfReportGeneration = async function (responseData, storeR
             formData.push(...radioFormData);
 
             let params = {
-                observationName: responseData.observationName
+                observationName: responseData.solutionName
             }
 
             ejs.renderFile(__dirname + '/../views/header.ejs', {
@@ -2209,7 +2209,7 @@ exports.instanceScoreCriteriaPdfGeneration = async function (observationResp, st
             let formData = await createChart(chartObj, imgPath);
 
             let params = {
-                observationName: observationResp.observationName
+                observationName: observationResp.solutionName
             }
 
             ejs.renderFile(__dirname + '/../views/header.ejs', {
