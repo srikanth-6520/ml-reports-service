@@ -2,7 +2,7 @@ const rp = require('request-promise');
 const request = require('request');
 const assessmentService = require('./assessment_service');
 const helperFunc = require('./chart_data_v3');
-const pdfHandler = require('./common_handler_v2');
+const pdfHandler = require('./common_handler_v3');
 const filesHelper = require('../common/files_helper');
 const surveysHelper = require('./surveys_v2');
 
