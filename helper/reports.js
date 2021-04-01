@@ -609,7 +609,7 @@ async function getEvidenceData(inputObj) {
       try {
   
         let submissionId = inputObj.submissionId;
-        let entityId = inputObj.entity;
+        let entityId = inputObj.entityId;
         let observationId = inputObj.observationId;
         let entityType = inputObj.entityType;
   
