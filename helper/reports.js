@@ -70,7 +70,6 @@ exports.instaceObservationReport = async function (req, res) {
         }
 
         if (req.body.scores == true && criteriaLevelReport == true) {
-            console.log("coming inside assessment report");
             bodyParam.filter.fields.push({"type":"selector","dimension":"childType","value":"criteria"})
             bodyParam.dimensions.push("observationSubmissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "childExternalid", "childName", "childType");
         }
@@ -114,6 +113,7 @@ exports.instaceObservationReport = async function (req, res) {
             if (req.body.scores == false && req.body.criteriaWise == false) {
 
                 chartData = await helperFunc.instanceReportChart(data);
+                chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
                     response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
@@ -137,6 +137,7 @@ exports.instaceObservationReport = async function (req, res) {
             if (req.body.scores == true && req.body.criteriaWise == false && criteriaLevelReport == false) {
 
                 chartData = await helperFunc.instanceScoreReportChartObjectCreation(data);
+                chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
                     response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
@@ -165,6 +166,7 @@ exports.instaceObservationReport = async function (req, res) {
 
                 let reportType = "criteria";
                 chartData = await helperFunc.instanceReportChart(data, reportType);
+                chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
                     response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
@@ -192,6 +194,7 @@ exports.instaceObservationReport = async function (req, res) {
 
                 let reportType = "criteria";
                 chartData = await helperFunc.instanceScoreReportChartObjectCreation(data, reportType);
+                chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
                     response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
@@ -221,7 +224,6 @@ exports.instaceObservationReport = async function (req, res) {
             }
 
             if (req.body.scores == true && criteriaLevelReport == true) {
-                console.log("coming inside assessment report chart create function");
                 let response = {
                     "result": true,
                     "programName": data[0].event.programName,
@@ -619,7 +621,7 @@ async function getEvidenceData(inputObj) {
   
         if (submissionId) {
           filter = { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }
-        } else if (entityId && observationId) {
+        } else if (entityId && observationId && entityType) {
           filter = { "type": "and", "fileds": [{ "type": "selector", "dimension": entityType, "value": entityId }, { "type": "selector", "dimension": "observationId", "value": observationId }] }
         } 
 

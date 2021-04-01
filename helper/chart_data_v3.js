@@ -28,7 +28,6 @@ exports.instanceReportChart = async function (data, reportType = "") {
             solutionType = filesHelper.observation;
             response = {
                 result: true,
-                entityName: data[0].event[data[0].event.entityType + "Name"],
                 observationId: data[0].event.observationId,
                 entityType: data[0].event.entityType,
                 entityId: data[0].event[data[0].event.entityType],
@@ -210,7 +209,7 @@ async function instanceMultiselectFunc(data) {
 
 
 //Function for entity Observation and observation report's response creation
-exports.entityReportChart = async function (data, entityId, entityName, reportType) {
+exports.entityReportChart = async function (data, entityId, entityType, reportType) {
     let response;
     let multiSelectArray = [];
     let textArray = [];
@@ -241,7 +240,7 @@ exports.entityReportChart = async function (data, entityId, entityName, reportTy
                 result: true,
                 entityType: data[0].event.entityType,
                 entityId: entityId,
-                entityName: data[0].event[entityName + "Name"],
+                entityName: data[0].event[entityType + "Name"],
                 solutionName: data[0].event.solutionName,
                 observationId: data[0].event.observationId,
                 districtName: data[0].event.districtName,
@@ -836,6 +835,7 @@ async function scoreObjectCreateFunction(data) {
     let resp = {
         order: data[0].event.questionExternalId,
         question: data[0].event.questionName,
+        responseType: "scoringReport",
         chart: {
             type: "pie",
             data: {
@@ -992,6 +992,7 @@ async function entityScoreObjectCreateFunc(data, threshold) {
     let chartData = {
         order: data[0].event.questionExternalId,
         question: data[0].event.questionName,
+        responseType: "scoringReport",
         chart: {
             type: 'bar',
             data: {
@@ -1128,7 +1129,7 @@ exports.evidenceChartObjectCreation = async function (chartData, evidenceData, t
     let filesArray = [];
     let questionData = [];
 
-    await Promise.all(chartData.response.map(async element => {
+    await Promise.all(chartData.reportSections.map(async element => {
 
         let filteredData = evidenceData.filter(data => element.order.includes(data.event.questionExternalId));
 
@@ -1221,7 +1222,7 @@ async function evidenceArrayCreation(questionExternalId, evidenceData) {
 // Insert evidence array to the corrousponding questions
 async function insertEvidenceArrayToChartObject(chartData, downloadableUrls, questionData) {
 
-    await Promise.all(chartData.response.map(async ele => {
+    await Promise.all(chartData.reportSections.map(async ele => {
 
         let filteredData = questionData.filter(data => ele.order.includes(data.questionExternalId));
 
@@ -1293,7 +1294,7 @@ async function insertEvidenceArrayToChartObject(chartData, downloadableUrls, que
 
     }));
 
-    await chartData.response.sort(getSortOrder("order"));
+    await chartData.reportSections.sort(getSortOrder("order"));
 
     return chartData;
 }
