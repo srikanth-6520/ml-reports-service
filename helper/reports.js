@@ -251,6 +251,13 @@ exports.instaceObservationReport = async function (req, res) {
                     pdfReport.pdfUrl = pdfReportUrl + pdfReport.pdfUrl
                     return resolve(pdfReport);
                 } else {
+
+                   response.improvementProjectSuggestions = [];
+                   let impSuggestions = await checkIfImpSuggesionExists(req.body.submissionId);
+
+                   if (impSuggestions.length > 0) {
+                    response.improvementProjectSuggestions = await helperFunc.improvementProjectsObjectCreate(impSuggestions);
+                  }
                    return resolve(response);
                 }
             }
@@ -515,6 +522,7 @@ exports.entityObservationReport = async function (req, res) {
 
                 response.reportSections = chartData.result; 
                 response.filters = chartData.filters;
+                let submissionId = chartData.submissionId;
 
                 if (response.reportSections.length == 0) {
                     return resolve({
@@ -534,7 +542,15 @@ exports.entityObservationReport = async function (req, res) {
                     return resolve(pdfReport);
 
                 } else {
-                    return resolve(response);
+
+                    response.improvementProjectSuggestions = [];
+                    let impSuggestions = await checkIfImpSuggesionExists(submissionId);
+ 
+                    if (impSuggestions.length > 0) {
+                     response.improvementProjectSuggestions = await helperFunc.improvementProjectsObjectCreate(impSuggestions);
+                   }
+
+                   return resolve(response);
                 }
             }
 
@@ -601,6 +617,23 @@ const getCriteriaLevelReportKey = async function (inputData) {
 }
 
 
+//Check if impSuggestion exists or not
+const checkIfImpSuggesionExists = async function(submissionId) {
+    return new Promise(async function (resolve, reject) {
+
+        let query = { "queryType": "groupBy", "dataSource": process.env.OBSERVATION_DATASOURCE_NAME, "granularity": "all", "dimensions": ["imp_project_id","imp_project_title","imp_project_externalId","imp_project_goal","criteriaName","level","label","criteriaId"], "filter": { "type": "and", "fields": [{"type": "selector", "dimension": "observationSubmissionId", "value": submissionId },{ "type": "not", "field": { "type": "selector", "dimension": "imp_project_id", "value": "" }}]}, "aggregations": [], "postAggregations": [], "limitSpec": {}, "intervals": ["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"] };
+        
+        //pass the query get the result from druid
+        let options = gen.utils.getDruidConnection();
+        options.method = "POST";
+        options.body = query;
+        let data = await rp(options);
+         
+        return resolve(data);
+    })
+}
+
+
 // Get the evidence data
 async function getEvidenceData(inputObj) {
 
@@ -622,7 +655,7 @@ async function getEvidenceData(inputObj) {
         if (submissionId) {
           filter = { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }
         } else if (entityId && observationId && entityType) {
-          filter = { "type": "and", "fileds": [{ "type": "selector", "dimension": entityType, "value": entityId }, { "type": "selector", "dimension": "observationId", "value": observationId }] }
+          filter = { "type": "and", "fields": [{ "type": "selector", "dimension": entityType, "value": entityId }, { "type": "selector", "dimension": "observationId", "value": observationId }] }
         } 
 
         if (process.env.OBSERVATION_EVIDENCE_DATASOURCE_NAME) {

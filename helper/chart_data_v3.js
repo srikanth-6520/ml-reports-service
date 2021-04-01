@@ -137,17 +137,20 @@ exports.instanceReportChart = async function (data, reportType = "") {
         //sort the response objects based on questionExternalId field
         await response.reportSections.sort(getSortOrder("order")); //Pass the attribute to be sorted on
 
-        response.filters = [{
-            order: "",
-            filter: {
-                type: "segment",
-                title: "",
-                keyToSend: "criteriaWise",
-                data: ["questionWise","criteriaWise"] 
-            }
-        }]
+        response.filters = [];
+        if (solutionType !== filesHelper.survey) {
+            response.filters.push[{
+                order: "",
+                filter: {
+                    type: "segment",
+                    title: "",
+                    keyToSend: "criteriaWise",
+                    data: ["questionWise", "criteriaWise"]
+                }
+            }]
+        }
 
-        if (!reportType) {
+        if (!reportType || solutionType == filesHelper.survey) {
             // Get the questions array
             let questionArray = await questionListObjectCreation(actualData);
             response.filters.push({
@@ -1453,8 +1456,11 @@ exports.entityLevelReportData = async function (data) {
         //group the data based on completed date   
         let groupedSubmissionData = await groupArrayByGivenField(data, "completedDate");
         let submissions = [];
+        let latestSubmissionId = "";
 
         let completedDateKeys = Object.keys(groupedSubmissionData);
+        let latestDate = completedDateKeys[completedDateKeys.sort().length - 1];
+        latestSubmissionId = groupedSubmissionData[latestDate][0].event.observationSubmissionId;
 
         await Promise.all(completedDateKeys.map(completedDateKey => {
             submissions.push({
@@ -1494,6 +1500,7 @@ exports.entityLevelReportData = async function (data) {
 
         return resolve({
             result : result,
+            submissionId: latestSubmissionId,
             filters :  [{
                 order: "",
                 filter: {
@@ -1817,11 +1824,16 @@ exports.getSurveySolutionReport = async function (data, submissionCount) {
 
         let matrixData = [];
         let nonMatrixData = [];
+        let questionFilter = [];
 
         await Promise.all(data.map(singleData => {
 
             if (!result.questionExternalIds.includes(singleData.event.questionExternalId)) {
                 result.questionExternalIds.push(singleData.event.questionExternalId)
+                questionFilter.push({
+                    _id: singleData.event.questionExternalId,
+                    name: singleData.event.questionName
+                })
             }
 
             if (singleData.event.instanceParentResponsetype == "matrix") {
@@ -1831,6 +1843,16 @@ exports.getSurveySolutionReport = async function (data, submissionCount) {
                 nonMatrixData.push(singleData);
             }
         }))
+
+        result.filters = [{
+            order: "",
+            filter: {
+                type: "modal",
+                title: "",
+                keyToSend: "questionId",
+                data: questionFilter 
+            }
+        }];
 
         if (matrixData.length > 0) {
 
@@ -2005,4 +2027,42 @@ const getISTDate = async function(date) {
     let hour = (d.getUTCHours() < 12) ? d.getUTCHours() : d.getUTCHours() - 12;
     return d.getUTCDate() + '-' + (d.getUTCMonth() + 1) + '-' + d.getUTCFullYear() + ' ' + hour + ':' + d.getUTCMinutes() + ':' + d.getUTCSeconds() + ' ' + amOrPm;
 
+}
+
+// listImprovementProjects response creation function
+exports.improvementProjectsObjectCreate = async function (data) {
+
+    let groupByCriteria = await groupArrayByGivenField(data, "criteriaId");
+
+    let criteriaKeys = Object.keys(groupByCriteria);
+
+    let improvementProjectSuggestions = [];
+
+    await Promise.all(criteriaKeys.map(async element => {
+
+        let criteriaObject = {
+            criteriaName: groupByCriteria[element][0].event.criteriaName,
+            level: groupByCriteria[element][0].event.level,
+            label: groupByCriteria[element][0].event.label,
+            improvementProjects: []
+        }
+
+        await Promise.all(groupByCriteria[element].map(ele => {
+
+            if (ele.event.imp_project_title != null) {
+
+                criteriaObject.improvementProjects.push({
+                    name: ele.event.imp_project_title,
+                    _id: ele.event.imp_project_id,
+                    goal: ele.event.imp_project_goal,
+                    externalId: ele.event.imp_project_externalId
+                })
+            }
+        }));
+
+        improvementProjectSuggestions.push(criteriaObject);
+
+    }));
+
+    return improvementProjectSuggestions;
 }
