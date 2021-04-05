@@ -98,19 +98,37 @@ exports.entityReport = async function(req,res){
    * @apiHeader {String} x-auth-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
-   "title": "",
-   "duration": "",
-   "goal": "",
+   "title": "Project with learning resources",
+   "duration": "1 month",
+   "goal": "Please enter the goal for your Prerak Head Teacher of the Month project",
    "startDate": "",
    "endDate": "",
-   "tasks": []
+   "tasks": [	{
+			"_id" : "4d074de7-7059-4d99-9da9-452b0d32e081",
+			"createdBy" : "140558b9-7df4-4993-be3c-31eb8b9ca368",
+			"updatedBy" : "140558b9-7df4-4993-be3c-31eb8b9ca368",
+			"isDeleted" : false,
+			"isDeletable" : true,
+			"taskSequence" : [ ],
+			"children" : [ ],
+			"visibleIf" : [ ],
+			"hasSubTasks" : false,
+			"deleted" : false,
+			"type" : "content",
+			"name" : "ELECTRICITY",
+			"externalId" : "IMP-3399c-TASK1-1612451495703",
+			"description" : "",
+			"updatedAt" : ISODate("2021-04-01T19:17:03.970+05:30"),
+			"createdAt" : ISODate("2021-02-04T20:38:48.626+05:30"),
+			"status" : "notStarted"
+		}]
 * }
    * @apiSuccessExample {json} Success-Response:
 *     HTTP/1.1 200 OK
 *     {
-       "status": "",
-       "message": "",
-       "pdfUrl": ""
+       "status": "success",
+       "message": "Report generated successfully",
+       "pdfUrl": "http://localhost:4700/dhiti/api/v1/observations/pdfReportsUrl?id=dG1wL2NkNDM2OTAwLWZlYjgtNGI2MS1iZDMxLTRkNGJmNzJkODQ3NC0tNDc4NQ=="
 *     }
    * @apiUse errorBody
    */
@@ -120,8 +138,8 @@ exports.entityReport = async function(req,res){
 exports.projectAndTaskReport = async function(req,res){
    
    let response; 
-   
-   if (req.query.projectPdf == true) {
+  
+   if (req.query.projectPdf == "true") {
       response = await pdfHandler.unnatiProjectPdfGeneration(req.body, storeReportsToS3 = false);
    }
    else {

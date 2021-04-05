@@ -138,7 +138,7 @@ exports.instanceReportChart = async function (data, reportType = "") {
         await response.reportSections.sort(getSortOrder("order")); //Pass the attribute to be sorted on
 
         response.filters = [];
-        if (solutionType !== filesHelper.survey) {
+        if (solutionType == filesHelper.observation) {
             response.filters.push[{
                 order: "",
                 filter: {
