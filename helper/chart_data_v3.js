@@ -838,7 +838,7 @@ async function scoreObjectCreateFunction(data) {
     let resp = {
         order: data[0].event.questionExternalId,
         question: data[0].event.questionName,
-        responseType: "scoringReport",
+        responseType: "pie",
         chart: {
             type: "pie",
             data: {
@@ -995,7 +995,7 @@ async function entityScoreObjectCreateFunc(data, threshold) {
     let chartData = {
         order: data[0].event.questionExternalId,
         question: data[0].event.questionName,
-        responseType: "scoringReport",
+        responseType: "bar",
         chart: {
             type: 'bar',
             data: {
@@ -1707,7 +1707,7 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
         let chartObj = {
             order: 1,
             domainLevelObject: domainObj,
-            responseType: "criteriaLevelReport",
+            responseType: "horizontalBar",
             chart: {
                 type: 'horizontalBar',
                 title: "",
@@ -1772,7 +1772,7 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
 
         let expansionViewObj = {
             order: 2,
-            responseType: "criteriaLevelReport",
+            responseType: "horizontalBar",
             chart: {
                 type: "expansion-table",
                 title: "Descriptive view",

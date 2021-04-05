@@ -1422,7 +1422,7 @@ async function createScoreChartObject(ele) {
 }
 
 //Unnati pdf generate function
-exports.unnatiPdfGeneration = async function (responseData, storeReportsToS3 = false) {
+exports.unnatiProjectPdfGeneration = async function (responseData, storeReportsToS3 = false) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -1450,9 +1450,14 @@ exports.unnatiPdfGeneration = async function (responseData, storeReportsToS3 = f
 
 
         let subTasksCount = 0;
-
+    
         responseData.tasks.forEach(element => {
-            subTasksCount = subTasksCount + element.subTasks.length;
+            if (element.subTasks) {
+              subTasksCount = subTasksCount + element.subTasks.length;
+            }
+            else if (element.children) {
+              subTasksCount = subTasksCount + element.children.length;
+            }
         });
 
         let startDate, endDate;
@@ -2106,7 +2111,7 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData, storeR
 
 
 //Unnati monthly report pdf generation function
-exports.addTaskPdfGeneration = async function (responseData, storeReportsToS3 = false) {
+exports.unnatiTaskPdfGeneration = async function (responseData, storeReportsToS3 = false) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -2122,8 +2127,12 @@ exports.addTaskPdfGeneration = async function (responseData, storeReportsToS3 = 
 
         try {
 
-            var FormData = [];
+            let FormData = [];
 
+            if (!Array.isArray(responseData.tasks)) {
+                responseData.tasks = [responseData.tasks];
+            }
+         
             let obj = {
                 response: responseData
             }

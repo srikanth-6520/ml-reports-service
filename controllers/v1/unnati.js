@@ -31,7 +31,7 @@ const pdfHandler = require('../../helper/common_handler');
 //Controller function for unnati pdf generation
 exports.pdfReport = async function(req,res){
 
-    let response = await pdfHandler.unnatiPdfGeneration(req.body, storeReportsToS3 = false);
+    let response = await pdfHandler.unnatiProjectPdfGeneration(req.body, storeReportsToS3 = false);
    
     response.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
     res.send(response);
@@ -142,7 +142,7 @@ exports.viewProjectReport = async function(req,res){
 //Controller function for unnati add task pdf generation
 exports.addTaskReport = async function(req,res){
 
-   let response = await pdfHandler.addTaskPdfGeneration(req.body, storeReportsToS3 = false);
+   let response = await pdfHandler.unnatiTaskPdfGeneration(req.body, storeReportsToS3 = false);
  
    response.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
    res.send(response);

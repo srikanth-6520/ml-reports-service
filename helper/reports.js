@@ -48,11 +48,14 @@ exports.instaceObservationReport = async function (req, res) {
             }
         }
 
-        bodyParam.dimensions = ["programName","solutionName"];
+        bodyParam.dimensions = ["programName", "solutionName", req.body.entityType + "Name"];
+        if (!bodyParam.dimensions.includes("districtName")) {
+            bodyParam.dimensions.push("districtName");
+        }
 
         //Push dimensions to the query based on report type
         if (req.body.scores == false && req.body.criteriaWise == false) {
-            bodyParam.dimensions.push("questionName", "questionAnswer", "school", "districtName", "schoolName", "remarks", "entityType", "observationName", "observationId", "questionResponseType", "questionResponseLabel", "questionId", "questionExternalId", "instanceId", "instanceParentQuestion", "instanceParentResponsetype", "instanceParentId", "questionSequenceByEcm", "instanceParentExternalId", "instanceParentEcmSequence");
+            bodyParam.dimensions.push("questionName", "questionAnswer", "school", "schoolName", "remarks", "entityType", "observationName", "observationId", "questionResponseType", "questionResponseLabel", "questionId", "questionExternalId", "instanceId", "instanceParentQuestion", "instanceParentResponsetype", "instanceParentId", "questionSequenceByEcm", "instanceParentExternalId", "instanceParentEcmSequence");
         }
 
         if (req.body.scores == true && req.body.criteriaWise == false && criteriaLevelReport == false) {
@@ -61,11 +64,11 @@ exports.instaceObservationReport = async function (req, res) {
         }
 
         if (req.body.scores == false && req.body.criteriaWise == true) {
-            bodyParam.dimensions.push("questionName", "questionAnswer", "school", "districtName", "schoolName", "remarks", "entityType", "observationName", "observationId", "questionResponseType", "questionResponseLabel", "questionId", "questionExternalId", "instanceId", "instanceParentQuestion", "instanceParentResponsetype", "instanceParentId", "questionSequenceByEcm", "instanceParentExternalId", "instanceParentEcmSequence", "criteriaName", "criteriaId", "instanceParentCriteriaName", "instanceParentCriteriaId");
+            bodyParam.dimensions.push("questionName", "questionAnswer", "school", "schoolName", "remarks", "entityType", "observationName", "observationId", "questionResponseType", "questionResponseLabel", "questionId", "questionExternalId", "instanceId", "instanceParentQuestion", "instanceParentResponsetype", "instanceParentId", "questionSequenceByEcm", "instanceParentExternalId", "instanceParentEcmSequence", "criteriaName", "criteriaId", "instanceParentCriteriaName", "instanceParentCriteriaId");
         }
 
         if (req.body.scores == true && req.body.criteriaWise == true && criteriaLevelReport == false) {
-            bodyParam.dimensions.push("questionName", "schoolName", "districtName", "questionAnswer", "questionExternalId", "questionResponseType", "minScore", "maxScore", "totalScore", "scoreAchieved", "observationName", "criteriaName", "criteriaId");
+            bodyParam.dimensions.push("questionName", "schoolName", "questionAnswer", "questionExternalId", "questionResponseType", "minScore", "maxScore", "totalScore", "scoreAchieved", "observationName", "criteriaName", "criteriaId");
             bodyParam.filter.fields.push({"type":"or","fields":[{"type":"selector","dimension":"questionResponseType","value":"radio"},{"type":"selector","dimension":"questionResponseType","value":"multiselect"},{"type":"selector","dimension":"questionResponseType","value":"slider"}]})
         }
 
@@ -328,24 +331,27 @@ exports.entityObservationReport = async function (req, res) {
             }
         }
 
-        bodyParam.dimensions = ["programName","solutionName","submissionTitle"]
+        bodyParam.dimensions = ["programName","solutionName","submissionTitle",entityType + "Name"];
+        if (!bodyParam.dimensions.includes("districtName")) {
+            bodyParam.dimensions.push("districtName");
+        }
 
         //Push dimensions to the query based on report type
         if (req.body.scores == false && req.body.criteriaWise == false) {
-            bodyParam.dimensions.push("completedDate", "questionName", "questionAnswer", "school", "schoolName", "entityType", "observationName", "observationId", "questionResponseType", "questionResponseLabel", "observationSubmissionId", "questionId", "questionExternalId", "instanceId", "instanceParentQuestion", "instanceParentResponsetype", "instanceParentId", "instanceParentEcmSequence", "instanceParentExternalId");
+            bodyParam.dimensions.push("completedDate", "questionName", "questionAnswer", "school", "entityType", "observationName", "observationId", "questionResponseType", "questionResponseLabel", "observationSubmissionId", "questionId", "questionExternalId", "instanceId", "instanceParentQuestion", "instanceParentResponsetype", "instanceParentId", "instanceParentEcmSequence", "instanceParentExternalId");
         }
 
         if (req.body.scores == true && req.body.criteriaWise == false && criteriaLevelReport == false) {
-            bodyParam.dimensions.push("questionName", "questionExternalId", "questionResponseType", "minScore", "maxScore", "observationSubmissionId", "school", "schoolName", "districtName", "questionId", "completedDate", "observationName");
+            bodyParam.dimensions.push("questionName", "questionExternalId", "questionResponseType", "minScore", "maxScore", "observationSubmissionId", "school", "questionId", "completedDate", "observationName");
             bodyParam.filter.fields.push({ "type": "or", "fields": [{ "type": "selector", "dimension": "questionResponseType", "value": "radio" }, { "type": "selector", "dimension": "questionResponseType", "value": "multiselect" }, { "type": "selector", "dimension": "questionResponseType", "value": "slider" }] })
         }
 
         if (req.body.scores == false && req.body.criteriaWise == true) {
-            bodyParam.dimensions.push("completedDate", "questionName", "questionAnswer", "school", "schoolName", "entityType", "observationName", "observationId", "questionResponseType", "questionResponseLabel", "observationSubmissionId", "questionId", "questionExternalId", "instanceId", "instanceParentQuestion", "instanceParentResponsetype", "instanceParentId", "instanceParentEcmSequence", "instanceParentExternalId", "criteriaName", "criteriaId", "instanceParentCriteriaName", "instanceParentCriteriaId");
+            bodyParam.dimensions.push("completedDate", "questionName", "questionAnswer", "school", "entityType", "observationName", "observationId", "questionResponseType", "questionResponseLabel", "observationSubmissionId", "questionId", "questionExternalId", "instanceId", "instanceParentQuestion", "instanceParentResponsetype", "instanceParentId", "instanceParentEcmSequence", "instanceParentExternalId", "criteriaName", "criteriaId", "instanceParentCriteriaName", "instanceParentCriteriaId");
         }
 
         if (req.body.scores == true && req.body.criteriaWise == true && criteriaLevelReport == false) {
-            bodyParam.dimensions.push("questionName", "questionExternalId", "questionResponseType", "minScore", "maxScore", "observationSubmissionId", "school", "schoolName", "districtName", "questionId", "completedDate", "observationName", "criteriaName", "criteriaId");
+            bodyParam.dimensions.push("questionName", "questionExternalId", "questionResponseType", "minScore", "maxScore", "observationSubmissionId", "school", "questionId", "completedDate", "observationName", "criteriaName", "criteriaId");
             bodyParam.filter.fields.push({ "type": "or", "fields": [{ "type": "selector", "dimension": "questionResponseType", "value": "radio" }, { "type": "selector", "dimension": "questionResponseType", "value": "multiselect" }, { "type": "selector", "dimension": "questionResponseType", "value": "slider" }] })
         }
 

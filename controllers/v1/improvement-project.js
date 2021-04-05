@@ -1,5 +1,5 @@
-const pdfHandler = require('../../helper/common_handler_v2');
-
+const pdfHandler = require('../../helper/common_handler');
+const pdfHandlerV2 = require('../../helper/common_handler_v2');
 
 /**
    * @api {post} /dhiti/api/v1/improvement-project/viewProjectReport 
@@ -27,7 +27,7 @@ const pdfHandler = require('../../helper/common_handler_v2');
 //Controller function for unnati view full report pdf generation
 exports.viewProjectReport = async function(req,res){
 
-    let response = await pdfHandler.unnatiViewFullReportPdfGeneration(req.body, storeReportsToS3 = false);
+    let response = await pdfHandlerV2.unnatiViewFullReportPdfGeneration(req.body, storeReportsToS3 = false);
   
     response.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
     res.send(response);
@@ -83,7 +83,50 @@ exports.viewProjectReport = async function(req,res){
 
 exports.entityReport = async function(req,res){
 
-   let response = await pdfHandler.unnatiEntityReportPdfGeneration(req.body, storeReportsToS3 = false);
+   let response = await pdfHandlerV2.unnatiEntityReportPdfGeneration(req.body, storeReportsToS3 = false);
+ 
+   response.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+   res.send(response);
+}
+
+
+/**
+   * @api {post} /dhiti/api/v1/improvement-project/projectAndTaskReport?projectPdf=true
+   * Project and task pdf report
+   * @apiVersion 1.0.0
+   * @apiGroup Improvement-project
+   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiParamExample {json} Request-Body:
+* {
+   "title": "",
+   "duration": "",
+   "goal": "",
+   "startDate": "",
+   "endDate": "",
+   "tasks": []
+* }
+   * @apiSuccessExample {json} Success-Response:
+*     HTTP/1.1 200 OK
+*     {
+       "status": "",
+       "message": "",
+       "pdfUrl": ""
+*     }
+   * @apiUse errorBody
+   */
+
+   
+//Controller function for unnati view full report pdf generation
+exports.projectAndTaskReport = async function(req,res){
+   
+   let response; 
+   
+   if (req.query.projectPdf == true) {
+      response = await pdfHandler.unnatiProjectPdfGeneration(req.body, storeReportsToS3 = false);
+   }
+   else {
+      response = await pdfHandler.unnatiTaskPdfGeneration(req.body, storeReportsToS3 = false);
+   }
  
    response.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
    res.send(response);
