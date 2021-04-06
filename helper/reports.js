@@ -661,7 +661,7 @@ async function getEvidenceData(inputObj) {
         if (submissionId) {
           filter = { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }
         } else if (entityId && observationId && entityType) {
-          filter = { "type": "and", "fields": [{ "type": "selector", "dimension": entityType, "value": entityId }, { "type": "selector", "dimension": "observationId", "value": observationId }] }
+          filter = { "type": "and", "fields": [{ "type": "selector", "dimension": "entity", "value": entityId }, { "type": "selector", "dimension": "observationId", "value": observationId }] }
         } 
 
         if (process.env.OBSERVATION_EVIDENCE_DATASOURCE_NAME) {
