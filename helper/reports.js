@@ -87,7 +87,7 @@ exports.instaceObservationReport = async function (req, res) {
             let message;
             let getSubmissionStatusResponse = await assessmentService.getObservationSubmissionStatusById
                 (
-                    submissionId,
+                    req.body.submissionId,
                     req.headers["x-auth-token"]
                 )
 

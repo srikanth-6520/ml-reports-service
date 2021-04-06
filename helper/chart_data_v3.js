@@ -139,7 +139,7 @@ exports.instanceReportChart = async function (data, reportType = "") {
 
         response.filters = [];
         if (solutionType == filesHelper.observation) {
-            response.filters.push[{
+            response.filters.push({
                 order: "",
                 filter: {
                     type: "segment",
@@ -147,7 +147,7 @@ exports.instanceReportChart = async function (data, reportType = "") {
                     keyToSend: "criteriaWise",
                     data: ["questionWise", "criteriaWise"]
                 }
-            }]
+            })
         }
 
         if (!reportType || solutionType == filesHelper.survey) {
