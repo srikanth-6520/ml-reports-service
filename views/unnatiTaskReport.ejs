@@ -18,6 +18,10 @@
             border-top: 1px solid #c0192d;
         }
 
+        hr.borderColor {
+            border-top: 1px solid #024F9D;
+        }
+
         hr {
             margin-top: 0px;
             margin-bottom: 0px;
@@ -40,7 +44,11 @@
 
 <body class="container">
 
-    <hr class="new1">
+    <% if (data.improvementProjectPdf == true) {%>
+        <hr class="borderColor">
+    <% } else { %>
+        <hr class="new1">
+    <% } %>
 
     <div class="" style=" background: #eee !important;padding: 15px 40px;">
 
@@ -77,13 +85,17 @@
                 <p><b>START DATE</b></p>
             </div>
             <div style="width:50%; float:left;">
-                <p><%= data.response.startDate %></p>
+                <p><%= data.startDate %></p>
             </div>
         </div>
 
     </div>
 
-    <hr class="new1">
+    <% if (data.improvementProjectPdf == true) {%>
+        <hr class="borderColor">
+    <% } else { %>
+        <hr class="new1">
+    <% } %>
 
     <div style="margin-top:50px !important">
 
@@ -103,6 +115,22 @@
         </div>
 
         <div class="row"
+        style="background-color: #eee !important;padding: 12px;margin-top: 20px;margin-right: 16px !important;margin-left: 16px !important">
+        <% if(data.response.tasks[i]["endDate"] && data.response.tasks[i].endDate !== "") {%>
+        
+        <% let taskEndDate = new Date(data.response.tasks[i].endDate) %>
+        <% let day = taskEndDate.getDate() %>
+        <% let month = taskEndDate.getMonth() + 1 %>
+        <% let year = taskEndDate.getFullYear() %>
+        <% taskEndDate = day + '/' + month + '/' + year %>
+        
+        <p>Due Date : <%= taskEndDate %></p>
+        <% } else {%>
+        <p>Due Date</p>
+        <% } %>
+        </div>
+
+        <div class="row"
             style="border:solid 1px #eee !important;padding: 12px;margin-top: 24px;margin-right: 16px !important;margin-left: 16px !important">
             <% if(data.response.tasks[i]["title"] || data.response.tasks[i]["name"]) {%>
             <% let taskTitle = data.response.tasks[i]["title"] ? data.response.tasks[i]["title"] : data.response.tasks[i]["name"] %>
@@ -110,16 +138,7 @@
             <% } %>
         </div>
 
-        <div class="row"
-            style="background-color: #eee !important;padding: 12px;margin-top: 38px;margin-right: 16px !important;margin-left: 16px !important">
-            <% if(data.response.tasks[i]["endDate"]) {%>
-            <p>Due Date : <%= data.response.tasks[i].endDate %></p>
-            <% } else {%>
-            <p>Due Date</p>
-            <% } %>
-        </div>
-
-
+       
         <div class="row"
             style="padding: 15px;margin-top: 24px;margin-right: 16px !important;margin-left: 16px !important">
             <p>Attachments</p>

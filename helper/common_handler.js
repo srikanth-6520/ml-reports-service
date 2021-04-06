@@ -1435,16 +1435,22 @@ exports.unnatiProjectPdfGeneration = async function (responseData, storeReportsT
         }
 
         let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
+        
+        let image = "";
+        if (responseData.improvementProjectPdf) {
+          image = "timeTable.png"
+        } else {
+          image = "Calendar-Time.svg";
+        }
 
         //copy images from public folder
-        let src = __dirname + '/../public/images/Calendar-Time.svg';
-        fs.copyFileSync(src, imgPath + '/Calendar-Time.svg');
+        let src = __dirname + '/../public/images/' + image;
+        fs.copyFileSync(src, imgPath + '/' + image);
 
         let fileData = [{
-            value: fs.createReadStream(imgPath + '/Calendar-Time.svg'),
+            value: fs.createReadStream(imgPath + '/' + image),
             options: {
-                filename: 'Calendar-Time.svg',
-
+                filename: image
             }
         }]
 
@@ -1494,7 +1500,8 @@ exports.unnatiProjectPdfGeneration = async function (responseData, storeReportsT
                 category: responseData.category,
                 status: responseData.status,
                 startDate: startDate,
-                endDate: endDate
+                endDate: endDate,
+                improvementProjectPdf: responseData.improvementProjectPdf ? responseData.improvementProjectPdf : false
             }
 
             ejs.renderFile(__dirname + '/../views/unnatiTemplate.ejs', {
@@ -2132,12 +2139,25 @@ exports.unnatiTaskPdfGeneration = async function (responseData, storeReportsToS3
             if (!Array.isArray(responseData.tasks)) {
                 responseData.tasks = [responseData.tasks];
             }
-         
-            let obj = {
-                response: responseData
+
+            let startDate = "";
+            let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+            if (responseData.startDate) {
+                let date = new Date(responseData.startDate);
+                let day = date.getDate();
+                let month = months[date.getMonth()];
+                let year = date.getFullYear();
+                startDate = day + " " + month + " " + year;
             }
 
-            ejs.renderFile(__dirname + '/../views/unnatiAddTaskReport.ejs', {
+            let obj = {
+                response: responseData,
+                startDate: startDate,
+                improvementProjectPdf: responseData.improvementProjectPdf ? responseData.improvementProjectPdf : false
+            }
+
+            ejs.renderFile(__dirname + '/../views/unnatiTaskReport.ejs', {
                 data: obj
 
             })

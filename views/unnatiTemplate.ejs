@@ -30,6 +30,10 @@
             border-top: 1px solid #c0192d;
         }
 
+        hr.borderColor {
+            border-top: 1px solid #024F9D;
+        }
+
         hr {
             margin-top: 0px;
             margin-bottom: 0px;
@@ -70,8 +74,12 @@
 </head>
 
 <body class="container">
-
-    <hr class="new1">
+    
+    <% if (data.improvementProjectPdf == true) {%>
+      <hr class="borderColor">
+    <% } else { %>
+      <hr class="new1">
+    <% } %>
 
     <div class="" style=" background: #eee !important;padding: 15px 40px;">
 
@@ -125,17 +133,17 @@
                 <p><b>STATUS</b></p>
             </div>
             <div style="width:50%; float:left;">
-
-                <% if(data.status.toLowerCase() == "completed") { %>
+                <% data.status = data.status.toLowerCase() %>
+                <% if(data.status == "completed") { %>
                 <div id="progress-0">
                     <p style="margin-top: 10px"><%= data.status %></p>
                 </div>
 
-                <% } else if(data.status.toLowerCase() == "in progress") {%>
+                <% } else if(data.status == "in progress" || data.status == "inprogress") {%>
                 <progress value="60" max="100"></progress>
                 <p style="margin-left:33px;margin-top:4px;"><%= data.status %></p>
 
-                <% } else if(data.status.toLowerCase() == "not started yet" || data.status.toLowerCase() == "not yet started" || data.status == "notStarted") {%>
+                <% } else if(data.status == "not started yet" || data.status == "not yet started" || data.status == "notstarted") {%>
                 <div id="progress-1">
                     <p style="margin-top: 10px"><%= data.status %></p>
                 </div>
@@ -148,7 +156,11 @@
 
     </div>
 
-    <hr class="new1">
+    <% if (data.improvementProjectPdf == true) {%>
+        <hr class="borderColor">
+    <% } else { %>
+        <hr class="new1">
+    <% } %>
 
     <div>
         <div class="row" style="padding: 15px 20px;">
@@ -163,7 +175,11 @@
         </div>
     </div>
 
-    <hr class="new1">
+    <% if (data.improvementProjectPdf == true) {%>
+        <hr class="borderColor">
+    <% } else { %>
+        <hr class="new1">
+    <% } %>
 
 
     <% for (var i=0;i < data.tasksArray.length; i++){  %>
@@ -179,21 +195,35 @@
             <% month = months[now.getMonth()]; %>
             <% date = now.getDate() %>
             <% } %>
-
+            
+            <% if (data.improvementProjectPdf == true) {%>
+            <p><b style="color:#024F9D !important"><%= month %></b></p>
+            <p style="margin-top:-12px !important;padding-left: 4px !important;"><b
+                    style="color:#024F9D !important;"><%= date %></b></p>
+            <% } else { %>
             <p><b style="color:#b23d33 !important"><%= month %></b></p>
             <p style="margin-top:-12px !important;padding-left: 4px !important;"><b
                     style="color:#b23d33 !important;"><%= date %></b></p>
+            <% } %>
+          
         </div>
 
         <div style="width:90%;float:right">
             <% let taskTitle = data.tasksArray[i].title ? data.tasksArray[i].title : data.tasksArray[i].name %>
             <p><b><%= taskTitle %></b></p>
             <% var subTasks = data.tasksArray[i].subTasks ? data.tasksArray[i].subTasks : data.tasksArray[i].children %>
-            <% for (var j=0;j < subTasks; j++){  %>
+            <% for (var j=0;j < subTasks.length; j++){  %>
             <div class="row" style="padding: 0px 20px;">
-                <p><span
-                        style="color:#b23d33 !important;font-size: 20px;margin-left:-7px">&#3664;</span>&nbsp;&nbsp;&nbsp;<b><%= subTasks[j].title %></b>
-                </p>
+                <% if (data.improvementProjectPdf == true) {%>
+                    <p><span
+                        style="color:#024F9D !important;font-size: 20px;margin-left:-7px">&#3664;</span>&nbsp;&nbsp;&nbsp;<b><%= subTasks[j].title ? subTasks[j].title :subTasks[j].name %></b>
+                    </p>
+                <% } else { %>
+                    <p><span
+                        style="color:#b23d33 !important;font-size: 20px;margin-left:-7px">&#3664;</span>&nbsp;&nbsp;&nbsp;<b><%= subTasks[j].title ? subTasks[j].title :subTasks[j].name %></b>
+                    </p>
+                <% } %>
+               
 
                 <% let subEndDate %>
                 <% if(subTasks[j].endDate) {%>
@@ -203,16 +233,24 @@
                 <% let year = subTaskEndDate.getFullYear() %>
                 <% subEndDate = day + '/' + month + '/' + year %>
                 <% } %>
-
-                <img src="Calendar-Time.svg" style="height:22px;width:58px;"><span
-                    style="font-size: 12px"><%= subEndDate %></span>
+                
+                <% if (data.improvementProjectPdf == true) {%>
+                    <img src="timeTable.png" style="height:22px;width:22px;"><span style="font-size: 12px;padding-left: 8px"><%= subEndDate %></span>
+                <% } else { %>
+                    <img src="Calendar-Time.svg" style="height:22px;width:58px;"><span style="font-size: 12px;padding-left: 8px"><%= subEndDate %></span>
+                <% } %>
+               
             </div>
             <% } %>
         </div>
 
 
     </div>
-    <hr class="new1">
+    <% if (data.improvementProjectPdf == true) {%>
+        <hr class="borderColor">
+    <% } else { %>
+        <hr class="new1">
+    <% } %>
 
     <% } %>
 
