@@ -13,7 +13,7 @@ exports.pdfReports = async function (req, res) {
         res.send(response);
     }
     else {
-        req.body.requestToPdf = true;
+       
         let assessmentRes = await assessmentsHelper.assessmentReportGetChartData(req, res);
         
         if (assessmentRes.result == true) {

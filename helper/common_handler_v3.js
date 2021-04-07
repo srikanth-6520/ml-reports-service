@@ -81,7 +81,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, storeReportsToS3 
             let radioDataArray = [];
 
             //loop the response and store multiselect and radio questions of matrix type
-            await Promise.all(instaRes.response.map(async ele => {
+            await Promise.all(instaRes.reportSections.map(async ele => {
                 if (ele.responseType == "matrix") {
                     await Promise.all(ele.instanceQuestions.map(element => {
                         if (element.responseType == "multiselect") {
@@ -159,7 +159,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, storeReportsToS3 
                             let arrOfData = [];
                             let matrixData = [];
 
-                            await Promise.all(instaRes.response.map(async ele => {
+                            await Promise.all(instaRes.reportSections.map(async ele => {
 
                                 if (ele.responseType === "text" || ele.responseType === "date" || ele.responseType === "number" || ele.responseType === "slider") {
 
@@ -233,7 +233,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, storeReportsToS3 
 
                             let obj = {
                                 path: formDataMultiSelect,
-                                instaRes: instaRes.response,
+                                instaRes: instaRes.reportSections,
                                 radioOptionsData: [],
                                 orderData: arrOfData,
                                 matrixRes: matrixData
@@ -432,7 +432,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
             var radioArray = [];
             let formData = [];
 
-            await Promise.all(instaRes.response.map(async ele => {
+            await Promise.all(instaRes.reportSections.map(async ele => {
                 if (ele.responseType == "matrix") {
                     await Promise.all(ele.instanceQuestions.map(element => {
                         if (element.responseType == "multiselect") {
@@ -458,7 +458,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
 
 
             var params = {
-                observationName: instaRes.observationName
+                observationName: instaRes.solutionName
             }
             ejs.renderFile(__dirname + '/../views/header.ejs', {
                 data: params
@@ -479,7 +479,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
                             var arrOfData = [];
                             var matrixData = [];
 
-                            await Promise.all(instaRes.response.map(async ele => {
+                            await Promise.all(instaRes.reportSections.map(async ele => {
 
 
                                 if (ele.responseType === "text" || ele.responseType === "date" || ele.responseType === "number" || ele.responseType === "slider" || ele.responseType === "multiselect" || ele.responseType === "radio") {
@@ -721,7 +721,7 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
             let footerFile = await copyBootStrapFile(__dirname + '/../views/footer.html', imgPath + '/footer.html');
 
             //select all the multiselect response objects and create a chart object
-            let chartObject = await getChartObject(observationResp.response);
+            let chartObject = await getChartObject(observationResp.reportSections);
 
             let formData = await createChart(chartObject, imgPath);
 
@@ -756,7 +756,7 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
                             let arrayOfData = [];
 
 
-                            await Promise.all(observationResp.response.map(async ele => {
+                            await Promise.all(observationResp.reportSections.map(async ele => {
 
                                 let dt = formData.filter(or => {
 
@@ -1717,7 +1717,7 @@ exports.instanceCriteriaReportPdfGeneration = async function (instanceResponse, 
             let formData = [];
 
             let params = {
-                observationName: instanceResponse.observationName
+                observationName: instanceResponse.solutionName
             }
             ejs.renderFile(__dirname + '/../views/header.ejs', {
                 data: params
@@ -1732,7 +1732,7 @@ exports.instanceCriteriaReportPdfGeneration = async function (instanceResponse, 
                         } else {
 
                             var obj = {
-                                response: instanceResponse.response
+                                response: instanceResponse.reportSections
                             };
                             ejs.renderFile(__dirname + '/../views/instanceCriteriaTemplate.ejs', {
                                 data: obj
@@ -1927,7 +1927,7 @@ exports.entityCriteriaPdfReportGeneration = async function (responseData, storeR
             let radioArray = [];
             let formData = [];
 
-            await Promise.all(responseData.response.map(async singleResponse => {
+            await Promise.all(responseData.reportSections.map(async singleResponse => {
                 await Promise.all( singleResponse.questionArray.map( question => {
                     if (question.responseType == "multiselect") {
                         multiSelectArray.push(question);
@@ -1950,7 +1950,7 @@ exports.entityCriteriaPdfReportGeneration = async function (responseData, storeR
             formData.push(...radioFormData);
 
             let params = {
-                observationName: responseData.observationName
+                observationName: responseData.solutionName
             }
 
             ejs.renderFile(__dirname + '/../views/header.ejs', {
@@ -1968,7 +1968,7 @@ exports.entityCriteriaPdfReportGeneration = async function (responseData, storeR
                         } else {
 
                             let obj = {
-                                response: responseData.response,
+                                response: responseData.reportSections,
                                 radioData: radioFormData,
                                 multiselectData: multiselectFormData
                             };
@@ -2139,41 +2139,6 @@ exports.entityCriteriaPdfReportGeneration = async function (responseData, storeR
 
 }
 
-async function createChartObject(ele, chartType) {
-
-    return new Promise(async function (resolve, reject) {
-
-        let obj = {
-            order: ele.order,
-            type: "svg",
-            options: {
-                title: {
-                    text: ele.question
-                },
-                colors: ['#D35400', '#F1C40F', '#3498DB', '#8E44AD', '#154360', '#145A32'],
-
-                chart: {
-                    type: chartType
-
-
-                },
-                plotOptions: ele.chart.plotOptions,
-                xAxis: ele.chart.xAxis,
-                yAxis: ele.chart.yAxis,
-                credits: {
-                    enabled: false
-                },
-                series: ele.chart.data
-            },
-            question: ele.question
-        };
-
-        resolve(obj);
-
-    })
-
-}
-
 //PDF generation for instance observation score report
 exports.instanceScoreCriteriaPdfGeneration = async function (observationResp, storeReportsToS3 = false, obj) {
 
@@ -2196,7 +2161,7 @@ exports.instanceScoreCriteriaPdfGeneration = async function (observationResp, st
             
             let chartDataArray = [];
 
-            await Promise.all(observationResp.response.map(async questionData => {
+            await Promise.all(observationResp.reportSections.map(async questionData => {
     
                 await Promise.all(questionData.questionArray.map(async singleQuestion => {
     
@@ -2209,7 +2174,7 @@ exports.instanceScoreCriteriaPdfGeneration = async function (observationResp, st
             let formData = await createChart(chartObj, imgPath);
 
             let params = {
-                observationName: observationResp.observationName
+                observationName: observationResp.solutionName
             }
 
             ejs.renderFile(__dirname + '/../views/header.ejs', {
@@ -2229,7 +2194,7 @@ exports.instanceScoreCriteriaPdfGeneration = async function (observationResp, st
                         } else {
 
 
-                            obj.response = observationResp.response;
+                            obj.response = observationResp.reportSections;
                             obj.highChartData = formData;
 
                             ejs.renderFile(__dirname + '/../views/scoreCriteriaTemplate.ejs', {

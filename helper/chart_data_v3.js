@@ -2,13 +2,12 @@ const moment = require("moment");
 const path = require("path");
 const filesHelper = require('../common/files_helper');
 const kendraService = require('./kendra_service');
-let obsScoreOrder = 0;
 const default_no_of_assessment_submissions_threshold = 3;
 const default_entity_score_api_threshold = 5;
 
 //function for instance observation final response creation
 exports.instanceReportChart = async function (data, reportType = "") {
-    let result;
+    let response;
     let multiSelectArray = [];
     let matrixArray = [];
     let order = "questionExternalId";
@@ -16,23 +15,26 @@ exports.instanceReportChart = async function (data, reportType = "") {
     let solutionType;
 
     try {
+
         if (reportType && reportType == filesHelper.survey) {
             solutionType = filesHelper.survey;
-            result = {
+            response = {
+                result: true,
                 solutionName: data[0].event.solutionName,
-                response: []
+                reportSections: []
             }
         }
         else {
             solutionType = filesHelper.observation;
-            result = {
-                entityName: data[0].event[data[0].event.entityType + "Name"],
-                observationName: data[0].event.observationName,
+            response = {
+                result: true,
                 observationId: data[0].event.observationId,
                 entityType: data[0].event.entityType,
                 entityId: data[0].event[data[0].event.entityType],
                 districtName: data[0].event.districtName,
-                response: []
+                programName: data[0].event.programName,
+                solutionName: data[0].event.solutionName,
+                reportSections: []
             }
         }
 
@@ -68,7 +70,7 @@ exports.instanceReportChart = async function (data, reportType = "") {
                 // }
 
 
-                result.response.push(resp);
+                response.reportSections.push(resp);
             }
 
             // Response object creation for radio type
@@ -94,7 +96,7 @@ exports.instanceReportChart = async function (data, reportType = "") {
                 //     resp.remarks = [element.event.remarks]
                 // }
 
-                result.response.push(resp);
+                response.reportSections.push(resp);
 
             }
 
@@ -117,7 +119,7 @@ exports.instanceReportChart = async function (data, reportType = "") {
         //loop the keys and construct a response object for multiselect questions
         await Promise.all(res.map(async ele => {
             let multiSelectResp = await instanceMultiselectFunc(multiSelectResult[ele])
-            result.response.push(multiSelectResp);
+            response.reportSections.push(multiSelectResp);
 
         }))
 
@@ -128,21 +130,42 @@ exports.instanceReportChart = async function (data, reportType = "") {
         //loop the keys of matrix array
         await Promise.all(matrixRes.map(async ele => {
             let matrixResponse = await matrixResponseObjectCreateFunc(matrixResult[ele], solutionType)
-            result.response.push(matrixResponse);
+            response.reportSections.push(matrixResponse);
 
         }))
 
         //sort the response objects based on questionExternalId field
-        await result.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
+        await response.reportSections.sort(getSortOrder("order")); //Pass the attribute to be sorted on
 
-        if (!reportType || reportType == filesHelper.survey) {
+        response.filters = [];
+        if (solutionType == filesHelper.observation) {
+            response.filters.push({
+                order: "",
+                filter: {
+                    type: "segment",
+                    title: "",
+                    keyToSend: "criteriaWise",
+                    data: ["questionWise", "criteriaWise"]
+                }
+            })
+        }
+
+        if (!reportType || solutionType == filesHelper.survey) {
             // Get the questions array
             let questionArray = await questionListObjectCreation(actualData);
-            result.allQuestions = questionArray;
+            response.filters.push({
+                order: "",
+                filter: {
+                    type: "modal",
+                    title: "",
+                    keyToSend: "questionId",
+                    data: questionArray 
+                }
+            })
         }
 
         //return final response object
-        return result;
+        return response;
     }
     catch (err) {
         console.log(err);
@@ -189,8 +212,8 @@ async function instanceMultiselectFunc(data) {
 
 
 //Function for entity Observation and observation report's response creation
-exports.entityReportChart = async function (data, entityId, entityName, reportType) {
-    let result;
+exports.entityReportChart = async function (data, entityId, entityType, reportType) {
+    let response;
     let multiSelectArray = [];
     let textArray = [];
     let radioArray = [];
@@ -201,41 +224,41 @@ exports.entityReportChart = async function (data, entityId, entityName, reportTy
     let matrixArray = [];
     let actualData = data;
     let solutionType;
+    let submissions = [];
 
     try {
 
         if (reportType == filesHelper.survey) {
             solutionType = filesHelper.survey;
-            result = {
+            response = {
+                result: true,
                 solutionName: data[0].event.solutionName,
-                response: []
+                reportSections: []
             }
         }
         else {
             solutionType = filesHelper.observation;
 
-            result = {
+            response = {
+                result: true,
                 entityType: data[0].event.entityType,
                 entityId: entityId,
-                entityName: data[0].event[entityName + "Name"],
-                response: []
-            }
-
-            if (data[0].event.solutionId) {
-                result.solutionId = data[0].event.solutionId;
-                result.solutionName = data[0].event.solutionName;
-            }
-            else {
-                result.observationId = data[0].event.observationId;
-                result.observationName = data[0].event.observationName;
-                result.districtName = data[0].event.districtName;
+                entityName: data[0].event[entityType + "Name"],
+                solutionName: data[0].event.solutionName,
+                observationId: data[0].event.observationId,
+                districtName: data[0].event.districtName,
+                programName: data[0].event.programName,
+                reportSections: []
             }
         }
 
         await Promise.all(data.map(element => {
-            if (noOfSubmissions.includes(element.event[solutionType + "SubmissionId"])) {
-            } else {
+            if (!noOfSubmissions.includes(element.event[solutionType + "SubmissionId"])) {
                 noOfSubmissions.push(element.event[solutionType + "SubmissionId"]);
+                submissions.push({
+                    _id: element.event[solutionType + "SubmissionId"],
+                    name: element.event.submissionTitle
+                })
             }
 
             if (element.event.questionResponseType == "text" && element.event.instanceParentResponsetype != "matrix") {
@@ -289,7 +312,7 @@ exports.entityReportChart = async function (data, entityId, entityName, reportTy
         //loop the keys and construct a response object for text questions
         await Promise.all(textRes.map(async ele => {
             let textResponse = await responseObjectCreateFunc(textResult[ele], solutionType)
-            result.response.push(textResponse);
+            response.reportSections.push(textResponse);
 
         }));
 
@@ -297,56 +320,82 @@ exports.entityReportChart = async function (data, entityId, entityName, reportTy
         //loop the keys and construct a response object for slider questions
         await Promise.all(sliderRes.map(async ele => {
             let sliderResp = await responseObjectCreateFunc(sliderResult[ele], solutionType)
-            result.response.push(sliderResp);
+            response.reportSections.push(sliderResp);
         }));
 
         let numberRes = Object.keys(numberResult);
         //loop the keys and construct a response object for slider questions
         await Promise.all(numberRes.map(async ele => {
             let numberResp = await responseObjectCreateFunc(numberResult[ele], solutionType)
-            result.response.push(numberResp);
+            response.reportSections.push(numberResp);
         }));
 
         let dateRes = Object.keys(dateResult);
         //loop the keys and construct a response object for slider questions
         await Promise.all(dateRes.map(async ele => {
             let dateResp = await responseObjectCreateFunc(dateResult[ele], solutionType)
-            result.response.push(dateResp);
+            response.reportSections.push(dateResp);
         }))
 
         let radioRes = Object.keys(radioResult);
         //loop the keys and construct a response object for slider questions
         await Promise.all(radioRes.map(async ele => {
             let radioResp = await radioObjectCreateFunc(radioResult[ele], noOfSubmissions)
-            result.response.push(radioResp);
+            response.reportSections.push(radioResp);
         }));
 
         let multiSelectRes = Object.keys(multiSelectResult);
         //loop the keys and construct a response object for multiselect questions
         await Promise.all(multiSelectRes.map(async ele => {
             let multiSelectResp = await multiSelectObjectCreateFunc(multiSelectResult[ele], noOfSubmissions, solutionType)
-            result.response.push(multiSelectResp);
+            response.reportSections.push(multiSelectResp);
         }))
 
         let matrixRes = Object.keys(matrixResult);
         //loop the keys of matrix array
         await Promise.all(matrixRes.map(async ele => {
             let matrixResponse = await matrixResponseObjectCreateFunc(matrixResult[ele], solutionType)
-            result.response.push(matrixResponse);
+            response.reportSections.push(matrixResponse);
 
         }))
 
-        result.totalSubmissions = noOfSubmissions.length;
+        response.totalSubmissions = noOfSubmissions.length;
         //sort the response objects based on questionExternalId field
-        await result.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
+        await response.reportSections.sort(getSortOrder("order")); //Pass the attribute to be sorted on
+
+        response.filters = [{
+            order: "",
+            filter: {
+                type: "dropdown",
+                title: "",
+                keyToSend: "submissionId",
+                data: submissions 
+            }
+        },{
+            order: "",
+            filter: {
+                type: "segment",
+                title: "",
+                keyToSend: "criteriaWise",
+                data: ["questionWise","criteriaWise"] 
+            }
+        }]
 
         if (!reportType || reportType == filesHelper.survey) {
             // Get the questions array
             let questionArray = await questionListObjectCreation(actualData);
-            result.allQuestions = questionArray;
+            response.filters.push({
+                order: "",
+                filter: {
+                    type: "modal",
+                    title: "",
+                    keyToSend: "questionId",
+                    data: questionArray 
+                }
+            })
         }
 
-        return result;
+        return response;
 
     }
     catch (err) {
@@ -504,17 +553,15 @@ async function responseObjectCreateFunc(data, solutionType) {
     return resp;
 }
 
-
 //function to create response object for radio questions (Entiry Report)
 async function radioObjectCreateFunc(data, noOfSubmissions) {
-    var dataArray = [];
-    var labelArray = [];
-    var chartdata = [];
-    var answerArray = [];
-    var question;
-    //let remarks = [];
+    let dataArray = [];
+    let labelArray = [];
+    let chartdata = [];
+    let answerArray = [];
+    let question;
 
-    for (var i = 0; i < data.length; i++) {
+    for (let i = 0; i < data.length; i++) {
 
         if (data[i].event.questionAnswer == null) {
             data[i].event.questionAnswer = "Not answered";
@@ -526,63 +573,40 @@ async function radioObjectCreateFunc(data, noOfSubmissions) {
         dataArray.push(data[i].event.questionAnswer);
         answerArray.push(data[i].event.questionResponseLabel);
 
-        if (labelArray.includes(data[i].event.questionResponseLabel)) {
-        } else {
+        if (!labelArray.includes(data[i].event.questionResponseLabel)) {
             labelArray.push(data[i].event.questionResponseLabel);
-        }
-
-        // if(data[i].event.remarks != null){
-        //     remarks.push(data[i].event.remarks);
-        // }
-
+        } 
     }
 
-    var responseArray = count(dataArray)   //call count function to count occurences of elements in the array
+    let responseArray = count(dataArray)   //call count function to count occurences of elements in the array
     responseArray = Object.entries(responseArray);  //to convert object into array
 
-    for (var j = 0; j < responseArray.length; j++) {
-        var k = 0;
-        var element = responseArray[j];
-        var value = (element[k + 1] / noOfSubmissions.length) * 100;
+    for (let j = 0; j < responseArray.length; j++) {
+        let k = 0;
+        let element = responseArray[j];
+        let value = (element[k + 1] / noOfSubmissions.length) * 100;
         value = parseFloat(value.toFixed(2));
-        if (labelArray[j] == null) {
-            labelArray[j] = "Not answered";
-        }
-        var dataObj = {
-            name: labelArray[j],
-            y: value
-        }
-
-        chartdata.push(dataObj);
-
+        chartdata.push(value);
     }
 
     //To get the latest edited question
     let questionObject = data.sort(custom_sort);
     question = questionObject[questionObject.length - 1].event.questionName;
 
-    var resp = {
+    let resp = {
         order: data[0].event.questionExternalId,
         question: question,
         responseType: data[0].event.questionResponseType,
         answers: [],
         chart: {
             type: "pie",
-            plotOptions: {
-                pie: {
-                    allowPointSelect: true,
-                    cursor: 'pointer',
-                    dataLabels: {
-                        enabled: false
-                    },
-                    showInLegend: true
-                }
-            },
-            data: [
-                {
+            data:{
+                labels: labelArray,
+                datasets: [{
+                    backgroundColor: ['#FFA971', '#F6DB6C', '#98CBED', '#C9A0DA', '#5DABDC', '#88E5B0'],
                     data: chartdata
-                }
-            ]
+                }]
+            }
         },
         instanceQuestions: [],
         criteriaName: data[0].event.criteriaName,
@@ -608,8 +632,7 @@ async function multiSelectObjectCreateFunc(data, noOfSubmissions, solutionType) 
         await Promise.all(data.map(ele => {
             dataArray.push(ele.event.questionAnswer);
 
-            if (labelArray.includes(ele.event.questionResponseLabel)) {
-            } else {
+            if (!labelArray.includes(ele.event.questionResponseLabel)) {
                 labelArray.push(ele.event.questionResponseLabel)
             }
         }))
@@ -636,25 +659,35 @@ async function multiSelectObjectCreateFunc(data, noOfSubmissions, solutionType) 
             responseType: data[0].event.questionResponseType,
             answers: [],
             chart: {
-                type: "bar",
-                data: [
-                    {
-                        data: chartdata
-                    }
-                ],
-                xAxis: {
-                    categories: labelMerged,
-                    title: {
-                        text: "Responses"
-                    }
+                type: "horizontalBar",
+                data: {
+                    labels: labelMerged,
+                    datasets: [{
+                            data: chartdata,
+                            backgroundColor: "#de8657"
+                    }]
                 },
-                yAxis: {
-                    min: 0,
-                    max: 100,
-                    title: {
-                        text: "Responses in percentage"
+                options: {
+                    legend: false,
+                    scales: {
+                        xAxes: [{
+                            ticks: {
+                                min: 0,
+                                max: 100
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: "Responses in percentage"
+                            }
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: "Responses"
+                            }
+                        }],
                     }
-                }
+                },            
             },
             instanceQuestions: [],
             criteriaName: data[0].event.criteriaName,
@@ -665,16 +698,6 @@ async function multiSelectObjectCreateFunc(data, noOfSubmissions, solutionType) 
         let groupArrayBySubmissions = await groupArrayByGivenField(data, solutionType + "SubmissionId");
 
         let submissionKeysArray = Object.keys(groupArrayBySubmissions);
-
-        // await Promise.all(submissionKeysArray.map(async element => {
-
-        //     if(groupArrayBySubmissions[element][0].event.remarks != null){
-        //         remarks.push(groupArrayBySubmissions[element][0].event.remarks);
-        //     }
-
-        // }));
-
-        // resp.remarks = remarks ;
 
         // Constructing answer array for matrix questions
         if ("instanceParentResponsetype" in data[0].event != null) {
@@ -708,6 +731,7 @@ async function multiSelectObjectCreateFunc(data, noOfSubmissions, solutionType) 
     }
 }
 
+
 // to count the occurances of same elements in the array
 function count(arr) {
     return arr.reduce((prev, curr) => (prev[curr] = ++prev[curr] || 1, prev), {})
@@ -729,365 +753,21 @@ exports.listObservationNamesObjectCreate = async function (data) {
     }
 }
 
-//Create response object for listSolutionNames API
-exports.listSolutionNamesObjectCreate = async function (data) {
-    try {
-        let responseObj = [];
-        let scoring;
-
-        let groupBySolutionId = await groupArrayByGivenField(data, "solutionId")
-
-        let solutionKeys = Object.keys(groupBySolutionId);
-
-        await Promise.all(solutionKeys.map(element => {
-
-            let obj = {
-                solutionName: groupBySolutionId[element][0].event.solutionName,
-                solutionId: groupBySolutionId[element][0].event.solutionId
-            }
-
-            groupBySolutionId[element].forEach(ele => {
-
-                if (ele.event.totalScore >= 1) {
-                    scoring = true;
-                }
-            });
-
-
-            if (scoring == true) {
-                obj.scoring = true;
-            } else {
-                obj.scoring = false;
-            }
-
-            responseObj.push(obj);
-        }))
-
-        return responseObj;
-
-    }
-    catch (err) {
-        console.log(err);
-    }
-}
-
-
-
-//=========================================  assessment chart data ===============================================
-
-exports.listProgramsObjectCreate = async function (data) {
-    try {
-        var responseObj = []
-        var dataArray = []
-
-        for (var i = 0; i < data.length; i++) {
-            dataArray.push(data[i].event);
-        }
-
-        // Function for grouping the array based on program Id
-        result = dataArray.reduce(function (r, a) {
-            r[a.programId] = r[a.programId] || [];
-            r[a.programId].push(a);
-            return r;
-        }, Object.create(null));
-
-        var res = Object.keys(result);
-
-        //loop the keys 
-        await Promise.all(res.map(async ele => {
-            var programListResp = await programListRespObjCreate(result[ele])
-            responseObj.push(programListResp);
-
-        }));
-
-        return responseObj;
-    }
-    catch (err) {
-        console.log(err);
-    }
-}
-
-//Function to create program object and solution array  -- listPrograms API
-async function programListRespObjCreate(data) {
-    try {
-        let pgmObj = {
-            programName: data[0].programName,
-            programId: data[0].programId,
-            programDescription: data[0].programDescription,
-            programExternalId: data[0].programExternalId,
-            solutions: []
-        }
-
-        await Promise.all(data.map(element => {
-            let solutionObj = {
-                solutionName: element.solutionName,
-                solutionId: element.solutionId,
-                solutionDescription: element.solutionDescription,
-                solutionExternalId: element.solutionExternalId
-            }
-
-            pgmObj.solutions.push(solutionObj);
-        }));
-
-        return pgmObj;
-
-    }
-    catch (err) {
-        console.log(err);
-    }
-}
-
-//Function to create stacked bar chart response object for entity assessment API  
-exports.entityAssessmentChart = async function (inputObj) {
-    return new Promise(async function (resolve, reject) {
-
-        let entityName = inputObj.entityName;
-        let domainObj = {};
-        let domainCriteriaObj = {};
-        let domainArray = [];
-        let scoresExists = false;
-        let dynamicLevelObj = {};
-        let childEntityId = inputObj.childEntity ? inputObj.childEntity : inputObj.parentEntity;
-        let childEntityName = childEntityId + "Name";
-
-        for (let domain = 0; domain < inputObj.data.length; domain++) {
-
-            let domainData = inputObj.data[domain];
-
-            if (domainData.event.level !== null) {
-
-                scoresExists = true;
-
-                if (!dynamicLevelObj[domainData.event.level]) {
-                    dynamicLevelObj[domainData.event.level] = [];
-                }
-
-                // Domain and level object creation for chart
-                if (!domainObj[domainData.event[entityName]]) {
-                    domainObj[domainData.event[entityName]] = {};
-                    domainObj[domainData.event[entityName]][domainData.event.level] = {
-                        [domainData.event.level]: 1,
-                        entityId: inputObj.childEntity ? domainData.event[inputObj.childEntity] : ""
-                    };
-
-                } else {
-                    if (!domainObj[domainData.event[entityName]][domainData.event.level]) {
-                        domainObj[domainData.event[entityName]][domainData.event.level] = {
-                            [domainData.event.level]: 1,
-                            entityId: inputObj.childEntity ? domainData.event[inputObj.childEntity] : ""
-                        };
-                    }
-                    else {
-                        let level = domainObj[domainData.event[entityName]][domainData.event.level][domainData.event.level];
-                        domainObj[domainData.event[entityName]][domainData.event.level] = {
-                            [domainData.event.level]: ++level,
-                            entityId: inputObj.childEntity ? domainData.event[inputObj.childEntity] : ""
-                        }
-                    }
-                }
-
-
-                // Domain and criteria object creation
-                if (!domainCriteriaObj[domainData.event[childEntityId]]) {
-                    domainCriteriaObj[domainData.event[childEntityId]] = {};
-                    domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]] = {};
-                    domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName] = {};
-                    domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid] = {};
-                    domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName] = {};
-                    domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["level"] = domainData.event.level;
-                }
-                else {
-                    if (!domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]]) {
-                        domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]] = {};
-                        domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName] = {};
-                        domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid] = {};
-                        domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName] = {};
-                        domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["level"] = domainData.event.level;
-                    }
-                    else {
-                        if (!domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName]) {
-                            domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName] = {};
-                            domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid] = {};
-                            domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName] = {};
-                            domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["level"] = domainData.event.level;
-                        }
-                        else {
-                            if (!domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid]) {
-                                domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid] = {};
-                                domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName] = {};
-                                domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["level"] = domainData.event.level;
-                            }
-                            else {
-                                if (!domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]) {
-                                    domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName] = {};
-                                    domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["level"] = domainData.event.level;
-                                }
-                                else {
-                                    domainCriteriaObj[domainData.event[childEntityId]][domainData.event[childEntityName]][domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["level"] = domainData.event.level;
-                                }
-                            }
-                        }
-                    }
-
-                }
-            }
-        }
-
-        //  if score does not exists, return empty array
-        if (scoresExists == false) {
-            return resolve({});
-        }
-
-        //loop the domain keys and construct level array for stacked bar chart
-        let domainKeys = Object.keys(domainObj);
-        let obj = {};
-        domainArray = domainKeys;
-
-        for (let domainKey = 0; domainKey < domainKeys.length; domainKey++) {
-            let levels = domainObj[domainKeys[domainKey]];
-            let levelKeys = Object.keys(levels);
-            for (level in dynamicLevelObj) {
-                if (levelKeys.includes(level)) {
-                    dynamicLevelObj[level].push({
-                        y: levels[level][level],
-                        entityId: levels[level].entityId
-                    });
-                } else {
-                    dynamicLevelObj[level].push({
-                        y: 0,
-                        entityId: ""
-                    });
-                }
-            }
-        }
-
-        //sort the levels
-        Object.keys(dynamicLevelObj).sort().forEach(function (key) {
-            obj[key] = dynamicLevelObj[key];
-        });
-
-        let series = [];
-        for (level in obj) {
-            series.push({
-                name: level,
-                data: obj[level]
-            })
-        }
-
-        let chartTitle = "";
-        if (inputObj.childEntity == "") {
-            chartTitle = "domain"
-        }
-        else {
-            chartTitle = "Entity"
-        }
-
-        let chartObj = {
-            result: true,
-            title: inputObj.data[0].event.programName + " report",
-            reportSections: [
-                {
-                    order: 1,
-                    chart: {
-                        type: "bar",
-                        nextChildEntityType: inputObj.childEntity,
-                        stacking: "percent",
-                        title: "Criteria vs level mapping aggregated at " + chartTitle + " level",
-                        xAxis: {
-                            categories: domainArray,
-                            title: ""
-                        },
-                        yAxis: {
-                            title: {
-                                text: "Criteria"
-                            }
-                        },
-                        data: series
-                    }
-                }
-            ]
-        }
-
-        let domainCriteriaArray = [];
-        let entityIdKeys = Object.keys(domainCriteriaObj);
-
-        for (let entityIdKey = 0; entityIdKey < entityIdKeys.length; entityIdKey++) {
-
-            let entityNameKeys = Object.keys(domainCriteriaObj[entityIdKeys[entityIdKey]]);
-
-            for (let entityNameKey = 0; entityNameKey < entityNameKeys.length; entityNameKey++) {
-
-                let entityDomainObject = {
-                    entityId: entityIdKeys[entityIdKey],
-                    entityName: entityNameKeys[entityNameKey],
-                    domains: []
-                }
-
-                let domainNameKeys = Object.keys(domainCriteriaObj[entityIdKeys[entityIdKey]][entityNameKeys[entityNameKey]]);
-
-                for (let domainNameKey = 0; domainNameKey < domainNameKeys.length; domainNameKey++) {
-
-                    let domainObject = {
-                        domainName: domainNameKeys[domainNameKey],
-                        criterias: []
-                    }
-
-                    let externalIdKeys = Object.keys(domainCriteriaObj[entityIdKeys[entityIdKey]][entityNameKeys[entityNameKey]][domainNameKeys[domainNameKey]]);
-
-                    for (let externalIdKey = 0; externalIdKey < externalIdKeys.length; externalIdKey++) {
-
-                        let childNameKeys = Object.keys(domainCriteriaObj[entityIdKeys[entityIdKey]][entityNameKeys[entityNameKey]][domainNameKeys[domainNameKey]][externalIdKeys[externalIdKey]]);
-
-                        for (childNameKey = 0; childNameKey < childNameKeys.length; childNameKey++) {
-
-                            let criteriaObject = {
-                                name: childNameKeys[childNameKey],
-                                level: domainCriteriaObj[entityIdKeys[entityIdKey]][entityNameKeys[entityNameKey]][domainNameKeys[domainNameKey]][externalIdKeys[externalIdKey]][childNameKeys[childNameKey]].level
-                            }
-
-                            domainObject.criterias.push(criteriaObject);
-                        }
-                    }
-                    entityDomainObject.domains.push(domainObject);
-                }
-
-                domainCriteriaArray.push(entityDomainObject);
-            }
-        }
-
-        let expansionObject = {
-            order: 2,
-            chart: {
-                type: "expansion",
-                title: "Descriptive view",
-                entities: domainCriteriaArray
-            }
-        }
-
-        chartObj.reportSections.push(expansionObject);
-
-        return resolve(chartObj);
-    })
-        .catch(err => {
-            return reject(err);
-        })
-
-}
-
 
 //===================================== chart object creation for observation scoring reports =========================
 
 // Chart object creation for instance observation score report
 exports.instanceScoreReportChartObjectCreation = async function (data, reportType) {
 
-    let obj = {
+    let response = {
         result: true,
         totalScore: data[0].event.totalScore,
         scoreAchieved: data[0].event.scoreAchieved,
-        observationName: data[0].event.observationName,
         schoolName: data[0].event.schoolName,
         districtName: data[0].event.districtName,
-        response: []
+        solutionName: data[0].event.solutionName,
+        programName: data[0].event.programName,
+        reportSections: []
     }
 
     //Group the objects based on the questionExternalId
@@ -1099,20 +779,38 @@ exports.instanceScoreReportChartObjectCreation = async function (data, reportTyp
 
         let chartObject = await scoreObjectCreateFunction(result[element]);
 
-        obj.response.push(chartObject);
+        response.reportSections.push(chartObject);
 
     }))
 
     //sort the response objects based on questionExternalId field
-    await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
+    await response.reportSections.sort(getSortOrder("order")); //Pass the attribute to be sorted on
+
+    response.filters = [{
+        order: "",
+        filter: {
+            type: "segment",
+            title: "",
+            keyToSend: "criteriaWise",
+            data: ["questionWise","criteriaWise"] 
+        }
+    }]
 
     if (!reportType) {
         // Get the question array
         let questionArray = await questionListObjectCreation(data);
-        obj.allQuestions = questionArray;
+        response.filters.push({
+            order: "",
+            filter: {
+                type: "modal",
+                title: "",
+                keyToSend: "questionId",
+                data: questionArray 
+            }
+        })
     }
 
-    return obj;
+    return response;
 }
 
 
@@ -1126,75 +824,52 @@ async function scoreObjectCreateFunction(data) {
         data[0].event.maxScore = 0;
     }
 
-    let value = (data[0].event.minScore / data[0].event.maxScore) * 100;
-    value = parseFloat(value.toFixed(2));
+    let scoreAchieved = (data[0].event.minScore / data[0].event.maxScore) * 100;
+    scoreAchieved = parseFloat(scoreAchieved.toFixed(2));
 
-    let yy = 0;
+    let scoreNotAchieved = 0;
 
-    if (!value) {
-        value = 0;
+    if (!scoreAchieved) {
+        scoreAchieved = 0;
     } else {
-        yy = 100 - value
+        scoreNotAchieved = 100 - scoreAchieved
     }
-
-    let dataObj = [{
-        name: data[0].event.minScore + " out of " + data[0].event.maxScore,
-        y: value,
-        color: "#6c4fa1"
-    }, {
-        name: "",
-        y: yy,
-        color: "#fff"
-    }]
 
     let resp = {
         order: data[0].event.questionExternalId,
         question: data[0].event.questionName,
+        responseType: "pie",
         chart: {
             type: "pie",
-            credits: {
-                enabled: false
-            },
-            plotOptions: {
-                pie: {
-                    allowPointSelect: true,
-                    cursor: 'pointer',
-                    dataLabels: {
-                        enabled: false
-                    },
-                    showInLegend: true,
-                    borderColor: '#000000'
-                }
-            },
+            data: {
+                labels: [data[0].event.minScore + " out of " + data[0].event.maxScore],
+                datasets: [{
+                    backgroundColor: [
+                        "#6c4fa1",
+                    ],
+                    data: [scoreAchieved, scoreNotAchieved],
+                    borderColor: 'black',
+                }]
 
-            data: [
-                {
-                    data: dataObj
-                }
-            ]
+            }
         },
         criteriaName: data[0].event.criteriaName,
         criteriaId: data[0].event.criteriaId
     }
 
-    // If remarks is not null then add it to reponse object
-    // if(data[0].event.remarks != null){
-    //     resp.remarks = [data[0].event.remarks];
-    // }
-
     return resp;
-
 }
 
 
 
 // Chart object creation for entity observation score report
-exports.entityScoreReportChartObjectCreation = async function (data, version, reportType) {
+exports.entityScoreReportChartObjectCreation = async function (data, reportType) {
 
     let sortedData = await data.sort(sort_objects);
 
     let submissionId = [];
     let responseData = [];
+    let submissions = [];
 
     let threshold = process.env.ENTITY_SCORE_REPORT_THRESHOLD ? parseInt(process.env.ENTITY_SCORE_REPORT_THRESHOLD) : default_entity_score_api_threshold;
 
@@ -1203,7 +878,14 @@ exports.entityScoreReportChartObjectCreation = async function (data, version, re
     }
 
     await Promise.all(sortedData.map(element => {
+        let submissionIdExists =submissions.find(temp=>temp._id == element.event.observationSubmissionId)
 
+        if (!submissionIdExists) {
+            submissions.push({ _id: element.event.observationSubmissionId, 
+                               name: element.event.submissionTitle
+                            });
+        } 
+        
         if (submissionId.length <= threshold) {
             if (!submissionId.includes(element.event.observationSubmissionId)) {
                 submissionId.push(element.event.observationSubmissionId)
@@ -1211,14 +893,14 @@ exports.entityScoreReportChartObjectCreation = async function (data, version, re
         }
     }))
 
-
-    let obj = {
+    let response = {
         result: true,
-        schoolName: data[0].event.schoolName,
+        entityName: data[0].event[data[0].event.entityType + "Name"],
         totalObservations: submissionId.length,
-        observationName: data[0].event.observationName,
         districtName: data[0].event.districtName,
-        response: []
+        solutionName: data[0].event.solutionName,
+        programName: data[0].event.programName,
+        reportSections: []
     }
 
     //loop sortedData and take required json objects
@@ -1237,30 +919,56 @@ exports.entityScoreReportChartObjectCreation = async function (data, version, re
 
     await Promise.all(groupKeys.map(async ele => {
 
-        let responseObj = await entityScoreObjectCreateFunc(groupedData[ele], version, threshold);
+        let responseObj = await entityScoreObjectCreateFunc(groupedData[ele], threshold);
 
-        obj.response.push(responseObj);
+        response.reportSections.push(responseObj);
 
     }))
 
     //sort the response objects using questionExternalId field
-    await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
+    await response.reportSections.sort(getSortOrder("order")); //Pass the attribute to be sorted on
+
+    response.filters = [{
+        order: "",
+        filter: {
+            type: "dropdown",
+            title: "",
+            keyToSend: "submissionId",
+            data: submissions 
+        },
+    },{
+        order: "",
+        filter: {
+            type: "segment",
+            title: "",
+            keyToSend: "criteriaWise",
+            data: ["questionWise","criteriaWise"] 
+        }
+    }]
 
     if (!reportType) {
         // Get the question array
         let questionArray = await questionListObjectCreation(data);
-        obj.allQuestions = questionArray;
+        response.filters.push({
+            order: "",
+            filter: {
+                type: "modal",
+                title: "",
+                keyToSend: "questionId",
+                data: questionArray 
+            }
+        })
     }
 
-    return obj;
+    return response;
 
 }
 
 
-async function entityScoreObjectCreateFunc(data, version, threshold) {
+async function entityScoreObjectCreateFunc(data, threshold) {
 
     let seriesData = [];
-    let yAxisMaxValue;
+    let yAxisMaxValue = 0;
 
     //group the questions based on their observationSubmissionId
     let groupedSubmissionData = await groupArrayByGivenField(data, "observationSubmissionId");
@@ -1274,7 +982,7 @@ async function entityScoreObjectCreateFunc(data, version, threshold) {
         }
 
         if (seriesData.length != threshold) {
-            seriesData.push([parseInt(groupedSubmissionData[scoreData][0].event.minScore)]);
+            seriesData.push(parseInt(groupedSubmissionData[scoreData][0].event.minScore));
         }
 
         if (groupedSubmissionData[scoreData][0].event.maxScore != null) {
@@ -1287,191 +995,46 @@ async function entityScoreObjectCreateFunc(data, version, threshold) {
     let chartData = {
         order: data[0].event.questionExternalId,
         question: data[0].event.questionName,
+        responseType: "bar",
         chart: {
-            type: "scatter",
-            title: "",
-            xAxis: {
-                title: {
-                    enabled: true,
-                    text: "observations"
-                },
-                labels: {},
-                categories: ["Obs1", "Obs2", "Obs3", "Obs4", "Obs5"],
-                startOnTick: false,
-                endOnTick: false,
-                showLastLabel: true
-            },
-            yAxis: {
-                min: 0,
-                max: yAxisMaxValue,
-                allowDecimals: false,
-                title: {
-                    text: "Score"
-                }
-            },
-            plotOptions: {
-                scatter: {
-                    lineWidth: 1,
-                    lineColor: "#F6B343"
-                }
-            },
-            credits: {
-                enabled: false
-            },
-            legend: {
-                enabled: false
-            },
-            data: [{
-                color: "#F6B343",
-                data: seriesData
-            }]
+            type: 'bar',
+            data: {
+                labels: [
+                    "Obs1",
+                    "Obs2",
+                    "Obs3",
+                    "Obs4",
+                    "Obs5"
+                ],
+                datasets: [
+                    {
 
-        },
-        criteriaName: data[0].event.criteriaName,
-        criteriaId: data[0].event.criteriaId
-    }
+                        data: seriesData,
+                        backgroundColor: "#F6B343"
+                    }]
+            },
+            options: {
+                legend: false,
+                scales: {
+                    xAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'observations'
+                        }
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            min: 0,
+                            max: parseInt(yAxisMaxValue)
+                        },
 
-    if (version == "v2") {
-        chartData.chart.type = "column";
-        chartData.chart.plotOptions = {
-            column: {
-                pointPadding: 0.3,
-                borderWidth: 0
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'score'
+                        }
+                    }],
+                }
             }
-        }
-    }
-
-    return chartData;
-}
-
-
-
-// Chart object creation for observation score report
-exports.observationScoreReportChart = async function (data, entityType, reportType) {
-
-    let obj = {
-        result: true,
-        observationName: data[0].event.observationName,
-        solutionName: data[0].event.solutionName,
-        entityType: entityType,
-        response: []
-    }
-
-    //group the data based on entity Id
-    let questionIdGroupedData = await groupArrayByGivenField(data, "questionExternalId");
-
-    let entityKeys = Object.keys(questionIdGroupedData);
-
-    await Promise.all(entityKeys.map(async element => {
-
-        let responseObj = await observationScoreResponseObj(questionIdGroupedData[element], entityType);
-
-        obj.response.push(responseObj);
-    }))
-
-
-    // Number of schools in this particular observation/solution
-    obj.entitiesObserved = obj.response[0].chart.xAxis.categories.length;
-
-    //sort the response objects using questionExternalId field
-    await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
-
-    if (!reportType) {
-        // Get the question array
-        let questionArray = await questionListObjectCreation(data);
-        obj.allQuestions = questionArray;
-    }
-
-    return obj;
-}
-
-//Chart object creation for each question
-async function observationScoreResponseObj(data, entityType) {
-
-    let obsArray1 = [];
-    let obsArray2 = [];
-    let entityNames = [];
-    let yAxisMaxValue;
-
-    //Group the data based on school Id
-    let groupedEntityData = await groupArrayByGivenField(data, entityType);
-
-    let groupedEntityKeys = Object.keys(groupedEntityData);
-
-    await Promise.all(groupedEntityKeys.map(async element => {
-
-        let sortedData = await groupedEntityData[element].sort(sort_objects);
-
-        entityNames.push(sortedData[0].event[entityType + "Name"]);
-        yAxisMaxValue = parseInt(sortedData[0].event.maxScore);
-
-        if (sortedData.length >= 1) {
-
-            if (sortedData[0].event.minScore == null) {
-                sortedData[0].event.minScore = 0;
-            }
-
-            obsArray1.push(parseInt(sortedData[0].event.minScore));
-
-            if (sortedData.length > 1) {
-
-                if (sortedData[1].event.minScore == null) {
-                    sortedData[1].event.minScore = 0;
-                }
-
-                obsArray2.push(parseInt(sortedData[1].event.minScore));
-            }
-
-        }
-
-    }))
-
-
-    let chartData = {
-        order: data[0].event.questionExternalId,
-        question: data[0].event.questionName,
-        chart: {
-            type: "bar",
-            title: "",
-            xAxis: {
-                title: {
-                    text: null
-                },
-                labels: {},
-                categories: entityNames
-            },
-            yAxis: {
-                min: 0,
-                max: yAxisMaxValue,
-                title: {
-                    text: "Score"
-                },
-                labels: {
-                    overflow: 'justify'
-                },
-                allowDecimals: false
-            },
-            plotOptions: {
-                bar: {
-                    dataLabels: {
-                        enabled: true
-                    }
-                }
-            },
-            legend: {
-                enabled: true
-            },
-            credits: {
-                enabled: false
-            },
-            data: [{
-                name: 'observation1',
-                data: obsArray1
-            }, {
-                name: 'observation2',
-                data: obsArray2
-            }]
-
         },
         criteriaName: data[0].event.criteriaName,
         criteriaId: data[0].event.criteriaId
@@ -1479,6 +1042,7 @@ async function observationScoreResponseObj(data, entityType) {
 
     return chartData;
 }
+
 
 // Function for grouping the array based on certain field name
 function groupArrayByGivenField(array, name) {
@@ -1501,106 +1065,6 @@ function sort_objects(a, b) {
 }
 
 
-//function to create the title
-function designationCreateFunction(entityType) {
-    var value;
-    if (entityType == "school") {
-        value = "HM"
-    }
-    else if (entityType == "cluster") {
-        value = "CRP"
-    }
-    else if (entityType == "zone") {
-        value = "ZONE"
-    }
-    else if (entityType == "block") {
-        value = "BEO"
-    }
-    else if (entityType == "district") {
-        value = "DEO"
-    }
-    else if (entityType == "state") {
-        value = "State"
-    }
-    else if (entityType == "hub") {
-        value = "HUB"
-    }
-
-    return value;
-}
-
-
-
-//============================ Container APP API Response object creation ==========================================
-
-exports.courseEnrollmentResponeObj = async function (result) {
-    var response = {
-        result: true,
-        data: []
-    }
-
-    for (var i = 0; i < result.length; i++) {
-        let obj = {}
-        obj.course_name = result[i].event.course_name;
-        obj.status = result[i].event.course_status;
-        response.data.push(obj);
-    }
-
-    return response;
-}
-
-//Chart object creation for usage by content 
-exports.usageByContentResponeObj = async function (result) {
-    var response = {
-        result: true,
-        data: []
-    }
-
-    for (var i = 0; i < result.length; i++) {
-        let obj = {}
-        obj.content_name = result[i].content_name;
-        obj.total_users_viewed = result[i]["Total Users Viewed"];
-        response.data.push(obj);
-    }
-    return response;
-}
-
-
-//Chart object creation for contents downloaded by the user
-exports.contentDownloadResponeObj = async function (result) {
-    var response = {
-        result: true,
-        data: []
-    }
-
-    for (var i = 0; i < result.length; i++) {
-        let obj = {}
-        obj.content_name = result[i].content_name;
-        obj.total_downloads = result[i]["COUNT(content_identifier)"];
-        response.data.push(obj);
-    }
-    return response;
-}
-
-
-//Chart object creation for contents viewed in the platform
-exports.contentViewResponeObj = async function (result) {
-    var response = {
-        result: true,
-        data: []
-    }
-
-    for (var i = 0; i < result.length; i++) {
-        let obj = {}
-        obj.content_name = result[i].content_name;
-        obj.total_views = result[i]["COUNT(content_identifier)"];
-        response.data.push(obj);
-    }
-    return response;
-}
-
-
-
 //Function for sorting the array in ascending order based on a key
 function getSortOrder(prop) {
     return function (a, b) {
@@ -1613,24 +1077,9 @@ function getSortOrder(prop) {
     }
 }
 
-//COnvert questionSequenceByEcm value from string to int
-async function sequenceNumberTypeConvertion(data) {
-
-    await Promise.all(data.map(element => {
-        element.event.questionSequenceByEcm = parseInt(element.event.questionSequenceByEcm);
-
-        if (element.event.instanceParentEcmSequence != null) {
-            element.event.instanceParentEcmSequence = parseInt(element.event, instanceParentEcmSequence);
-        }
-    }));
-
-    return data;
-}
-
-
 
 // question list response object creation
-var questionListObjectCreation = async function (data) {
+const questionListObjectCreation = async function (data) {
     let questionArray = [];
 
     //group the questions based on their questionExternalId
@@ -1639,13 +1088,10 @@ var questionListObjectCreation = async function (data) {
     let groupKeys = Object.keys(result);
 
     await Promise.all(groupKeys.map(async element => {
-        let obj = {};
-
-        obj.questionName = result[element][0].event.questionName;
-        obj.questionExternalId = result[element][0].event.questionExternalId;
-        obj.questionId = result[element][0].event.questionId;
-
-        questionArray.push(obj);
+        questionArray.push({
+            name: result[element][0].event.questionName,
+            _id: result[element][0].event.questionExternalId
+        })
     }))
 
     await questionArray.sort(getSortOrder("questionExternalId"));
@@ -1686,7 +1132,7 @@ exports.evidenceChartObjectCreation = async function (chartData, evidenceData, t
     let filesArray = [];
     let questionData = [];
 
-    await Promise.all(chartData.response.map(async element => {
+    await Promise.all(chartData.reportSections.map(async element => {
 
         let filteredData = evidenceData.filter(data => element.order.includes(data.event.questionExternalId));
 
@@ -1756,7 +1202,7 @@ async function evidenceArrayCreation(questionExternalId, evidenceData) {
 
     evidence_count = filePaths.length;
 
-    if (filePaths.length > parseInt(process.env.EVIDENCE_THRESHOLD)) {
+    if (filePaths.length >  parseInt(process.env.EVIDENCE_THRESHOLD)) {
         filesArray.push(filePaths.slice(0, parseInt(process.env.EVIDENCE_THRESHOLD)));
     } else {
         filesArray.push(filePaths);
@@ -1779,7 +1225,7 @@ async function evidenceArrayCreation(questionExternalId, evidenceData) {
 // Insert evidence array to the corrousponding questions
 async function insertEvidenceArrayToChartObject(chartData, downloadableUrls, questionData) {
 
-    await Promise.all(chartData.response.map(async ele => {
+    await Promise.all(chartData.reportSections.map(async ele => {
 
         let filteredData = questionData.filter(data => ele.order.includes(data.questionExternalId));
 
@@ -1851,7 +1297,7 @@ async function insertEvidenceArrayToChartObject(chartData, downloadableUrls, que
 
     }));
 
-    await chartData.response.sort(getSortOrder("order"));
+    await chartData.reportSections.sort(getSortOrder("order"));
 
     return chartData;
 }
@@ -1921,75 +1367,6 @@ exports.evidenceResponseCreateFunc = async function (result) {
 }
 
 
-//Function for creating response object for list assessment programs API
-exports.listAssessmentProgramsObjectCreate = async function (data) {
-    let response = {
-        "result": true,
-        "data": []
-    }
-
-    await Promise.all(data.map(element => {
-
-        response.data.push(element.event);
-
-    }));
-
-    return response;
-}
-
-
-//Function for creating response object for list entities API
-exports.listEntitesObjectCreation = async function (data) {
-
-    let response = {
-        "result": true,
-        "data": []
-    }
-
-    let entityArray = [];
-
-    await Promise.all(data.map(element => {
-
-        let obj = {};
-        let entity = element.event.entityType;
-        obj.entityId = element.event[entity];
-        obj.entityName = element.event[entity + "Name"];
-        obj.entityType = element.event.entityType;
-        obj.solutionId = element.event.solutionId;
-        obj.solutionName = element.event.solutionName;
-
-
-        entityArray.push(obj);
-
-    }));
-
-    let groupEntityData = await groupDataByEntityId(entityArray, "entityId");
-
-    let entityKeys = Object.keys(groupEntityData);
-
-    await Promise.all(entityKeys.map(async ele => {
-
-        let entityObject = {
-            entityId: groupEntityData[ele][0].entityId,
-            entityName: groupEntityData[ele][0].entityName,
-            entityType: groupEntityData[ele][0].entityType,
-            solutions: []
-        }
-
-        await Promise.all(groupEntityData[ele].map(entityData => {
-            let solutionObject = {
-                solutionId: entityData.solutionId,
-                solutionName: entityData.solutionName
-            }
-            entityObject.solutions.push(solutionObject);
-        }));
-
-        response.data.push(entityObject);
-    }));
-
-    return response;
-}
-
 // Function for grouping the array based on certain field name
 function groupDataByEntityId(array, name) {
     result = array.reduce(function (r, a) {
@@ -2001,97 +1378,23 @@ function groupDataByEntityId(array, name) {
     return result;
 }
 
-
-
-// Prepare tags array using acl data
-exports.tagsArrayCreateFunc = async function (acl) {
-
-    let aclKeys = Object.keys(acl);
-    let tagsArray = [];
-
-    await Promise.all(aclKeys.map(async element => {
-        let nestedKeys = Object.keys(acl[element]);
-        await Promise.all(nestedKeys.map(ele => {
-            tagsArray.push(acl[element][ele].tags);
-        }));
-    }));
-
-    tagsArray = Array.prototype.concat(...tagsArray);
-
-    return tagsArray;
-}
-
-
-
-// Function for creating response object of listImprovementProjects API
-exports.improvementProjectsObjectCreate = async function (data) {
-
-    let response = {
-        "result": true,
-        "data": []
-    }
-
-    let groupByCriteria = await groupArrayByGivenField(data, "criteriaDescription");
-
-    let criteriaKeys = Object.keys(groupByCriteria);
-
-    await Promise.all(criteriaKeys.map(async element => {
-
-        let criteriaObj = {
-            criteriaName: groupByCriteria[element][0].event.criteriaDescription,
-            level: groupByCriteria[element][0].event.level,
-            label: groupByCriteria[element][0].event.label,
-            improvementProjects: []
-        }
-
-        await Promise.all(groupByCriteria[element].map(ele => {
-
-            if (ele.event.imp_project_title != null) {
-
-                let projectObj = {
-                    projectName: ele.event.imp_project_title,
-                    projectId: ele.event.imp_project_id,
-                    projectGoal: ele.event.imp_project_goal,
-                    projectExternalId: ele.event.imp_project_externalId
-                }
-
-                criteriaObj.improvementProjects.push(projectObj);
-            }
-        }));
-
-        response.data.push(criteriaObj);
-
-    }));
-
-    return response;
-}
-
-
 //Function to create a report based on criteria
 exports.getCriteriawiseReport = async function (responseObj) {
 
     let responseArray = [];
     let finalResponseArray = []
+    let allCriterias = []
 
-    await Promise.all(responseObj.response.map(element => {
+    await Promise.all(responseObj.reportSections.map(element => {
 
-        let instanceQuestions = [];
-
-        if (element["instanceQuestions"]) {
-            instanceQuestions = element.instanceQuestions;
-            element.instanceQuestions = [];
+        if (element["instanceQuestions"] && element.instanceQuestions.length > 0) {
+            responseArray = [...responseArray, ...element.instanceQuestions];
+        } else {
+            responseArray.push(element);
         }
-
-        responseArray.push(element);
-
-        if (instanceQuestions.length > 0) {
-
-            responseArray = [...responseArray, ...instanceQuestions];
-        }
-
     }));
 
-    let groupByCriteria = await groupDataByEntityId(responseArray, "criteriaName");
+    let groupByCriteria = await groupDataByEntityId(responseArray, "criteriaId");
 
     let criteriaKeys = Object.keys(groupByCriteria);
 
@@ -2099,122 +1402,41 @@ exports.getCriteriawiseReport = async function (responseObj) {
 
         let criteriaObj = {
 
-            criteriaId: groupByCriteria[ele][0].criteriaId,
+            criteriaId: ele,
             criteriaName: groupByCriteria[ele][0].criteriaName,
             questionArray: groupByCriteria[ele]
 
         }
+        
+        allCriterias.push({
+           _id: ele,
+           name: groupByCriteria[ele][0].criteriaName
+        })
 
         finalResponseArray.push(criteriaObj);
 
     }));
 
-    responseObj.response = finalResponseArray;
+    responseObj.reportSections = finalResponseArray;
 
-    let allCriterias = responseArray.map(({ criteriaId, criteriaName }) => ({ criteriaId, criteriaName }));
-
-    allCriterias = allCriterias.reduce((acc, current) => {
-        const x = acc.find(item => item.criteriaName === current.criteriaName);
-        if (!x) {
-            return acc.concat([current]);
-        } else {
-            return acc;
+    if (!Array.isArray(responseObj.filters)){
+        responseObj.filter = [];
+    }
+    
+    responseObj.filters.push({
+        order: "",
+        filter: {
+            type: "modal",
+            title: "",
+            keyToSend: "criteria",
+            data: allCriterias 
         }
-    }, []);
-
-
-    responseObj.allCriterias = allCriterias;
+    });
 
     return responseObj;
 
 }
 
-exports.programsListCreation = async function (programs) {
-
-    let programArray = [];
-
-    await Promise.all(programs.map(program => {
-        programArray.push(program.event);
-    }));
-
-    // remove duplicate programs from the array
-    let uniquePrograms = [...new Set(programArray.map(obj => JSON.stringify(obj)))].map(str => JSON.parse(str));
-
-    programList = {
-        result: true,
-        data: uniquePrograms
-    }
-
-    return programList;
-}
-
-
-
-exports.solutionListCreation = async function (solutions, id) {
-
-    let solutionArray = {
-        result: true,
-        data: {
-        }
-    }
-
-    let solutionData = await createSolutionsArray(solutions, id);
-
-    solutionArray.data.mySolutions = solutionData.filter(data => id.includes(data.id));
-
-    solutionArray.data.allSolutions = solutionData;
-
-    return solutionArray;
-}
-
-
-//Create response object for listSolutionNames API
-const createSolutionsArray = async function (data) {
-    try {
-        let responseObj = [];
-
-        let groupBySolutionId = await groupArrayByGivenField(data, "solutionId")
-
-        let solutionKeys = Object.keys(groupBySolutionId);
-
-        await Promise.all(solutionKeys.map(element => {
-
-            let obj = {
-                solutionName: groupBySolutionId[element][0].event.solutionName,
-                solutionId: groupBySolutionId[element][0].event.solutionId,
-                type: groupBySolutionId[element][0].event.type
-            }
-
-            if (groupBySolutionId[element][0].event['createdBy'] != null) {
-                obj.id = groupBySolutionId[element][0].event.createdBy;
-            }
-
-            else if (groupBySolutionId[element][0].event['userId'] != null) {
-                obj.id = groupBySolutionId[element][0].event.userId;
-            }
-            else {
-                obj.id = "";
-            }
-
-            groupBySolutionId[element].forEach(ele => {
-
-                if (ele.event['totalScore'] && ele.event.totalScore >= 1) {
-                    obj.scoring = true;
-                } else {
-                    obj.scoring = false;
-                }
-            });
-
-            responseObj.push(obj);
-        }))
-
-        return responseObj;
-
-    }
-    catch (err) {
-        console.log(err);
-    }
-}
 
 
 //Report for entity level report in assessments
@@ -2224,8 +1446,19 @@ exports.entityLevelReportData = async function (data) {
 
         //group the data based on completed date   
         let groupedSubmissionData = await groupArrayByGivenField(data, "completedDate");
+        let submissions = [];
+        let latestSubmissionId = "";
 
         let completedDateKeys = Object.keys(groupedSubmissionData);
+        let latestDate = completedDateKeys[completedDateKeys.sort().length - 1];
+        latestSubmissionId = groupedSubmissionData[latestDate][0].event.observationSubmissionId;
+
+        await Promise.all(completedDateKeys.map(completedDateKey => {
+            submissions.push({
+               _id: groupedSubmissionData[completedDateKey][0].event.observationSubmissionId,
+               name: groupedSubmissionData[completedDateKey][0].event.submissionTitle
+            })
+        }))
 
         let totalSubmissions = completedDateKeys.length;
 
@@ -2256,7 +1489,21 @@ exports.entityLevelReportData = async function (data) {
             result.push(response[1]);
         }
 
-        return resolve(result);
+        return resolve({
+            result : result,
+            submissionId: latestSubmissionId,
+            filters :  [{
+                order: "",
+                filter: {
+                    type: "dropdown",
+                    title: "",
+                    keyToSend: "submissionId",
+                    data: submissions 
+                },
+            }]
+            
+
+        });
     }).
         catch(err => {
             return reject(err);
@@ -2276,6 +1523,7 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
         let heading = [];
         let dynamicLevelObj = {};
         let scoresExists = false;
+        
 
         //loop the data and construct domain name and level object
         for (completedDate = 0; completedDate < completedDateArray.length; completedDate++) {
@@ -2431,51 +1679,59 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
             obj[key] = dynamicLevelObj[key];
         });
 
+        let backgroundColors = ['rgb(255, 99, 132)','rgb(54, 162, 235)','rgb(255, 206, 86)','rgb(231, 233, 237)','rgb(75, 192, 192)','rgb(151, 187, 205)','rgb(220, 220, 220)','rgb(247, 70, 74)','rgb(70, 191, 189)','rgb(253, 180, 92)','rgb(148, 159, 177)','rgb(77, 83, 96)','rgb(95, 101, 217)','rgb(170, 95, 217)','rgb(140, 48, 57)','rgb(209, 6, 40)','rgb(68, 128, 51)','rgb(125, 128, 51)','rgb(128, 84, 51)','rgb(179, 139, 11)'];
+        let i = 0;
+  
         let series = [];
         for (level in obj) {
             series.push({
-                name: level,
-                data: obj[level]
+                label: level,
+                data: obj[level],
+                backgroundColor: backgroundColors[i]
             })
+
+            i++;
         }
 
         submissionDateArray = await getDateTime(submissionDateArray);
 
         let chartObj = {
             order: 1,
+            domainLevelObject: domainObj,
+            responseType: "horizontalBar",
             chart: {
-                type: 'bar',
+                type: 'horizontalBar',
                 title: "",
-                xAxis: [{
-                    categories: domainNameArray
-
+                submissionDateArray: submissionDateArray,
+                data: {
+                    labels: domainNameArray,
+                    datasets: series,
                 },
-                {
-                    opposite: true,
-                    reversed: false,
-                    categories: submissionDateArray,
-                    linkedTo: 0
-                },
-                ],
-                yAxis: {
-                    min: 0,
+                options: {
                     title: {
-                        text: 'Criteria'
-                    }
-                },
-                legend: {
-                    reversed: true
-                },
-                plotOptions: {
-                    series: {
-                        stacking: 'percent'
-                    }
-                },
-                data: series
-
+                        display: true,
+                        text: ""
+                    },
+                    scales: {
+                        xAxes: [{
+                            stacked: true,
+                            gridLines: { display: false },
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Criteria'
+                            }
+                        }],
+                        yAxes: [{
+                            stacked: true
+                        }],
+                    },
+                    legend: { 
+                            display: true,
+                            position : "bottom" 
+                        }
+                }
             }
         }
-
 
         let domainCriteriaKeys = Object.keys(domainCriteriaObj);
 
@@ -2507,6 +1763,7 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
 
         let expansionViewObj = {
             order: 2,
+            responseType: "horizontalBar",
             chart: {
                 type: "expansion-table",
                 title: "Descriptive view",
@@ -2544,46 +1801,30 @@ const getDateTime = async function (completedDate) {
 }
 
 
-
-
-//Function for listing all answers of a question
-exports.listALLAnswers = async function (data) {
-
-    let result = {
-        question: data[0].events[0].questionName,
-        answers: [],
-        completedDate: ""
-    }
-
-    data.forEach(singleEvent => {
-        singleEvent.events.forEach(singleResponse => {
-            result.answers.push(singleResponse.questionAnswer);
-        })
-    })
-
-    let latestEvent = data[data.length - 1].events;
-    result.completedDate = latestEvent[latestEvent.length - 1].completedDate;
-
-    return result;
-}
-
 //function for creating report of survey solution
 exports.getSurveySolutionReport = async function (data, submissionCount) {
     return new Promise(async function (resolve, reject) {
 
         let result = {
+            result: true,
             solutionName: data[0].event.solutionName,
-            response: [],
+            programName: data[0].event.programName,
+            reportSections: [],
             questionExternalIds: []
         }
 
         let matrixData = [];
         let nonMatrixData = [];
+        let questionFilter = [];
 
         await Promise.all(data.map(singleData => {
 
             if (!result.questionExternalIds.includes(singleData.event.questionExternalId)) {
                 result.questionExternalIds.push(singleData.event.questionExternalId)
+                questionFilter.push({
+                    _id: singleData.event.questionExternalId,
+                    name: singleData.event.questionName
+                })
             }
 
             if (singleData.event.instanceParentResponsetype == "matrix") {
@@ -2593,6 +1834,16 @@ exports.getSurveySolutionReport = async function (data, submissionCount) {
                 nonMatrixData.push(singleData);
             }
         }))
+
+        result.filters = [{
+            order: "",
+            filter: {
+                type: "modal",
+                title: "",
+                keyToSend: "questionId",
+                data: questionFilter 
+            }
+        }];
 
         if (matrixData.length > 0) {
 
@@ -2622,7 +1873,7 @@ exports.getSurveySolutionReport = async function (data, submissionCount) {
 
                 if (chartData.length > 0) {
                     response.instanceQuestions.push(...chartData);
-                    result.response.push(response);
+                    result.reportSections.push(response);
                 }
             }))
         }
@@ -2631,11 +1882,11 @@ exports.getSurveySolutionReport = async function (data, submissionCount) {
             let chartData = await getChartObject(nonMatrixData, submissionCount);
 
             if (chartData.length > 0) {
-                result.response.push(...chartData);
+                result.reportSections.push(...chartData);
             }
         }
 
-        await result.response.sort(getSortOrder("order"))
+        await result.reportSections.sort(getSortOrder("order"))
         return resolve(result);
 
     })
@@ -2668,31 +1919,22 @@ const getChartObject = async function (data, submissionCount) {
             if (questionObject.responseType == "radio") {
 
                 let chartDataArray = [];
+                let labelArray = [];
 
                 await Promise.all(groupDataByQuestionId[questionKey].map(singleResponse => {
-                    chartDataArray.push({
-                        name: singleResponse.event.questionResponseLabel,
-                        y: ((singleResponse.event.questionAnswerCount / submissionCount) * 100).toFixed(2)
-                    })
+                    labelArray.push(singleResponse.event.questionResponseLabel);
+                    chartDataArray.push(((singleResponse.event.questionAnswerCount / submissionCount) * 100).toFixed(2))
                 }))
 
                 let chart = {
                     type: "pie",
-                    plotOptions: {
-                        pie: {
-                            allowPointSelect: true,
-                            cursor: 'pointer',
-                            dataLabels: {
-                                enabled: false
-                            },
-                            showInLegend: true
-                        }
-                    },
-                    data: [
-                        {
+                    data: {
+                        labels: labelArray,
+                        datasets: [{
+                            backgroundColor: ['#FFA971', '#F6DB6C', '#98CBED', '#C9A0DA', '#5DABDC', '#88E5B0'],
                             data: chartDataArray
-                        }
-                    ]
+                        }]
+                    }
                 }
 
                 questionObject.chart = chart;
@@ -2709,23 +1951,33 @@ const getChartObject = async function (data, submissionCount) {
                 }))
 
                 let chart = {
-                    type: "bar",
-                    data: [
-                        {
-                            data: chartDataArray
-                        }
-                    ],
-                    xAxis: {
-                        categories: labelArray,
-                        title: {
-                            text: "Responses"
-                        }
+                    type: "horizontalBar",
+                    data: {
+                        labels: labelArray,
+                        datasets: [{
+                                data: chartDataArray,
+                                backgroundColor: "#de8657"
+                        }]
                     },
-                    yAxis: {
-                        min: 0,
-                        max: 100,
-                        title: {
-                            text: "Responses in percentage"
+                    options: {
+                        legend: false,
+                        scales: {
+                            xAxes: [{
+                                ticks: {
+                                    min: 0,
+                                    max: 100
+                                },
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: "Responses in percentage"
+                                }
+                            }],
+                            yAxes: [{
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: "Responses"
+                                }
+                            }],
                         }
                     }
                 }
@@ -2734,7 +1986,7 @@ const getChartObject = async function (data, submissionCount) {
             }
             else {
                 let sortedData = await groupDataByQuestionId[questionKey].sort(getSortOrder("completedDate"));
-                await Promise.all(sortedData.map( async singleResponse => {
+                await Promise.all(sortedData.map(async singleResponse => {
 
                     if (singleResponse.event.questionResponseType == "date") {
                         singleResponse.event.questionAnswer = await getISTDate(singleResponse.event.questionAnswer)
@@ -2757,6 +2009,7 @@ const getChartObject = async function (data, submissionCount) {
 }
 
 
+
 const getISTDate = async function(date) {
     let d = new Date(date);
     d.setUTCHours(d.getUTCHours() + 5);
@@ -2765,4 +2018,42 @@ const getISTDate = async function(date) {
     let hour = (d.getUTCHours() < 12) ? d.getUTCHours() : d.getUTCHours() - 12;
     return d.getUTCDate() + '-' + (d.getUTCMonth() + 1) + '-' + d.getUTCFullYear() + ' ' + hour + ':' + d.getUTCMinutes() + ':' + d.getUTCSeconds() + ' ' + amOrPm;
 
+}
+
+// listImprovementProjects response creation function
+exports.improvementProjectsObjectCreate = async function (data) {
+
+    let groupByCriteria = await groupArrayByGivenField(data, "criteriaId");
+
+    let criteriaKeys = Object.keys(groupByCriteria);
+
+    let improvementProjectSuggestions = [];
+
+    await Promise.all(criteriaKeys.map(async element => {
+
+        let criteriaObject = {
+            criteriaName: groupByCriteria[element][0].event.criteriaName,
+            level: groupByCriteria[element][0].event.level,
+            label: groupByCriteria[element][0].event.label,
+            improvementProjects: []
+        }
+
+        await Promise.all(groupByCriteria[element].map(ele => {
+
+            if (ele.event.imp_project_title != null) {
+
+                criteriaObject.improvementProjects.push({
+                    name: ele.event.imp_project_title,
+                    _id: ele.event.imp_project_id,
+                    goal: ele.event.imp_project_goal,
+                    externalId: ele.event.imp_project_externalId
+                })
+            }
+        }));
+
+        improvementProjectSuggestions.push(criteriaObject);
+
+    }));
+
+    return improvementProjectSuggestions;
 }

@@ -1,0 +1,208 @@
+<html>
+
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <style>
+         progress::-moz-progress-bar {
+            background: #91d050;
+        }
+        progress::-webkit-progress-value {
+            background: #91d050;
+        }
+
+        audio,canvas,progress,video {
+            display: inline-block;
+            vertical-align: baseline;
+            height: 8px;
+        }
+
+        hr.borderColor {
+            border-top: 1px solid #024F9D;
+        }
+
+        hr {
+            margin-top: 0px;
+            margin-bottom: 0px;
+        }
+
+        .footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background-color: red;
+            color: white;
+            text-align: center;
+        }
+
+        #progress-0 {
+            height: 8px;
+            border: 1px solid #999 !important;
+            width: 150px;
+            background: #6abf34 !important;
+            text-align: center;
+            border-radius: 5px;
+            margin-top: 5px !important;
+        }
+
+        #progress-1 {
+            height: 8px;
+            border: 1px solid #999 !important;
+            width: 150px;
+            background: #81d6f0 !important;
+            text-align: center;
+            border-radius: 5px;
+            margin-top: 5px !important;
+        }
+
+    </style>
+
+
+</head>
+
+<body class="container">
+
+    <div style="font-size: 18px;padding-left:15px">
+    
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>Project Title</b></p>
+            </div>
+            <div style="width:60%; float:left;">
+                <p><%=  data.response.title %></p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>Program Name</b></p>
+            </div>
+            <div style="width:60%; float:left;">
+                <p><%=  data.response.programName %></p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>Objective</b></p>
+            </div>
+            <div style="width:60%; float:left;">
+                <p><%= data.response.goal %></p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>Duration</b></p>
+            </div>
+            <div style="width:60%; float:left;">
+                <p><%= data.response.duration %></p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>Project Status</b></p>
+            </div>
+            <div style="width:60%; float:left;">
+                <% data.response.status = data.response.status.toLowerCase() %>
+                <% if(data.response.status == "completed") { %>
+                <div id="progress-0">
+                    <p style="margin-top: 10px"><%= data.response.status %></p>
+                </div>
+
+                <% } else if(data.response.status == "in progress" || data.response.status == "inprogress") {%>
+                <progress value="60" max="100"></progress>
+                <p style="margin-left:33px;margin-top:4px;"><%= data.response.status %></p>
+
+                <% } else if(data.response.status == "not started yet" || data.response.status == "not yet started" || data.response.status == "notstarted") {%>
+                <div id="progress-1">
+                    <p style="margin-top: 10px"><%= data.response.status %></p>
+                </div>
+                <% } %>
+
+            </div>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+            <div style="width:30%; float:left;">
+                <p><b>Categories</b></p>
+            </div>
+            <div style="width:60%; float:left;">
+                <p><%= data.response.category %></p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>Total Tasks</b></p>
+            </div>
+            <div style="width:60%; float:left;">
+                <p><%= data.tasksArray.length %></p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div style="width:30%; float:left;">
+                <p><b>Total Subtasks</b></p>
+            </div>
+            <div style="width:60%; float:left;">
+                <p><%= data.subTasks %></p>
+            </div>
+        </div>
+    </div>
+    
+    <hr class="borderColor">
+    
+    <div style="margin-top:50px !important;font-size: 18px">
+    <% if (data.response.tasks && data.response.tasks.length > 0) { %>
+        <% for (let i = 0; i< data.response.tasks.length; i++) { %>
+         <h3> Task </h3>
+         <p style="margin-bottom: 15px"> <%= data.response.tasks[i].name %></p>
+         <h4><b> Assinged To </b><span style="padding-left: 20px;"><%= data.response.tasks[i].assignee %></span> </h4>
+         <% let taskEndDate = "" %>
+         <% if(data.response.tasks[i].endDate) {%>
+         <% taskEndDate = new Date(data.response.tasks[i].endDate) %>
+         <% let day = taskEndDate.getDate() %>
+         <% let month = taskEndDate.getMonth() + 1 %>
+         <% let year = taskEndDate.getFullYear() %>
+         <% taskEndDate = day + '/' + month + '/' + year %>
+         <% } %>
+         <h4><b>Due Date </b><span style="padding-left: 50px !important;"> <%= taskEndDate %></span></h4>
+
+        <% if (data.response.tasks[i].children && data.response.tasks[i].children.length > 0) { %>
+            <% for (let j = 0; j< data.response.tasks[i].children.length; j++) { %>
+                <p style = "margin-top: 30px"><span
+                    style="color:#024F9D !important">&#3664;</span>&nbsp;&nbsp; Subtask <%= j+1 %> : <%=  data.response.tasks[i].children[j].name %>
+                </p>
+                <% let subTaskEndDate = "" %>
+                <% if(data.response.tasks[i].children[j].endDate) {%>
+                <% subTaskEndDate = new Date(data.response.tasks[i].children[j].endDate) %>
+                <% let day = subTaskEndDate.getDate() %>
+                <% let month = subTaskEndDate.getMonth() + 1 %>
+                <% let year = subTaskEndDate.getFullYear() %>
+                <% subTaskEndDate = day + '/' + month + '/' + year %>
+                <% } %>
+                <h4 style = "padding-left: 28px"><b>Due Date </b><span style="padding-left: 15px;"> <%= subTaskEndDate %></span></h4>
+               
+            <% } %>
+        <% } %>
+        <hr class="borderColor" style="margin-top:10px">
+        <% } %>
+    <% } %>
+    </div>
+
+
+</body>
+
+</html>
