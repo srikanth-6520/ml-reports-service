@@ -1387,20 +1387,11 @@ exports.getCriteriawiseReport = async function (responseObj) {
 
     await Promise.all(responseObj.reportSections.map(element => {
 
-        let instanceQuestions = [];
-
-        if (element["instanceQuestions"]) {
-            instanceQuestions = element.instanceQuestions;
-            element.instanceQuestions = [];
+        if (element["instanceQuestions"] && element.instanceQuestions.length > 0) {
+            responseArray = [...responseArray, ...element.instanceQuestions];
+        } else {
+            responseArray.push(element);
         }
-
-        responseArray.push(element);
-
-        if (instanceQuestions.length > 0) {
-
-            responseArray = [...responseArray, ...instanceQuestions];
-        }
-
     }));
 
     let groupByCriteria = await groupDataByEntityId(responseArray, "criteriaId");
