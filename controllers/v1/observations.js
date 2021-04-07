@@ -3489,7 +3489,7 @@ async function allEvidencesList(req, res) {
             if(req.body.entityType){
               entityType = req.body.entityType;
             }
-            filter = { "type": "and", fields: [{ "type": "selector", "dimension": "entity", "value": req.body.entityId }, { "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "selector", "dimension": "questionExternalId", "value": req.body.questionId }] };
+            filter = { "type": "and", fields: [{ "type": "selector", "dimension": "school", "value": req.body.entityId }, { "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "selector", "dimension": "questionExternalId", "value": req.body.questionId }] };
           }
           else if (req.body.observationId && req.body.questionId) {
             filter = { "type": "and", fields: [{ "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "selector", "dimension": "questionExternalId", "value": req.body.questionId }] };
@@ -3554,7 +3554,7 @@ async function getEvidenceData(inputObj) {
         if (submissionId) {
           filter = { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }
         } else if(entityId && observationId) {
-          filter = {"type":"and","fields":[{"type": "selector", "dimension": "entity", "value": entityId},{"type": "selector", "dimension": "observationId", "value": observationId}]}
+          filter = {"type":"and","fields":[{"type": "selector", "dimension": "school", "value": entityId},{"type": "selector", "dimension": "observationId", "value": observationId}]}
         } else if(observationId) {
           filter = { "type": "selector", "dimension": "observationId", "value": observationId }
         }
