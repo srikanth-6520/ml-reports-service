@@ -120,8 +120,6 @@ exports.pdfReports = async function (req, res) {
     }
     else {
 
-        req.body.requestToPdf = true;
-
         if (req.body.isAssessAgain) {
 
             let assessmentRes = await assessmentsHelper.entityReportChartCreateFunction(req, res);

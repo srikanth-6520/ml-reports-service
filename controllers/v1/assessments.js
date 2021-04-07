@@ -634,7 +634,7 @@ exports.pdfReports = async function (req, res) {
         res.send(response);
     }
     else {
-            req.body.requestToPdf = true;
+            
             let assessmentRes = await assessmentsHelper.assessmentReportGetChartData(req, res);
          
             if (assessmentRes.result == true) {
@@ -814,7 +814,7 @@ async function entityReportChartCreateFunction(req, res) {
                     let reportData = await helperFunc.entityLevelReportData(data);
 
                     response.reportSections = reportData;
-
+                   
                     return resolve(response);
                 }
             }
@@ -822,7 +822,7 @@ async function entityReportChartCreateFunction(req, res) {
         catch (err) {
             let response = {
                 result: false,
-                message: 'INTERNAL_SERVER_ERROR',
+                message: err,message,
                 err: err
             }
             resolve(response);
