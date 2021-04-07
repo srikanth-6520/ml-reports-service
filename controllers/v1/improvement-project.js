@@ -138,13 +138,13 @@ exports.entityReport = async function(req,res){
 exports.projectAndTaskReport = async function(req,res){
    
    let response; 
-   req.body.improvementProjectPdf = true;
 
    if (req.query.projectPdf == "true") {
-      response = await pdfHandler.unnatiProjectPdfGeneration(req.body, storeReportsToS3 = false);
+      response = await pdfHandler.improvementProjectPdfGeneration(req.body, storeReportsToS3 = false);
    }
    else {
-      response = await pdfHandler.unnatiTaskPdfGeneration(req.body, storeReportsToS3 = false);
+     
+      response = await pdfHandler.improvementProjectTaskPdfGeneration(req.body, storeReportsToS3 = false);
    }
  
    response.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl

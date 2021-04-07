@@ -18,10 +18,6 @@
             border-top: 1px solid #c0192d;
         }
 
-        hr.borderColor {
-            border-top: 1px solid #024F9D;
-        }
-
         hr {
             margin-top: 0px;
             margin-bottom: 0px;
@@ -44,11 +40,7 @@
 
 <body class="container">
 
-    <% if (data.improvementProjectPdf == true) {%>
-        <hr class="borderColor">
-    <% } else { %>
-        <hr class="new1">
-    <% } %>
+    <hr class="new1">
 
     <div class="" style=" background: #eee !important;padding: 15px 40px;">
 
@@ -57,8 +49,7 @@
                 <p><b>PROJECT TITLE</b></p>
             </div>
             <div style="width:50%; float:left;">
-                <% let projectTitle = data.response.projectName ? data.response.projectName : data.response.title %>
-                <p><%= projectTitle %></p>
+                <p><%= data.response.projectName %></p>
             </div>
         </div>
 
@@ -85,26 +76,20 @@
                 <p><b>START DATE</b></p>
             </div>
             <div style="width:50%; float:left;">
-                <p><%= data.startDate %></p>
+                <p><%= data.response.startDate %></p>
             </div>
         </div>
 
     </div>
 
-    <% if (data.improvementProjectPdf == true) {%>
-        <hr class="borderColor">
-    <% } else { %>
-        <hr class="new1">
-    <% } %>
+    <hr class="new1">
 
     <div style="margin-top:50px !important">
 
-        <% if (data.response.tasks && data.response.tasks.length > 0) { %>
-        <% for (let i = 0; i< data.response.tasks.length; i++) { %>
         <div class="row" style="text-align: center">
-            <% if(data.response.tasks[i]["assigneeName"]) {%>
+            <% if(data.response.tasks && data.response.tasks["assigneeName"]) {%>
             <p>Assigned To &nbsp&nbsp<span
-                    style="background-color:#eee !important;border-radius: 27px;padding: 20px;padding-left: 50px;padding-right: 50px"><%= data.response.tasks[i].assigneeName %></span>
+                    style="background-color:#eee !important;border-radius: 27px;padding: 20px;padding-left: 50px;padding-right: 50px"><%= data.response.tasks.assigneeName %></span>
             </p>
             <% } %>
         </div>
@@ -115,43 +100,35 @@
         </div>
 
         <div class="row"
-        style="background-color: #eee !important;padding: 12px;margin-top: 20px;margin-right: 16px !important;margin-left: 16px !important">
-        <% if(data.response.tasks[i]["endDate"] && data.response.tasks[i].endDate !== "") {%>
-        
-        <% let taskEndDate = new Date(data.response.tasks[i].endDate) %>
-        <% let day = taskEndDate.getDate() %>
-        <% let month = taskEndDate.getMonth() + 1 %>
-        <% let year = taskEndDate.getFullYear() %>
-        <% taskEndDate = day + '/' + month + '/' + year %>
-        
-        <p>Due Date : <%= taskEndDate %></p>
-        <% } else {%>
-        <p>Due Date</p>
-        <% } %>
-        </div>
-
-        <div class="row"
             style="border:solid 1px #eee !important;padding: 12px;margin-top: 24px;margin-right: 16px !important;margin-left: 16px !important">
-            <% if(data.response.tasks[i]["title"] || data.response.tasks[i]["name"]) {%>
-            <% let taskTitle = data.response.tasks[i]["title"] ? data.response.tasks[i]["title"] : data.response.tasks[i]["name"] %>
-            <p><%= taskTitle %></p>
+            <% if(data.response.tasks && data.response.tasks["title"]) {%>
+            <p><%= data.response.tasks.title %></p>
             <% } %>
         </div>
 
-       
+        <div class="row"
+            style="background-color: #eee !important;padding: 12px;margin-top: 38px;margin-right: 16px !important;margin-left: 16px !important">
+            <% if(data.response.tasks && data.response.tasks["endDate"]) {%>
+            <p>Due Date : <%= data.response.tasks.endDate %></p>
+            <% } else {%>
+            <p>Due Date</p>
+            <% } %>
+        </div>
+
+
         <div class="row"
             style="padding: 15px;margin-top: 24px;margin-right: 16px !important;margin-left: 16px !important">
             <p>Attachments</p>
-            <% if(data.response.tasks[i]["attachments"]) {%>
-            <% if(data.response.tasks[i].attachments.length > 0) {%>
-            <% for (var j=0;j < data.response.tasks[i].attachments.length; j++){  %>
-            <h6><%= data.response.tasks[i].attachments[j].name %></h6>
+            <% if(data.response.tasks && data.response.tasks["attachments"]) {%>
+            <% if(data.response.tasks.attachments.length > 0) {%>
+            <% for (var i=0;i < data.response.tasks.attachments.length; i++){  %>
+            <h6><%= data.response.tasks.attachments[i].name %></h6>
             <% } %>
             <% } %>
             <% } %>
         </div>
-      <% } %>
-      <% } %>
+
+
     </div>
 
 
