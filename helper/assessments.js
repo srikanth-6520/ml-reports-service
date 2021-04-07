@@ -19,16 +19,15 @@ exports.assessmentReportGetChartData = async function(req, res) {
             }
             else {
 
-                let requestToPdf = req.body.requestToPdf ? req.body.requestToPdf : false;
                 let childType = req.body.immediateChildEntityType;
 
                 let bodyParam = gen.utils.getDruidQuery("entity_assessment_query");
-
+                
                 if (process.env.ASSESSMENT_DATASOURCE_NAME) {
                     bodyParam.dataSource = process.env.ASSESSMENT_DATASOURCE_NAME;
                 }
-
-                //dynamically appending values to filter
+        
+               //dynamically appending values to filter
                 bodyParam.filter.fields[0].dimension = req.body.entityType;
                 bodyParam.filter.fields[0].value = req.body.entityId;
                 bodyParam.filter.fields[1].value = req.body.programId;
@@ -73,7 +72,7 @@ exports.assessmentReportGetChartData = async function(req, res) {
                         }
 
                         //call the function entityAssessmentChart to get the data for stacked bar chart 
-                        let responseObj = await helperFunc.entityAssessmentChart(inputObj, requestToPdf);
+                        let responseObj = await helperFunc.entityAssessmentChart(inputObj);
 
                         if (Object.keys(responseObj).length === 0) {
                             return resolve({ "reportSections": [] });
@@ -94,7 +93,7 @@ exports.assessmentReportGetChartData = async function(req, res) {
                     }
 
                     //call the function entityAssessmentChart to get the data for stacked bar chart 
-                    let responseObj = await helperFunc.entityAssessmentChart(inputObj, requestToPdf);
+                    let responseObj = await helperFunc.entityAssessmentChart(inputObj);
 
                     if (Object.keys(responseObj).length === 0) {
                         return resolve({ "reportSections": [] });
@@ -143,8 +142,6 @@ exports.entityReportChartCreateFunction = async function (req, res) {
                 resolve(response);
             }
             else {
-                
-                let requestToPdf = req.body.requestToPdf ? req.body.requestToPdf : false;
 
                 let bodyParam = gen.utils.getDruidQuery("entity_level_assessment_report_query");
 
@@ -178,7 +175,7 @@ exports.entityReportChartCreateFunction = async function (req, res) {
                         "solutionName": data[0].event.solutionName,
                     };
 
-                     let reportData = await helperFunc.entityLevelReportData(data, requestToPdf);
+                     let reportData = await helperFunc.entityLevelReportData(data);
 
                     response.reportSections = reportData;
 

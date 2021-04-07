@@ -813,7 +813,7 @@ async function programListRespObjCreate(data) {
 }
 
 //Function to create stacked bar chart response object for entity assessment API  
-exports.entityAssessmentChart = async function (inputObj, requestToPdf= false) {
+exports.entityAssessmentChart = async function (inputObj) {
     return new Promise(async function (resolve, reject) {
 
         let entityName = inputObj.entityName;
@@ -959,6 +959,7 @@ exports.entityAssessmentChart = async function (inputObj, requestToPdf= false) {
         let chartObj = {
             result: true,
             title: inputObj.data[0].event.programName + " report",
+            domainLevelObject : domainObj,
             reportSections: [
                 {
                     order: 1,
@@ -996,10 +997,6 @@ exports.entityAssessmentChart = async function (inputObj, requestToPdf= false) {
                     }
                 }
             ]
-        }
-
-        if (requestToPdf) {
-            chartObj.domainLevelObject = domainObj; 
         }
 
         let domainCriteriaArray = [];
@@ -1121,7 +1118,7 @@ async function scoreObjectCreateFunction(data) {
     }
 
     let scoreAchieved = (data[0].event.minScore / data[0].event.maxScore) * 100;
-    value = parseFloat(scoreAchieved.toFixed(2));
+    scoreAchieved = parseFloat(scoreAchieved.toFixed(2));
 
     let scoreNotAchieved = 0;
 
@@ -1285,7 +1282,7 @@ async function entityScoreObjectCreateFunc(data, threshold) {
                     yAxes: [{
                         ticks: {
                             min: 0,
-                            max: yAxisMaxValue
+                            max: parseInt(yAxisMaxValue)
                         },
 
                         scaleLabel: {
@@ -1784,7 +1781,7 @@ async function insertEvidenceArrayToChartObject(chartData, downloadableUrls, que
 
                     await Promise.all(evidenceData.map(async element => {
 
-                        let ext = path.extname(element.filePath);
+                        let ext = path.extname(element.filePath).split('.').join("");
                         let obj = {};
                         obj.url = element.url;
                         obj.extension = ext;
@@ -2167,14 +2164,22 @@ const createSolutionsArray = async function (data) {
 
 
 //Report for entity level report in assessments
-exports.entityLevelReportData = async function (data, requestToPdf= false) {
+exports.entityLevelReportData = async function (data) {
 
     return new Promise(async function (resolve, reject) {
 
         //group the data based on completed date   
         let groupedSubmissionData = await groupArrayByGivenField(data, "completedDate");
+        let submissions = [];
 
         let completedDateKeys = Object.keys(groupedSubmissionData);
+
+        await Promise.all(completedDateKeys.map(completedDateKey => {
+            submissions.push({
+               _id: groupedSubmissionData[completedDateKey][0].event.observationSubmissionId,
+               name: groupedSubmissionData[completedDateKey][0].event.submissionTitle
+            })
+        }))
 
         let totalSubmissions = completedDateKeys.length;
 
@@ -2193,7 +2198,7 @@ exports.entityLevelReportData = async function (data, requestToPdf= false) {
             completedDateKeys = dateArray;
         }
 
-        let response = await entityLevelReportChartCreateFunc(groupedSubmissionData, completedDateKeys.sort(), requestToPdf);
+        let response = await entityLevelReportChartCreateFunc(groupedSubmissionData, completedDateKeys.sort());
 
         let result = [];
         if (response.length > 0) {
@@ -2205,7 +2210,20 @@ exports.entityLevelReportData = async function (data, requestToPdf= false) {
             result.push(response[1]);
         }
 
-        return resolve(result);
+        return resolve({
+            result : result,
+            filters :  [{
+                order: "",
+                filter: {
+                    type: "dropdown",
+                    title: "",
+                    keyToSend: "submissionId",
+                    data: submissions 
+                },
+            }]
+            
+
+        });
     }).
         catch(err => {
             return reject(err);
@@ -2213,7 +2231,7 @@ exports.entityLevelReportData = async function (data, requestToPdf= false) {
 }
 
 //Chart data preparation for entity level assessment report
-const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, completedDateArray,  requestToPdf= false) {
+const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, completedDateArray) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -2225,6 +2243,7 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
         let heading = [];
         let dynamicLevelObj = {};
         let scoresExists = false;
+        
 
         //loop the data and construct domain name and level object
         for (completedDate = 0; completedDate < completedDateArray.length; completedDate++) {
@@ -2398,6 +2417,7 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
 
         let chartObj = {
             order: 1,
+            domainLevelObject: domainObj,
             chart: {
                 type: 'horizontalBar',
                 title: "",
@@ -2430,10 +2450,6 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
                         }
                 }
             }
-        }
-        
-        if (requestToPdf) {
-            chartObj.domainLevelObject = domainObj;
         }
 
         let domainCriteriaKeys = Object.keys(domainCriteriaObj);
