@@ -1763,7 +1763,7 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
 
         let expansionViewObj = {
             order: 2,
-            responseType: "horizontalBar",
+            responseType: "expansion-table",
             chart: {
                 type: "expansion-table",
                 title: "Descriptive view",
