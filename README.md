@@ -1,2 +1,2 @@
-# sl-reporting-service
-ShikshaLokam reporting service 
+# ml-reports-service
+Manage Learn reports service 
