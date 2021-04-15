@@ -1,2 +1,2 @@
-# ml-reporting-service
-Meanage Learn reporting service 
+# ml-reports-service
+Manage Learn reports service 
