@@ -2032,6 +2032,7 @@ exports.improvementProjectsObjectCreate = async function (data) {
     await Promise.all(criteriaKeys.map(async element => {
 
         let criteriaObject = {
+            criteriaId: element,
             criteriaName: groupByCriteria[element][0].event.criteriaName,
             level: groupByCriteria[element][0].event.level,
             label: groupByCriteria[element][0].event.label,

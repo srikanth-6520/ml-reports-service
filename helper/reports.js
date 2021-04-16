@@ -74,7 +74,7 @@ exports.instaceObservationReport = async function (req, res) {
 
         if (req.body.scores == true && criteriaLevelReport == true) {
             bodyParam.filter.fields.push({"type":"selector","dimension":"childType","value":"criteria"})
-            bodyParam.dimensions.push("observationSubmissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "childExternalid", "childName", "childType");
+            bodyParam.dimensions.push("observationSubmissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "childExternalid", "childName", "childType","solutionId");
         }
 
         //pass the query get the result from druid
@@ -231,6 +231,7 @@ exports.instaceObservationReport = async function (req, res) {
                     "result": true,
                     "programName": data[0].event.programName,
                     "solutionName": data[0].event.solutionName,
+                    "solutionId": data[0].event.solutionId,
                 };
 
                 chartData = await helperFunc.entityLevelReportData(data);
@@ -358,7 +359,7 @@ exports.entityObservationReport = async function (req, res) {
         if (req.body.scores == true && criteriaLevelReport == true) {
             bodyParam.filter.fields.push({"type":"selector","dimension":"childType","value":"criteria"});
             bodyParam.filter.fields.push({"type":"selector","dimension":"createdBy","value": req.userDetails.userId});
-            bodyParam.dimensions.push("observationSubmissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "childExternalid", "childName", "childType");
+            bodyParam.dimensions.push("observationSubmissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "childExternalid", "childName", "childType", "solutionId");
         }
 
         //pass the query get the result from druid
@@ -522,6 +523,7 @@ exports.entityObservationReport = async function (req, res) {
                     "result": true,
                     "programName": data[0].event.programName,
                     "solutionName": data[0].event.solutionName,
+                    "solutionId": data[0].event.solutionId,
                 };
 
                 chartData = await helperFunc.entityLevelReportData(data);
