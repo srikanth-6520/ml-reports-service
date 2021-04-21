@@ -27,9 +27,7 @@ const pdfHandlerV2 = require('../../helper/common_handler_v2');
 //Controller function for unnati view full report pdf generation
 exports.viewProjectReport = async function(req,res){
 
-    let response = await pdfHandlerV2.unnatiViewFullReportPdfGeneration(req.body, storeReportsToS3 = false);
-  
-    response.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+    let response = await pdfHandlerV2.unnatiViewFullReportPdfGeneration(req.body);
     res.send(response);
 }
 
@@ -83,9 +81,7 @@ exports.viewProjectReport = async function(req,res){
 
 exports.entityReport = async function(req,res){
 
-   let response = await pdfHandlerV2.unnatiEntityReportPdfGeneration(req.body, storeReportsToS3 = false);
- 
-   response.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+   let response = await pdfHandlerV2.unnatiEntityReportPdfGeneration(req.body);
    res.send(response);
 }
 
@@ -140,13 +136,12 @@ exports.projectAndTaskReport = async function(req,res){
    let response; 
 
    if (req.query.projectPdf == "true") {
-      response = await pdfHandler.improvementProjectPdfGeneration(req.body, storeReportsToS3 = false);
+      response = await pdfHandler.improvementProjectPdfGeneration(req.body);
    }
    else {
      
-      response = await pdfHandler.improvementProjectTaskPdfGeneration(req.body, storeReportsToS3 = false);
+      response = await pdfHandler.improvementProjectTaskPdfGeneration(req.body);
    }
- 
-   response.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
+
    res.send(response);
 }

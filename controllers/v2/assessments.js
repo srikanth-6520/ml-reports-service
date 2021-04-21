@@ -126,9 +126,8 @@ exports.pdfReports = async function (req, res) {
 
             if (assessmentRes.result == true) {
 
-                let response = await pdfHandler.assessmentAgainPdfReport(assessmentRes, storeReportsToS3 = false);
+                let response = await pdfHandler.assessmentAgainPdfReport(assessmentRes);
 
-                response.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
                 res.send(response);
             }
             else {
@@ -139,9 +138,8 @@ exports.pdfReports = async function (req, res) {
 
             if (assessmentRes.result == true) {
 
-                let response = await pdfHandler.assessmentPdfGeneration(assessmentRes, storeReportsToS3 = false);
+                let response = await pdfHandler.assessmentPdfGeneration(assessmentRes);
 
-                response.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + response.pdfUrl
                 res.send(response);
             }
             else {

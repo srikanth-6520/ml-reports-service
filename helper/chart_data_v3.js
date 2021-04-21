@@ -606,6 +606,15 @@ async function radioObjectCreateFunc(data, noOfSubmissions) {
                     backgroundColor: ['#FFA971', '#F6DB6C', '#98CBED', '#C9A0DA', '#5DABDC', '#88E5B0'],
                     data: chartdata
                 }]
+            },
+            options: {
+                legend: {
+                    position: 'top',
+                    display: true,
+                    labels: {
+                        padding: 25
+                    },
+                }
             }
         },
         instanceQuestions: [],

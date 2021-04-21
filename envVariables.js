@@ -134,14 +134,6 @@ let enviromentVariables = {
     "message" : "Required",
     "optional" : true
   },
-  "STORE_PDF_REPORTS_IN_AWS_ON_OFF" : {
-    "message" : "Enable/Disable reports storage in s3",
-    "optional" : false,
-    "possibleValues" : [
-      "ON",
-      "OFF"
-    ]
-  },
   "USER_NEVER_LOGGED_IN" : {
     "message" : "Required",
     "optional" : true

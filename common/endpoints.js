@@ -14,5 +14,6 @@ module.exports = {
     OBSERVATION_DETAILS : "/observations/details",
     GCP_GET_DOWNLOADABLE_URL : "/cloud-services/gcp/getDownloadableUrl",
     AZURE_GET_DOWNLOADABLE_URL : "/cloud-services/azure/getDownloadableUrl",
-    AWS_GET_DOWNLOADABLE_URL : "/cloud-services/aws/getDownloadableUrl"
+    AWS_GET_DOWNLOADABLE_URL : "/cloud-services/aws/getDownloadableUrl",
+    GET_PRESIGNED_URL : "/cloud-services/files/preSignedUrls"
 }

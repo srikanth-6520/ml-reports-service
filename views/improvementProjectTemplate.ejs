@@ -97,7 +97,7 @@
                 <p><b>Objective</b></p>
             </div>
             <div style="width:60%; float:left;">
-                <p><%= data.response.goal %></p>
+                <p><%= data.response.description %></p>
             </div>
         </div>
 
@@ -118,16 +118,16 @@
                 <% data.response.status = data.response.status.toLowerCase() %>
                 <% if(data.response.status == "completed") { %>
                 <div id="progress-0">
-                    <p style="margin-top: 10px"><%= data.response.status %></p>
+                    <p style="margin-top: 10px">Completed</p>
                 </div>
 
                 <% } else if(data.response.status == "in progress" || data.response.status == "inprogress") {%>
                 <progress value="60" max="100"></progress>
-                <p style="margin-left:33px;margin-top:4px;"><%= data.response.status %></p>
+                <p style="margin-left:33px;margin-top:4px;">In Progress</p>
 
                 <% } else if(data.response.status == "not started yet" || data.response.status == "not yet started" || data.response.status == "notstarted") {%>
                 <div id="progress-1">
-                    <p style="margin-top: 10px"><%= data.response.status %></p>
+                    <p style="margin-top: 10px">Not Started</p>
                 </div>
                 <% } %>
 

@@ -1,16 +1,17 @@
 const AWS = require('aws-sdk')
-var fs = require('fs');
-var uuidv4 = require('uuid/v4');
-
-
-// var config = require('../config/config');
-var rp = require('request-promise');
-var ejs = require('ejs');
+const fs = require('fs');
+const uuidv4 = require('uuid/v4');
+const rp = require('request-promise');
+const ejs = require('ejs');
 const path = require('path');
-var rimraf = require("rimraf");
+const rimraf = require("rimraf");
 
 const s3 = new AWS.S3(gen.utils.getAWSConnection());
 const myBucket = process.env.AWS_BUCKET_NAME;
+const kendraHelper = require('./kendra_service');
+const request = require("request");
+const filesHelper = require('../common/files_helper');
+
 
 // const signedUrlExpireSeconds=process.env.AWS_SIGNED_URL_EXPIRE_SECONDS;
 
@@ -3526,7 +3527,7 @@ async function getPercentages(data, target = 100) {
 
 
 //Improvement project pdf generation function
-exports.improvementProjectPdfGeneration = async function (responseData, storeReportsToS3 = false) {
+exports.improvementProjectPdfGeneration = async function (responseData) {
 
     return new Promise(async function (resolve, reject) {
 
@@ -3590,102 +3591,70 @@ exports.improvementProjectPdfGeneration = async function (responseData, storeRep
                             rp(optionsHtmlToPdf)
                                 .then(function (responseHtmlToPdf) {
 
-                                    var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
+                                    let pdfBuffer = Buffer.from(responseHtmlToPdf.body);
                                     if (responseHtmlToPdf.statusCode == 200) {
 
-                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
+                                        let pdfFile = uuidv4() + ".pdf";
+                                        fs.writeFile(dir + '/' + pdfFile, pdfBuffer, 'binary', async function (err) {
                                             if (err) {
                                                 return console.log(err);
                                             }
-
                                             else {
-                                                const s3 = new AWS.S3(gen.utils.getAWSConnection());
 
-                                                const uploadFile = () => {
+                                                let uploadFileResponse = await uploadPdfToCloud(pdfFile, dir);
 
-                                                    fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
-                                                        if (err) throw err;
+                                                if (uploadFileResponse.success) {
+                                                    let pdfDownloadableUrl = await getDownloadableUrl(uploadFileResponse.data);
 
-                                                        const params = {
-                                                            Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
-                                                            Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
-                                                            Body: Buffer.from(data, null, 2),
-                                                            Expires: 10
-                                                        };
+                                                    if (pdfDownloadableUrl.success && pdfDownloadableUrl.data.result && Object.keys(pdfDownloadableUrl.data.result).length > 0) {
 
-                                                        if (storeReportsToS3 == false) {
-                                                            var folderPath = Buffer.from(currentTempFolder).toString('base64')
+                                                        fs.readdir(imgPath, (err, files) => {
+                                                            if (err) throw err;
 
-                                                            var response = {
-                                                                status: "success",
-                                                                message: 'report generated',
-                                                                pdfUrl: folderPath,
+                                                            let i = 0;
+                                                            for (const file of files) {
 
-                                                            };
-                                                            resolve(response);
+                                                                fs.unlink(path.join(imgPath, file), err => {
+                                                                    if (err) throw err;
+                                                                });
 
-                                                        } else {
+                                                                if (i == files.length) {
+                                                                    fs.unlink('../../' + currentTempFolder, err => {
+                                                                        if (err) throw err;
 
+                                                                    });
+                                                                    console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
 
-                                                            s3.upload(params, function (s3Err, data) {
-                                                                if (s3Err) throw s3Err;
+                                                                }
 
-                                                                // console.log("data", data);
-                                                                console.log(`File uploaded successfully at ${data.Location}`);
+                                                                i = i + 1;
 
-                                                                s3SignedUrl(data.key).then(function (signedRes) {
+                                                            }
+                                                        });
+                                                        rimraf(imgPath, function () { console.log("done"); });
 
-                                                                    try {
-
-
-
-                                                                        fs.readdir(imgPath, (err, files) => {
-                                                                            if (err) throw err;
-
-                                                                            // console.log("files",files.length);
-                                                                            var i = 0;
-                                                                            for (const file of files) {
-
-                                                                                fs.unlink(path.join(imgPath, file), err => {
-                                                                                    if (err) throw err;
-                                                                                });
-
-                                                                                if (i == files.length) {
-                                                                                    fs.unlink('../../' + currentTempFolder, err => {
-                                                                                        if (err) throw err;
-
-                                                                                    });
-                                                                                    console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
-                                                                                    // fs.unlink(path.join(imgPath, ""), err => {
-                                                                                    //     if (err) throw err;
-                                                                                    // });
-                                                                                }
-
-                                                                                i = i + 1;
-
-                                                                            }
-                                                                        });
-                                                                        rimraf(imgPath, function () { console.log("done"); });
-
-                                                                    } catch (ex) {
-                                                                        console.log("ex ", ex);
-                                                                    }
-
-                                                                    var response = {
-                                                                        status: "success",
-                                                                        message: 'report generated',
-                                                                        pdfUrl: signedRes,
-                                                                        downloadPath: data.key
-                                                                    };
-                                                                    resolve(response);
-                                                                })
-                                                            });
-
-                                                        }
-
-                                                    });
+                                                        return resolve({
+                                                            status: filesHelper.status_success,
+                                                            message: filesHelper.pdf_report_generated,
+                                                            pdfUrl: pdfDownloadableUrl.data.result.url
+                                                        });
+                                                    }
+                                                    else {
+                                                        return resolve({
+                                                            status: filesHelper.status_failure,
+                                                            message: pdfDownloadableUrl.message ? pdfDownloadableUrl.message : filesHelper.could_not_generate_pdf,
+                                                            pdfUrl: ""
+                                                        })
+                                                    }
                                                 }
-                                                uploadFile();
+                                                else {
+                                                    return resolve({
+                                                        status: filesHelper.status_failure,
+                                                        message: uploadFileResponse.message ? uploadFileResponse.message : filesHelper.could_not_generate_pdf,
+                                                        pdfUrl: ""
+                                                    })
+                                                }
+
                                             }
                                         });
                                     }
@@ -3705,7 +3674,7 @@ exports.improvementProjectPdfGeneration = async function (responseData, storeRep
 }
 
 //Improvement project task pdf generation function
-exports.improvementProjectTaskPdfGeneration = async function (responseData, storeReportsToS3 = false) {
+exports.improvementProjectTaskPdfGeneration = async function (responseData) {
 
     return new Promise(async function (resolve, reject) {
        
@@ -3772,102 +3741,70 @@ exports.improvementProjectTaskPdfGeneration = async function (responseData, stor
                             rp(optionsHtmlToPdf)
                                 .then(function (responseHtmlToPdf) {
 
-                                    var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
+                                    let pdfBuffer = Buffer.from(responseHtmlToPdf.body);
                                     if (responseHtmlToPdf.statusCode == 200) {
 
-                                        fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
+                                        let pdfFile = uuidv4() + ".pdf";
+                                        fs.writeFile(dir + '/' + pdfFile, pdfBuffer, 'binary', async function (err) {
                                             if (err) {
                                                 return console.log(err);
                                             }
-
                                             else {
-                                                const s3 = new AWS.S3(gen.utils.getAWSConnection());
 
-                                                const uploadFile = () => {
+                                                let uploadFileResponse = await uploadPdfToCloud(pdfFile, dir);
 
-                                                    fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
-                                                        if (err) throw err;
+                                                if (uploadFileResponse.success) {
+                                                    let pdfDownloadableUrl = await getDownloadableUrl(uploadFileResponse.data);
 
-                                                        const params = {
-                                                            Bucket: process.env.AWS_BUCKET_NAME, // pass your bucket name
-                                                            Key: 'pdfReport/' + uuidv4() + 'pdfReport.pdf',
-                                                            Body: Buffer.from(data, null, 2),
-                                                            Expires: 10
-                                                        };
+                                                    if (pdfDownloadableUrl.success && pdfDownloadableUrl.data.result && Object.keys(pdfDownloadableUrl.data.result).length > 0) {
 
-                                                        if (storeReportsToS3 == false) {
-                                                            var folderPath = Buffer.from(currentTempFolder).toString('base64')
+                                                        fs.readdir(imgPath, (err, files) => {
+                                                            if (err) throw err;
 
-                                                            var response = {
-                                                                status: "success",
-                                                                message: 'report generated',
-                                                                pdfUrl: folderPath,
+                                                            let i = 0;
+                                                            for (const file of files) {
 
-                                                            };
-                                                            resolve(response);
+                                                                fs.unlink(path.join(imgPath, file), err => {
+                                                                    if (err) throw err;
+                                                                });
 
-                                                        } else {
+                                                                if (i == files.length) {
+                                                                    fs.unlink('../../' + currentTempFolder, err => {
+                                                                        if (err) throw err;
 
+                                                                    });
+                                                                    console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
 
-                                                            s3.upload(params, function (s3Err, data) {
-                                                                if (s3Err) throw s3Err;
+                                                                }
 
-                                                                // console.log("data", data);
-                                                                console.log(`File uploaded successfully at ${data.Location}`);
+                                                                i = i + 1;
 
-                                                                s3SignedUrl(data.key).then(function (signedRes) {
+                                                            }
+                                                        });
+                                                        rimraf(imgPath, function () { console.log("done"); });
 
-                                                                    try {
-
-
-
-                                                                        fs.readdir(imgPath, (err, files) => {
-                                                                            if (err) throw err;
-
-                                                                            // console.log("files",files.length);
-                                                                            var i = 0;
-                                                                            for (const file of files) {
-
-                                                                                fs.unlink(path.join(imgPath, file), err => {
-                                                                                    if (err) throw err;
-                                                                                });
-
-                                                                                if (i == files.length) {
-                                                                                    fs.unlink('../../' + currentTempFolder, err => {
-                                                                                        if (err) throw err;
-
-                                                                                    });
-                                                                                    console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
-                                                                                    // fs.unlink(path.join(imgPath, ""), err => {
-                                                                                    //     if (err) throw err;
-                                                                                    // });
-                                                                                }
-
-                                                                                i = i + 1;
-
-                                                                            }
-                                                                        });
-                                                                        rimraf(imgPath, function () { console.log("done"); });
-
-                                                                    } catch (ex) {
-                                                                        console.log("ex ", ex);
-                                                                    }
-
-                                                                    var response = {
-                                                                        status: "success",
-                                                                        message: 'report generated',
-                                                                        pdfUrl: signedRes,
-                                                                        downloadPath: data.key
-                                                                    };
-                                                                    resolve(response);
-                                                                })
-                                                            });
-
-                                                        }
-
-                                                    });
+                                                        return resolve({
+                                                            status: filesHelper.status_success,
+                                                            message: filesHelper.pdf_report_generated,
+                                                            pdfUrl: pdfDownloadableUrl.data.result.url
+                                                        });
+                                                    }
+                                                    else {
+                                                        return resolve({
+                                                            status: filesHelper.status_failure,
+                                                            message: pdfDownloadableUrl.message ? pdfDownloadableUrl.message : filesHelper.could_not_generate_pdf,
+                                                            pdfUrl: ""
+                                                        })
+                                                    }
                                                 }
-                                                uploadFile();
+                                                else {
+                                                    return resolve({
+                                                        status: filesHelper.status_failure,
+                                                        message: uploadFileResponse.message ? uploadFileResponse.message : filesHelper.could_not_generate_pdf,
+                                                        pdfUrl: ""
+                                                    })
+                                                }
+
                                             }
                                         });
                                     }
@@ -3884,4 +3821,83 @@ exports.improvementProjectTaskPdfGeneration = async function (responseData, stor
         }
 
     })
+}
+
+
+const uploadPdfToCloud = async function(fileName, folderPath) {
+
+    return new Promise( async function( resolve, reject) {
+     
+     try {
+ 
+         let getSignedUrl = await kendraHelper.getPreSignedUrl
+         (
+             fileName
+         );
+        
+         if (getSignedUrl.result && Object.keys(getSignedUrl.result).length > 0) {
+             
+             let fileUploadUrl = getSignedUrl.result[Object.keys(getSignedUrl.result)[0]].files[0].url;
+             let fileData = fs.readFileSync(folderPath + "/" + fileName);
+            
+             try { 
+                 await request({
+                   url: fileUploadUrl,
+                   method: 'put',
+                   headers: {
+                       "x-ms-blob-type" : process.env.CLOUD_STORAGE == "AZURE" ? "BlockBlob" : null,
+                       "Content-Type": "multipart/form-data"
+                     },
+                   body: fileData
+                 })
+                 
+                 return resolve({
+                     success: true,
+                     data: getSignedUrl.result[Object.keys(getSignedUrl.result)[0]].files[0].payload.sourcePath
+                 })
+                 
+             } catch (e) {
+                 console.log(e)
+             }
+         }
+         else {
+             return resolve({
+                 success: false
+             })
+         }
+     }
+     catch(err) {
+         return resolve({
+             success: false,
+             message: err.message
+         })
+     }
+ 
+    })
+ }
+ 
+const getDownloadableUrl = async function (filePath) {
+ 
+     return new Promise(async function (resolve, reject) {
+ 
+         try {
+ 
+             let response = await kendraHelper.getDownloadableUrl
+             (
+                 filePath
+             );
+            
+             return resolve({
+                 success: true,
+                 data: response
+             });
+         }
+         catch (err) {
+             return resolve({
+                 success: false,
+                 message: err.message
+             })
+         }
+ 
+     })
 }

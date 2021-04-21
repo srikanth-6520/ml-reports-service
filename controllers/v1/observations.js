@@ -10,7 +10,6 @@ const fs = require('fs');
 const path = require('path');
 const kendraService = require('../../helper/kendra_service');
 const assessmentService = require('../../helper/assessment_service');
-const storePdfReportsToS3 = (!process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF || process.env.STORE_PDF_REPORTS_IN_AWS_ON_OFF != "OFF") ? "ON" : "OFF"
 const filesHelper = require('../../common/files_helper');
 const observationsHelper = require('../../helper/observations');
 const pdfHandlerV2 = require('../../helper/common_handler_v2');
@@ -353,9 +352,7 @@ async function instanceObservationScorePdfFunc(req, res) {
           scoreAchieved: instaRes.scoreAchieved
         }
        
-        let resData = await pdfHandlerV2.instanceObservationScorePdfGeneration(instaRes, storeReportsToS3 = false, obj);
-         
-        resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+        let resData = await pdfHandlerV2.instanceObservationScorePdfGeneration(instaRes, obj);
         resolve(resData);
 
         }
@@ -1136,10 +1133,7 @@ async function entitySolutionScorePdfFunc(req, res) {
           solutionName: entityRes.solutionName
         }
 
-        let resData = await pdfHandlerV2.instanceObservationScorePdfGeneration(entityRes, storeReportsToS3 = false, obj);
-  
-        resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-  
+        let resData = await pdfHandlerV2.instanceObservationScorePdfGeneration(entityRes, obj);
         resolve(resData);
       }
   
@@ -1609,9 +1603,7 @@ async function observationScorePdfFunc(req, res) {
         entityType: observationRes.entityType
       }
 
-      let resData = await pdfHandlerV2.instanceObservationScorePdfGeneration(observationRes, storeReportsToS3 = false, obj);
-  
-      resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      let resData = await pdfHandlerV2.instanceObservationScorePdfGeneration(observationRes, obj);
   
       res.send(resData);
     }
@@ -1982,9 +1974,12 @@ exports.pdfReportsUrl = async function (req, response) {
 
     try {
 
-    var folderPath = Buffer.from(req.query.id, 'base64').toString('ascii')
+    let folderPath = Buffer.from(req.query.id, 'base64').toString('ascii');
+
+    let files = fs.readdirSync(__dirname + '/../../' + folderPath );
+    let pdfFile = files.filter( file => file.match(new RegExp(`.*\.(${'.pdf'})`, 'ig')));
    
-    fs.readFile(__dirname + '/../../' + folderPath + '/pdfReport.pdf', function (err, data) {
+    fs.readFile(__dirname + '/../../' + folderPath + '/' + pdfFile, function (err, data) {
         if (!err) {
 
            
@@ -2367,9 +2362,8 @@ return new Promise(async function (resolve, reject) {
 
   if (("observationName" in instaRes) == true) {
 
-    let resData = await pdfHandlerV2.instanceCriteriaReportPdfGeneration(instaRes, storeReportsToS3 = false);
+    let resData = await pdfHandlerV2.instanceCriteriaReportPdfGeneration(instaRes);
     
-    resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
     resolve(resData);
   }
   else {
@@ -2565,10 +2559,9 @@ return new Promise(async function (resolve, reject) {
       scoreAchieved: instaRes.scoreAchieved
     }
 
-    let resData = await pdfHandlerV2.instanceScoreCriteriaPdfGeneration(instaRes, storeReportsToS3 = false, obj);
+    let resData = await pdfHandlerV2.instanceScoreCriteriaPdfGeneration(instaRes, obj);
     
-       resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-       resolve(resData);
+    resolve(resData);
   
   }
 
@@ -2751,9 +2744,7 @@ async function entityPdfReportByCriteria(req, res) {
   
     if (("observationName" in entityRes) == true) {
      
-      let resData = await pdfHandlerV2.entityCriteriaPdfReportGeneration(entityRes, storeReportsToS3 = false);
-
-      resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      let resData = await pdfHandlerV2.entityCriteriaPdfReportGeneration(entityRes);
 
       resolve(resData);
     }
@@ -2954,9 +2945,7 @@ async function entityScorePdfReportByCriteria(req, res) {
         totalObservations: entityRes.totalObservations
       }
 
-      let resData = await pdfHandlerV2.instanceScoreCriteriaPdfGeneration(entityRes, storeReportsToS3 = false, obj);
-
-      resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
+      let resData = await pdfHandlerV2.instanceScoreCriteriaPdfGeneration(entityRes, obj);
 
       resolve(resData);
     }
@@ -3107,10 +3096,8 @@ async function observationPdfReportByCriteria(req, res) {
   
     if (("observationName" in observeRes) == true) {
      
-      let resData = await pdfHandlerV2.entityCriteriaPdfReportGeneration(observeRes, storeReportsToS3 = false);
-
-      resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-
+      let resData = await pdfHandlerV2.entityCriteriaPdfReportGeneration(observeRes);
+      
       resolve(resData);
     }
 
@@ -3320,10 +3307,8 @@ async function observationScorePdfReportByCriteria(req, res) {
         entityType: observationRes.entityType
     }
 
-    let resData = await pdfHandlerV2.instanceScoreCriteriaPdfGeneration(observationRes, storeReportsToS3 = false, obj);
-
-    resData.pdfUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=" + resData.pdfUrl
-
+    let resData = await pdfHandlerV2.instanceScoreCriteriaPdfGeneration(observationRes, obj);
+    
     res.send(resData);
   }
 
@@ -3489,7 +3474,7 @@ async function allEvidencesList(req, res) {
             if(req.body.entityType){
               entityType = req.body.entityType;
             }
-            filter = { "type": "and", fields: [{ "type": "selector", "dimension": "school", "value": req.body.entityId }, { "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "selector", "dimension": "questionExternalId", "value": req.body.questionId }] };
+            filter = { "type": "and", fields: [{ "type": "selector", "dimension": "entity", "value": req.body.entityId }, { "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "selector", "dimension": "questionExternalId", "value": req.body.questionId }] };
           }
           else if (req.body.observationId && req.body.questionId) {
             filter = { "type": "and", fields: [{ "type": "selector", "dimension": "observationId", "value": req.body.observationId }, { "type": "selector", "dimension": "questionExternalId", "value": req.body.questionId }] };
@@ -3554,7 +3539,7 @@ async function getEvidenceData(inputObj) {
         if (submissionId) {
           filter = { "type": "selector", "dimension": "observationSubmissionId", "value": submissionId }
         } else if(entityId && observationId) {
-          filter = {"type":"and","fields":[{"type": "selector", "dimension": "school", "value": entityId},{"type": "selector", "dimension": "observationId", "value": observationId}]}
+          filter = {"type":"and","fields":[{"type": "selector", "dimension": "entity", "value": entityId},{"type": "selector", "dimension": "observationId", "value": observationId}]}
         } else if(observationId) {
           filter = { "type": "selector", "dimension": "observationId", "value": observationId }
         }
