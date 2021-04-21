@@ -2,18 +2,12 @@
  * name : key-cloak-authentication
  * author : 
  **/
-var keyCloakAuthUtils = require("keycloak-auth-utils");
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
-const accessTokenValidationMode = (process.env.VALIDATE_ACCESS_TOKEN_OFFLINE && process.env.VALIDATE_ACCESS_TOKEN_OFFLINE === "OFF") ? "OFF" : "ON";
+const accessTokenValidationMode = "ON";
 const keyCloakPublicKeyPath = (process.env.KEYCLOAK_PUBLIC_KEY_PATH && process.env.KEYCLOAK_PUBLIC_KEY_PATH != "") ? ROOT_PATH + "/" + process.env.KEYCLOAK_PUBLIC_KEY_PATH + "/" : ROOT_PATH + "/" + "keycloak-public-keys/";
 
-function ApiInterceptor(keycloak_config, cache_config) {
-  this.config = keycloak_config;
-  this.keyCloakConfig = new keyCloakAuthUtils.Config(this.config);
-  this.grantManager = new keyCloakAuthUtils.GrantManager(this.keyCloakConfig);
-
-}
+function ApiInterceptor() {}
 
 /**
  * [validateToken is used for validate user]
@@ -59,15 +53,6 @@ ApiInterceptor.prototype.validateToken = function (token, callback) {
     } else {
       return callback("ERR_TOKEN_INVALID", null);
     }
-  } else {
-    var self = this;
-    self.grantManager.userInfo(token, function (err, userData) {
-      if (err) {
-        return callback(err, null);
-      } else {
-        return callback(null, { token: token, userId: userData.sub.split(":").pop() });
-      }
-    });
   }
 };
 

@@ -46,33 +46,11 @@ app.use(function (req, res, next) { //allow cross origin requests
 });
 
 
-
-//API documentation (apidoc)
-if (process.env.NODE_ENV == "development" || process.env.NODE_ENV == "local") {
-  app.use(express.static("apidoc"));
-  if (process.env.NODE_ENV == "local") {
-    app.get(process.env.APIDOC_URL, (req, res) => {
-      let apidocPath = process.env.APIDOC_PATH + "/index.html";
-
-      res.sendFile(path.join(__dirname, apidocPath));
-    });
-  } else {
-    app.get(process.env.APIDOC_URL, (req, res) => {
-      let urlArray = req.path.split("/");
-      urlArray.splice(0, 3);
-      let apidocPath = process.env.APIDOC_PATH + urlArray.join("/");
-
-      res.sendFile(path.join(__dirname, apidocPath));
-    });
-  }
-}
-
-
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || process.env.APPLICATION_PORT_NUMBER);
+var port = normalizePort(process.env.PORT || process.env.APPLICATION_PORT);
 app.set('port', port);
 router(app);
 
@@ -155,11 +133,6 @@ function onListening() {
     ? 'pipe ' + addr
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
-}
-
-let dir = './tmp';
-if (!fs.existsSync(dir)) {
-  fs.mkdirSync(dir);
 }
 
 module.exports = app;

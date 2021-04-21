@@ -42,6 +42,8 @@ exports.pdfGeneration = async function pdfGeneration(instaRes) {
             let matrixRadioArray = [];
             let multiSelectDataArray = [];
             let radioDataArray = [];
+            
+            instaRes.response = instaRes.response ? instaRes.response : instaRes.reportSections;
 
             //loop the response and store multiselect and radio questions of matrix type
             await Promise.all(instaRes.response.map(async ele => {
@@ -370,6 +372,8 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
             var multiSelectArray = [];
             var radioArray = [];
             let formData = [];
+            
+            instaRes.response = instaRes.response ? instaRes.response : instaRes.reportSections;
 
             await Promise.all(instaRes.response.map(async ele => {
                 if (ele.responseType == "matrix") {
@@ -397,7 +401,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
 
 
             var params = {
-                observationName: instaRes.observationName
+                observationName: instaRes.observationName ? instaRes.observationName : instaRes.solutionName
             }
             ejs.renderFile(__dirname + '/../views/header.ejs', {
                 data: params
@@ -630,6 +634,8 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
 
             // let headerFile = await copyBootStrapFile(__dirname + '/../views/header.html', imgPath + '/header.html');
             let footerFile = await copyBootStrapFile(__dirname + '/../views/footer.html', imgPath + '/footer.html');
+            
+            observationResp.response = observationResp.response ? observationResp.response : observationResp.reportSections;
 
             //select all the multiselect response objects and create a chart object
             let chartObject = await getChartObject(observationResp.response);
@@ -1560,7 +1566,7 @@ exports.instanceCriteriaReportPdfGeneration = async function (instanceResponse) 
             let formData = [];
 
             let params = {
-                observationName: instanceResponse.observationName
+                observationName: instanceResponse.observationName ? instanceResponse.observationName : instanceResponse.solutionName
             }
             ejs.renderFile(__dirname + '/../views/header.ejs', {
                 data: params
@@ -1575,7 +1581,7 @@ exports.instanceCriteriaReportPdfGeneration = async function (instanceResponse) 
                         } else {
 
                             var obj = {
-                                response: instanceResponse.response
+                                response: instanceResponse.response ? instanceResponse.response : instanceResponse.reportSections
                             };
                             ejs.renderFile(__dirname + '/../views/instanceCriteriaTemplate.ejs', {
                                 data: obj
@@ -1740,6 +1746,8 @@ exports.entityCriteriaPdfReportGeneration = async function (responseData) {
             let multiSelectArray = [];
             let radioArray = [];
             let formData = [];
+            
+            responseData.response = responseData.response ? responseData.response : responseData.reportSections;
 
             await Promise.all(responseData.response.map(async singleResponse => {
                 await Promise.all( singleResponse.questionArray.map( question => {
@@ -1764,7 +1772,7 @@ exports.entityCriteriaPdfReportGeneration = async function (responseData) {
             formData.push(...radioFormData);
 
             let params = {
-                observationName: responseData.observationName
+                observationName: responseData.observationName ? responseData.observationName : responseData.solutionName
             }
 
             ejs.renderFile(__dirname + '/../views/header.ejs', {
@@ -1949,6 +1957,8 @@ exports.instanceScoreCriteriaPdfGeneration = async function (observationResp, ob
             
             let chartDataArray = [];
 
+            observationResp.response = observationResp.response ? observationResp.response : observationResp.reportSections;
+
             await Promise.all(observationResp.response.map(async questionData => {
     
                 await Promise.all(questionData.questionArray.map(async singleQuestion => {
@@ -1962,7 +1972,7 @@ exports.instanceScoreCriteriaPdfGeneration = async function (observationResp, ob
             let formData = await createChart(chartObj, imgPath);
 
             let params = {
-                observationName: observationResp.observationName
+                observationName: observationResp.observationName ? observationResp.observationName : observationResp.solutionName
             }
 
             ejs.renderFile(__dirname + '/../views/header.ejs', {
