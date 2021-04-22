@@ -6,7 +6,6 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 require('./config/globals')();
 var router = require('./routes');
-const cors = require('cors');
 
 var app = express();
 
@@ -26,7 +25,6 @@ var http = require('http');
 var bodyParser = require('body-parser');
 var fs = require('fs');
 
-app.use(cors());
 app.use(logger('dev'));
 //app.use(express.json());
 //app.use(express.urlencoded({ extended: false }));

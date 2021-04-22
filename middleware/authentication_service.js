@@ -16,14 +16,6 @@ var ApiInterceptor = require('../helper/key_cloak_authentication');
  * external library used in APIs
  */
 
-var Q = require('q');
-var _ = require('underscore');
-var moment = require('moment');
-// var http = require('http');
-// var https = require('https');
-var path = require('path');
-
-var _this = this;
 var api = {};
 api.authenticate = authenticate;
 api.validateToken = validateToken;

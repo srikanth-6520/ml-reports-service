@@ -4,7 +4,6 @@
  **/
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
-const accessTokenValidationMode = "ON";
 const keyCloakPublicKeyPath = (process.env.KEYCLOAK_PUBLIC_KEY_PATH && process.env.KEYCLOAK_PUBLIC_KEY_PATH != "") ? ROOT_PATH + "/" + process.env.KEYCLOAK_PUBLIC_KEY_PATH + "/" : ROOT_PATH + "/" + "keycloak-public-keys/";
 
 function ApiInterceptor() {}
@@ -17,8 +16,6 @@ function ApiInterceptor() {}
  */
 ApiInterceptor.prototype.validateToken = function (token, callback) {
 
-  if (accessTokenValidationMode === "ON") {
-    var self = this;
     var decoded = jwt.decode(token, { complete: true });
     if (decoded === null || decoded.header === null) {
       return callback("ERR_TOKEN_INVALID", null);
@@ -53,7 +50,7 @@ ApiInterceptor.prototype.validateToken = function (token, callback) {
     } else {
       return callback("ERR_TOKEN_INVALID", null);
     }
-  }
+  
 };
 
 module.exports = ApiInterceptor;
