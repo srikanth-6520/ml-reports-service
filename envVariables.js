@@ -42,10 +42,6 @@ let enviromentVariables = {
     "message" : "Required",
     "optional" : false
   },
-  "ASSESSMENT_SUBMISSION_REPORT_THRESHOLD" : {
-    "message" : "Required",
-    "optional" : false
-  },
   "EVIDENCE_THRESHOLD" : {
     "message" : "Required",
     "optional" : false

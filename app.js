@@ -54,6 +54,26 @@ var port = normalizePort(process.env.PORT || process.env.APPLICATION_PORT);
 app.set('port', port);
 router(app);
 
+
+app.all("*", (req, res, next) => {
+
+    log.info("-------Request log starts here------------------");
+    log.info(
+      "%s %s on %s from ",
+      req.method,
+      req.url,
+      new Date(),
+      req.headers["user-agent"]
+    );
+    log.info("Request Headers: ", req.headers);
+    log.info("Request Body: ", req.body);
+    log.info("Request Files: ", req.files);
+    log.info("-------Request log ends here------------------");
+  
+  
+  next();
+});
+
 /**
  * Create HTTP server.
  */
