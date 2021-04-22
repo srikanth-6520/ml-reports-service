@@ -18,19 +18,11 @@ let enviromentVariables = {
     "message" : "Please specify the value for e.g. local/development/qa/production",
     "optional" : false
   },
-  "CLOUD_STORAGE" : {
+  "DRUID_URL" : {
     "message" : "Required",
     "optional" : false
   },
-  "DRUID_HOST" : {
-    "message" : "Required",
-    "optional" : false
-  },
-  "DRUID_PORT" : {
-    "message" : "Required",
-    "optional" : false
-  },
-  "OBSERVATION_DATASOURCE_NAME" : {
+   "OBSERVATION_DATASOURCE_NAME" : {
     "message" : "Required",
     "optional" : false
   },

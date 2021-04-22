@@ -2706,7 +2706,7 @@ const uploadPdfToCloud = async function(fileName, folderPath) {
                    url: fileUploadUrl,
                    method: 'put',
                    headers: {
-                       "x-ms-blob-type" : process.env.CLOUD_STORAGE == "AZURE" ? "BlockBlob" : null,
+                       "x-ms-blob-type" : getSignedUrl.result[Object.keys(getSignedUrl.result)[0]].files[0].cloudStorage == filesHelper.azure ? "BlockBlob" : null,
                        "Content-Type": "multipart/form-data"
                      },
                    body: fileData

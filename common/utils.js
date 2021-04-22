@@ -33,7 +33,7 @@ function getDruidConnection() {
     headers: {
       "Content-Type": "application/json"
     },
-    url: process.env.DRUID_HOST + ":" + process.env.DRUID_PORT + "/druid/v2/?pretty"
+    url: process.env.DRUID_URL + "/druid/v2/?pretty"
   }
 
   return options;

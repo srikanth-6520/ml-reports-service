@@ -1,8 +1,6 @@
 const rp = require('request-promise');
 const request = require('request');
-const filesHelper = require("../common/files_helper");
 let urlPrefix = process.env.ML_CORE_SERVICE_URL;
-const fs = require("fs");
 const uuidv4 = require('uuid/v4');
 
 //Make API call to sl-kendra-service for getting downloadable link
