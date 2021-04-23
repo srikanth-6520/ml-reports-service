@@ -115,7 +115,7 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
 
                                                             }
                                                         });
-                                                        rimraf(imgPath, function () { console.log("done"); });
+                                                        rimraf(imgPath);
 
                                                         return resolve({
                                                             status: filesHelper.status_success,
@@ -265,7 +265,7 @@ exports.improvementProjectTaskPdfGeneration = async function (responseData) {
 
                                                             }
                                                         });
-                                                        rimraf(imgPath, function () { console.log("done"); });
+                                                        rimraf(imgPath);
 
                                                         return resolve({
                                                             status: filesHelper.status_success,

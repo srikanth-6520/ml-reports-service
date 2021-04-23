@@ -1,9 +1,8 @@
 const rp = require('request-promise');
-const request = require('request');
 let urlPrefix = process.env.ML_CORE_SERVICE_URL;
 const uuidv4 = require('uuid/v4');
 
-//Make API call to sl-kendra-service for getting downloadable link
+//Make API call to ml-core-service for getting downloadable link
 async function getDownloadableUrl(filePaths, token) {
   return new Promise(async function (resolve, reject) {
 

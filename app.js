@@ -1,9 +1,7 @@
 require("dotenv").config();
-var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
-var logger = require('morgan');
 require('./config/globals')();
 var router = require('./routes');
 
@@ -20,12 +18,10 @@ if (!environmentData.success) {
   process.exit();
 }
 
-var debug = require('debug')('nodejs-druid-query-app:server');
 var http = require('http');
 var bodyParser = require('body-parser');
 var fs = require('fs');
 
-app.use(logger('dev'));
 //app.use(express.json());
 //app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -55,18 +51,18 @@ router(app);
 
 app.all("*", (req, res, next) => {
 
-    log.info("-------Request log starts here------------------");
-    log.info(
+    console.log("-------Request log starts here------------------");
+    console.log(
       "%s %s on %s from ",
       req.method,
       req.url,
       new Date(),
       req.headers["user-agent"]
     );
-    log.info("Request Headers: ", req.headers);
-    log.info("Request Body: ", req.body);
-    log.info("Request Files: ", req.files);
-    log.info("-------Request log ends here------------------");
+    console.log("Request Headers: ", req.headers);
+    console.log("Request Body: ", req.body);
+    console.log("Request Files: ", req.files);
+    console.log("-------Request log ends here------------------");
   
   
   next();
@@ -150,7 +146,7 @@ function onListening() {
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
-  debug('Listening on ' + bind);
+  
 }
 
 module.exports = app;
