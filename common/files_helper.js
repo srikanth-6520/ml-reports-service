@@ -16,5 +16,7 @@ module.exports = {
     pdf_report_generated : "Pdf report generated successfully",
     could_not_generate_pdf : "Could not generate pdf report",
     on : "ON",
-    off : "OFF"
+    off : "OFF",
+    no_level_matched : "No Level Matched",
+    NA: "NA"
 }

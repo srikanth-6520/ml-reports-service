@@ -149,4 +149,9 @@ function onListening() {
   
 }
 
+let dir = './tmp';
+if (!fs.existsSync(dir)) {
+  fs.mkdirSync(dir);
+}
+
 module.exports = app;
