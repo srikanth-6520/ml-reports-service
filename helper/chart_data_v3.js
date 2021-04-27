@@ -606,6 +606,13 @@ async function radioObjectCreateFunc(data, noOfSubmissions) {
                     backgroundColor: ['#FFA971', '#F6DB6C', '#98CBED', '#C9A0DA', '#5DABDC', '#88E5B0'],
                     data: chartdata
                 }]
+            },
+            options :{
+                responsive: true,
+                legend: { 
+                    position: "bottom", 
+                     align: "start"
+                }
             }
         },
         instanceQuestions: [],
@@ -1541,6 +1548,10 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
 
                     scoresExists = true;
 
+                    if (domainData.event.level == filesHelper.no_level_matched) {
+                        domainData.event.label = filesHelper.NA;
+                    }
+
                     if (!dynamicLevelObj[domainData.event.level]) {
                         dynamicLevelObj[domainData.event.level] = [];
                     }
@@ -2032,6 +2043,7 @@ exports.improvementProjectsObjectCreate = async function (data) {
     await Promise.all(criteriaKeys.map(async element => {
 
         let criteriaObject = {
+            criteriaId: element,
             criteriaName: groupByCriteria[element][0].event.criteriaName,
             level: groupByCriteria[element][0].event.level,
             label: groupByCriteria[element][0].event.label,

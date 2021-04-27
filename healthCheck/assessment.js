@@ -19,7 +19,7 @@ function health_check() {
     return new Promise(async (resolve, reject) => {
         try {
 
-            let healthCheckUrl = process.env.ASSESSMENT_SERVICE_APPLICATION_ENDPOINT  + "/healthCheckStatus";
+            let healthCheckUrl = process.env.ML_SURVEY_SERVICE_URL  + "/healthCheckStatus";
            
             const options = {
                 headers : {
