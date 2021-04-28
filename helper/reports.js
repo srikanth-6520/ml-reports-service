@@ -25,12 +25,10 @@ exports.instaceObservationReport = async function (req, res) {
         //Push criteriaId or questionId filter based on the report Type (question wise and criteria wise)
         if (req.body.criteriaWise == false && req.body.filter && req.body.filter.questionId && req.body.filter.questionId.length > 0) {
             bodyParam.filter.fields.push({ "type": "in", "dimension": "questionExternalId", "values": req.body.filter.questionId });
-            bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
         }
 
         if (req.body.criteriaWise == true && req.body.filter && req.body.filter.criteria && req.body.filter.criteria.length > 0) {
             bodyParam.filter.fields.push({ "type": "in", "dimension": "criteriaId", "values": req.body.filter.criteria });
-            bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
         }
 
         let criteriaLevelReport = false;
@@ -46,6 +44,10 @@ exports.instaceObservationReport = async function (req, res) {
             } else {
                 criteriaLevelReport = getReportType[0].event.criteriaLevelReport == "true";
             }
+        }
+
+        if (criteriaLevelReport == false) {
+            bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
         }
 
         bodyParam.dimensions = ["programName", "solutionName", req.body.entityType + "Name"];
@@ -282,12 +284,10 @@ exports.entityObservationReport = async function (req, res) {
         // Push criteriaId or questionId filter based on the report Type (question wise and criteria wise)
         if (req.body.filter && req.body.filter.questionId && req.body.filter.questionId.length > 0) {
             bodyParam.filter.fields.push({ "type": "in", "dimension": "questionExternalId", "values": req.body.filter.questionId });
-            bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
         }
 
         if (req.body.filter && req.body.filter.criteria && req.body.filter.criteria.length > 0) {
             bodyParam.filter.fields.push({ "type": "in", "dimension": "criteriaId", "values": req.body.filter.criteria });
-            bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
         }
 
         let criteriaLevelReport = false;
@@ -307,6 +307,10 @@ exports.entityObservationReport = async function (req, res) {
             } else {
                 criteriaLevelReport = getReportType[0].event.criteriaLevelReport == "true";
             }
+        }
+
+        if (criteriaLevelReport == false) {
+            bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
         }
 
         bodyParam.dimensions = ["programName","solutionName","submissionTitle",entityType + "Name"];
