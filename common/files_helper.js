@@ -10,5 +10,13 @@ module.exports = {
     aws: "AWS",
     survey: "survey",
     submission_status_completed: "completed",
-    submission_not_found_message: "Your report generation is in progress. Please check back after a few minutes"
+    submission_not_found_message: "Your report generation is in progress. Please check back after a few minutes",
+    status_success : "success",
+    status_failure : "failure",
+    pdf_report_generated : "Pdf report generated successfully",
+    could_not_generate_pdf : "Could not generate pdf report",
+    on : "ON",
+    off : "OFF",
+    no_level_matched : "No Level Matched",
+    NA: "NA"
 }

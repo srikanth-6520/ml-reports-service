@@ -2,7 +2,7 @@ const rp = require('request-promise');
 const request = require('request');
 const assessmentService = require('./assessment_service');
 const helperFunc = require('./chart_data_v3');
-const pdfHandler = require('./common_handler_v3');
+const pdfHandler = require('./common_handler_v2');
 const filesHelper = require('../common/files_helper');
 const surveysHelper = require('./surveys_v2');
 
@@ -25,12 +25,10 @@ exports.instaceObservationReport = async function (req, res) {
         //Push criteriaId or questionId filter based on the report Type (question wise and criteria wise)
         if (req.body.criteriaWise == false && req.body.filter && req.body.filter.questionId && req.body.filter.questionId.length > 0) {
             bodyParam.filter.fields.push({ "type": "in", "dimension": "questionExternalId", "values": req.body.filter.questionId });
-            bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
         }
 
         if (req.body.criteriaWise == true && req.body.filter && req.body.filter.criteria && req.body.filter.criteria.length > 0) {
             bodyParam.filter.fields.push({ "type": "in", "dimension": "criteriaId", "values": req.body.filter.criteria });
-            bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
         }
 
         let criteriaLevelReport = false;
@@ -48,6 +46,10 @@ exports.instaceObservationReport = async function (req, res) {
             }
         }
 
+        if (criteriaLevelReport == false) {
+            bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
+        }
+
         bodyParam.dimensions = ["programName", "solutionName", req.body.entityType + "Name"];
         if (!bodyParam.dimensions.includes("districtName")) {
             bodyParam.dimensions.push("districtName");
@@ -55,7 +57,7 @@ exports.instaceObservationReport = async function (req, res) {
 
         //Push dimensions to the query based on report type
         if (req.body.scores == false && req.body.criteriaWise == false) {
-            bodyParam.dimensions.push("questionName", "questionAnswer", "school", "schoolName", "remarks", "entityType", "observationName", "observationId", "questionResponseType", "questionResponseLabel", "questionId", "questionExternalId", "instanceId", "instanceParentQuestion", "instanceParentResponsetype", "instanceParentId", "questionSequenceByEcm", "instanceParentExternalId", "instanceParentEcmSequence");
+            bodyParam.dimensions.push("questionName", "questionAnswer", "school", "remarks", "entityType", "observationName", "observationId", "questionResponseType", "questionResponseLabel", "questionId", "questionExternalId", "instanceId", "instanceParentQuestion", "instanceParentResponsetype", "instanceParentId", "questionSequenceByEcm", "instanceParentExternalId", "instanceParentEcmSequence");
         }
 
         if (req.body.scores == true && req.body.criteriaWise == false && criteriaLevelReport == false) {
@@ -64,17 +66,17 @@ exports.instaceObservationReport = async function (req, res) {
         }
 
         if (req.body.scores == false && req.body.criteriaWise == true) {
-            bodyParam.dimensions.push("questionName", "questionAnswer", "school", "schoolName", "remarks", "entityType", "observationName", "observationId", "questionResponseType", "questionResponseLabel", "questionId", "questionExternalId", "instanceId", "instanceParentQuestion", "instanceParentResponsetype", "instanceParentId", "questionSequenceByEcm", "instanceParentExternalId", "instanceParentEcmSequence", "criteriaName", "criteriaId", "instanceParentCriteriaName", "instanceParentCriteriaId");
+            bodyParam.dimensions.push("questionName", "questionAnswer", "school", "remarks", "entityType", "observationName", "observationId", "questionResponseType", "questionResponseLabel", "questionId", "questionExternalId", "instanceId", "instanceParentQuestion", "instanceParentResponsetype", "instanceParentId", "questionSequenceByEcm", "instanceParentExternalId", "instanceParentEcmSequence", "criteriaName", "criteriaId", "instanceParentCriteriaName", "instanceParentCriteriaId");
         }
 
         if (req.body.scores == true && req.body.criteriaWise == true && criteriaLevelReport == false) {
-            bodyParam.dimensions.push("questionName", "schoolName", "questionAnswer", "questionExternalId", "questionResponseType", "minScore", "maxScore", "totalScore", "scoreAchieved", "observationName", "criteriaName", "criteriaId");
+            bodyParam.dimensions.push("questionName", "questionAnswer", "questionExternalId", "questionResponseType", "minScore", "maxScore", "totalScore", "scoreAchieved", "observationName", "criteriaName", "criteriaId");
             bodyParam.filter.fields.push({"type":"or","fields":[{"type":"selector","dimension":"questionResponseType","value":"radio"},{"type":"selector","dimension":"questionResponseType","value":"multiselect"},{"type":"selector","dimension":"questionResponseType","value":"slider"}]})
         }
 
         if (req.body.scores == true && criteriaLevelReport == true) {
             bodyParam.filter.fields.push({"type":"selector","dimension":"childType","value":"criteria"})
-            bodyParam.dimensions.push("observationSubmissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "childExternalid", "childName", "childType");
+            bodyParam.dimensions.push("observationSubmissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "childExternalid", "childName", "childType", "solutionId");
         }
 
         //pass the query get the result from druid
@@ -108,7 +110,6 @@ exports.instaceObservationReport = async function (req, res) {
 
             let response;
             let chartData;
-            let pdfReportUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=";
 
             let evidenceData = await getEvidenceData({ submissionId: req.body.submissionId });
 
@@ -125,13 +126,8 @@ exports.instaceObservationReport = async function (req, res) {
                 }
 
                 if (req.body.pdf) {
-                    let pdfReport = await pdfHandler.instanceObservationPdfGeneration(response, storeReportsToS3 = false);
-                    if (pdfReport.status && pdfReport.status == "success") {
-                        pdfReport.pdfUrl = pdfReportUrl + pdfReport.pdfUrl
-                        return resolve(pdfReport);
-                    } else {
-                        return resolve(pdfReport);
-                    }
+                    let pdfReport = await pdfHandler.instanceObservationPdfGeneration(response);
+                    return resolve(pdfReport);
                 } else {
                     return resolve(response);
                 }
@@ -153,13 +149,9 @@ exports.instaceObservationReport = async function (req, res) {
                         totalScore: response.totalScore,
                         scoreAchieved: response.scoreAchieved
                     }
-                    let pdfReport = await pdfHandler.instanceObservationScorePdfGeneration(response, storeReportsToS3 = false, pdfHeaderInput);
-                    if (pdfReport.status && pdfReport.status == "success") {
-                        pdfReport.pdfUrl = pdfReportUrl + pdfReport.pdfUrl
-                        return resolve(pdfReport);
-                    } else {
-                        return resolve(pdfReport);
-                    }
+                    let pdfReport = await pdfHandler.instanceObservationScorePdfGeneration(response, pdfHeaderInput);
+                    return resolve(pdfReport);
+                    
                 } else {
                     return resolve(response);
                 }
@@ -180,14 +172,8 @@ exports.instaceObservationReport = async function (req, res) {
                 response = await helperFunc.getCriteriawiseReport(response);
 
                 if (req.body.pdf) {
-                    let pdfReport = await pdfHandler.instanceCriteriaReportPdfGeneration(response, storeReportsToS3 = false);
-                    if (pdfReport.status && pdfReport.status == "success") {
-                        pdfReport.pdfUrl = pdfReportUrl + pdfReport.pdfUrl
-                        return resolve(pdfReport);
-                    } else {
-                        return resolve(pdfReport);
-                    }
-
+                    let pdfReport = await pdfHandler.instanceCriteriaReportPdfGeneration(response);
+                    return resolve(pdfReport);
                 } else {
                     return resolve(response);
                 }
@@ -213,14 +199,8 @@ exports.instaceObservationReport = async function (req, res) {
                         scoreAchieved: response.scoreAchieved
                     }
 
-                    let pdfReport = await pdfHandler.instanceScoreCriteriaPdfGeneration(response, storeReportsToS3 = false, pdfHeaderInput);
-                    if (pdfReport.status && pdfReport.status == "success") {
-                        pdfReport.pdfUrl = pdfReportUrl + pdfReport.pdfUrl
-                        return resolve(pdfReport);
-                    } else {
-                        return resolve(pdfReport);
-                    }
-
+                    let pdfReport = await pdfHandler.instanceScoreCriteriaPdfGeneration(response, pdfHeaderInput);
+                    return resolve(pdfReport);
                 } else {
                     return resolve(response);
                 }
@@ -231,6 +211,7 @@ exports.instaceObservationReport = async function (req, res) {
                     "result": true,
                     "programName": data[0].event.programName,
                     "solutionName": data[0].event.solutionName,
+                    "solutionId": data[0].event.solutionId
                 };
 
                 chartData = await helperFunc.entityLevelReportData(data);
@@ -250,8 +231,7 @@ exports.instaceObservationReport = async function (req, res) {
                 }
 
                 if (req.body.pdf) {
-                    let pdfReport = await pdfHandler.assessmentAgainPdfReport(response, storeReportsToS3 = false);
-                    pdfReport.pdfUrl = pdfReportUrl + pdfReport.pdfUrl
+                    let pdfReport = await pdfHandler.assessmentAgainPdfReport(response);
                     return resolve(pdfReport);
                 } else {
 
@@ -304,12 +284,10 @@ exports.entityObservationReport = async function (req, res) {
         // Push criteriaId or questionId filter based on the report Type (question wise and criteria wise)
         if (req.body.filter && req.body.filter.questionId && req.body.filter.questionId.length > 0) {
             bodyParam.filter.fields.push({ "type": "in", "dimension": "questionExternalId", "values": req.body.filter.questionId });
-            bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
         }
 
         if (req.body.filter && req.body.filter.criteria && req.body.filter.criteria.length > 0) {
             bodyParam.filter.fields.push({ "type": "in", "dimension": "criteriaId", "values": req.body.filter.criteria });
-            bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
         }
 
         let criteriaLevelReport = false;
@@ -329,6 +307,10 @@ exports.entityObservationReport = async function (req, res) {
             } else {
                 criteriaLevelReport = getReportType[0].event.criteriaLevelReport == "true";
             }
+        }
+
+        if (criteriaLevelReport == false) {
+            bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
         }
 
         bodyParam.dimensions = ["programName","solutionName","submissionTitle",entityType + "Name"];
@@ -358,7 +340,7 @@ exports.entityObservationReport = async function (req, res) {
         if (req.body.scores == true && criteriaLevelReport == true) {
             bodyParam.filter.fields.push({"type":"selector","dimension":"childType","value":"criteria"});
             bodyParam.filter.fields.push({"type":"selector","dimension":"createdBy","value": req.userDetails.userId});
-            bodyParam.dimensions.push("observationSubmissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "childExternalid", "childName", "childType");
+            bodyParam.dimensions.push("observationSubmissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "childExternalid", "childName", "childType", "solutionId");
         }
 
         //pass the query get the result from druid
@@ -396,7 +378,6 @@ exports.entityObservationReport = async function (req, res) {
 
             let response;
             let chartData;
-            let pdfReportUrl = process.env.APPLICATION_HOST_NAME + process.env.APPLICATION_BASE_URL + "v1/observations/pdfReportsUrl?id=";
 
             let evidenceData = await getEvidenceData(
                 {
@@ -416,13 +397,9 @@ exports.entityObservationReport = async function (req, res) {
                 }
 
                 if (req.body.pdf) {
-                    let pdfReport = await pdfHandler.pdfGeneration(response, storeReportsToS3 = false);
-                    if (pdfReport.status && pdfReport.status == "success") {
-                        pdfReport.pdfUrl = pdfReportUrl + pdfReport.pdfUrl
-                        return resolve(pdfReport);
-                    } else {
-                        return resolve(pdfReport);
-                    }
+                    let pdfReport = await pdfHandler.pdfGeneration(response);
+                    return resolve(pdfReport);
+                    
                 } else {
                     return resolve(response);
                 }
@@ -445,13 +422,9 @@ exports.entityObservationReport = async function (req, res) {
                         entityName: response.entityName,
                         totalObservations: response.totalObservations
                     }
-                    let pdfReport = await pdfHandler.instanceObservationScorePdfGeneration(response, storeReportsToS3 = false, pdfHeaderInput);
-                    if (pdfReport.status && pdfReport.status == "success") {
-                        pdfReport.pdfUrl = pdfReportUrl + pdfReport.pdfUrl
-                        return resolve(pdfReport);
-                    } else {
-                        return resolve(pdfReport);
-                    }
+                    let pdfReport = await pdfHandler.instanceObservationScorePdfGeneration(response, pdfHeaderInput);
+                    return resolve(pdfReport);
+                    
                 } else {
                     return resolve(response);
                 }
@@ -471,13 +444,8 @@ exports.entityObservationReport = async function (req, res) {
                 response = await helperFunc.getCriteriawiseReport(response);
 
                 if (req.body.pdf) {
-                    let pdfReport = await pdfHandler.entityCriteriaPdfReportGeneration(response, storeReportsToS3 = false);
-                    if (pdfReport.status && pdfReport.status == "success") {
-                        pdfReport.pdfUrl = pdfReportUrl + pdfReport.pdfUrl
-                        return resolve(pdfReport);
-                    } else {
-                        return resolve(pdfReport);
-                    }
+                    let pdfReport = await pdfHandler.entityCriteriaPdfReportGeneration(response);
+                    return resolve(pdfReport);
                 } else {
                     return resolve(response);
                 }
@@ -503,14 +471,8 @@ exports.entityObservationReport = async function (req, res) {
                         totalObservations: response.totalObservations
                     }
 
-                    let pdfReport = await pdfHandler.instanceScoreCriteriaPdfGeneration(response, storeReportsToS3 = false, pdfHeaderInput);
-                    if (pdfReport.status && pdfReport.status == "success") {
-                        pdfReport.pdfUrl = pdfReportUrl + pdfReport.pdfUrl
-                        return resolve(pdfReport);
-                    } else {
-                        return resolve(pdfReport);
-                    }
-
+                    let pdfReport = await pdfHandler.instanceScoreCriteriaPdfGeneration(response, pdfHeaderInput);
+                    return resolve(pdfReport);
                 } else {
                     return resolve(response);
                 }
@@ -522,6 +484,7 @@ exports.entityObservationReport = async function (req, res) {
                     "result": true,
                     "programName": data[0].event.programName,
                     "solutionName": data[0].event.solutionName,
+                    "solutionId": data[0].event.solutionId
                 };
 
                 chartData = await helperFunc.entityLevelReportData(data);
@@ -543,8 +506,7 @@ exports.entityObservationReport = async function (req, res) {
 
                 if (req.body.pdf) {
 
-                    let pdfReport = await pdfHandler.assessmentAgainPdfReport(response, storeReportsToS3 = false);
-                    pdfReport.pdfUrl = pdfReportUrl + pdfReport.pdfUrl
+                    let pdfReport = await pdfHandler.assessmentAgainPdfReport(response);
                     return resolve(pdfReport);
 
                 } else {
@@ -689,7 +651,7 @@ async function getEvidenceData(inputObj) {
       catch (err) {
         let response = {
           result: false,
-          message: "Internal server error"
+          message: err.message
         };
         resolve(response);
       };

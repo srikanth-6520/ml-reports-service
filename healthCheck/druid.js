@@ -11,7 +11,7 @@ const request = require('request');
 function health_check() {
     return new Promise(async (resolve, reject) => {
         
-        let druidHealthCheckUrl =  process.env.DRUID_HOST + ":" + process.env.DRUID_PORT;
+        let druidHealthCheckUrl =  process.env.DRUID_URL;
         let options = {
             headers: {
                 "Content-Type": "application/json"

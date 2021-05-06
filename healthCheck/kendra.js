@@ -19,7 +19,7 @@ function health_check() {
     return new Promise(async (resolve, reject) => {
         try {
 
-            let healthCheckUrl = process.env.KENDRA_APPLICATION_ENDPOINT  + "/healthCheckStatus";
+            let healthCheckUrl = process.env.ML_CORE_SERVICE_URL  + "/healthCheckStatus";
            
             const options = {
                 headers : {
