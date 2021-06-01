@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "app.js"
+    "start": "app.js",
+    "test": "mocha --timeout 10000"
   },
   "dependencies": {
     "async": "^3.1.0",
@@ -44,6 +45,9 @@
     "request-promise": "^4.2.4",
     "require-all": "^3.0.0",
     "rimraf": "^3.0.0",
-    "uuid": "^3.3.3"
+    "uuid": "^3.3.3",
+    "chai": "^4.2.0",
+    "chai-http": "^4.3.0",
+    "mocha": "^6.2.2"
   }
 }
