@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "start": "app.js",
-    "test": "mocha --timeout 10000"
+    "test": "mocha --timeout 10000",
+    "coverage": " nyc --reporter=lcov mocha --timeout 10000 test --exit"
   },
   "dependencies": {
     "async": "^3.1.0",
