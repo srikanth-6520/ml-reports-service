@@ -1,6 +1,6 @@
 const rp = require('request-promise');
+let urlPrefix = process.env.ML_SURVEY_SERVICE_URL;
 const request = require('request');
-let urlPrefix = process.env.ASSESSMENT_SERVICE_APPLICATION_ENDPOINT + process.env.ASSESSMENT_SERVICE_BASE_URL + process.env.URL_PREFIX;
 
 //Function to get user profile
 async function getUserProfile(createdBy, token) {

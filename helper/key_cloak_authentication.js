@@ -2,18 +2,13 @@
  * name : key-cloak-authentication
  * author : 
  **/
-var keyCloakAuthUtils = require("keycloak-auth-utils");
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
-const accessTokenValidationMode = (process.env.VALIDATE_ACCESS_TOKEN_OFFLINE && process.env.VALIDATE_ACCESS_TOKEN_OFFLINE === "OFF") ? "OFF" : "ON";
 const keyCloakPublicKeyPath = (process.env.KEYCLOAK_PUBLIC_KEY_PATH && process.env.KEYCLOAK_PUBLIC_KEY_PATH != "") ? ROOT_PATH + "/" + process.env.KEYCLOAK_PUBLIC_KEY_PATH + "/" : ROOT_PATH + "/" + "keycloak-public-keys/";
+const PEM_FILE_BEGIN_STRING = "-----BEGIN PUBLIC KEY-----";
+const PEM_FILE_END_STRING = "-----END PUBLIC KEY-----";
 
-function ApiInterceptor(keycloak_config, cache_config) {
-  this.config = keycloak_config;
-  this.keyCloakConfig = new keyCloakAuthUtils.Config(this.config);
-  this.grantManager = new keyCloakAuthUtils.GrantManager(this.keyCloakConfig);
-
-}
+function ApiInterceptor() {}
 
 /**
  * [validateToken is used for validate user]
@@ -23,8 +18,6 @@ function ApiInterceptor(keycloak_config, cache_config) {
  */
 ApiInterceptor.prototype.validateToken = function (token, callback) {
 
-  if (accessTokenValidationMode === "ON") {
-    var self = this;
     var decoded = jwt.decode(token, { complete: true });
     if (decoded === null || decoded.header === null) {
       return callback("ERR_TOKEN_INVALID", null);
@@ -32,10 +25,18 @@ ApiInterceptor.prototype.validateToken = function (token, callback) {
 
     const kid = decoded.header.kid
     let cert = "";
-    let path = keyCloakPublicKeyPath + kid + '.pem';
+    let path = keyCloakPublicKeyPath + kid
 
     if (fs.existsSync(path)) {
-      cert = fs.readFileSync(path);
+
+      if(accessKeyFile) {
+        if(!accessKeyFile.includes(PEM_FILE_BEGIN_STRING)){
+          cert = PEM_FILE_BEGIN_STRING+"\n"+accessKeyFile+"\n"+PEM_FILE_END_STRING;
+        }else {
+          cert = fs.readFileSync(path);
+        }  
+      }
+
       jwt.verify(token, cert, { algorithm: 'RS256' }, function (err, decode) {
 
         if (err) {
@@ -59,16 +60,7 @@ ApiInterceptor.prototype.validateToken = function (token, callback) {
     } else {
       return callback("ERR_TOKEN_INVALID", null);
     }
-  } else {
-    var self = this;
-    self.grantManager.userInfo(token, function (err, userData) {
-      if (err) {
-        return callback(err, null);
-      } else {
-        return callback(null, { token: token, userId: userData.sub.split(":").pop() });
-      }
-    });
-  }
+  
 };
 
 module.exports = ApiInterceptor;
