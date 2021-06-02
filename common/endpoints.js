@@ -6,9 +6,14 @@
  */
 
 module.exports = {
-    GET_SURVEY_SUBMISSION_STATUS : "/api/v1/surveySubmissions/getStatus",
-    GET_OBSERVATION_SUBMISSION_STATUS : "/api/v1/observationSubmissions/status",
-    GET_ENTITY_OBSERVATION_SUBMISSIONS_STATUS: "/api/v1/observations/submissionStatus",
-    GET_PRESIGNED_URL : "/api/v1/cloud-services/files/preSignedUrls",
-    GET_DOWNLOADABLE_URL : "/api/v1/cloud-services/files/getDownloadableUrl",
+    GET_USER_PROFILE : "/userExtension/getProfile",
+    GET_ENTITY_LIST : "/entities/list",
+    GET_SURVEY_SUBMISSION_STATUS : "/surveySubmissions/getStatus",
+    GET_OBSERVATION_SUBMISSION_STATUS : "/observationSubmissions/status",
+    GET_ENTITY_OBSERVATION_SUBMISSIONS_STATUS: "/observations/submissionStatus",
+    OBSERVATION_DETAILS : "/observations/details",
+    GCP_GET_DOWNLOADABLE_URL : "/cloud-services/gcp/getDownloadableUrl",
+    AZURE_GET_DOWNLOADABLE_URL : "/cloud-services/azure/getDownloadableUrl",
+    AWS_GET_DOWNLOADABLE_URL : "/cloud-services/aws/getDownloadableUrl",
+    GET_PRESIGNED_URL : "/cloud-services/files/preSignedUrls"
 }
