@@ -40,25 +40,6 @@ function getDruidConnection() {
 }
 
 /**
-  * Return highchart server connection string
-  * @function
-  * @name getHighChartConnection
-  * @returns {Array}  returns highchart server connection.  
-*/
-
-function getHighChartConnection() {
-
-  let highchart = {
-    url: process.env.HIGHCHART_URL,
-    headers: {
-      "Content-Type": "application/json"
-    }
-  }
-
-  return highchart;
-}
-
-/**
   * Return Gotenberg service connection string
   * @function
   * @name getGotenbergConnection
@@ -137,7 +118,6 @@ function getPortalReportsFilePaths(fileName) {
 module.exports = {
   getDruidQuery: getDruidQuery,
   getDruidConnection: getDruidConnection,
-  getHighChartConnection: getHighChartConnection,
   getGotenbergConnection: getGotenbergConnection,
   getPortalReportsFilePaths: getPortalReportsFilePaths,
   getAWSConnection: getAWSConnection
