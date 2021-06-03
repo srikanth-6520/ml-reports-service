@@ -504,17 +504,15 @@ async function responseObjectCreateFunc(data, solutionType) {
     return resp;
 }
 
-
 //function to create response object for radio questions (Entiry Report)
 async function radioObjectCreateFunc(data, noOfSubmissions) {
-    var dataArray = [];
-    var labelArray = [];
-    var chartdata = [];
-    var answerArray = [];
-    var question;
-    //let remarks = [];
+    let dataArray = [];
+    let labelArray = [];
+    let chartdata = [];
+    let answerArray = [];
+    let question;
 
-    for (var i = 0; i < data.length; i++) {
+    for (let i = 0; i < data.length; i++) {
 
         if (data[i].event.questionAnswer == null) {
             data[i].event.questionAnswer = "Not answered";
@@ -526,63 +524,47 @@ async function radioObjectCreateFunc(data, noOfSubmissions) {
         dataArray.push(data[i].event.questionAnswer);
         answerArray.push(data[i].event.questionResponseLabel);
 
-        if (labelArray.includes(data[i].event.questionResponseLabel)) {
-        } else {
+        if (!labelArray.includes(data[i].event.questionResponseLabel)) {
             labelArray.push(data[i].event.questionResponseLabel);
-        }
-
-        // if(data[i].event.remarks != null){
-        //     remarks.push(data[i].event.remarks);
-        // }
-
+        } 
     }
 
-    var responseArray = count(dataArray)   //call count function to count occurences of elements in the array
+    let responseArray = count(dataArray)   //call count function to count occurences of elements in the array
     responseArray = Object.entries(responseArray);  //to convert object into array
 
-    for (var j = 0; j < responseArray.length; j++) {
-        var k = 0;
-        var element = responseArray[j];
-        var value = (element[k + 1] / noOfSubmissions.length) * 100;
+    for (let j = 0; j < responseArray.length; j++) {
+        let k = 0;
+        let element = responseArray[j];
+        let value = (element[k + 1] / noOfSubmissions.length) * 100;
         value = parseFloat(value.toFixed(2));
-        if (labelArray[j] == null) {
-            labelArray[j] = "Not answered";
-        }
-        var dataObj = {
-            name: labelArray[j],
-            y: value
-        }
-
-        chartdata.push(dataObj);
-
+        chartdata.push(value);
     }
 
     //To get the latest edited question
     let questionObject = data.sort(custom_sort);
     question = questionObject[questionObject.length - 1].event.questionName;
 
-    var resp = {
+    let resp = {
         order: data[0].event.questionExternalId,
         question: question,
         responseType: data[0].event.questionResponseType,
         answers: [],
         chart: {
             type: "pie",
-            plotOptions: {
-                pie: {
-                    allowPointSelect: true,
-                    cursor: 'pointer',
-                    dataLabels: {
-                        enabled: false
-                    },
-                    showInLegend: true
+            data:{
+                labels: labelArray,
+                datasets: [{
+                    backgroundColor: ['#FFA971', '#F6DB6C', '#98CBED', '#C9A0DA', '#5DABDC', '#88E5B0'],
+                    data: chartdata
+                }]
+            },
+            options :{
+                responsive: true,
+                legend: { 
+                    position: "bottom", 
+                     align: "start"
                 }
             },
-            data: [
-                {
-                    data: chartdata
-                }
-            ]
         },
         instanceQuestions: [],
         criteriaName: data[0].event.criteriaName,
@@ -608,8 +590,7 @@ async function multiSelectObjectCreateFunc(data, noOfSubmissions, solutionType) 
         await Promise.all(data.map(ele => {
             dataArray.push(ele.event.questionAnswer);
 
-            if (labelArray.includes(ele.event.questionResponseLabel)) {
-            } else {
+            if (!labelArray.includes(ele.event.questionResponseLabel)) {
                 labelArray.push(ele.event.questionResponseLabel)
             }
         }))
@@ -636,25 +617,35 @@ async function multiSelectObjectCreateFunc(data, noOfSubmissions, solutionType) 
             responseType: data[0].event.questionResponseType,
             answers: [],
             chart: {
-                type: "bar",
-                data: [
-                    {
-                        data: chartdata
-                    }
-                ],
-                xAxis: {
-                    categories: labelMerged,
-                    title: {
-                        text: "Responses"
-                    }
+                type: "horizontalBar",
+                data: {
+                    labels: labelMerged,
+                    datasets: [{
+                            data: chartdata,
+                            backgroundColor: "#de8657"
+                    }]
                 },
-                yAxis: {
-                    min: 0,
-                    max: 100,
-                    title: {
-                        text: "Responses in percentage"
+                options: {
+                    legend: false,
+                    scales: {
+                        xAxes: [{
+                            ticks: {
+                                min: 0,
+                                max: 100
+                            },
+                            scaleLabel: {
+                                display: true,
+                                labelString: "Responses in percentage"
+                            }
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: "Responses"
+                            }
+                        }],
                     }
-                }
+                },            
             },
             instanceQuestions: [],
             criteriaName: data[0].event.criteriaName,
@@ -665,16 +656,6 @@ async function multiSelectObjectCreateFunc(data, noOfSubmissions, solutionType) 
         let groupArrayBySubmissions = await groupArrayByGivenField(data, solutionType + "SubmissionId");
 
         let submissionKeysArray = Object.keys(groupArrayBySubmissions);
-
-        // await Promise.all(submissionKeysArray.map(async element => {
-
-        //     if(groupArrayBySubmissions[element][0].event.remarks != null){
-        //         remarks.push(groupArrayBySubmissions[element][0].event.remarks);
-        //     }
-
-        // }));
-
-        // resp.remarks = remarks ;
 
         // Constructing answer array for matrix questions
         if ("instanceParentResponsetype" in data[0].event != null) {
@@ -707,6 +688,7 @@ async function multiSelectObjectCreateFunc(data, noOfSubmissions, solutionType) 
         console.log(err);
     }
 }
+
 
 // to count the occurances of same elements in the array
 function count(arr) {
@@ -940,7 +922,7 @@ exports.entityAssessmentChart = async function (inputObj) {
 
         //loop the domain keys and construct level array for stacked bar chart
         let domainKeys = Object.keys(domainObj);
-        let obj = {};
+        let levelCountbject = {};
         domainArray = domainKeys;
 
         for (let domainKey = 0; domainKey < domainKeys.length; domainKey++) {
@@ -948,30 +930,29 @@ exports.entityAssessmentChart = async function (inputObj) {
             let levelKeys = Object.keys(levels);
             for (level in dynamicLevelObj) {
                 if (levelKeys.includes(level)) {
-                    dynamicLevelObj[level].push({
-                        y: levels[level][level],
-                        entityId: levels[level].entityId
-                    });
+                    dynamicLevelObj[level].push(levels[level][level]);
                 } else {
-                    dynamicLevelObj[level].push({
-                        y: 0,
-                        entityId: ""
-                    });
+                    dynamicLevelObj[level].push(0);
                 }
             }
         }
 
         //sort the levels
         Object.keys(dynamicLevelObj).sort().forEach(function (key) {
-            obj[key] = dynamicLevelObj[key];
+            levelCountbject[key] = dynamicLevelObj[key];
         });
 
-        let series = [];
-        for (level in obj) {
-            series.push({
-                name: level,
-                data: obj[level]
+        let datasets = [];
+        let backgroundColors = ['rgb(255, 99, 132)','rgb(54, 162, 235)','rgb(255, 206, 86)','rgb(231, 233, 237)','rgb(75, 192, 192)','rgb(151, 187, 205)','rgb(220, 220, 220)','rgb(247, 70, 74)','rgb(70, 191, 189)','rgb(253, 180, 92)','rgb(148, 159, 177)','rgb(77, 83, 96)','rgb(95, 101, 217)','rgb(170, 95, 217)','rgb(140, 48, 57)','rgb(209, 6, 40)','rgb(68, 128, 51)','rgb(125, 128, 51)','rgb(128, 84, 51)','rgb(179, 139, 11)']
+        let i = 0;
+
+        for (level in levelCountbject) {
+            datasets.push({
+                label: level,
+                data: levelCountbject[level],
+                backgroundColor: backgroundColors[i]
             })
+            i++;
         }
 
         let chartTitle = "";
@@ -985,24 +966,41 @@ exports.entityAssessmentChart = async function (inputObj) {
         let chartObj = {
             result: true,
             title: inputObj.data[0].event.programName + " report",
+            domainLevelObject : domainObj,
             reportSections: [
                 {
                     order: 1,
                     chart: {
-                        type: "bar",
+                        type: "horizontalBar",
                         nextChildEntityType: inputObj.childEntity,
-                        stacking: "percent",
-                        title: "Criteria vs level mapping aggregated at " + chartTitle + " level",
-                        xAxis: {
-                            categories: domainArray,
-                            title: ""
+                        data: {
+                            labels: domainArray,
+                            datasets: datasets
                         },
-                        yAxis: {
+                        options: {
                             title: {
-                                text: "Criteria"
-                            }
-                        },
-                        data: series
+                                display: true,
+                                text: "Criteria vs level mapping aggregated at " + chartTitle + " level",
+                                fontSize: 24
+                            },
+                            scales: {
+                                xAxes: [{
+                                    stacked: true,
+                                    gridLines: { display: false },
+                                    scaleLabel: {
+                                        display: true,
+                                        labelString: 'Criteria'
+                                    }
+                                }],
+                                yAxes: [{
+                                    stacked: true
+                                }],
+                            },
+                            legend: { 
+                                    display: true,
+                                    position : "bottom" 
+                                }
+                        }
                     }
                 }
             ]
@@ -1126,70 +1124,45 @@ async function scoreObjectCreateFunction(data) {
         data[0].event.maxScore = 0;
     }
 
-    let value = (data[0].event.minScore / data[0].event.maxScore) * 100;
-    value = parseFloat(value.toFixed(2));
+    let scoreAchieved = (data[0].event.minScore / data[0].event.maxScore) * 100;
+    scoreAchieved = parseFloat(scoreAchieved.toFixed(2));
 
-    let yy = 0;
+    let scoreNotAchieved = 0;
 
-    if (!value) {
-        value = 0;
+    if (!scoreAchieved) {
+        scoreAchieved = 0;
     } else {
-        yy = 100 - value
+        scoreNotAchieved = 100 - scoreAchieved
     }
-
-    let dataObj = [{
-        name: data[0].event.minScore + " out of " + data[0].event.maxScore,
-        y: value,
-        color: "#6c4fa1"
-    }, {
-        name: "",
-        y: yy,
-        color: "#fff"
-    }]
 
     let resp = {
         order: data[0].event.questionExternalId,
         question: data[0].event.questionName,
         chart: {
             type: "pie",
-            credits: {
-                enabled: false
-            },
-            plotOptions: {
-                pie: {
-                    allowPointSelect: true,
-                    cursor: 'pointer',
-                    dataLabels: {
-                        enabled: false
-                    },
-                    showInLegend: true,
-                    borderColor: '#000000'
-                }
-            },
+            data: {
+                labels: [data[0].event.minScore + " out of " + data[0].event.maxScore],
+                datasets: [{
+                    backgroundColor: [
+                        "#6c4fa1",
+                    ],
+                    data: [scoreAchieved, scoreNotAchieved],
+                    borderColor: 'black',
+                }]
 
-            data: [
-                {
-                    data: dataObj
-                }
-            ]
+            }
         },
         criteriaName: data[0].event.criteriaName,
         criteriaId: data[0].event.criteriaId
     }
 
-    // If remarks is not null then add it to reponse object
-    // if(data[0].event.remarks != null){
-    //     resp.remarks = [data[0].event.remarks];
-    // }
-
     return resp;
-
 }
 
 
 
 // Chart object creation for entity observation score report
-exports.entityScoreReportChartObjectCreation = async function (data, version, reportType) {
+exports.entityScoreReportChartObjectCreation = async function (data, reportType) {
 
     let sortedData = await data.sort(sort_objects);
 
@@ -1237,7 +1210,7 @@ exports.entityScoreReportChartObjectCreation = async function (data, version, re
 
     await Promise.all(groupKeys.map(async ele => {
 
-        let responseObj = await entityScoreObjectCreateFunc(groupedData[ele], version, threshold);
+        let responseObj = await entityScoreObjectCreateFunc(groupedData[ele], threshold);
 
         obj.response.push(responseObj);
 
@@ -1257,10 +1230,10 @@ exports.entityScoreReportChartObjectCreation = async function (data, version, re
 }
 
 
-async function entityScoreObjectCreateFunc(data, version, threshold) {
+async function entityScoreObjectCreateFunc(data, threshold) {
 
     let seriesData = [];
-    let yAxisMaxValue;
+    let yAxisMaxValue = 0;
 
     //group the questions based on their observationSubmissionId
     let groupedSubmissionData = await groupArrayByGivenField(data, "observationSubmissionId");
@@ -1274,7 +1247,7 @@ async function entityScoreObjectCreateFunc(data, version, threshold) {
         }
 
         if (seriesData.length != threshold) {
-            seriesData.push([parseInt(groupedSubmissionData[scoreData][0].event.minScore)]);
+            seriesData.push(parseInt(groupedSubmissionData[scoreData][0].event.minScore));
         }
 
         if (groupedSubmissionData[scoreData][0].event.maxScore != null) {
@@ -1288,57 +1261,47 @@ async function entityScoreObjectCreateFunc(data, version, threshold) {
         order: data[0].event.questionExternalId,
         question: data[0].event.questionName,
         chart: {
-            type: "scatter",
-            title: "",
-            xAxis: {
-                title: {
-                    enabled: true,
-                    text: "observations"
-                },
-                labels: {},
-                categories: ["Obs1", "Obs2", "Obs3", "Obs4", "Obs5"],
-                startOnTick: false,
-                endOnTick: false,
-                showLastLabel: true
-            },
-            yAxis: {
-                min: 0,
-                max: yAxisMaxValue,
-                allowDecimals: false,
-                title: {
-                    text: "Score"
-                }
-            },
-            plotOptions: {
-                scatter: {
-                    lineWidth: 1,
-                    lineColor: "#F6B343"
-                }
-            },
-            credits: {
-                enabled: false
-            },
-            legend: {
-                enabled: false
-            },
-            data: [{
-                color: "#F6B343",
-                data: seriesData
-            }]
+            type: 'bar',
+            data: {
+                labels: [
+                    "Obs1",
+                    "Obs2",
+                    "Obs3",
+                    "Obs4",
+                    "Obs5"
+                ],
+                datasets: [
+                    {
 
+                        data: seriesData,
+                        backgroundColor: "#F6B343"
+                    }]
+            },
+            options: {
+                legend: false,
+                scales: {
+                    xAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'observations'
+                        }
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            min: 0,
+                            max: parseInt(yAxisMaxValue)
+                        },
+
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'score'
+                        }
+                    }],
+                }
+            }
         },
         criteriaName: data[0].event.criteriaName,
         criteriaId: data[0].event.criteriaId
-    }
-
-    if (version == "v2") {
-        chartData.chart.type = "column";
-        chartData.chart.plotOptions = {
-            column: {
-                pointPadding: 0.3,
-                borderWidth: 0
-            }
-        }
     }
 
     return chartData;
@@ -1371,7 +1334,7 @@ exports.observationScoreReportChart = async function (data, entityType, reportTy
 
 
     // Number of schools in this particular observation/solution
-    obj.entitiesObserved = obj.response[0].chart.xAxis.categories.length;
+    obj.entitiesObserved = obj.response[0].chart.data.labels.length;
 
     //sort the response objects using questionExternalId field
     await obj.response.sort(getSortOrder("order")); //Pass the attribute to be sorted on
@@ -1425,53 +1388,43 @@ async function observationScoreResponseObj(data, entityType) {
         }
 
     }))
-
-
+    
     let chartData = {
         order: data[0].event.questionExternalId,
         question: data[0].event.questionName,
-        chart: {
-            type: "bar",
-            title: "",
-            xAxis: {
-                title: {
-                    text: null
-                },
-                labels: {},
-                categories: entityNames
-            },
-            yAxis: {
-                min: 0,
-                max: yAxisMaxValue,
-                title: {
-                    text: "Score"
-                },
-                labels: {
-                    overflow: 'justify'
-                },
-                allowDecimals: false
-            },
-            plotOptions: {
-                bar: {
-                    dataLabels: {
-                        enabled: true
-                    }
-                }
-            },
-            legend: {
-                enabled: true
-            },
-            credits: {
-                enabled: false
-            },
-            data: [{
-                name: 'observation1',
-                data: obsArray1
-            }, {
-                name: 'observation2',
-                data: obsArray2
-            }]
+        chart:
+        {
+            type: 'horizontalBar',
+            data: {
+                labels: entityNames,
+                datasets: [
+                    {
+                        label: 'observation1',
+                        data: obsArray1,
+                        backgroundColor: '#de8657'
+                    },
+                    {
+                        label: 'observation2',
+                        data: obsArray2,
+                        backgroundColor: '#d9b730'
+                    }]
 
+            },
+            options: {
+                scales: {
+                    xAxes: [{
+                        ticks: {
+                            min: 0,
+                            max: yAxisMaxValue
+                        },
+
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Score'
+                        }
+                    }],
+                }
+            }
         },
         criteriaName: data[0].event.criteriaName,
         criteriaId: data[0].event.criteriaId
@@ -1756,7 +1709,7 @@ async function evidenceArrayCreation(questionExternalId, evidenceData) {
 
     evidence_count = filePaths.length;
 
-    if (filePaths.length > parseInt(process.env.EVIDENCE_THRESHOLD)) {
+    if (filePaths.length >  parseInt(process.env.EVIDENCE_THRESHOLD)) {
         filesArray.push(filePaths.slice(0, parseInt(process.env.EVIDENCE_THRESHOLD)));
     } else {
         filesArray.push(filePaths);
@@ -2224,8 +2177,16 @@ exports.entityLevelReportData = async function (data) {
 
         //group the data based on completed date   
         let groupedSubmissionData = await groupArrayByGivenField(data, "completedDate");
+        let submissions = [];
 
         let completedDateKeys = Object.keys(groupedSubmissionData);
+
+        await Promise.all(completedDateKeys.map(completedDateKey => {
+            submissions.push({
+               _id: groupedSubmissionData[completedDateKey][0].event.observationSubmissionId,
+               name: groupedSubmissionData[completedDateKey][0].event.submissionTitle
+            })
+        }))
 
         let totalSubmissions = completedDateKeys.length;
 
@@ -2256,7 +2217,20 @@ exports.entityLevelReportData = async function (data) {
             result.push(response[1]);
         }
 
-        return resolve(result);
+        return resolve({
+            result : result,
+            filters :  [{
+                order: "",
+                filter: {
+                    type: "dropdown",
+                    title: "",
+                    keyToSend: "submissionId",
+                    data: submissions 
+                },
+            }]
+            
+
+        });
     }).
         catch(err => {
             return reject(err);
@@ -2276,6 +2250,7 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
         let heading = [];
         let dynamicLevelObj = {};
         let scoresExists = false;
+        
 
         //loop the data and construct domain name and level object
         for (completedDate = 0; completedDate < completedDateArray.length; completedDate++) {
@@ -2292,6 +2267,10 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
                 if (domainData.event.level !== null) {
 
                     scoresExists = true;
+
+                    if (domainData.event.level == filesHelper.no_level_matched) {
+                        domainData.event.label = filesHelper.NA;
+                    }
 
                     if (!dynamicLevelObj[domainData.event.level]) {
                         dynamicLevelObj[domainData.event.level] = [];
@@ -2431,51 +2410,58 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
             obj[key] = dynamicLevelObj[key];
         });
 
+        let backgroundColors = ['rgb(255, 99, 132)','rgb(54, 162, 235)','rgb(255, 206, 86)','rgb(231, 233, 237)','rgb(75, 192, 192)','rgb(151, 187, 205)','rgb(220, 220, 220)','rgb(247, 70, 74)','rgb(70, 191, 189)','rgb(253, 180, 92)','rgb(148, 159, 177)','rgb(77, 83, 96)','rgb(95, 101, 217)','rgb(170, 95, 217)','rgb(140, 48, 57)','rgb(209, 6, 40)','rgb(68, 128, 51)','rgb(125, 128, 51)','rgb(128, 84, 51)','rgb(179, 139, 11)'];
+        let i = 0;
+  
         let series = [];
         for (level in obj) {
             series.push({
-                name: level,
-                data: obj[level]
+                label: level,
+                data: obj[level],
+                backgroundColor: backgroundColors[i]
             })
+
+            i++;
         }
 
         submissionDateArray = await getDateTime(submissionDateArray);
 
         let chartObj = {
             order: 1,
+            domainLevelObject: domainObj,
             chart: {
-                type: 'bar',
+                type: 'horizontalBar',
                 title: "",
-                xAxis: [{
-                    categories: domainNameArray
-
+                submissionDateArray: submissionDateArray,
+                data: {
+                    labels: domainNameArray,
+                    datasets: series,
                 },
-                {
-                    opposite: true,
-                    reversed: false,
-                    categories: submissionDateArray,
-                    linkedTo: 0
-                },
-                ],
-                yAxis: {
-                    min: 0,
+                options: {
                     title: {
-                        text: 'Criteria'
-                    }
-                },
-                legend: {
-                    reversed: true
-                },
-                plotOptions: {
-                    series: {
-                        stacking: 'percent'
-                    }
-                },
-                data: series
-
+                        display: true,
+                        text: ""
+                    },
+                    scales: {
+                        xAxes: [{
+                            stacked: true,
+                            gridLines: { display: false },
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Criteria'
+                            }
+                        }],
+                        yAxes: [{
+                            stacked: true
+                        }],
+                    },
+                    legend: { 
+                            display: true,
+                            position : "bottom" 
+                        }
+                }
             }
         }
-
 
         let domainCriteriaKeys = Object.keys(domainCriteriaObj);
 
@@ -2668,31 +2654,22 @@ const getChartObject = async function (data, submissionCount) {
             if (questionObject.responseType == "radio") {
 
                 let chartDataArray = [];
+                let labelArray = [];
 
                 await Promise.all(groupDataByQuestionId[questionKey].map(singleResponse => {
-                    chartDataArray.push({
-                        name: singleResponse.event.questionResponseLabel,
-                        y: ((singleResponse.event.questionAnswerCount / submissionCount) * 100).toFixed(2)
-                    })
+                    labelArray.push(singleResponse.event.questionResponseLabel);
+                    chartDataArray.push(((singleResponse.event.questionAnswerCount / submissionCount) * 100).toFixed(2))
                 }))
 
                 let chart = {
                     type: "pie",
-                    plotOptions: {
-                        pie: {
-                            allowPointSelect: true,
-                            cursor: 'pointer',
-                            dataLabels: {
-                                enabled: false
-                            },
-                            showInLegend: true
-                        }
-                    },
-                    data: [
-                        {
+                    data: {
+                        labels: labelArray,
+                        datasets: [{
+                            backgroundColor: ['#FFA971', '#F6DB6C', '#98CBED', '#C9A0DA', '#5DABDC', '#88E5B0'],
                             data: chartDataArray
-                        }
-                    ]
+                        }]
+                    }
                 }
 
                 questionObject.chart = chart;
@@ -2709,23 +2686,33 @@ const getChartObject = async function (data, submissionCount) {
                 }))
 
                 let chart = {
-                    type: "bar",
-                    data: [
-                        {
-                            data: chartDataArray
-                        }
-                    ],
-                    xAxis: {
-                        categories: labelArray,
-                        title: {
-                            text: "Responses"
-                        }
+                    type: "horizontalBar",
+                    data: {
+                        labels: labelArray,
+                        datasets: [{
+                                data: chartDataArray,
+                                backgroundColor: "#de8657"
+                        }]
                     },
-                    yAxis: {
-                        min: 0,
-                        max: 100,
-                        title: {
-                            text: "Responses in percentage"
+                    options: {
+                        legend: false,
+                        scales: {
+                            xAxes: [{
+                                ticks: {
+                                    min: 0,
+                                    max: 100
+                                },
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: "Responses in percentage"
+                                }
+                            }],
+                            yAxes: [{
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: "Responses"
+                                }
+                            }],
                         }
                     }
                 }
@@ -2734,7 +2721,7 @@ const getChartObject = async function (data, submissionCount) {
             }
             else {
                 let sortedData = await groupDataByQuestionId[questionKey].sort(getSortOrder("completedDate"));
-                await Promise.all(sortedData.map( async singleResponse => {
+                await Promise.all(sortedData.map(async singleResponse => {
 
                     if (singleResponse.event.questionResponseType == "date") {
                         singleResponse.event.questionAnswer = await getISTDate(singleResponse.event.questionAnswer)
@@ -2755,6 +2742,7 @@ const getChartObject = async function (data, submissionCount) {
         })
 
 }
+
 
 
 const getISTDate = async function(date) {

@@ -64,8 +64,6 @@ function getGotenbergConnection() {
 }
 
 
-
-
 module.exports = {
   getDruidQuery: getDruidQuery,
   getDruidConnection: getDruidConnection,
