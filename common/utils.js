@@ -70,17 +70,6 @@ function getGotenbergConnection() {
   * @returns {Array}  returns aws connection.  
 */
 
-function getAWSConnection() {
-
-  let s3_credentials = {
-    "accessKeyId": process.env.AWS_ACCESS_KEY_ID,
-    "secretAccessKey": process.env.AWS_SECRET_ACCESS_KEY,
-    "region": process.env.AWS_REGION
-  }
-
-  return s3_credentials;
-}
-
 /**
   * Returns file path of given fileName
   * @function
@@ -119,6 +108,5 @@ module.exports = {
   getDruidQuery: getDruidQuery,
   getDruidConnection: getDruidConnection,
   getGotenbergConnection: getGotenbergConnection,
-  getPortalReportsFilePaths: getPortalReportsFilePaths,
-  getAWSConnection: getAWSConnection
+  getPortalReportsFilePaths: getPortalReportsFilePaths
 }
