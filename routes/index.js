@@ -1,9 +1,8 @@
 const authenticator = require('../middleware/authentication_service');
-const base = "/api/";
 
 module.exports = function (app) {
 
-    app.use(base,authenticator.authenticate);
+    app.use(authenticator.authenticate);
 
     let router = async function (req, res, next) {
         if (!controllers[req.params.version]) {
@@ -22,7 +21,7 @@ module.exports = function (app) {
         }
     }
 
-    app.all(base+":version/:controller/:method", router);
+    app.all("/:version/:controller/:method", router);
 
     app.use((req, res, next) => {
         res.status(404).send("Not found");
