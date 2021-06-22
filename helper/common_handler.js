@@ -6,7 +6,7 @@ const ejs = require('ejs');
 const path = require('path');
 const rimraf = require("rimraf");
 
-const s3 = new AWS.S3(gen.utils.getAWSConnection());
+// const s3 = new AWS.S3(gen.utils.getAWSConnection());
 const myBucket = process.env.AWS_BUCKET_NAME;
 const kendraHelper = require('./kendra_service');
 const request = require("request");
