@@ -1,6 +1,5 @@
 const path = require("path");
 gen = Object.assign(global, {});
-
 module.exports = function () {
 
     global.ROOT_PATH = path.join(__dirname, '..');
