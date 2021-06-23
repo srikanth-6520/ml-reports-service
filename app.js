@@ -46,8 +46,6 @@ app.use(function (req, res, next) { //allow cross origin requests
 
 var port = normalizePort(process.env.PORT || process.env.APPLICATION_PORT);
 app.set('port', port);
-router(app);
-
 
 app.all("*", (req, res, next) => {
 
@@ -67,6 +65,7 @@ app.all("*", (req, res, next) => {
   
   next();
 });
+router(app);
 
 /**
  * Create HTTP server.
