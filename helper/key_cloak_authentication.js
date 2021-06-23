@@ -16,7 +16,7 @@ function ApiInterceptor() {}
  * @param  {Function} callback []
  * @return {[Function]} callback [its retrun err or object with fields(token, userId)]
  */
-ApiInterceptor.prototype.validateToken = function (token, callback) {
+ApiInterceptor.prototype.validateToken = async function (token, callback) {
 
     var decoded = jwt.decode(token, { complete: true });
     if (decoded === null || decoded.header === null) {
@@ -28,12 +28,13 @@ ApiInterceptor.prototype.validateToken = function (token, callback) {
     let path = keyCloakPublicKeyPath + kid
 
     if (fs.existsSync(path)) {
+        let accessKeyFile  = await fs.readFileSync(path);
 
       if(accessKeyFile) {
         if(!accessKeyFile.includes(PEM_FILE_BEGIN_STRING)){
           cert = PEM_FILE_BEGIN_STRING+"\n"+accessKeyFile+"\n"+PEM_FILE_END_STRING;
         }else {
-          cert = fs.readFileSync(path);
+          cert = await fs.readFileSync(path);
         }  
       }
 
