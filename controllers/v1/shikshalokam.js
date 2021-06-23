@@ -17,7 +17,7 @@ const default_content_api_threshold = 10;
    * @api {get} /dhiti/v1/shikshalokam/contentView
    * Content view
    * @apiVersion 1.0.0
-   * @apiHeader {String} x-auth-token Authenticity token 
+   * @apiHeader {String} x-authenticated-user-token Authenticity token 
    * @apiGroup Shikshalokam 
    * @apiSuccessExample {json} Success-Response:
 *     HTTP/1.1 200 OK
@@ -84,7 +84,7 @@ exports.contentView = async function (req, res) {
    * @api {post} /dhiti/v1/shikshalokam/contentDownloadedByUser
    * Content downloaded by user
    * @apiVersion 1.0.0
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiGroup Shikshalokam 
    * @apiParamExample {json} Request-Body:
 * {
@@ -171,7 +171,7 @@ exports.contentDownloadedByUser = async function (req, res) {
    * @api {get} /dhiti/v1/shikshalokam/usageByContent
    * Usage by content
    * @apiVersion 1.0.0
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiGroup Shikshalokam 
    * @apiSuccessExample {json} Success-Response:
 *     HTTP/1.1 200 OK
@@ -238,7 +238,7 @@ exports.usageByContent = async function (req, res) {
    * Course enrollment
    * @apiVersion 1.0.0
    * @apiGroup Shikshalokam
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "user_id": "",
