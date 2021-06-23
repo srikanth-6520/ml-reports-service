@@ -50,7 +50,7 @@ exports.instanceObservationData = async function (req, res) {
                     let getSubmissionStatusResponse = await assessmentService.getObservationSubmissionStatusById
                         (
                             submissionId,
-                            req.headers["x-auth-token"]
+                            req.headers["x-authenticated-user-token"]
                         )
 
                     if (getSubmissionStatusResponse.result &&
@@ -77,7 +77,7 @@ exports.instanceObservationData = async function (req, res) {
                     let responseObj;
 
                     if (evidenceData.result) {
-                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
                     } else {
                         responseObj = chartData;
                     }
@@ -145,7 +145,7 @@ exports.instanceScoreReport = async function(req, res) {
                     let getSubmissionStatusResponse = await assessmentService.getObservationSubmissionStatusById
                         (
                             req.body.submissionId,
-                            req.headers["x-auth-token"]
+                            req.headers["x-authenticated-user-token"]
                         )
 
                     if (getSubmissionStatusResponse.result &&
@@ -174,7 +174,7 @@ exports.instanceScoreReport = async function(req, res) {
                     let responseObj;
 
                     if (evidenceData.result) {
-                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
 
                     } else {
                         responseObj = chartData;
@@ -248,7 +248,7 @@ exports.entityObservationData = async function(req, res) {
                         (
                             req.body.entityId,
                             req.body.observationId,
-                            req.headers["x-auth-token"]
+                            req.headers["x-authenticated-user-token"]
                         )
 
                     if (getEntityObservationSubmissionsStatus.result &&
@@ -282,7 +282,7 @@ exports.entityObservationData = async function(req, res) {
                     let responseObj;
 
                     if (evidenceData.result) {
-                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
 
                     } else {
                         responseObj = chartData;
@@ -364,7 +364,7 @@ exports.observationReportData = async function(req, res) {
                     let responseObj;
 
                     if (evidenceData.result) {
-                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
 
                     } else {
                         responseObj = chartData;
@@ -445,7 +445,7 @@ exports.observationScoreReport = async function(req, res) {
                     let chartData = await helperFunc.observationScoreReportChart(data, entityType);
 
                     //Call samiksha API to get total schools count for the given observationId
-                    let totalEntities = await assessmentService.getTotalEntities(req.body.observationId, req.headers["x-auth-token"]);
+                    let totalEntities = await assessmentService.getTotalEntities(req.body.observationId, req.headers["x-authenticated-user-token"]);
 
                     if (totalEntities.result && totalEntities.result.count) {
                         chartData.totalEntities = totalEntities.result.count;
@@ -461,7 +461,7 @@ exports.observationScoreReport = async function(req, res) {
                     let responseObj;
 
                     if (evidenceData.result) {
-                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
 
                     } else {
                         responseObj = chartData;
@@ -552,7 +552,7 @@ exports.entitySolutionScoreReportGeneration = async function(req, res) {
                 }
 
                 //get the acl data from samiksha service
-                let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-auth-token"]);
+                let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-authenticated-user-token"]);
                 let aclLength = Object.keys(userProfile.result.acl);
                 if (userProfile.result && userProfile.result.acl && aclLength > 0) {
                     let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
@@ -630,7 +630,7 @@ const schoolSolutionScoreReport = async function (req, res) {
             }
 
             //get the acl data from samiksha service
-            let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-auth-token"]);
+            let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-authenticated-user-token"]);
             let aclLength = Object.keys(userProfile.result.acl);
             if (userProfile.result && userProfile.result.acl && aclLength > 0) {
                 let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
@@ -717,7 +717,7 @@ exports.instanceCriteriaReportData = async function (req, res) {
                     let getSubmissionStatusResponse = await assessmentService.getObservationSubmissionStatusById
                         (
                             submissionId,
-                            req.headers["x-auth-token"]
+                            req.headers["x-authenticated-user-token"]
                         )
 
                     if (getSubmissionStatusResponse.result &&
@@ -747,7 +747,7 @@ exports.instanceCriteriaReportData = async function (req, res) {
                     let responseObj;
 
                     if (evidenceData.result) {
-                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
                     } else {
                         responseObj = chartData;
                     }
@@ -813,7 +813,7 @@ exports.instanceScoreCriteriaReportData = async function (req, res) {
                     let getSubmissionStatusResponse = await assessmentService.getObservationSubmissionStatusById
                         (
                             req.body.submissionId,
-                            req.headers["x-auth-token"]
+                            req.headers["x-authenticated-user-token"]
                         )
 
                     if (getSubmissionStatusResponse.result &&
@@ -844,7 +844,7 @@ exports.instanceScoreCriteriaReportData = async function (req, res) {
                     let responseObj;
 
                     if (evidenceData.result) {
-                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
 
                     } else {
                         responseObj = chartData;
@@ -919,7 +919,7 @@ exports.entityCriteriaReportData = async function (req, res) {
                         (
                             req.body.entityId,
                             req.body.observationId,
-                            req.headers["x-auth-token"]
+                            req.headers["x-authenticated-user-token"]
                         )
 
                     if (getEntityObservationSubmissionsStatus.result &&
@@ -955,7 +955,7 @@ exports.entityCriteriaReportData = async function (req, res) {
                     let responseObj;
 
                     if (evidenceData.result) {
-                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
 
                     } else {
                         responseObj = chartData;
@@ -1050,7 +1050,7 @@ exports.entityScoreCriteriaReportData = async function (req, res) {
                     let responseObj;
 
                     if (evidenceData.result) {
-                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
                     } else {
                         responseObj = chartData;
                     }
@@ -1130,7 +1130,7 @@ exports.observationCriteriaReportData = async function(req, res) {
                     let responseObj;
 
                     if (evidenceData.result) {
-                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
 
                     } else {
                         responseObj = chartData;
@@ -1209,7 +1209,7 @@ exports.observationScoreCriteriaReportData = async function(req, res) {
                     let chartData = await helperFunc.observationScoreReportChart(data, entityType, reportType);
 
                     //Call samiksha API to get total schools count for the given observationId
-                    let totalEntities = await assessmentService.getTotalEntities(req.body.observationId, req.headers["x-auth-token"]);
+                    let totalEntities = await assessmentService.getTotalEntities(req.body.observationId, req.headers["x-authenticated-user-token"]);
 
 
                     if (totalEntities.result && totalEntities.result.count) {
@@ -1226,7 +1226,7 @@ exports.observationScoreCriteriaReportData = async function(req, res) {
                     let responseObj;
 
                     if (evidenceData.result) {
-                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
 
                     } else {
                         responseObj = chartData;
@@ -1330,7 +1330,7 @@ exports.entityScoreReportGenerate = async function(req, res) {
                     let responseObj;
 
                     if (evidenceData.result) {
-                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
                     } else {
                         responseObj = chartData;
                     }
@@ -1419,7 +1419,7 @@ exports.entitySolutionReportGeneration = async function (req, res) {
                 bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
 
                 //get the acl data from samiksha service
-                let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-auth-token"]);
+                let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-authenticated-user-token"]);
                 let aclLength = Object.keys(userProfile.result.acl);
                 if (userProfile.result && userProfile.result.acl && aclLength > 0) {
                     let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);

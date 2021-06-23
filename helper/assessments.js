@@ -102,7 +102,7 @@ exports.assessmentReportGetChartData = async function(req, res) {
                     if (childType) {
 
                         //call samiksha entity list assessment API to get the grandchildEntity type.
-                        let grandChildEntityType = await assessmentService.getEntityList(req.body.entityId, childType, req.headers["x-auth-token"]);
+                        let grandChildEntityType = await assessmentService.getEntityList(req.body.entityId, childType, req.headers["x-authenticated-user-token"]);
 
                         if (grandChildEntityType.status == 200 && grandChildEntityType.result[0].subEntityGroups.length > 0) {
 

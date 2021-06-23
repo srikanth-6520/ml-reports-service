@@ -6,7 +6,7 @@ const pdfHandlerV2 = require('../../helper/common_handler_v2');
    * View project report
    * @apiVersion 1.0.0
    * @apiGroup Improvement-project
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
    "schoolName": "",
@@ -36,7 +36,7 @@ exports.viewProjectReport = async function(req,res){
    * entity report
    * @apiVersion 1.0.0
    * @apiGroup Improvement-project
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
    * {
          "entityName" : "",
@@ -91,7 +91,7 @@ exports.entityReport = async function(req,res){
    * Project and task pdf report
    * @apiVersion 1.0.0
    * @apiGroup Improvement-project
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
    "title": "Project with learning resources",

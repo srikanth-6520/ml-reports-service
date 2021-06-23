@@ -19,7 +19,7 @@ const pdfHandlerV2 = require('../../helper/common_handler_v2');
    * Instance observation report
    * @apiVersion 1.0.0
    * @apiGroup Observations
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "submissionId": "",
@@ -100,7 +100,7 @@ async function instanceObservationData(req, res) {
           let getSubmissionStatusResponse = await assessmentService.getObservationSubmissionStatusById
             (
               submissionId,
-              req.headers["x-auth-token"]
+              req.headers["x-authenticated-user-token"]
             )
 
           if (getSubmissionStatusResponse.result &&
@@ -127,7 +127,7 @@ async function instanceObservationData(req, res) {
           let responseObj;
 
           if (evidenceData.result) {
-            responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+            responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
           } else {
             responseObj = chartData;
           }
@@ -179,7 +179,7 @@ async function instancePdfReport(req, res) {
    * Instance observation score report
    * @apiVersion 1.0.0
    * @apiGroup Observations
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "submissionId": "",
@@ -287,7 +287,7 @@ exports.instanceObservationScoreReport = async function (req, res) {
               let getSubmissionStatusResponse = await assessmentService.getObservationSubmissionStatusById
               (
                 req.body.submissionId,
-                req.headers["x-auth-token"]
+                req.headers["x-authenticated-user-token"]
               )
 
               if (getSubmissionStatusResponse.result && 
@@ -316,7 +316,7 @@ exports.instanceObservationScoreReport = async function (req, res) {
               let responseObj;
 
               if(evidenceData.result) {
-                responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-auth-token"]);
+                responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-authenticated-user-token"]);
 
               } else {
                 responseObj = chartData;
@@ -368,7 +368,7 @@ async function instanceObservationScorePdfFunc(req, res) {
    * Entity observation report
    * @apiVersion 1.0.0
    * @apiGroup Observations
-   * @apiHeader {String} x-auth-token Authenticity token    
+   * @apiHeader {String} x-authenticated-user-token Authenticity token    
    * @apiParamExample {json} Request-Body:
 * {
   "entityId": "",
@@ -459,7 +459,7 @@ async function entityObservationData(req, res) {
             (
               req.body.entityId,
               req.body.observationId,
-              req.headers["x-auth-token"]
+              req.headers["x-authenticated-user-token"]
             )
 
           if (getEntityObservationSubmissionsStatus.result &&
@@ -493,7 +493,7 @@ async function entityObservationData(req, res) {
           let responseObj;
 
           if (evidenceData.result) {
-            responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+            responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
 
           } else {
             responseObj = chartData;
@@ -561,7 +561,7 @@ async function entityObservationPdf(req, res) {
    * Entity observation report(cluster/zone/district/state)
    * @apiVersion 1.0.0
    * @apiGroup Observations
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "entityId": "",
@@ -706,7 +706,7 @@ async function entityObservationReportPdfGeneration(req, res) {
    * Entity observation score report
    * @apiVersion 1.0.0
    * @apiGroup Observations
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "entityId": "",
@@ -868,7 +868,7 @@ async function entityObservationScorePdfFunc(req, res) {
    * Entity solution score report
    * @apiVersion 1.0.0
    * @apiGroup Observations
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "entityId": "",
@@ -1004,7 +1004,7 @@ async function entitySolutionScoreReportGeneration(req, res) {
             }
 
             //get the acl data from samiksha service
-            let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-auth-token"]);
+            let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-authenticated-user-token"]);
             let aclLength = Object.keys(userProfile.result.acl);
             if (userProfile.result && userProfile.result.acl && aclLength > 0) {
               let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
@@ -1080,7 +1080,7 @@ async function schoolSolutionScoreReport(req, res) {
           }
 
           //get the acl data from samiksha service
-          let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-auth-token"]);
+          let userProfile = await assessmentService.getUserProfile(req.userDetails.userId, req.headers["x-authenticated-user-token"]);
           let aclLength = Object.keys(userProfile.result.acl);
           if (userProfile.result && userProfile.result.acl && aclLength > 0) {
             let tagsArray = await helperFunc.tagsArrayCreateFunc(userProfile.result.acl);
@@ -1256,7 +1256,7 @@ async function getObsvByentitys(req, result) {
    * Observation report
    * @apiVersion 1.0.0
    * @apiGroup Observations
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "observationId": "",
@@ -1351,7 +1351,7 @@ async function observationReportData(req, res) {
           let responseObj;
 
           if (evidenceData.result) {
-            responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+            responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
 
           } else {
             responseObj = chartData;
@@ -1411,7 +1411,7 @@ async function observationGenerateReport(req, res) {
    * Observation score report
    * @apiVersion 1.0.0
    * @apiGroup Observations
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "observationId": "",
@@ -1544,7 +1544,7 @@ async function observationScoreReport(req, res) {
               let chartData = await helperFunc.observationScoreReportChart(data,entityType);
 
                 //Call samiksha API to get total schools count for the given observationId
-                let totalEntities = await assessmentService.getTotalEntities(req.body.observationId,req.headers["x-auth-token"]);
+                let totalEntities = await assessmentService.getTotalEntities(req.body.observationId,req.headers["x-authenticated-user-token"]);
 
               if (totalEntities.result) {
                 chartData.totalEntities = totalEntities.result.count;
@@ -1560,7 +1560,7 @@ async function observationScoreReport(req, res) {
               let responseObj;
 
               if (evidenceData.result) {
-                responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
 
               } else {
                 responseObj = chartData;
@@ -1620,7 +1620,7 @@ async function observationScorePdfFunc(req, res) {
    * List observation names
    * @apiVersion 1.0.0
    * @apiGroup Observations
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "entityId": "",
@@ -1694,7 +1694,7 @@ exports.listObservationNames = async function (req, res) {
    * List observation solutions
    * @apiVersion 1.0.0
    * @apiGroup Observations
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "entityId": "",
@@ -1769,7 +1769,7 @@ exports.listObservationSolutions = async function (req, res) {
    * Observations submission count
    * @apiVersion 1.0.0
    * @apiGroup Observations
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "submissionId": "",
@@ -2033,7 +2033,7 @@ exports.pdfReportsUrl = async function (req, response) {
    * Entity solution report
    * @apiVersion 1.0.0
    * @apiGroup Observations
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "entityId": "",
@@ -2215,7 +2215,7 @@ exports.entitySolutionReportPdfGeneration = async function (req, res) {
    * Instance report by criteria
    * @apiVersion 1.0.0
    * @apiGroup observations
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "submissionId": "",
@@ -2304,7 +2304,7 @@ async function instanceCriteriaReportData(req, res) {
           let getSubmissionStatusResponse = await assessmentService.getObservationSubmissionStatusById
             (
               submissionId,
-              req.headers["x-auth-token"]
+              req.headers["x-authenticated-user-token"]
             )
 
           if (getSubmissionStatusResponse.result &&
@@ -2334,7 +2334,7 @@ async function instanceCriteriaReportData(req, res) {
           let responseObj;
 
           if (evidenceData.result) {
-            responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+            responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
           } else {
             responseObj = chartData;
           }
@@ -2386,7 +2386,7 @@ return new Promise(async function (resolve, reject) {
    * Instance score report by criteria
    * @apiVersion 1.0.0
    * @apiGroup Observations
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "submissionId": "",
@@ -2495,7 +2495,7 @@ async function instanceScoreCriteriaReportData(req, res) {
             let getSubmissionStatusResponse = await assessmentService.getObservationSubmissionStatusById
             (
               req.body.submissionId,
-              req.headers["x-auth-token"]
+              req.headers["x-authenticated-user-token"]
             )
 
             if (getSubmissionStatusResponse.result && 
@@ -2526,7 +2526,7 @@ async function instanceScoreCriteriaReportData(req, res) {
             let responseObj;
 
             if(evidenceData.result) {
-              responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-auth-token"]);
+              responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-authenticated-user-token"]);
 
             } else {
               responseObj = chartData;
@@ -2586,7 +2586,7 @@ return new Promise(async function (resolve, reject) {
    * Entity report by criteria
    * @apiVersion 1.0.0
    * @apiGroup Observations
-   * @apiHeader {String} x-auth-token Authenticity token    
+   * @apiHeader {String} x-authenticated-user-token Authenticity token    
    * @apiParamExample {json} Request-Body:
 * {
   "entityId": "",
@@ -2681,7 +2681,7 @@ async function entityCriteriaReportData(req, res) {
               (
                   req.body.entityId,
                   req.body.observationId,
-                  req.headers["x-auth-token"]
+                  req.headers["x-authenticated-user-token"]
               )
              
               if (getEntityObservationSubmissionsStatus.result && 
@@ -2716,7 +2716,7 @@ async function entityCriteriaReportData(req, res) {
             let responseObj;
 
             if(evidenceData.result) {
-              responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-auth-token"]);
+              responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-authenticated-user-token"]);
 
             } else {
               responseObj = chartData;
@@ -2769,7 +2769,7 @@ async function entityPdfReportByCriteria(req, res) {
    * Entity score report by criteria
    * @apiVersion 1.0.0
    * @apiGroup Observations
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "entityId": "",
@@ -2914,7 +2914,7 @@ async function entityScoreCriteriaReportData(req, res) {
             let responseObj;
 
             if(evidenceData.result) {
-                responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-auth-token"]);
+                responseObj = await helperFunc.evidenceChartObjectCreation(chartData,evidenceData.data,req.headers["x-authenticated-user-token"]);
             } else {
                 responseObj = chartData;
             }
@@ -2971,7 +2971,7 @@ async function entityScorePdfReportByCriteria(req, res) {
    * Observation report by criteria
    * @apiVersion 1.0.0
    * @apiGroup Observations
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "observationId": "",
@@ -3069,7 +3069,7 @@ async function observationCriteriaReportData(req, res) {
                   let responseObj;
 
                   if (evidenceData.result) {
-                    responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                    responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
 
                   } else {
                     responseObj = chartData;
@@ -3120,7 +3120,7 @@ async function observationPdfReportByCriteria(req, res) {
    * Observation score report by criteria
    * @apiVersion 1.0.0
    * @apiGroup Observations
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "observationId": "",
@@ -3255,7 +3255,7 @@ async function observationScoreCriteriaReportData(req, res) {
             let chartData = await helperFunc.observationScoreReportChart(data,entityType,reportType);
 
               //Call samiksha API to get total schools count for the given observationId
-              let totalEntities = await  assessmentService.getTotalEntities(req.body.observationId,req.headers["x-auth-token"]);
+              let totalEntities = await  assessmentService.getTotalEntities(req.body.observationId,req.headers["x-authenticated-user-token"]);
 
 
             if (totalEntities.result) {
@@ -3272,7 +3272,7 @@ async function observationScoreCriteriaReportData(req, res) {
             let responseObj;
 
             if (evidenceData.result) {
-              responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+              responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
 
             } else {
               responseObj = chartData;
@@ -3400,7 +3400,7 @@ exports.scorePdfReportsByCriteria = async function (req, res) {
    * List all evidence 
    * @apiVersion 1.0.0
    * @apiGroup Observations
-   * @apiHeader {String} x-auth-token Authenticity token  
+   * @apiHeader {String} x-authenticated-user-token Authenticity token  
    * @apiParamExample {json} Request-Body:
 * {
   "submissionId": "",
@@ -3502,7 +3502,7 @@ async function allEvidencesList(req, res) {
 
             let evidenceList = await helperFunc.getEvidenceList(data);
 
-            let downloadableUrl = await kendraService.getDownloadableUrl(evidenceList[0], req.headers["x-auth-token"]);
+            let downloadableUrl = await kendraService.getDownloadableUrl(evidenceList[0], req.headers["x-authenticated-user-token"]);
 
             let response = await helperFunc.evidenceResponseCreateFunc(downloadableUrl.result);
 
