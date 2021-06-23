@@ -294,6 +294,7 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
                     result: false,
                     message: 'solutionId is a required field'
                 }
+                logger.info("Response:",{ resp: response });
                 res.send(response);
             }
 
@@ -302,6 +303,7 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
                     result: false,
                     message: 'questionExternalId is a required field'
                 }
+                logger.info("Response:",{ resp: response });
                 res.send(response);
             }
 
@@ -326,6 +328,7 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
             let data = await rp(options);
 
             if (!data.length) {
+                logger.info("Response:",{ resp: "DATA_NOT_FOUND" });
                 res.send({
                     "result": false,
                     "data": "DATA_NOT_FOUND"
@@ -334,6 +337,7 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
             } else {
 
                 response = await helperFunc.listALLAnswers(data);
+                logger.info("Response:",{ resp: response });
                 res.send(response);
             }
         }
@@ -342,6 +346,7 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
                 result: false,
                 message: 'INTERNAL_SERVER_ERROR'
             };
+            logger.info("Response:",{ resp: response });
             res.send(response);
         }
     })
@@ -506,6 +511,7 @@ exports.listAllEvidences = async function (req, res) {
                     result: false,
                     message: 'submissionId/solutionId is a required field'
                 }
+                logger.info("Response:",{ resp: response });
                 res.send(response);
             }
 
@@ -514,6 +520,7 @@ exports.listAllEvidences = async function (req, res) {
                     result: false,
                     message: 'questionId is a required field'
                 }
+                logger.info("Response:",{ resp: response });
                 res.send(response);
             }
 
@@ -541,6 +548,7 @@ exports.listAllEvidences = async function (req, res) {
             let data = await rp(options);
 
             if (!data.length) {
+                logger.info("Response:","Evidence_NOT_FOUND");
                 res.send({
                     result: false,
                     message: "Evidence_NOT_FOUND"
@@ -555,6 +563,8 @@ exports.listAllEvidences = async function (req, res) {
 
                 response.remarks = evidenceList[1];
 
+                logger.info("Response:",{ resp: response });
+
                 res.send({ result: true, data: response });
             }
         }
@@ -563,6 +573,7 @@ exports.listAllEvidences = async function (req, res) {
                 result: false,
                 message: 'INTERNAL_SERVER_ERROR'
             };
+            logger.info("Response:",{ resp: response });
             res.send(response);
 
         }

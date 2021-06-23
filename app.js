@@ -46,7 +46,6 @@ app.use(function (req, res, next) { //allow cross origin requests
 
 var port = normalizePort(process.env.PORT || process.env.APPLICATION_PORT);
 app.set('port', port);
-router(app);
 
 
 app.all("*", (req, res, next) => {
@@ -63,10 +62,21 @@ app.all("*", (req, res, next) => {
     console.log("Request Body: ", req.body);
     console.log("Request Files: ", req.files);
     console.log("-------Request log ends here------------------");
+
+    if(process.env.ENABLE_DEBUG_LOGGING === "ON") {
+      logger.info("Requests:", {
+        method: req.method,
+        url: req.url,
+        headers: req.headers,
+        body: req.body
+      })
+    }
   
   
   next();
 });
+
+router(app);
 
 /**
  * Create HTTP server.

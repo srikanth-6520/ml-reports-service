@@ -1795,6 +1795,8 @@ exports.submissionsCount = async function (req, res) {
         result: false,
         message: 'entityId and observationId are required fields'
       }
+
+      logger.info("Response:",{ resp: response });
       res.send(response);
     } else if (!req.body.observationId) {
       res.status(400);
@@ -1802,6 +1804,7 @@ exports.submissionsCount = async function (req, res) {
         result: false,
         message: 'observationId is a required fields'
       }
+      logger.info("Response:",{ resp: response });
       res.send(response);
     }
     else {
@@ -1837,11 +1840,13 @@ exports.submissionsCount = async function (req, res) {
       let data = await rp(options);
 
       if (!data.length) {
+        logger.info("Response:",{ resp: { "result": false, "data": { "noOfSubmissions": 0 } }});
         res.send({ "result": false, "data": { "noOfSubmissions": 0 } })
       }
       else {
 
         let noOfSubmissions = await countNumberOfSubmissions(data);
+        logger.info("Response:",{ resp: noOfSubmissions });
         res.send({ "result": true, "data": { "noOfSubmissions": noOfSubmissions } });
       }
     }
@@ -1852,6 +1857,7 @@ exports.submissionsCount = async function (req, res) {
       result: false,
       message: 'INTERNAL_SERVER_ERROR'
     }
+    logger.info("Response:",{ resp: response });
     res.send(response);
   }
 }
@@ -3420,10 +3426,9 @@ exports.scorePdfReportsByCriteria = async function (req, res) {
 exports.listAllEvidences = async function (req, res) {
 
   return new Promise(async function (resolve, reject) {
-
     let responseData = await allEvidencesList(req, res);
+    logger.info("Response:",{ resp: responseData });
     res.send(responseData);
-
   })
 
 };
