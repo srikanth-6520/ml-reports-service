@@ -21,7 +21,7 @@ module.exports = function (app) {
         }
     }
 
-    app.all(":version/:controller/:method", router);
+    app.all("/:version/:controller/:method", router);
 
     app.use((req, res, next) => {
         res.status(404).send("Not found");
