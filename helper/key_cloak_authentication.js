@@ -12,7 +12,7 @@ function ApiInterceptor() {}
 
 /**
  * [validateToken is used for validate user]
- * @param  {[string]}   token    [x-auth-token]
+ * @param  {[string]}   token    [x-authenticated-user-token]
  * @param  {Function} callback []
  * @return {[Function]} callback [its retrun err or object with fields(token, userId)]
  */

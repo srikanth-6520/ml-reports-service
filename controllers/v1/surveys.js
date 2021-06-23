@@ -13,7 +13,7 @@ const numberOfResponsesLimit = 10;
 * Survey solution report
 * @apiVersion 1.0.0
 * @apiGroup Surveys
-* @apiHeader {String} x-auth-token Authenticity token  
+* @apiHeader {String} x-authenticated-user-token Authenticity token  
 * @apiSampleRequest /dhiti/api/v1/surveys/solutionReport?solutionId=5f58b0b8894a0928fc8aa9b3
 * @apiSuccessExample {json} Success-Response:
 * {  
@@ -86,7 +86,7 @@ exports.solutionReport = async function (req, res) {
                 );
 
                 if (evidenceData.result) {
-                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
                 } else {
                     response = chartData;
                 }
@@ -264,7 +264,7 @@ const getDataOFChartTypeQuestions = async function (req) {
   * List all responses
   * @apiVersion 1.0.0
   * @apiGroup Surveys
-  * @apiHeader {String} x-auth-token Authenticity token  
+  * @apiHeader {String} x-authenticated-user-token Authenticity token  
   * @apiSampleRequest /dhiti/api/v1/surveys/getAllResponsesOfQuestion
   * @apiParamExample {json} Request-Body:
   * {
@@ -358,7 +358,7 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
 * Survey submission report
 * @apiVersion 1.0.0
 * @apiGroup Surveys
-* @apiHeader {String} x-auth-token Authenticity token  
+* @apiHeader {String} x-authenticated-user-token Authenticity token  
 * @apiSampleRequest /dhiti/api/v1/surveys/submissionReport?submissionId=5f58b0b8894a0928fc8aa9b3
 * @apiSuccessExample {json} Success-Response:
 * {
@@ -424,7 +424,7 @@ exports.submissionReport = async function (req, res) {
                     let getSubmissionStatusResponse = await assessmentService.getSurveySubmissionStatusById
                         (
                             req.query.submissionId,
-                            req.headers["x-auth-token"]
+                            req.headers["x-authenticated-user-token"]
                         )
 
                     if (getSubmissionStatusResponse.result &&
@@ -452,7 +452,7 @@ exports.submissionReport = async function (req, res) {
                     let responseObj;
 
                     if (evidenceData.result) {
-                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                        responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
                     } else {
                         responseObj = chartData;
                     }
@@ -479,7 +479,7 @@ exports.submissionReport = async function (req, res) {
 * List all evidences
 * @apiVersion 1.0.0
 * @apiGroup Surveys
-* @apiHeader {String} x-auth-token Authenticity token
+* @apiHeader {String} x-authenticated-user-token Authenticity token
 * @apiParamExample {json} Request-Body:
 * {
   "submissionId": "",
@@ -557,7 +557,7 @@ exports.listAllEvidences = async function (req, res) {
 
                 let evidenceList = await helperFunc.getEvidenceList(data);
 
-                let downloadableUrl = await kendraService.getDownloadableUrl(evidenceList[0], req.headers["x-auth-token"]);
+                let downloadableUrl = await kendraService.getDownloadableUrl(evidenceList[0], req.headers["x-authenticated-user-token"]);
 
                 let response = await helperFunc.evidenceResponseCreateFunc(downloadableUrl.result);
 

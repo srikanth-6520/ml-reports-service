@@ -44,7 +44,7 @@ exports.surveySubmissionReport = async function (req, res) {
                 let getSubmissionStatusResponse = await assessmentService.getSurveySubmissionStatusById
                     (
                         submissionId,
-                        req.headers["x-auth-token"]
+                        req.headers["x-authenticated-user-token"]
                     )
 
                 if (getSubmissionStatusResponse.result &&
@@ -72,7 +72,7 @@ exports.surveySubmissionReport = async function (req, res) {
                 let responseObj;
 
                 if (evidenceData.result) {
-                    responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                    responseObj = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
                 } else {
                     responseObj = chartData;
                 }
@@ -136,7 +136,7 @@ exports.surveySolutionReport = async function (req, res) {
                 );
 
                 if (evidenceData.result) {
-                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
                 } else {
                     response = chartData;
                 }

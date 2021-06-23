@@ -90,7 +90,7 @@ exports.instaceObservationReport = async function (req, res) {
             let getSubmissionStatusResponse = await assessmentService.getObservationSubmissionStatusById
                 (
                     req.body.submissionId,
-                    req.headers["x-auth-token"]
+                    req.headers["x-authenticated-user-token"]
                 )
 
             if (getSubmissionStatusResponse.result &&
@@ -120,7 +120,7 @@ exports.instaceObservationReport = async function (req, res) {
                 chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
-                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
                 } else {
                     response = chartData;
                 }
@@ -139,7 +139,7 @@ exports.instaceObservationReport = async function (req, res) {
                 chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
-                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
                 } else {
                     response = chartData;
                 }
@@ -164,7 +164,7 @@ exports.instaceObservationReport = async function (req, res) {
                 chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
-                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
                 } else {
                     response = chartData;
                 }
@@ -186,7 +186,7 @@ exports.instaceObservationReport = async function (req, res) {
                 chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
-                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
                 } else {
                     response = chartData;
                 }
@@ -355,7 +355,7 @@ exports.entityObservationReport = async function (req, res) {
                 (
                     req.body.entityId,
                     req.body.observationId,
-                    req.headers["x-auth-token"]
+                    req.headers["x-authenticated-user-token"]
                 )
 
             if (getEntityObservationSubmissionsStatus.result &&
@@ -391,7 +391,7 @@ exports.entityObservationReport = async function (req, res) {
                 chartData = await helperFunc.entityReportChart(data, req.body.entityId, req.body.entityType);
 
                 if (evidenceData.result) {
-                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
                 } else {
                     response = chartData;
                 }
@@ -412,7 +412,7 @@ exports.entityObservationReport = async function (req, res) {
                 chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
-                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
                 } else {
                     response = chartData;
                 }
@@ -436,7 +436,7 @@ exports.entityObservationReport = async function (req, res) {
                 chartData = await helperFunc.entityReportChart(data, req.body.entityId, req.body.entityType, reportType);
 
                 if (evidenceData.result) {
-                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
                 } else {
                     response = chartData;
                 }
@@ -458,7 +458,7 @@ exports.entityObservationReport = async function (req, res) {
                 chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
-                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-auth-token"]);
+                    response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
                 } else {
                     response = chartData;
                 }
