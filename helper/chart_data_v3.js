@@ -791,6 +791,10 @@ exports.instanceScoreReportChartObjectCreation = async function (data, reportTyp
         reportSections: []
     }
 
+    if (data[0].event.completedDate) {
+        response["completedDate"] = data[0].event.completedDate;
+    }
+
     //Group the objects based on the questionExternalId
     let result = await groupArrayByGivenField(data, "questionExternalId");
 
@@ -924,8 +928,16 @@ exports.entityScoreReportChartObjectCreation = async function (data, reportType)
         reportSections: []
     }
 
+    if (data[0].event.completedDate) {
+        response["completedDate"] = data[0].event.completedDate;
+    }
+
     //loop sortedData and take required json objects
     await Promise.all(sortedData.map(async objectData => {
+
+        if (new Date(objectData.event.completedDate) > new Date(response.completedDate)) {
+            response.completedDate = objectData.event.completedDate;
+        }
 
         if (submissionId.includes(objectData.event.observationSubmissionId)) {
 
