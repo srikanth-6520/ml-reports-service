@@ -79,6 +79,10 @@ exports.instaceObservationReport = async function (req, res) {
             bodyParam.dimensions.push("observationSubmissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "childExternalid", "childName", "childType", "solutionId");
         }
 
+        if (!bodyParam.dimensions.includes('completedDate')) {
+            bodyParam.dimensions.push('completedDate');
+        }
+
         //pass the query get the result from druid
         let options = gen.utils.getDruidConnection();
         options.method = "POST";
@@ -211,10 +215,19 @@ exports.instaceObservationReport = async function (req, res) {
                     "result": true,
                     "programName": data[0].event.programName,
                     "solutionName": data[0].event.solutionName,
-                    "solutionId": data[0].event.solutionId
+                    "solutionId": data[0].event.solutionId,
+                    "completedDate": data[0].event.completedDate
                 };
 
                 chartData = await helperFunc.entityLevelReportData(data);
+
+                for (const element of data) {
+                    if (response.completedDate) {
+                        if (new Date(element.event.completedDate) > new Date(response.completedDate)) {
+                            response.completedDate = element.event.completedDate;
+                        }
+                    }
+                }
 
                 response.reportSections = chartData.result;
 
@@ -341,6 +354,10 @@ exports.entityObservationReport = async function (req, res) {
             bodyParam.filter.fields.push({"type":"selector","dimension":"childType","value":"criteria"});
             bodyParam.filter.fields.push({"type":"selector","dimension":"createdBy","value": req.userDetails.userId});
             bodyParam.dimensions.push("observationSubmissionId", "completedDate", "domainName", "criteriaDescription", "level", "label", "childExternalid", "childName", "childType", "solutionId");
+        }
+
+        if (!bodyParam.dimensions.includes('completedDate')) {
+            bodyParam.dimensions.push('completedDate');
         }
 
         //pass the query get the result from druid
@@ -484,10 +501,19 @@ exports.entityObservationReport = async function (req, res) {
                     "result": true,
                     "programName": data[0].event.programName,
                     "solutionName": data[0].event.solutionName,
-                    "solutionId": data[0].event.solutionId
+                    "solutionId": data[0].event.solutionId,
+                    "completedDate": data[0].event.completedDate
                 };
 
                 chartData = await helperFunc.entityLevelReportData(data);
+
+                for (const element of data) {
+                    if (response.completedDate) {
+                        if (new Date(element.event.completedDate) > new Date(response.completedDate)) {
+                            response.completedDate = element.event.completedDate;
+                        }
+                    }
+                }
 
                 response.reportSections = chartData.result; 
                 response.filters = chartData.filters;
