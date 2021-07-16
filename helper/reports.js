@@ -216,7 +216,8 @@ exports.instaceObservationReport = async function (req, res) {
                     "programName": data[0].event.programName,
                     "solutionName": data[0].event.solutionName,
                     "solutionId": data[0].event.solutionId,
-                    "completedDate": data[0].event.completedDate
+                    "completedDate": data[0].event.completedDate,
+                    "entityName": data[0].event[req.body.entityType + "Name"]
                 };
 
                 chartData = await helperFunc.entityLevelReportData(data);
@@ -406,6 +407,7 @@ exports.entityObservationReport = async function (req, res) {
             if (req.body.scores == false && req.body.criteriaWise == false) {
 
                 chartData = await helperFunc.entityReportChart(data, req.body.entityId, req.body.entityType);
+                chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
                     response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
@@ -451,6 +453,7 @@ exports.entityObservationReport = async function (req, res) {
 
                 let reportType = "criteria";
                 chartData = await helperFunc.entityReportChart(data, req.body.entityId, req.body.entityType, reportType);
+                chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
                     response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
@@ -502,10 +505,12 @@ exports.entityObservationReport = async function (req, res) {
                     "programName": data[0].event.programName,
                     "solutionName": data[0].event.solutionName,
                     "solutionId": data[0].event.solutionId,
-                    "completedDate": data[0].event.completedDate
+                    "completedDate": data[0].event.completedDate,
+                    "entityName": data[0].event[req.body.entityType + "Name"]
                 };
 
                 chartData = await helperFunc.entityLevelReportData(data);
+                chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 for (const element of data) {
                     if (response.completedDate) {
