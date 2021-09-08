@@ -1,8 +1,10 @@
 const authenticator = require('../middleware/authentication_service');
+const pagination = require('../middleware/pagination');
 
 module.exports = function (app) {
 
     app.use(authenticator.authenticate);
+    app.use(pagination);
 
     let router = async function (req, res, next) {
         if (!controllers[req.params.version]) {

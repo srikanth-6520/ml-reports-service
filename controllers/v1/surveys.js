@@ -315,7 +315,11 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
 
             bodyParam.filter.fields[0].value = req.body.solutionId;
             bodyParam.filter.fields[1].value = req.body.questionExternalId;
-            bodyParam.limit = numberOfResponsesLimit;
+
+            if (!(req.query.page && req.query.limit)) {
+                bodyParam.limit = numberOfResponsesLimit;
+            }
+
             if (req.body.completedDate) {
                 let timeFilter = { "type": "bound", "dimension": "completedDate", "lower": req.body.completedDate, "lowerStrict": true, "ordering": "numeric" }
                 bodyParam.filter.fields.push(timeFilter);
@@ -336,7 +340,7 @@ exports.getAllResponsesOfQuestion = async function (req, res) {
 
             } else {
 
-                response = await helperFunc.listALLAnswers(data);
+                response = await helperFunc.listALLAnswers(data,req.pageNo,req.pageSize);
                 console.log("Response:",{ resp: response });
                 res.send(response);
             }
