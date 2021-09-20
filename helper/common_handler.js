@@ -3677,6 +3677,8 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
 exports.improvementProjectTaskPdfGeneration = async function (responseData) {
 
     return new Promise(async function (resolve, reject) {
+
+        console.log("Debugging Reports Issue");
        
         let currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
 
