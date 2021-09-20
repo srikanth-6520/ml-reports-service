@@ -2547,13 +2547,17 @@ const getDateTime = async function (completedDate) {
 
 
 //Function for listing all answers of a question
-exports.listALLAnswers = async function (data) {
+exports.listALLAnswers = async function (data,pageNo,pageSize) {
 
     let result = {
         question: data[0].events[0].questionName,
         answers: [],
         completedDate: ""
     }
+
+    let startIndex = pageSize * (pageNo - 1);
+    let endIndex = startIndex + pageSize;
+    data = data.slice(startIndex,endIndex); 
 
     data.forEach(singleEvent => {
         singleEvent.events.forEach(singleResponse => {
