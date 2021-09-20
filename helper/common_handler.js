@@ -3810,6 +3810,7 @@ exports.improvementProjectTaskPdfGeneration = async function (responseData) {
                                     }
 
                                 }).catch(err => {
+                                    console.log({ 'Gotten Burg Error': err });
                                     resolve(err);
                                 })
                         }
