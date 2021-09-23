@@ -1116,10 +1116,10 @@ exports.assessmentAgainPdfReport = async function (assessmentResponse) {
                 fs.mkdirSync(imgPath);
             }
 
-            // let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
+            let bootstrapStream = await copyBootStrapFile(path.join(__dirname, '../public/css/bootstrap.min.css'), imgPath + '/style.css');
 
             // let headerFile = await copyBootStrapFile(__dirname + '/../views/header.html', imgPath + '/header.html');
-            // let footerFile = await copyBootStrapFile(__dirname + '/../views/footer.html', imgPath + '/footer.html');
+            let footerFile = await copyBootStrapFile(path.join(__dirname, '../public/css/bootstrap.min.css'), imgPath + '/footer.html');
 
             let FormData = [];
 
@@ -1129,7 +1129,7 @@ exports.assessmentAgainPdfReport = async function (assessmentResponse) {
             let params = {
                 assessmentName: assessmentResponse.programName
             }
-            ejs.renderFile(__dirname + '/../views/assessment_header.ejs', {
+            ejs.renderFile(path.join(__dirname, '../views/assessment_header.ejs'), {
                 data: params
             })
                 .then(function (headerHtml) {
@@ -1137,7 +1137,7 @@ exports.assessmentAgainPdfReport = async function (assessmentResponse) {
                     if (!fs.existsSync(dir)) {
                         fs.mkdirSync(dir);
                     }
-                    fs.writeFile(dir + '/header.html', headerHtml, function (errWr, dataWr) {
+                    fs.writeFile(path.join(dir,'/header.html'), headerHtml, function (errWr, dataWr) {
                         if (errWr) {
                             throw errWr;
                         } else {
@@ -1148,7 +1148,7 @@ exports.assessmentAgainPdfReport = async function (assessmentResponse) {
 
                             assessmentResponse.reportSections[1].isAssessAgain = true;
 
-                            ejs.renderFile(__dirname + '/../views/stacked_bar_assessment_template.ejs', {
+                            ejs.renderFile(path.join(__dirname, '../views/stacked_bar_assessment_template.ejs'), {
                                 data: obj.path[0].options.filename,
                                 assessmentData: assessmentResponse.reportSections[1]
                             })
@@ -1158,7 +1158,7 @@ exports.assessmentAgainPdfReport = async function (assessmentResponse) {
                                     if (!fs.existsSync(dir)) {
                                         fs.mkdirSync(dir);
                                     }
-                                    fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
+                                    fs.writeFile(path.join(dir, '/index.html'), dataEjsRender, function (errWriteFile, dataWriteFile) {
                                         if (errWriteFile) {
                                             throw errWriteFile;
                                         } else {
