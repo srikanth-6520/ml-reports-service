@@ -8,7 +8,6 @@ exports.fetch = async function (req, res) {
         if (req.body.submissionId && req.body.observation == true ) {
            let response = await reportsHelper.instaceObservationReport(req, res);
            res.send(response);
-           console.log("Response:",{ resp: response });
 
         } else if (req.body.entityId && req.body.observationId && req.body.observation == true) {    // entity observation report
             let response = await reportsHelper.entityObservationReport(req, res);

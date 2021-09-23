@@ -1164,6 +1164,7 @@ exports.assessmentAgainPdfReport = async function (assessmentResponse) {
                                         } else {
 
                                             let optionsHtmlToPdf = gen.utils.getGotenbergConnection();
+                                            console.log({optionsHtmlToPdf});
                                             optionsHtmlToPdf.formData = {
                                                 files: [
                                                 ]
@@ -1195,7 +1196,7 @@ exports.assessmentAgainPdfReport = async function (assessmentResponse) {
                                             optionsHtmlToPdf.formData.files = FormData;
                                             rp(optionsHtmlToPdf)
                                                 .then(function (responseHtmlToPdf) {
-
+                                                    console.log({responseHtmlToPdf});
                                                     let pdfBuffer = Buffer.from(responseHtmlToPdf.body);
                                                     if (responseHtmlToPdf.statusCode == 200) {
                                                        
@@ -1207,10 +1208,10 @@ exports.assessmentAgainPdfReport = async function (assessmentResponse) {
                                                             else {
 
                                                                 let uploadFileResponse = await uploadPdfToCloud(pdfFile, dir);
-                                                               
+                                                                console.log({uploadFileResponse});
                                                                 if (uploadFileResponse.success) {
                                                                     let pdfDownloadableUrl = await getDownloadableUrl(uploadFileResponse.data);
-                                                                   
+                                                                    console.log({pdfDownloadableUrl});
                                                                     if (pdfDownloadableUrl.success && pdfDownloadableUrl.data.result && Object.keys(pdfDownloadableUrl.data.result).length > 0) {
                                                                         
                                                                         fs.readdir(imgPath, (err, files) => {
