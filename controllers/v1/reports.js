@@ -6,6 +6,7 @@ exports.fetch = async function (req, res) {
        
         //  submission observation report
         if (req.body.submissionId && req.body.observation == true ) {
+            console.log({instaceObservationReport: 'executed'});
            let response = await reportsHelper.instaceObservationReport(req, res);
            res.send(response);
 
