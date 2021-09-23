@@ -14,7 +14,7 @@ exports.instaceObservationReport = async function (req, res) {
         try {
 
         let bodyParam = gen.utils.getDruidQuery("instance_observation_query");
-
+            console.log({DruidQuery: bodyParam});
         if (process.env.OBSERVATION_DATASOURCE_NAME) {
             bodyParam.dataSource = process.env.OBSERVATION_DATASOURCE_NAME;
         }
@@ -32,11 +32,11 @@ exports.instaceObservationReport = async function (req, res) {
         }
 
         let criteriaLevelReport = false;
-
         if (req.body.scores == true) {
-
-             let getReportType = await getCriteriaLevelReportKey({ submissionId: req.body.submissionId});
+            
+            let getReportType = await getCriteriaLevelReportKey({ submissionId: req.body.submissionId});
             if (!getReportType.length) {
+                console.log({getReportType: 'NotFound'})
                 return resolve({
                     result: false,
                     message: filesHelper.submission_not_found_message
@@ -45,6 +45,7 @@ exports.instaceObservationReport = async function (req, res) {
                 criteriaLevelReport = getReportType[0].event.criteriaLevelReport == "true";
             }
         }
+        console.log({criteriaLevelReport});
 
         if (criteriaLevelReport == false) {
             bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
@@ -87,6 +88,7 @@ exports.instaceObservationReport = async function (req, res) {
         let options = gen.utils.getDruidConnection();
         options.method = "POST";
         options.body = bodyParam;
+        console.log({druidConnection: options});
         let data = await rp(options);
 
         if (!data.length) {
@@ -96,6 +98,7 @@ exports.instaceObservationReport = async function (req, res) {
                     req.body.submissionId,
                     req.headers["x-authenticated-user-token"]
                 )
+            console.log({getSubmissionStatusResponse})    
 
             if (getSubmissionStatusResponse.result &&
                 getSubmissionStatusResponse.result.status == filesHelper.submission_status_completed) {
@@ -116,10 +119,10 @@ exports.instaceObservationReport = async function (req, res) {
             let chartData;
 
             let evidenceData = await getEvidenceData({ submissionId: req.body.submissionId });
-
+            console.log({getEvidenceData: true});
             //Send report based on input
+            console.log({ scores: req.body.scores, criteriaWise: req.body.criteriaWise, criteriaLevelReport })
             if (req.body.scores == false && req.body.criteriaWise == false) {
-
                 chartData = await helperFunc.instanceReportChart(data);
                 chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
@@ -211,7 +214,6 @@ exports.instaceObservationReport = async function (req, res) {
             }
 
             if (req.body.scores == true && criteriaLevelReport == true) {
-                console.log({'criteriaLevelReport': true});
                 let response = {
                     "result": true,
                     "programName": data[0].event.programName,
@@ -247,6 +249,7 @@ exports.instaceObservationReport = async function (req, res) {
 
                 if (req.body.pdf) {
                     let pdfReport = await pdfHandler.assessmentAgainPdfReport(response);
+                    console.log({pdfReport})
                     return resolve(pdfReport);
                 } else {
 
