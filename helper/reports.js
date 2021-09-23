@@ -607,11 +607,12 @@ const getCriteriaLevelReportKey = async function (inputData) {
         if (inputData.entityId && inputData.observationId && inputData.entityType) {
             query = { "queryType": "groupBy", "dataSource": process.env.OBSERVATION_DATASOURCE_NAME, "granularity": "all", "dimensions": ["criteriaLevelReport"], "filter": { "type": "and", "fields": [{ "type": "selector", "dimension": inputData.entityType, "value": inputData.entityId }, { "type": "selector", "dimension": "observationId", "value": inputData.observationId },{ "type": "not", "field": { "type": "selector", "dimension": "criteriaLevelReport", "value": "" } }] }, "aggregations": [], "postAggregations": [], "limitSpec": {}, "intervals": ["1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"] }
         }
-
+        console.log({getCriteriaLevelReportKeyQuery: query});
         //pass the query get the result from druid
         let options = gen.utils.getDruidConnection();
         options.method = "POST";
         options.body = query;
+        console.log({getCriteriaLevelReportKeyOptions: options});
         let data = await rp(options);
 
         return resolve(data);
