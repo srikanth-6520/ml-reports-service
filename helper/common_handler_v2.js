@@ -1237,7 +1237,11 @@ exports.assessmentAgainPdfReport = async function (assessmentResponse) {
 
                                                                             }
                                                                         });
-                                                                        rimraf(imgPath);
+                                                                        rimraf(imgPath, (error) => {
+                                                                            if (error) {
+                                                                                console.log('ERROR-RIMRAF', JSON.stringify(error));
+                                                                            }
+                                                                        });
 
                                                                         return resolve({
                                                                             status: filesHelper.status_success,
