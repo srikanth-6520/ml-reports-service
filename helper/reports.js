@@ -318,6 +318,7 @@ exports.entityObservationReport = async function (req, res) {
             });
 
             if (!getReportType.length) {
+                console.log({getReportTypeInEntityObservationReport: 'NotFound'})
                 return resolve({
                     result: false,
                     message: filesHelper.submission_not_found_message
@@ -330,6 +331,8 @@ exports.entityObservationReport = async function (req, res) {
         if (criteriaLevelReport == false) {
             bodyParam.filter.fields.push({ "type": "not", "field": { "type": "selector", "dimension": "questionAnswer", "value": "" } });
         }
+
+        console.log({criteriaLevelReport});
 
         bodyParam.dimensions = ["programName","solutionName","submissionTitle",entityType + "Name"];
         if (!bodyParam.dimensions.includes("districtName")) {
@@ -365,12 +368,14 @@ exports.entityObservationReport = async function (req, res) {
             bodyParam.dimensions.push('completedDate');
         }
 
+        console.log({druidQuery: JSON.stringify(bodyParam)});
+
         //pass the query get the result from druid
         let options = gen.utils.getDruidConnection();
         options.method = "POST";
         options.body = bodyParam;
         let data = await rp(options);
-
+        console.log({ druidConnection: options });
         if (!data.length) {
             let message;
             let getEntityObservationSubmissionsStatus = await assessmentService.getEntityObservationSubmissionsStatus
@@ -379,6 +384,7 @@ exports.entityObservationReport = async function (req, res) {
                     req.body.observationId,
                     req.headers["x-authenticated-user-token"]
                 )
+            console.log({ observationSubmissionStatusLength: getEntityObservationSubmissionsStatus.result.length }); 
 
             if (getEntityObservationSubmissionsStatus.result &&
                 getEntityObservationSubmissionsStatus.result.length > 0) {
