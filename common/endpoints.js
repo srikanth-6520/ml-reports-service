@@ -15,5 +15,6 @@ module.exports = {
     GCP_GET_DOWNLOADABLE_URL : "/v1/cloud-services/gcp/getDownloadableUrl",
     AZURE_GET_DOWNLOADABLE_URL : "/v1/cloud-services/azure/getDownloadableUrl",
     AWS_GET_DOWNLOADABLE_URL : "/v1/cloud-services/aws/getDownloadableUrl",
-    GET_PRESIGNED_URL : "/v1/cloud-services/files/preSignedUrls"
+    GET_PRESIGNED_URL : "/v1/cloud-services/files/preSignedUrls",
+    GET_DOWNLOADABLE_URL: "/v1/cloud-services/files/getDownloadableUrl"
 }
