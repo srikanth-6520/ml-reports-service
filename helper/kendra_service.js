@@ -6,7 +6,19 @@ const uuidv4 = require('uuid/v4');
 async function getDownloadableUrl(filePaths, token) {
   return new Promise(async function (resolve, reject) {
 
-    let url = urlPrefix + endpoints.GET_DOWNLOADABLE_URL;
+    // let url = urlPrefix + endpoints.GET_DOWNLOADABLE_URL;
+    let url;
+    if (process.env.CLOUD_STORAGE == filesHelper.googleCloud) {
+      url = urlPrefix + endpoints.GCP_GET_DOWNLOADABLE_URL;
+    }
+    else if (process.env.CLOUD_STORAGE == filesHelper.azure) {
+      url = urlPrefix + endpoints.AZURE_GET_DOWNLOADABLE_URL;
+    }
+    else if (process.env.CLOUD_STORAGE == filesHelper.aws) {
+      url = urlPrefix + endpoints.AWS_GET_DOWNLOADABLE_URL;
+    }
+
+    console.log({'CoreServiceDownloadableUrl: ': url});
     
     let options = {
       method: "POST",
@@ -16,7 +28,7 @@ async function getDownloadableUrl(filePaths, token) {
         "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
         "Content-Type": "application/json",
       },
-      body: { filePaths: filePaths },
+      body: { filePaths: filePaths, bucketName: process.env.BUCKET_NAME },
       uri: url
     }
 
