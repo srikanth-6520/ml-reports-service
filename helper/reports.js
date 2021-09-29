@@ -618,9 +618,8 @@ const getCriteriaLevelReportKey = async function (inputData) {
         let options = gen.utils.getDruidConnection();
         options.method = "POST";
         options.body = query;
-        console.log({getCriteriaLevelReportKeyOptions: options});
         let data = await rp(options);
-
+        console.log({ DruidDataLength: data.length })
         return resolve(data);
 
     })
