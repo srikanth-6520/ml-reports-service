@@ -292,7 +292,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes) {
 
                                                                             }
                                                                         });
-                                                                        rimraf(imgPath);
+                                                                        rimraf(imgPath,function () { console.log("done")});
 
                                                                         return resolve({
                                                                             status: filesHelper.status_success,
@@ -565,7 +565,7 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
 
                                                                             }
                                                                         });
-                                                                        rimraf(imgPath);
+                                                                        rimraf(imgPath,function () { console.log("done")});
 
                                                                         return resolve({
                                                                             status: filesHelper.status_success,
@@ -777,7 +777,7 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
 
                                                                             }
                                                                         });
-                                                                        rimraf(imgPath);
+                                                                        rimraf(imgPath,function () { console.log("done")});
 
                                                                         return resolve({
                                                                             status: filesHelper.status_success,
@@ -964,7 +964,7 @@ exports.assessmentPdfGeneration = async function assessmentPdfGeneration(assessm
 
                                                                             }
                                                                         });
-                                                                        rimraf(imgPath);
+                                                                        rimraf(imgPath,function () { console.log("done")});
 
                                                                         return resolve({
                                                                             status: filesHelper.status_success,
@@ -1505,7 +1505,7 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData) {
 
                                                             }
                                                         });
-                                                        rimraf(imgPath);
+                                                        rimraf(imgPath,function () { console.log("done")});
 
                                                         return resolve({
                                                             status: filesHelper.status_success,
@@ -1676,7 +1676,7 @@ exports.instanceCriteriaReportPdfGeneration = async function (instanceResponse) 
 
                                                                             }
                                                                         });
-                                                                        rimraf(imgPath);
+                                                                        rimraf(imgPath,function () { console.log("done")});
 
                                                                         return resolve({
                                                                             status: filesHelper.status_success,
@@ -1887,7 +1887,7 @@ exports.entityCriteriaPdfReportGeneration = async function (responseData) {
 
                                                                             }
                                                                         });
-                                                                        rimraf(imgPath);
+                                                                        rimraf(imgPath,function () { console.log("done")});
 
                                                                         return resolve({
                                                                             status: filesHelper.status_success,
@@ -2089,7 +2089,7 @@ exports.instanceScoreCriteriaPdfGeneration = async function (observationResp, ob
 
                                                                             }
                                                                         });
-                                                                        rimraf(imgPath);
+                                                                        rimraf(imgPath,function () { console.log("done")});
 
                                                                         return resolve({
                                                                             status: filesHelper.status_success,
@@ -2386,7 +2386,7 @@ exports.unnatiEntityReportPdfGeneration = async function (entityReportData) {
 
                                                             }
                                                         });
-                                                        rimraf(imgPath);
+                                                        rimraf(imgPath,function () { console.log("done")});
 
                                                         return resolve({
                                                             status: filesHelper.status_success,
