@@ -3677,6 +3677,8 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
 exports.improvementProjectTaskPdfGeneration = async function (responseData) {
 
     return new Promise(async function (resolve, reject) {
+
+        console.log("Debugging Reports Issue");
        
         let currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
 
@@ -3740,7 +3742,7 @@ exports.improvementProjectTaskPdfGeneration = async function (responseData) {
 
                             rp(optionsHtmlToPdf)
                                 .then(function (responseHtmlToPdf) {
-
+                                    console.log({responseHtmlToPdf});
                                     let pdfBuffer = Buffer.from(responseHtmlToPdf.body);
                                     if (responseHtmlToPdf.statusCode == 200) {
 
@@ -3752,10 +3754,10 @@ exports.improvementProjectTaskPdfGeneration = async function (responseData) {
                                             else {
 
                                                 let uploadFileResponse = await uploadPdfToCloud(pdfFile, dir);
-
+                                                console.log({uploadFileResponse});
                                                 if (uploadFileResponse.success) {
                                                     let pdfDownloadableUrl = await getDownloadableUrl(uploadFileResponse.data);
-
+                                                    console.log({pdfDownloadableUrl})
                                                     if (pdfDownloadableUrl.success && pdfDownloadableUrl.data.result && Object.keys(pdfDownloadableUrl.data.result).length > 0) {
 
                                                         fs.readdir(imgPath, (err, files) => {
@@ -3810,6 +3812,7 @@ exports.improvementProjectTaskPdfGeneration = async function (responseData) {
                                     }
 
                                 }).catch(err => {
+                                    console.log({ 'Gotten Burg Error': err });
                                     resolve(err);
                                 })
                         }
