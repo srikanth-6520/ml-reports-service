@@ -2502,7 +2502,7 @@ async function getTaskOverviewChart(tasks) {
                 },
                 layout: {
                     padding: {
-                      top: 15,
+                      top: 25,
                       bottom: 25
                     },
                 },
