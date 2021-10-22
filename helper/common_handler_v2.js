@@ -2495,7 +2495,16 @@ async function getTaskOverviewChart(tasks) {
             options: {
                 cutoutPercentage: 80,
                 legend: {
-                    position: "bottom"
+                    position: "bottom",
+                    labels: {
+                        padding: 30,
+                    }
+                },
+                layout: {
+                    padding: {
+                      top: 15,
+                      bottom: 25
+                    },
                 },
                 plugins: {
                     datalabels: {
@@ -2505,11 +2514,11 @@ async function getTaskOverviewChart(tasks) {
                             size: 18,
                         },
                         formatter: (value) => {
-                          return value + '%';;
+                          return value + '%';
                         }
                     }
                 }
-            },
+            }
         };
 
         let chartObject = {
