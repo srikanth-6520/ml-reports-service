@@ -2502,8 +2502,7 @@ async function getTaskOverviewChart(tasks) {
                 },
                 layout: {
                     padding: {
-                      top: 25,
-                      bottom: 25
+                      top: 25
                     },
                 },
                 plugins: {
@@ -2518,7 +2517,7 @@ async function getTaskOverviewChart(tasks) {
                         }
                     }
                 }
-            }
+            },
         };
 
         let chartObject = {
