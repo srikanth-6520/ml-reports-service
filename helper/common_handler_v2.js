@@ -2513,7 +2513,7 @@ async function getTaskOverviewChart(tasks) {
                             size: 18,
                         },
                         formatter: (value) => {
-                          return value + '%';;
+                          return value + '%';
                         }
                     }
                 }
