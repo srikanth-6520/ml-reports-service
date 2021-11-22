@@ -1643,13 +1643,13 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
                     }
 
                     
-                    let levelData = [];
+                    let levelData = [domainData.event.label];
+                    let levelsWithScores = [];
                     if(domainData.event.criteriaScore){
-                        levelData = [{ level:domainData.event.label, score:domainData.event.criteriaScore }];
-                    }else {
-                        levelData = [domainData.event.label];
+                        levelsWithScores = [{ level: domainData.event.label , score: domainData.event.criteriaScore }];
                     }
-
+                    
+                    
 
                     // Domain and criteria object creation
                     if (!domainCriteriaObj[domainData.event.domainName]) {
@@ -1661,6 +1661,7 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
 
                        
                         domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"] = levelData;
+                        domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levelsWithScores"] = levelsWithScores;
                     }
                     else {
 
@@ -1670,20 +1671,25 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
                             domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName] = {};
 
                             domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"] =  levelData;
+                            domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levelsWithScores"] =  levelsWithScores;
                         }
                         else {
                             if (!domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]) {
                                 domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName] = {};
 
                                 domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"] = levelData;
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levelsWithScores"] = levelsWithScores;
+                                
                             }
                             else {
 
                                 if (!domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"]) {
                                     domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"] = levelData;
+                                    domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levelsWithScores"] = levelsWithScores;
                                 }
                                 else {
                                     domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"].push(levelData[0]);
+                                    domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levelsWithScores"].push(levelsWithScores[0]);
                                 }
                             }
                         }
@@ -1812,7 +1818,8 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
 
                     let criteriaObj = { 
                         name: criteriaKey[ckey],
-                        levels: domainCriteriaObj[domainCriteriaKeys[domainKey]][externalIdKeys[externalIdKey]][criteriaKey[ckey]].levels
+                        levels: domainCriteriaObj[domainCriteriaKeys[domainKey]][externalIdKeys[externalIdKey]][criteriaKey[ckey]].levels,
+                        levelsWithScores: domainCriteriaObj[domainCriteriaKeys[domainKey]][externalIdKeys[externalIdKey]][criteriaKey[ckey]].levelsWithScores
                     }
 
                     domainCriteriaObject.criterias.push(criteriaObj);
