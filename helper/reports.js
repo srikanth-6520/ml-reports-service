@@ -358,9 +358,6 @@ exports.entityObservationReport = async function (req, res) {
             bodyParam.filter.fields.push({ "type": "or", "fields": [{ "type": "selector", "dimension": "questionResponseType", "value": "radio" }, { "type": "selector", "dimension": "questionResponseType", "value": "multiselect" }, { "type": "selector", "dimension": "questionResponseType", "value": "slider" }] })
         }
 
-        req.userDetails = {
-            userId:"b3649713-cfce-4a89-83dc-7b19730a6ee8"
-        }
         if (req.body.scores == true && criteriaLevelReport == true) {
             bodyParam.filter.fields.push({"type":"selector","dimension":"childType","value":"criteria"});
             bodyParam.filter.fields.push({"type":"selector","dimension":"createdBy","value": req.userDetails.userId});
