@@ -1107,6 +1107,7 @@ exports.assessmentAgainPdfReport = async function (assessmentResponse) {
         let imgPath = __dirname + '/../' + currentTempFolder;
 
         try {
+            console.log("assessmentResponse",JSON.stringify(assessmentResponse));
 
             let assessmentChartData = await getAssessmentAgainChartData(assessmentResponse);
             let chartData = await getChartObject([assessmentChartData.reportSections[0]]);
@@ -1153,6 +1154,8 @@ exports.assessmentAgainPdfReport = async function (assessmentResponse) {
                                 assessmentData: assessmentResponse.reportSections[1]
                             })
                                 .then(function (dataEjsRender) {
+
+                                    console.log("dataEjsRender",dataEjsRender);
                                    
                                     var dir = imgPath;
                                     if (!fs.existsSync(dir)) {
