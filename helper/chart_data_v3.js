@@ -1580,6 +1580,7 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
 
                 let domainData = groupedSubmissionData[date][domain];
 
+                
                 if (domainData.event.level !== null) {
 
                     scoresExists = true;
@@ -1641,6 +1642,14 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
                         }
                     }
 
+                    
+                    let levelData = [domainData.event.label];
+                    let levelsWithScores = [];
+                    if(domainData.event.criteriaScore){
+                        levelsWithScores = [{ level: domainData.event.label , score: domainData.event.criteriaScore }];
+                    }
+                    
+                    
 
                     // Domain and criteria object creation
                     if (!domainCriteriaObj[domainData.event.domainName]) {
@@ -1650,7 +1659,9 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
 
                         domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName] = {};
 
-                        domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"] = [domainData.event.label];
+                       
+                        domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"] = levelData;
+                        domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levelsWithScores"] = levelsWithScores;
                     }
                     else {
 
@@ -1658,25 +1669,32 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
                             domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid] = {};
 
                             domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName] = {};
-                            domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"] = [domainData.event.label];
+
+                            domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"] =  levelData;
+                            domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levelsWithScores"] =  levelsWithScores;
                         }
                         else {
                             if (!domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]) {
                                 domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName] = {};
 
-                                domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"] = [domainData.event.label];
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"] = levelData;
+                                domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levelsWithScores"] = levelsWithScores;
+                                
                             }
                             else {
 
                                 if (!domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"]) {
-                                    domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"] = [domainData.event.label];
+                                    domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"] = levelData;
+                                    domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levelsWithScores"] = levelsWithScores;
                                 }
                                 else {
-                                    domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"].push(domainData.event.label);
+                                    domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levels"].push(levelData[0]);
+                                    domainCriteriaObj[domainData.event.domainName][domainData.event.childExternalid][domainData.event.childName]["levelsWithScores"].push(levelsWithScores[0]);
                                 }
                             }
                         }
                     }
+
                 }
             }
         }
@@ -1709,7 +1727,7 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
                 let levels = domainObj[domainKeys[domainKey]][dateKeys[dateKey]];
 
                 let levelKeys = Object.keys(levels);
-
+       
                 for (level in dynamicLevelObj) {
                     if (levelKeys.includes(level)) {
                         dynamicLevelObj[level].push(levels[level]);
@@ -1726,6 +1744,7 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
             obj[key] = dynamicLevelObj[key];
         });
 
+      
         let backgroundColors = ['rgb(255, 99, 132)','rgb(54, 162, 235)','rgb(255, 206, 86)','rgb(231, 233, 237)','rgb(75, 192, 192)','rgb(151, 187, 205)','rgb(220, 220, 220)','rgb(247, 70, 74)','rgb(70, 191, 189)','rgb(253, 180, 92)','rgb(148, 159, 177)','rgb(77, 83, 96)','rgb(95, 101, 217)','rgb(170, 95, 217)','rgb(140, 48, 57)','rgb(209, 6, 40)','rgb(68, 128, 51)','rgb(125, 128, 51)','rgb(128, 84, 51)','rgb(179, 139, 11)'];
         let i = 0;
   
@@ -1797,9 +1816,10 @@ const entityLevelReportChartCreateFunc = async function (groupedSubmissionData, 
 
                 for (ckey = 0; ckey < criteriaKey.length; ckey++) {
 
-                    let criteriaObj = {
+                    let criteriaObj = { 
                         name: criteriaKey[ckey],
-                        levels: domainCriteriaObj[domainCriteriaKeys[domainKey]][externalIdKeys[externalIdKey]][criteriaKey[ckey]].levels
+                        levels: domainCriteriaObj[domainCriteriaKeys[domainKey]][externalIdKeys[externalIdKey]][criteriaKey[ckey]].levels,
+                        levelsWithScores: domainCriteriaObj[domainCriteriaKeys[domainKey]][externalIdKeys[externalIdKey]][criteriaKey[ckey]].levelsWithScores
                     }
 
                     domainCriteriaObject.criterias.push(criteriaObj);
