@@ -1119,7 +1119,8 @@ exports.assessmentAgainPdfReport = async function (assessmentResponse) {
             let bootstrapStream = await copyBootStrapFile(path.join(__dirname, '../public/css/bootstrap.min.css'), imgPath + '/style.css');
 
             // let headerFile = await copyBootStrapFile(__dirname + '/../views/header.html', imgPath + '/header.html');
-            let footerFile = await copyBootStrapFile(path.join(__dirname, '../public/css/bootstrap.min.css'), imgPath + '/footer.html');
+            // let footerFile = await copyBootStrapFile(path.join(__dirname, '../public/css/bootstrap.min.css'), imgPath + '/footer.html');
+            let footerFile = await copyBootStrapFile(path.join(__dirname,  '/../views/footer.html'), imgPath + '/footer.html');
 
             let FormData = [];
 
@@ -1194,6 +1195,7 @@ exports.assessmentAgainPdfReport = async function (assessmentResponse) {
                                                 }
                                             });
                                             optionsHtmlToPdf.formData.files = FormData;
+
                                             rp(optionsHtmlToPdf)
                                                 .then(function (responseHtmlToPdf) {
                                                     console.log({responseHtmlToPdf});
