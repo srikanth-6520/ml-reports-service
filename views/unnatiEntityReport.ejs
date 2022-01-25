@@ -97,10 +97,17 @@
                         <img src="note2.svg">
                     </div>
                     <div class="col-md-9 col-xs-9">
-                        <p style="margin-bottom: 0px !important">Projects Completed</p>
-                        <% if(data.response.projects.completed){ %>
+                        <% 
+                        var title = "Submitted";
+                        if(data.response.projects.completed) { 
+                            title = "Completed"
+                        } %>
+                        <p style="margin-bottom: 0px !important">Projects <%= title %></p>
+                        <%  if(data.response.projects.completed){ %>
                         <p style="margin-bottom: 0px !important"><%= data.response.projects.completed %></p>
-                        <% } else {%>
+                        <% } else if(data.response.projects.submitted) { %>
+                            <p style="margin-bottom: 0px !important"><%= data.response.projects.submitted %></p>
+                        <% } else { %>
                         <p style="margin-bottom: 0px !important">0</p>
                         <% } %>
                     </div>
