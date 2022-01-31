@@ -120,6 +120,10 @@
                 <div id="progress-0">
                     <p style="margin-top: 10px">Completed</p>
                 </div>
+                <% } else if(data.response.status == "submitted") { %>
+                    <div id="progress-0">
+                        <p style="margin-top: 10px">Submitted</p>
+                    </div>
 
                 <% } else if(data.response.status == "in progress" || data.response.status == "inprogress") {%>
                 <progress value="60" max="100"></progress>
@@ -129,6 +133,10 @@
                 <div id="progress-1">
                     <p style="margin-top: 10px">Not Started</p>
                 </div>
+                <% } else if(data.response.status == "started") { %>
+                    <div id="progress-1">
+                        <p style="margin-top: 10px">Started</p>
+                    </div>
                 <% } %>
 
             </div>
