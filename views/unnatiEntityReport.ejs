@@ -131,21 +131,44 @@
                     </div>
                 </div>
             </div>
+            <%
+            if(data.response.projects.started) {
+            %>
             <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5" style="margin-left:5px">
                 <div class="row" style="background: #eee !important;padding:5px">
                     <div class="col-md-3 col-xs-3" style="padding-top:10px">
                         <img src="note4.svg">
                     </div>
                     <div class="col-md-9 col-xs-9">
-                        <p style="margin-bottom: 0px !important">Projects Overdue</p>
-                        <% if(data.response.projects.overdue){ %>
-                        <p style="margin-bottom: 0px !important"><%= data.response.projects.overdue %></p>
+                       
+                        <p style="margin-bottom: 0px !important">Projects Started</p>
+                        <% if(data.response.projects.started){ %>
+                        <p style="margin-bottom: 0px !important"><%= data.response.projects.started %></p>
                         <% } else {%>
                         <p style="margin-bottom: 0px !important">0</p>
                         <% } %>
                     </div>
                 </div>
             </div>
+            <% } else { %>
+                <div class="col-lg-5 col-md-5 col-sm-5 col-xs-5" style="margin-left:5px">
+                    <div class="row" style="background: #eee !important;padding:5px">
+                        <div class="col-md-3 col-xs-3" style="padding-top:10px">
+                            <img src="note4.svg">
+                        </div>
+                        <div class="col-md-9 col-xs-9">
+    
+                           
+                            <p style="margin-bottom: 0px !important">Projects Overdue</p>
+                            <% if(data.response.projects.overdue){ %>
+                            <p style="margin-bottom: 0px !important"><%= data.response.projects.overdue %></p>
+                            <% } else {%>
+                            <p style="margin-bottom: 0px !important">0</p>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+                <% } %>
         </div>
     </div>
 
