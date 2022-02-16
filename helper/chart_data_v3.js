@@ -2060,7 +2060,7 @@ const getChartObject = async function (data, submissionCount) {
                     }
                     questionObject.answers.push(singleResponse.event.questionAnswer)
                 }))
-                questionObject.count = questionObject.answers.length;
+                questionObject.count = submissionCount;
                 questionObject.completedDate = sortedData[sortedData.length - 1].event.completedDate;
                 response.push(questionObject);
             }
