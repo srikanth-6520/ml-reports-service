@@ -159,7 +159,6 @@
         <% for (let i = 0; i< data.response.tasks.length; i++) { %>
          <h3> Task </h3>
          <p style="margin-bottom: 15px"> <%= data.response.tasks[i].name %></p>
-         <h4><b> Assinged To </b><span style="padding-left: 20px;"><%= data.response.tasks[i].assignee %></span> </h4>
          <% let taskEndDate = "" %>
          <% if(data.response.tasks[i].endDate) {%>
          <% taskEndDate = new Date(data.response.tasks[i].endDate) %>
