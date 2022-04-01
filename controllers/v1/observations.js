@@ -1838,6 +1838,7 @@ exports.submissionsCount = async function (req, res) {
       options.method = "POST";
       options.body = bodyParam;
       let data = await rp(options);
+      console.log(data,"respose from druid")
 
       if (!data.length) {
         console.log("Response:",{ resp: { "result": false, "data": { "noOfSubmissions": 0 } }});
@@ -1852,6 +1853,7 @@ exports.submissionsCount = async function (req, res) {
     }
   }
   catch (err) {
+    console.log(err, "err")
     res.status(400);
     let response = {
       result: false,
