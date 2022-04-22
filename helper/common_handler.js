@@ -3585,6 +3585,13 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
                                     filename: 'index.html'
                                 }
                             });
+
+                            FormData.push({
+                                value: fs.createReadStream(dir + '/style.css'),
+                                options: {
+                                    filename: 'style.css'
+                                }
+                            });
                             optionsHtmlToPdf.formData.files = FormData;
 
 
@@ -3614,15 +3621,15 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
                                                             let i = 0;
                                                             for (const file of files) {
 
-                                                                // fs.unlink(path.join(imgPath, file), err => {
-                                                                //     if (err) throw err;
-                                                                // });
+                                                                fs.unlink(path.join(imgPath, file), err => {
+                                                                    if (err) throw err;
+                                                                });
 
                                                                 if (i == files.length) {
-                                                                    // fs.unlink('../../' + currentTempFolder, err => {
-                                                                    //     if (err) throw err;
+                                                                    fs.unlink('../../' + currentTempFolder, err => {
+                                                                        if (err) throw err;
 
-                                                                    // });
+                                                                    });
                                                                     console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
 
                                                                 }
@@ -3631,7 +3638,7 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
 
                                                             }
                                                         });
-                                                        // rimraf(imgPath, function () { console.log("done"); });
+                                                        rimraf(imgPath, function () { console.log("done"); });
 
                                                         return resolve({
                                                             status: filesHelper.status_success,
@@ -3737,6 +3744,13 @@ exports.improvementProjectTaskPdfGeneration = async function (responseData) {
                                     filename: 'index.html'
                                 }
                             });
+
+                            FormData.push({
+                                value: fs.createReadStream(dir + '/style.css'),
+                                options: {
+                                    filename: 'style.css'
+                                }
+                            });
                             optionsHtmlToPdf.formData.files = FormData;
 
 
@@ -3766,15 +3780,15 @@ exports.improvementProjectTaskPdfGeneration = async function (responseData) {
                                                             let i = 0;
                                                             for (const file of files) {
 
-                                                                // fs.unlink(path.join(imgPath, file), err => {
-                                                                //     if (err) throw err;
-                                                                // });
+                                                                fs.unlink(path.join(imgPath, file), err => {
+                                                                    if (err) throw err;
+                                                                });
 
                                                                 if (i == files.length) {
-                                                                    // fs.unlink('../../' + currentTempFolder, err => {
-                                                                    //     if (err) throw err;
+                                                                    fs.unlink('../../' + currentTempFolder, err => {
+                                                                        if (err) throw err;
 
-                                                                    // });
+                                                                    });
                                                                     console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
 
                                                                 }
@@ -3783,7 +3797,7 @@ exports.improvementProjectTaskPdfGeneration = async function (responseData) {
 
                                                             }
                                                         });
-                                                        // rimraf(imgPath, function () { console.log("done"); });
+                                                        rimraf(imgPath, function () { console.log("done"); });
 
                                                         return resolve({
                                                             status: filesHelper.status_success,
