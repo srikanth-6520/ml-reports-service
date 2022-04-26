@@ -3756,6 +3756,12 @@ exports.improvementProjectTaskPdfGeneration = async function (responseData) {
                                     filename: 'index.html'
                                 }
                             });
+                            FormData.push({
+                                value: fs.createReadStream(dir + '/style.css'),
+                                options: {
+                                    filename: 'style.css'
+                                }
+                            });
                             optionsHtmlToPdf.formData.files = FormData;
 
 
