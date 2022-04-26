@@ -3756,7 +3756,19 @@ exports.improvementProjectTaskPdfGeneration = async function (responseData) {
                                     filename: 'index.html'
                                 }
                             });
+                            FormData.push({
+                                value: fs.createReadStream(dir + '/style.css'),
+                                options: {
+                                    filename: 'style.css'
+                                }
+                            });
                             optionsHtmlToPdf.formData.files = FormData;
+                            optionsHtmlToPdf.formData.paperHeight = 3.9;
+                            optionsHtmlToPdf.formData.emulatedMediaType = "screen";
+                            optionsHtmlToPdf.formData.marginRight = 0;
+                            optionsHtmlToPdf.formData.marginLeft = 0;
+                            optionsHtmlToPdf.formData.marginTop = 0;
+                            optionsHtmlToPdf.formData.marginBottom = 0;
 
 
                             rp(optionsHtmlToPdf)
