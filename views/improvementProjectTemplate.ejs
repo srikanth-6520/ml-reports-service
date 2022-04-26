@@ -1,40 +1,28 @@
 <html>
-
 <head>
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
 
-    <!-- jQuery library -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-
-    <!-- Latest compiled JavaScript -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-
+    <link rel="stylesheet" type="text/css" href="style.css">
     <style>
+       hr {
+            visibility: hidden;
+            page-break-after: always;
+        }
          progress::-moz-progress-bar {
             background: #91d050;
+            
         }
         progress::-webkit-progress-value {
             background: #91d050;
         }
-
         audio,canvas,progress,video {
             display: inline-block;
             vertical-align: baseline;
-            height: 8px;
+            height: 12px;
+            width: 320px;
         }
-
-        hr.borderColor {
-            border-top: 1px solid #024F9D;
-        }
-
-        hr {
-            margin-top: 0px;
-            margin-bottom: 0px;
-        }
-
+        
         .footer {
             position: fixed;
             left: 0;
@@ -44,172 +32,484 @@
             color: white;
             text-align: center;
         }
-
         #progress-0 {
             height: 8px;
-            border: 1px solid #999 !important;
-            width: 150px;
-            background: #6abf34 !important;
+            border: none;
+            width: 320px;
+            background: #5ef004 !important;
             text-align: center;
             border-radius: 5px;
-            margin-top: 5px !important;
         }
-
         #progress-1 {
             height: 8px;
-            border: 1px solid #999 !important;
-            width: 150px;
+            border: none;
+            width: 320px;
             background: #81d6f0 !important;
             text-align: center;
             border-radius: 5px;
-            margin-top: 5px !important;
+            
         }
-
-    </style>
-
-
-</head>
-
-<body class="container">
-
-    <div style="font-size: 18px;padding-left:15px">
+        .title {
+            color: #138ef2;
+            font-weight: 550;
+        }
+        .taskName {
+            color: #138ef2;
+            margin-top: 25px;
+            font-weight: bold;
+            margin-left: 55px;
+        }
+        .subtitle {
+            color: #313233c4;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        #stylebar { 
+            height: 2px;
+            border: none;
+            width: 81%;
+            background: #f8c703 !important;
+            float: right;
+            margin-top: 11px;
+        }
+        #taskEndBar { 
+            height: 2px;
+            border: none;
+            width: 100%;
+            background: #f8c703 !important;
+            margin-top: 30px;
+        }
+        .titleDiv {
+            width: auto;
+            float: left;
+            
+        }
+        .titleData {
+            width:60%; 
+            float:left;
+            padding-left: 6px;
+            font-weight: 550;
+        }
+        .row{
+            margin-top: 4px;
+            margin-right: 70px;
+        }
+        .progressbarText {
+            margin-bottom: 2.5px;
+            font-size: 11px;
+            color: rgba(49, 49, 49, 0.7);
+        }
+        .linkTitle {
+            color:#024F9D;
+            font-weight: 550;
+        }
+        .subtaskName {
+            color: #138ef2;
+            font-weight: 550;
+            margin-top: 15px;
+            margin-left: 55px;
+            margin-right: 55px;
+            
+        }
+        .subtaskContainer {
+            position: relative; 
+            margin-top: 20px; 
+            height: 30px;
+            margin-left: 55px;
+        }
+        .subtitleDiv {
+            width:auto; 
+            float:left; 
+            position: absolute;  
+        }
+        .box {
+            display: block;
+            float: left;
+            width: 33.3%;
+            padding: 6px;
+            padding-bottom: 2px;
+           
+            
+        }
+        img {
+            height: 120px;
+            width : 100%;
+            object-fit: cover;
+            border-radius: 0px 0px 15px 15px;
+        }
+        .thanks {
+            text-align: center;
+            width: 100%;
+            margin-top: 15%;
+        }
+        .pageHeader {
+            padding:12px;
+            background-color: #f8c703;
+            color: black;
+            font-size: 22px; 
+            padding-left: 55px;
+        }
     
-        <div class="row">
-            <div style="width:30%; float:left;">
-                <p><b>Project Title</b></p>
+    </style>
+</head>
+<% let pageNo =1 %>
+<body style="padding: 0px; margin: 0;">
+    <!--project details section-->
+    <div style="padding:12px;background-color: #f8c703;color: black;font-size: 22px; padding-left: 55px; ">
+        Project Details <span style="float: right; color: #024F9D; padding-right: 15px;">  <%= pageNo %></span>
+    </div>
+    <div style="font-size: 16px;padding-left:70px">
+    
+        <div class="row" >
+            <div class="titleDiv">
+                <p class="title">Project Name : </p>
             </div>
-            <div style="width:60%; float:left;">
+           <div class = "titleData">
                 <p><%=  data.response.title %></p>
             </div>
         </div>
-
         <div class="row">
-            <div style="width:30%; float:left;">
-                <p><b>Program Name</b></p>
+            <div class="titleDiv">
+                <p class="title">Program Name :</p>
             </div>
-            <div style="width:60%; float:left;">
+            <div class = "titleData">
                 <p><%=  data.response.programName %></p>
             </div>
         </div>
-
         <div class="row">
-            <div style="width:30%; float:left;">
-                <p><b>Objective</b></p>
+            <div class="titleDiv">
+                <p class="title">Objective :</p>
             </div>
-            <div style="width:60%; float:left;">
+            <div class = "titleData">
                 <p><%= data.response.description %></p>
             </div>
         </div>
-
         <div class="row">
-            <div style="width:30%; float:left;">
-                <p><b>Duration</b></p>
+            <div class="titleDiv">
+                <p class="title">Recommended For :</p>
             </div>
-            <div style="width:60%; float:left;">
-                <p><%= data.response.duration %></p>
+            <div class = "titleData">
+                <p><%= data.response.recommendedForRoles %></p>
             </div>
         </div>
-
-        <div class="row">
-            <div style="width:30%; float:left;">
-                <p><b>Project Status</b></p>
+        
+        <div class="row" >
+            <div class="titleDiv">
+                <p class="title">Categories :</p>
             </div>
-            <div style="width:60%; float:left;">
-                <% data.response.status = data.response.status.toLowerCase() %>
-                <% if(data.response.status == "completed") { %>
-                <div id="progress-0">
-                    <p style="margin-top: 10px">Completed</p>
-                </div>
-                <% } else if(data.response.status == "submitted") { %>
-                    <div id="progress-0">
-                        <p style="margin-top: 10px">Submitted</p>
-                    </div>
-
-                <% } else if(data.response.status == "in progress" || data.response.status == "inprogress") {%>
-                <progress value="60" max="100"></progress>
-                <p style="margin-left:33px;margin-top:4px;">In Progress</p>
-
-                <% } else if(data.response.status == "not started yet" || data.response.status == "not yet started" || data.response.status == "notstarted") {%>
-                <div id="progress-1">
-                    <p style="margin-top: 10px">Not Started</p>
-                </div>
-                <% } else if(data.response.status == "started") { %>
-                    <div id="progress-1">
-                        <p style="margin-top: 10px">Started</p>
-                    </div>
-                <% } %>
-
-            </div>
-        </div>
-
-        <div class="row" style="margin-top:10px">
-            <div style="width:30%; float:left;">
-                <p><b>Categories</b></p>
-            </div>
-            <div style="width:60%; float:left;">
+            <div class = "titleData">
                 <p><%= data.response.category %></p>
             </div>
         </div>
-
         <div class="row">
-            <div style="width:30%; float:left;">
-                <p><b>Total Tasks</b></p>
+            <div class="titleDiv">
+                <p class="title">Duration :</p>
             </div>
-            <div style="width:60%; float:left;">
-                <p><%= data.tasksArray.length %></p>
+            <div class = "titleData">
+                <p><%= data.response.duration %></p>
             </div>
         </div>
-
-        <div class="row">
-            <div style="width:30%; float:left;">
-                <p><b>Total Subtasks</b></p>
+        <div class="row" style="position: relative;">
+            <div style="width:auto; float:left;position: absolute; bottom:0;">
+                <p class="title" style="margin:auto">Project Status</p>
             </div>
-            <div style="width:60%; float:left;">
-                <p><%= data.subTasks %></p>
-            </div>
-        </div>
-    </div>
-    
-    <hr class="borderColor">
-    
-    <div style="margin-top:50px !important;font-size: 18px">
-    <% if (data.response.tasks && data.response.tasks.length > 0) { %>
-        <% for (let i = 0; i< data.response.tasks.length; i++) { %>
-         <h3> Task </h3>
-         <p style="margin-bottom: 15px"> <%= data.response.tasks[i].name %></p>
-         <% let taskEndDate = "" %>
-         <% if(data.response.tasks[i].endDate) {%>
-         <% taskEndDate = new Date(data.response.tasks[i].endDate) %>
-         <% let day = taskEndDate.getDate() %>
-         <% let month = taskEndDate.getMonth() + 1 %>
-         <% let year = taskEndDate.getFullYear() %>
-         <% taskEndDate = day + '/' + month + '/' + year %>
-         <% } %>
-         <h4><b>Due Date </b><span style="padding-left: 50px !important;"> <%= taskEndDate %></span></h4>
-
-        <% if (data.response.tasks[i].children && data.response.tasks[i].children.length > 0) { %>
-            <% for (let j = 0; j< data.response.tasks[i].children.length; j++) { %>
-                <p style = "margin-top: 30px"><span
-                    style="color:#024F9D !important">&#3664;</span>&nbsp;&nbsp; Subtask <%= j+1 %> : <%=  data.response.tasks[i].children[j].name %>
-                </p>
-                <% let subTaskEndDate = "" %>
-                <% if(data.response.tasks[i].children[j].endDate) {%>
-                <% subTaskEndDate = new Date(data.response.tasks[i].children[j].endDate) %>
-                <% let day = subTaskEndDate.getDate() %>
-                <% let month = subTaskEndDate.getMonth() + 1 %>
-                <% let year = subTaskEndDate.getFullYear() %>
-                <% subTaskEndDate = day + '/' + month + '/' + year %>
+            <div style="width:60%; margin-left: 20%;margin-bottom:7px;">
+                <% data.response.status = data.response.status.toLowerCase() %>
+                <% if(data.response.status == "completed") { %>
+                    <p class= "progressbarText"><%=data.tasksArray.length%>/<%=data.tasksArray.length%> tasks completed</p>
+                    <div id="progress-0"></div>
+                <% } else if(data.response.status == "submitted") { %>
+                    <p class= "progressbarText"><%=data.tasksArray.length%>/<%=data.tasksArray.length%> tasks submitted</p>
+                    <div id="progress-0"></div>
+                <% } else if(data.response.status == "in progress" || data.response.status == "inprogress") {%>
+                <p class ="progressbarText">In Progress</p>
+                <progress value="60" max="100"></progress>
+                <% } else if(data.response.status == "not started yet" || data.response.status == "not yet started" || data.response.status == "notstarted") {%>
+                <p class= "progressbarText">Not started</p>
+                <div id="progress-1"></div>
+                <% } else if(data.response.status == "started") { %>
+                    <p class= "progressbarText">Started</p>
+                    <div id="progress-1"></div>
                 <% } %>
-                <h4 style = "padding-left: 28px"><b>Due Date </b><span style="padding-left: 15px;"> <%= subTaskEndDate %></span></h4>
-               
+            </div>
+        </div>
+        
+    </div> 
+    
+   
+        
+    <!-- show only when any one of the evidence is present-->
+    <% if ( data.response.remarks !== "" || data.response.imageLink.length > 0 || data.response.evidenceLink.length > 0 ) { %>
+        
+        <% pageNo = pageNo + 1; %>
+        <div class="pageHeader">
+            Project Evidences <span style="float: right;color: #024F9D; padding-right: 15px;"> <%= pageNo %></span>
+        </div>
+        <div class="projectEvidences" style="font-size: 16px;">
+            <!--adding remarks-->
+           <div class="row" style="padding-left: 70px;">
+                <div class="titleDiv">
+                    <p class="title">Remarks :</p>
+                </div>
+                <div class = "titleData">
+                    <% let remark ; %> 
+                    <% if ( !data.response.remarks || data.response.remarks == "" ) { %>
+                        <% remark = "N/A" %>
+                    <% } else { remark = data.response.remarks  } %>
+                    <p><%= remark %></p>
+                </div>
+           </div>
+            
+           <% if ( data.response.imageLink.length > 0 ) { %>
+                <!--adding images title-->
+                <div class="row" style="padding-left: 70px;">
+                    <div class="titleDiv">
+                        <p class="title">Images :</p>
+                    </div>
+                </div>
+                <!--add images-->
+                    <% for ( let i = 0; i < data.response.imageLink.length; i++ ) { %>
+                       
+                        <% if(i!=0 && i%3==0){
+                            %>  
+                            <% pageNo = pageNo + 1; %>
+                             
+                            <hr>
+                            <div class="pageHeader">
+                                Project Evidences <span style="float: right;color: #024F9D;padding-right: 15px;">  <%= pageNo %></span>
+                            </div>
+                            <%
+                        } %>
+                        <div class="box" style="padding-left: 55px;">
+                            <img src="<%= data.response.imageLink[i] %>">
+                        </div>
+                    <% } %>
+              
+                   
             <% } %>
+            
+            
+           
+            <% if ( data.response.evidenceLink.length > 0 ) { %>
+                <!--add evidence links-->
+                <hr>
+                <div class="pageHeader">
+                    Project Evidences <span style="float: right;color: #024F9D; padding-right: 15px;">  <%= ++pageNo %></span>
+                </div>
+                <div class="row" style="padding-left: 70px;">
+                    <div class="titleDiv" style="margin-top: 20px;">
+                        <p class="title">Links :</p>
+                    </div>
+                </div>
+                <!--add links-->
+                <% for ( let i = 0; i < data.response.evidenceLink.length; i++ ) { %>
+                    <% if(i!=0 && i%4==0){
+                        %>  
+                        <% pageNo = pageNo + 1; %>
+                         
+                         <hr>
+                        
+                         <div class="pageHeader">
+                            Project Evidences <span style="float: right;color: #024F9D;padding-right: 15px;">  <%= pageNo %></span>
+                        </div>
+                        <%
+                    } %>
+                     <div class="row" style="padding-left: 70px;">
+                        <p class="linkTitle"><%= data.response.evidenceLink[i] %></p>
+                    </div>
+                <% } %>
+                
+            <% } %>
+        </div>
+       
+       
+    <%} %>
+    <!--add task details to the pdf-->
+    
+    <div class="taskDetails" style="font-size: 16px;">
+        <!--if project have task-->
+        <% if (data.tasksArray && data.tasksArray.length > 0) { %>
+            <!--populate data for each task-->
+            <% for (let i = 0; i< data.tasksArray.length; i++) { %>
+                <hr>
+                <% pageNo = pageNo + 1; %>
+                <div class="pageHeader">
+                    Task Details <span style="float: right; color: #024F9D;padding-right: 15px;">  <%= pageNo %></span>
+                </div>
+                <!--populate task name-->
+                <p class="taskName"><%= data.tasksArray[i].name %></p>
+                <!--populate task status-->
+                <div class="row" style="position: relative; padding-left: 70px;">
+                    <div style="width:auto; float:left;position: absolute; bottom:0; ">
+                        <p class="title" style="margin:auto">Project Status</p>
+                    </div>
+                    <div style="width:60%; margin-left: 20%;margin-bottom:7px;">
+                        <% data.tasksArray[i].status = data.tasksArray[i].status.toLowerCase() %>
+                        <% if(data.tasksArray[i].status == "completed") { %>
+                            <p class= "progressbarText">completed</p>
+                            <div id="progress-0"></div>
+                        <% } else if(data.tasksArray[i].status == "submitted") { %>
+                            <p class= "progressbarText">submitted</p>
+                            <div id="progress-0"></div>
+        
+                        <% } else if(data.tasksArray[i].status == "in progress" || data.tasksArray[i].status == "inprogress") {%>
+                            <p class ="progressbarText" style="margin-top:2px;">In Progress</p>
+                            <progress value="60" max="100"></progress>
+        
+                        <% } else if(data.tasksArray[i].status == "not started yet" || data.tasksArray[i].status == "not yet started" || data.tasksArray[i].status == "notstarted") {%>
+                        <p class= "progressbarText">Not started</p>
+                        <div id="progress-1"></div>
+                        <% } else if(data.tasksArray[i].status == "started") { %>
+                            <p class= "progressbarText">Started</p>
+                            <div id="progress-1"></div>
+                        <% } %>
+        
+                    </div>
+                </div>
+                <% if (data.tasksArray[i].children && data.tasksArray[i].children.length > 0) { %>
+                    <!--Add subtask details header-->
+                    <div class="subtaskContainer" >
+                        <!--add text-->
+                        <div class="subtitleDiv">
+                            <p class="subtitle">Subtask Details </p>
+                        </div>
+                        <!--add yellow line style-->
+                        <div id="stylebar"></div>
+                        
+                    </div>
+                    <% for (let j = 0; j< data.tasksArray[i].children.length; j++) { %>
+                        <% if(j!=0 && j%2==0){ %>  
+                            
+                            <% pageNo = pageNo + 1; %>
+                             
+                             <hr>
+                            
+                             <div class="pageHeader">
+                                Task Details <span style="float: right; color: #024F9D;padding-right: 15px;">  <%= pageNo %></span>
+                            </div>
+                            
+                        <% } %>
+                        <!--add subtask name -->
+                        <p class="subtaskName"><%= data.tasksArray[i].children[j].name %></p>   
+                    <% } %>
+                <% } %>
+                <div id="taskEndBar"></div>
+                <!--add task evidences-->
+                <% if ( ( data.tasksArray[i].remarks && data.tasksArray[i].remarks !== "" ) || ( data.tasksArray[i].attachments && data.tasksArray[i].attachments.length ) > 0 ) { %>
+                    <!--get images and links from current task-->
+                    <%let evidenceImage = [] %>
+                    <%let evidenceLink = [] %>
+                    <%if ( data.tasksArray[i].attachments && data.tasksArray[i].attachments.length > 0 ) { %>
+                        <%data.tasksArray[i].attachments.forEach( attachment => { %>
+                            <%if ( attachment.type == "image/jpeg"  && attachment.url !== "" ) { %>
+                                <%evidenceImage.push(attachment.url) %>
+                            <%} else if ( attachment.url !== "" ) { %>
+                                <%evidenceLink.push(attachment.url) %>
+                            <%} %>
+                        <% }) %>
+                    <% } %>
+                    
+                    <%if( evidenceImage.length > 0 || evidenceLink.length > 0 || ( data.tasksArray[i].remarks && data.tasksArray[i].remarks !== "" ) ) { %>
+                        <!--start a new page -->
+                        <% pageNo = pageNo + 1; %>
+                        <hr>
+                        
+                        <div class="pageHeader">
+                        Task Evidences <span style="float: right; color: #024F9D; padding-right: 15px;">  <%= pageNo %></span>
+                        </div>
+                    
+                        <div class="taskEvidences" >
+                            <!--adding remarks-->
+                            <div class="row" style="font-size: 16px; padding-left:70px;">
+                                <div class="titleDiv">
+                                    <p class="title">Remarks :</p>
+                                </div>
+                                <div class = "titleData">
+                                    <% let remark ; %> 
+                                    <% if ( !data.tasksArray[i].remark || data.tasksArray[i].remark == "" ) { %>
+                                        <% remark = "N/A" %>
+                                    <% } else { remark = data.tasksArray[i].remark  } %>
+                                    <p><%= remark %></p>
+                                </div>
+                            </div>
+                        
+            
+                            <% if ( evidenceImage.length > 0 ) { %>
+                        
+                                <!--adding images title-->
+                                <div class="row" style="font-size: 16px; padding-left:70px;">
+                                    <div class="titleDiv">
+                                        <p class="title">Images :</p>
+                                    </div>
+                                </div>
+                                <!--add images-->
+                                <% for ( let j = 0; j < evidenceImage.length; j++ ) { %>
+                                    <% if(j!=0 && j%3==0){%>  
+                                        <% pageNo = pageNo + 1; %>
+                                        
+                                        <hr>
+                                    
+                                        <div class="pageHeader">
+                                            Task Evidences <span style="float: right;color: #024F9D;padding-right: 15px;">  <%= pageNo %></span>
+                                        </div>
+                        
+                                    <% } %>
+                                    <div class="box" style="font-size: 16px; padding-left:70px;">
+                                        <img src="<%= evidenceImage[j] %>">
+                                    </div>
+                                
+                                <% } %>
+                                
+                            <% } %>
+                        
+                        
+            
+                            <% if ( evidenceLink.length > 0 ) { %>
+                                <hr>
+                                <!--add evidence links-->
+                                <div class="pageHeader">
+                                    Task Evidences <span style="float: right;color: #024F9D;padding-right: 15px;">  <%= ++pageNo %></span>
+                                </div>
+                                <div class="row" style="font-size: 16px; padding-left:70px;">
+                                    <div class="titleDiv" style="margin-top: 20px;">
+                                        <p class="title">Links :</p>
+                                    </div>
+                                </div>
+                                <!--add links-->
+                                <% for ( let j = 0; j < evidenceLink.length; j++ ) { %>
+                                    <% if(j!=0 && j%2==0){%>  
+                                        <% pageNo = pageNo + 1; %>
+                                        <hr>
+                                    
+                                        <div class="pageHeader">
+                                            Task Evidences <span style="float: right;">  <%= pageNo %></span>
+                                        </div>
+                                    <% } %>
+                                   
+                                   <div class="row" style="font-size: 14px; padding-left: 70px;"> 
+                                       <p class="linkTitle" ><%= evidenceLink[j] %></p>
+                                    </div> 
+                                <% } %>
+                                
+                            <% } %>
+                        
+                        </div>
+                    <%} %>
+                       
+                <%} %> 
+            <% } %>
+            
         <% } %>
-        <hr class="borderColor" style="margin-top:10px">
-        <% } %>
-    <% } %>
     </div>
-
-
+    
+    <hr>
+    <% pageNo = pageNo + 1; %>
+    <div style="height:52px; padding:12px;background-color: #f8c703;color: black;font-size: 22px;">
+             <span style="float: right;color: #024F9D;padding-right: 15px;">  <%= pageNo %></span>
+        </div>
+    <div class="thanks"><p style="font-size: 28px;">Thank You!</p></div>
+   
+    
+    
 </body>
-
 </html>
