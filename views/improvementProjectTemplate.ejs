@@ -2,11 +2,8 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-    <!-- jQuery library -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <!-- Latest compiled JavaScript -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="style.css">
     <style>
        hr {
             visibility: hidden;
@@ -94,7 +91,8 @@
             font-weight: 550;
         }
         .row{
-            margin-top: 5px;
+            margin-top: 4px;
+            margin-right: 70px;
         }
         .progressbarText {
             margin-bottom: 2.5px;
@@ -110,6 +108,8 @@
             font-weight: 550;
             margin-top: 15px;
             margin-left: 55px;
+            margin-right: 55px;
+            
         }
         .subtaskContainer {
             position: relative; 
@@ -142,13 +142,20 @@
             width: 100%;
             margin-top: 15%;
         }
+        .pageHeader {
+            padding:12px;
+            background-color: #f8c703;
+            color: black;
+            font-size: 22px; 
+            padding-left: 55px;
+        }
     
     </style>
 </head>
 <% let pageNo =1 %>
-<body class="container" style="padding: 0px; margin: 0;">
+<body style="padding: 0px; margin: 0;">
     <!--project details section-->
-    <div style="padding:12px;background-color: #f8c703;color: black;font-size: 22px; padding-left: 55px;">
+    <div style="padding:12px;background-color: #f8c703;color: black;font-size: 22px; padding-left: 55px; ">
         Project Details <span style="float: right; color: #024F9D; padding-right: 15px;">  <%= pageNo %></span>
     </div>
     <div style="font-size: 16px;padding-left:70px">
@@ -215,7 +222,7 @@
                     <p class= "progressbarText"><%=data.tasksArray.length%>/<%=data.tasksArray.length%> tasks submitted</p>
                     <div id="progress-0"></div>
                 <% } else if(data.response.status == "in progress" || data.response.status == "inprogress") {%>
-                <p class ="progressbarText" style="margin-top:2px;">In Progress</p>
+                <p class ="progressbarText">In Progress</p>
                 <progress value="60" max="100"></progress>
                 <% } else if(data.response.status == "not started yet" || data.response.status == "not yet started" || data.response.status == "notstarted") {%>
                 <p class= "progressbarText">Not started</p>
@@ -233,8 +240,9 @@
         
     <!-- show only when any one of the evidence is present-->
     <% if ( data.response.remarks !== "" || data.response.imageLink.length > 0 || data.response.evidenceLink.length > 0 ) { %>
+        
         <% pageNo = pageNo + 1; %>
-        <div style="padding:12px;padding-top:0px;background-color: #f8c703;color: black;font-size: 22px; padding-left: 55px;">
+        <div class="pageHeader">
             Project Evidences <span style="float: right;color: #024F9D; padding-right: 15px;"> <%= pageNo %></span>
         </div>
         <div class="projectEvidences" style="font-size: 16px;">
@@ -267,7 +275,7 @@
                             <% pageNo = pageNo + 1; %>
                              
                             <hr>
-                            <div style="padding:12px;padding-top:0px;background-color: #f8c703;color: black;font-size: 22px; padding-left: 55px;">
+                            <div class="pageHeader">
                                 Project Evidences <span style="float: right;color: #024F9D;padding-right: 15px;">  <%= pageNo %></span>
                             </div>
                             <%
@@ -285,7 +293,7 @@
             <% if ( data.response.evidenceLink.length > 0 ) { %>
                 <!--add evidence links-->
                 <hr>
-                <div style="padding:12px;padding-top:0px;background-color: #f8c703;color: black;font-size: 22px;padding-left: 55px;">
+                <div class="pageHeader">
                     Project Evidences <span style="float: right;color: #024F9D; padding-right: 15px;">  <%= ++pageNo %></span>
                 </div>
                 <div class="row" style="padding-left: 70px;">
@@ -301,7 +309,7 @@
                          
                          <hr>
                         
-                        <div style="padding:12px;padding-top:0px;background-color: #f8c703;color: black;font-size: 22px;padding-left: 55px;">
+                         <div class="pageHeader">
                             Project Evidences <span style="float: right;color: #024F9D;padding-right: 15px;">  <%= pageNo %></span>
                         </div>
                         <%
@@ -325,7 +333,7 @@
             <% for (let i = 0; i< data.tasksArray.length; i++) { %>
                 <hr>
                 <% pageNo = pageNo + 1; %>
-                <div style="padding:12px;padding-top:0px;background-color: #f8c703;color: black;font-size: 22px;padding-left: 55px;">
+                <div class="pageHeader">
                     Task Details <span style="float: right; color: #024F9D;padding-right: 15px;">  <%= pageNo %></span>
                 </div>
                 <!--populate task name-->
@@ -376,8 +384,8 @@
                              
                              <hr>
                             
-                            <div style="padding:10px;padding-top:0px;background-color: #f8c703;color: black;font-size: 24px;">
-                                Task Details <span style="float: right;">  <%= pageNo %></span>
+                             <div class="pageHeader">
+                                Task Details <span style="float: right; color: #024F9D;padding-right: 15px;">  <%= pageNo %></span>
                             </div>
                             
                         <% } %>
@@ -406,13 +414,13 @@
                         <% pageNo = pageNo + 1; %>
                         <hr>
                         
-                        <div style="padding:12px;padding-top:0px;background-color: #f8c703;color: black;font-size: 22px; padding-left: 55px;">
+                        <div class="pageHeader">
                         Task Evidences <span style="float: right; color: #024F9D; padding-right: 15px;">  <%= pageNo %></span>
                         </div>
                     
-                        <div class="taskEvidences" style="font-size: 16px; padding-left:70px;">
+                        <div class="taskEvidences" >
                             <!--adding remarks-->
-                            <div class="row">
+                            <div class="row" style="font-size: 16px; padding-left:70px;">
                                 <div class="titleDiv">
                                     <p class="title">Remarks :</p>
                                 </div>
@@ -429,7 +437,7 @@
                             <% if ( evidenceImage.length > 0 ) { %>
                         
                                 <!--adding images title-->
-                                <div class="row">
+                                <div class="row" style="font-size: 16px; padding-left:70px;">
                                     <div class="titleDiv">
                                         <p class="title">Images :</p>
                                     </div>
@@ -441,12 +449,12 @@
                                         
                                         <hr>
                                     
-                                        <div style="padding:12px;padding-top:0px;background-color: #f8c703;color: black;font-size: 22px;   padding-left: 55px;">
+                                        <div class="pageHeader">
                                             Task Evidences <span style="float: right;color: #024F9D;padding-right: 15px;">  <%= pageNo %></span>
                                         </div>
                         
                                     <% } %>
-                                    <div class="box">
+                                    <div class="box" style="font-size: 16px; padding-left:70px;">
                                         <img src="<%= evidenceImage[j] %>">
                                     </div>
                                 
@@ -459,27 +467,28 @@
                             <% if ( evidenceLink.length > 0 ) { %>
                                 <hr>
                                 <!--add evidence links-->
-                                <div style="padding:12px;padding-top:0px;background-color: #f8c703;color: black;font-size: 22px;">
+                                <div class="pageHeader">
                                     Task Evidences <span style="float: right;color: #024F9D;padding-right: 15px;">  <%= ++pageNo %></span>
                                 </div>
-                                <div class="row">
+                                <div class="row" style="font-size: 16px; padding-left:70px;">
                                     <div class="titleDiv" style="margin-top: 20px;">
                                         <p class="title">Links :</p>
                                     </div>
                                 </div>
                                 <!--add links-->
                                 <% for ( let j = 0; j < evidenceLink.length; j++ ) { %>
-                                    <% if(j!=0 && j%4==0){%>  
+                                    <% if(j!=0 && j%2==0){%>  
                                         <% pageNo = pageNo + 1; %>
                                         <hr>
                                     
-                                        <div style="padding:10px;padding-top:0px;background-color: #f8c703;color: black;font-size: 24px;">
+                                        <div class="pageHeader">
                                             Task Evidences <span style="float: right;">  <%= pageNo %></span>
                                         </div>
                                     <% } %>
-                                    <div class="row">
-                                        <p class="linkTitle"><%= evidenceLink[j] %></p>
-                                    </div>
+                                   
+                                   <div class="row" style="font-size: 14px; padding-left: 70px;"> 
+                                       <p class="linkTitle" ><%= evidenceLink[j] %></p>
+                                    </div> 
                                 <% } %>
                                 
                             <% } %>
@@ -488,7 +497,6 @@
                     <%} %>
                        
                 <%} %> 
-
             <% } %>
             
         <% } %>
@@ -496,8 +504,8 @@
     
     <hr>
     <% pageNo = pageNo + 1; %>
-        <div style="height:35px;padding:10px;padding-top:0px;background-color: #f8c703;color: black;font-size: 24px;">
-             <span style="float: right;">  <%= pageNo %></span>
+    <div style="height:52px; padding:12px;background-color: #f8c703;color: black;font-size: 22px;">
+             <span style="float: right;color: #024F9D;padding-right: 15px;">  <%= pageNo %></span>
         </div>
     <div class="thanks"><p style="font-size: 28px;">Thank You!</p></div>
    
