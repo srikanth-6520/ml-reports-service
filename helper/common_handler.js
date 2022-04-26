@@ -274,14 +274,14 @@ exports.pdfGeneration = async function pdfGeneration(instaRes, storeReportsToS3 
                                             rp(optionsHtmlToPdf)
                                                 .then(function (responseHtmlToPdf) {
 
-                                                    // console.log("optionsHtmlToPdf", optionsHtmlToPdf.formData.files);
+                                                    
                                                     var pdfBuffer = Buffer.from(responseHtmlToPdf.body);
                                                     if (responseHtmlToPdf.statusCode == 200) {
                                                         fs.writeFile(dir + '/pdfReport.pdf', pdfBuffer, 'binary', function (err) {
                                                             if (err) {
                                                                 return console.log(err);
                                                             }
-                                                            // console.log("The PDF was saved!");
+                                                            
                                                             const s3 = new AWS.S3(gen.utils.getAWSConnection());
                                                             const uploadFile = () => {
                                                                 fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
@@ -2603,7 +2603,7 @@ exports.entityCriteriaPdfReportGeneration = async function (responseData, storeR
                                                             if (err) {
                                                                 return console.log(err);
                                                             }
-                                                            // console.log("The PDF was saved!");
+                                                            
                                                             const s3 = new AWS.S3(gen.utils.getAWSConnection());
                                                             const uploadFile = () => {
                                                                 fs.readFile(dir + '/pdfReport.pdf', (err, data) => {
@@ -3530,7 +3530,7 @@ async function getPercentages(data, target = 100) {
 exports.improvementProjectPdfGeneration = async function (responseData) {
 
     return new Promise(async function (resolve, reject) {
-
+        
         let currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
 
         let imgPath = __dirname + '/../' + currentTempFolder;
@@ -3550,7 +3550,7 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
         }
 
         try {
-
+            
             let FormData = [];
 
             let obj = {
@@ -3558,7 +3558,7 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
                 tasksArray: responseData.tasks,
                 response: responseData
             }
-
+            
             ejs.renderFile(__dirname + '/../views/improvementProjectTemplate.ejs', {
                 data: obj
             })
@@ -3575,6 +3575,7 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
                         } else {
 
                             let optionsHtmlToPdf = gen.utils.getGotenbergConnection();
+                            
                             optionsHtmlToPdf.formData = {
                                 files: [
                                 ]
@@ -3584,23 +3585,40 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
                                 options: {
                                     filename: 'index.html'
                                 }
+                                
+                            });
+                            FormData.push({
+                                value: fs.createReadStream(dir + '/style.css'),
+                                options: {
+                                    filename: 'style.css'
+                                }
                             });
                             optionsHtmlToPdf.formData.files = FormData;
-
+                            optionsHtmlToPdf.formData.paperHeight = 3.9;
+                            optionsHtmlToPdf.formData.emulatedMediaType = "screen";
+                            optionsHtmlToPdf.formData.marginRight = 0;
+                            optionsHtmlToPdf.formData.marginLeft = 0;
+                            optionsHtmlToPdf.formData.marginTop = 0;
+                            optionsHtmlToPdf.formData.marginBottom = 0;
+                            
+                            
 
                             rp(optionsHtmlToPdf)
                                 .then(function (responseHtmlToPdf) {
 
                                     let pdfBuffer = Buffer.from(responseHtmlToPdf.body);
+                                    
                                     if (responseHtmlToPdf.statusCode == 200) {
-
+                                       
                                         let pdfFile = uuidv4() + ".pdf";
+                                        
                                         fs.writeFile(dir + '/' + pdfFile, pdfBuffer, 'binary', async function (err) {
                                             if (err) {
+                                                
                                                 return console.log(err);
                                             }
                                             else {
-
+                                                
                                                 let uploadFileResponse = await uploadPdfToCloud(pdfFile, dir);
 
                                                 if (uploadFileResponse.success) {
@@ -3667,6 +3685,7 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
                 })
         }
         catch (err) {
+            
             resolve(err);
         }
 
@@ -3884,7 +3903,7 @@ const getDownloadableUrl = async function (filePath) {
      return new Promise(async function (resolve, reject) {
  
          try {
- 
+            
              let response = await kendraHelper.getDownloadableUrl
              (
                  filePath
