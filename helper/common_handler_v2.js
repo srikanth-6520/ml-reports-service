@@ -1461,6 +1461,14 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData) {
                                     filename: 'index.html'
                                 }
                             });
+
+                            FormData.push({
+                                value: fs.createReadStream(dir + '/style.css'),
+                                options: {
+                                    filename: 'style.css'
+                                }
+                            });
+
                             optionsHtmlToPdf.formData.files = FormData;
 
 
@@ -2303,6 +2311,7 @@ exports.unnatiEntityReportPdfGeneration = async function (entityReportData) {
                         filename: imgName,
                     }
                 })
+                
             }
 
             //get the chart object
@@ -2343,6 +2352,14 @@ exports.unnatiEntityReportPdfGeneration = async function (entityReportData) {
                                     filename: 'index.html'
                                 }
                             });
+
+                            formData.push({
+                                value: fs.createReadStream(dir + '/style.css'),
+                                options: {
+                                    filename: 'style.css'
+                                }
+                            });
+
                             optionsHtmlToPdf.formData.files = formData;
 
                             rp(optionsHtmlToPdf)
