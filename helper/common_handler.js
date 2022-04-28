@@ -3558,7 +3558,7 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
                 tasksArray: responseData.tasks,
                 response: responseData
             }
-            console.log("Data sending to ejs file : ",JSON.stringify(obj))
+            
             ejs.renderFile(__dirname + '/../views/improvementProjectTemplate.ejs', {
                 data: obj
             })
@@ -3571,7 +3571,7 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
 
                     fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
                         if (errWriteFile) {
-                            console.log("error while rendering : ",errWriteFile)
+                            
                             throw errWriteFile;
                         } else {
 
@@ -3619,7 +3619,7 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
                                                 return console.log(err);
                                             }
                                             else {
-                                                console.log("pdf data stoted in : ",dir + '/' + pdfFile)
+                                                
                                                 let uploadFileResponse = await uploadPdfToCloud(pdfFile, dir);
 
                                                 if (uploadFileResponse.success) {
@@ -3659,7 +3659,7 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
                                                         });
                                                     }
                                                     else {
-                                                        console.log("pdf download link generation failed")
+                                                        
                                                         return resolve({
                                                             status: filesHelper.status_failure,
                                                             message: pdfDownloadableUrl.message ? pdfDownloadableUrl.message : filesHelper.could_not_generate_pdf,
@@ -3668,7 +3668,7 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
                                                     }
                                                 }
                                                 else {
-                                                    console.log("upload to cloud failed")
+                                                    
                                                     return resolve({
                                                         status: filesHelper.status_failure,
                                                         message: uploadFileResponse.message ? uploadFileResponse.message : filesHelper.could_not_generate_pdf,
@@ -3681,7 +3681,6 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
                                     }
 
                                 }).catch(err => {
-                                    console.log("gotenberg error : ",JSON.stringify(err))
                                     resolve(err);
                                 })
                         }
@@ -3689,7 +3688,6 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
                 })
         }
         catch (err) {
-            console.log("error : ",JSON.stringify(err))
             resolve(err);
         }
 
