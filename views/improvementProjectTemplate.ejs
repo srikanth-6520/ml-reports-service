@@ -10,17 +10,22 @@
             page-break-after: always;
         }
          progress::-moz-progress-bar {
-            background: #91d050;
+            background: orange;
+            border-radius: 5px;
             
         }
         progress::-webkit-progress-value {
-            background: #91d050;
+            background: orange;
+            border-radius: 5px;
         }
         audio,canvas,progress,video {
             display: inline-block;
             vertical-align: baseline;
-            height: 12px;
+            height: 8px;
             width: 320px;
+            background-color: orange;
+            border: none;
+            border-radius: 5px;
         }
         
         .footer {
@@ -44,7 +49,7 @@
             height: 8px;
             border: none;
             width: 320px;
-            background: #81d6f0 !important;
+            background: gray !important;
             text-align: center;
             border-radius: 5px;
             
@@ -91,7 +96,6 @@
             font-weight: 550;
         }
         .row{
-            margin-top: 4px;
             margin-right: 70px;
         }
         .progressbarText {
@@ -148,6 +152,7 @@
             color: black;
             font-size: 22px; 
             padding-left: 55px;
+            margin-bottom: 10px;
         }
     
     </style>
@@ -155,12 +160,12 @@
 <% let pageNo =1 %>
 <body style="padding: 0px; margin: 0;">
     <!--project details section-->
-    <div style="padding:12px;background-color: #f8c703;color: black;font-size: 22px; padding-left: 55px; ">
+    <div class= "pageHeader">
         Project Details <span style="float: right; color: #024F9D; padding-right: 15px;">  <%= pageNo %></span>
     </div>
     <div style="font-size: 16px;padding-left:70px">
     
-        <div class="row" >
+        <div class="row">
             <div class="titleDiv">
                 <p class="title">Project Name : </p>
             </div>
@@ -184,31 +189,46 @@
                 <p><%= data.response.description %></p>
             </div>
         </div>
-        <div class="row">
-            <div class="titleDiv">
-                <p class="title">Recommended For :</p>
+        <%if ( data.response.recommendedForRoles.length > 0) {%>
+            <div class="row">
+                <div class="titleDiv">
+                    <p class="title">Recommended For :</p>
+                </div>
+                <div class = "titleData">
+                    <p><%= data.response.recommendedForRoles %></p>
+                </div>
             </div>
-            <div class = "titleData">
-                <p><%= data.response.recommendedForRoles %></p>
-            </div>
-        </div>
+        <%}%>
         
         <div class="row" >
             <div class="titleDiv">
                 <p class="title">Categories :</p>
             </div>
-            <div class = "titleData">
-                <p><%= data.response.category %></p>
-            </div>
+            <% if ( data.response.category.length > 0 ) { %>
+                <% let categoryValues = ""%>
+                <% data.response.category.forEach(category=>{%>
+                    <% if(categoryValues == "") { %>
+                        <% categoryValues = category  %>
+                    <%} else {%>
+                        <% categoryValues = categoryValues + " , " + category  %>
+                    <%}%>
+                <%})%>
+                <div class = "titleData">
+                    <p><%= categoryValues %></p>
+                </div>
+            <% } %>
+            
         </div>
-        <div class="row">
-            <div class="titleDiv">
-                <p class="title">Duration :</p>
+        <% if (data.response.duration !== "") {%>
+            <div class="row">
+                <div class="titleDiv">
+                    <p class="title">Duration :</p>
+                </div>
+                <div class = "titleData">
+                    <p><%= data.response.duration %></p>
+                </div>
             </div>
-            <div class = "titleData">
-                <p><%= data.response.duration %></p>
-            </div>
-        </div>
+        <%}%>
         <div class="row" style="position: relative;">
             <div style="width:auto; float:left;position: absolute; bottom:0;">
                 <p class="title" style="margin:auto">Project Status</p>
@@ -216,13 +236,13 @@
             <div style="width:60%; margin-left: 20%;margin-bottom:7px;">
                 <% data.response.status = data.response.status.toLowerCase() %>
                 <% if(data.response.status == "completed") { %>
-                    <p class= "progressbarText"><%=data.tasksArray.length%>/<%=data.tasksArray.length%> tasks completed</p>
+                    <p class= "progressbarText"><%=data.response.completedTaskCount%>/<%=data.tasksArray.length%> tasks completed</p>
                     <div id="progress-0"></div>
                 <% } else if(data.response.status == "submitted") { %>
-                    <p class= "progressbarText"><%=data.tasksArray.length%>/<%=data.tasksArray.length%> tasks submitted</p>
+                    <p class= "progressbarText"><%=data.response.completedTaskCount%>/<%=data.tasksArray.length%> tasks submitted</p>
                     <div id="progress-0"></div>
                 <% } else if(data.response.status == "in progress" || data.response.status == "inprogress") {%>
-                <p class ="progressbarText">In Progress</p>
+                <p class ="progressbarText"><%=data.response.completedTaskCount%>/<%=data.tasksArray.length%>In Progress</p>
                 <progress value="60" max="100"></progress>
                 <% } else if(data.response.status == "not started yet" || data.response.status == "not yet started" || data.response.status == "notstarted") {%>
                 <p class= "progressbarText">Not started</p>
@@ -240,7 +260,7 @@
         
     <!-- show only when any one of the evidence is present-->
     <% if ( data.response.remarks !== "" || data.response.imageLink.length > 0 || data.response.evidenceLink.length > 0 ) { %>
-        
+        <hr>
         <% pageNo = pageNo + 1; %>
         <div class="pageHeader">
             Project Evidences <span style="float: right;color: #024F9D; padding-right: 15px;"> <%= pageNo %></span>
@@ -252,11 +272,11 @@
                     <p class="title">Remarks :</p>
                 </div>
                 <div class = "titleData">
-                    <% let remark ; %> 
                     <% if ( !data.response.remarks || data.response.remarks == "" ) { %>
-                        <% remark = "N/A" %>
-                    <% } else { remark = data.response.remarks  } %>
-                    <p><%= remark %></p>
+                        <p style="color: #138ef2;">N/A</p>
+                    <% } else { %>
+                        <p ><%= data.response.remarks %></p>    
+                    <% } %>
                 </div>
            </div>
             
@@ -302,6 +322,7 @@
                     </div>
                 </div>
                 <!--add links-->
+
                 <% for ( let i = 0; i < data.response.evidenceLink.length; i++ ) { %>
                     <% if(i!=0 && i%4==0){
                         %>  
@@ -314,9 +335,23 @@
                         </div>
                         <%
                     } %>
-                     <div class="row" style="font-size: 14px; padding-left: 70px;">
-                        <p class="linkTitle"><%= data.response.evidenceLink[i] %></p>
-                    </div>
+                    
+                    <%if ( data.response.evidenceLink[i].type == "link" ) {%>
+                        <% let linkUrl %>
+                        <% if (data.response.evidenceLink[i].url.indexOf('://') > 0 || data.response.evidenceLink[i].url.indexOf('//') === 0 ) { %>
+                            <%linkUrl = data.response.evidenceLink[i].url%>
+                        <% } else { %>
+                            <%linkUrl = "http://"+data.response.evidenceLink[i].url%>
+                        <% } %>
+                        <div class="row" style="font-size: 14px; padding-left: 70px;">
+                            <p class="linkTitle">Link- <%=i+1%>.<a href="<%= linkUrl %>"><%= data.response.evidenceLink[i].type%></a></p>
+                        </div>
+                    <%} else { %>
+                        <div class="row" style="font-size: 14px; padding-left: 70px;">
+                            <p class="linkTitle">Link- <%=i+1%>.<a href="<%= data.response.evidenceLink[i].url %>"><%= data.response.evidenceLink[i].type%></a></p>
+                        </div>
+                    <% } %>
+
                 <% } %>
                 
             <% } %>
@@ -331,37 +366,49 @@
         <% if (data.tasksArray && data.tasksArray.length > 0) { %>
             <!--populate data for each task-->
             <% for (let i = 0; i< data.tasksArray.length; i++) { %>
+                <%
+                let skipHeader= false;
+                if( data.tasksArray[i].children && data.tasksArray[i].children.length == 0
+                 ) { 
+                    skipHeader =true;
+
+                  } 
+                  if( ((i+1)%2==0) && skipHeader==true && data.tasksArray[i-1].remarks && data.tasksArray[i-1].remarks !== "" ){
+                    skipHeader =false;
+                  }
+                  
+                  %>
+                  <% if( ((i+1)%2==0) && skipHeader==true
+                    && data.tasksArray[i-1].attachments.length ==0 && data.tasksArray[i-1].children && data.tasksArray[i-1].children.length == 0){ } else { %>
                 <hr>
                 <% pageNo = pageNo + 1; %>
                 <div class="pageHeader">
                     Task Details <span style="float: right; color: #024F9D;padding-right: 15px;">  <%= pageNo %></span>
                 </div>
+                <% } %>
                 <!--populate task name-->
                 <p class="taskName"><%= data.tasksArray[i].name %></p>
                 <!--populate task status-->
                 <div class="row" style="position: relative; padding-left: 70px;">
                     <div style="width:auto; float:left;position: absolute; bottom:0; ">
-                        <p class="title" style="margin:auto">Project Status</p>
+                        <p class="title" style="margin:auto">Task Status</p>
                     </div>
                     <div style="width:60%; margin-left: 20%;margin-bottom:7px;">
                         <% data.tasksArray[i].status = data.tasksArray[i].status.toLowerCase() %>
                         <% if(data.tasksArray[i].status == "completed") { %>
-                            <p class= "progressbarText">completed</p>
+                            <p class= "progressbarText">Completed</p>
                             <div id="progress-0"></div>
                         <% } else if(data.tasksArray[i].status == "submitted") { %>
-                            <p class= "progressbarText">submitted</p>
+                            <p class= "progressbarText">Submitted</p>
                             <div id="progress-0"></div>
         
                         <% } else if(data.tasksArray[i].status == "in progress" || data.tasksArray[i].status == "inprogress") {%>
                             <p class ="progressbarText" style="margin-top:2px;">In Progress</p>
                             <progress value="60" max="100"></progress>
         
-                        <% } else if(data.tasksArray[i].status == "not started yet" || data.tasksArray[i].status == "not yet started" || data.tasksArray[i].status == "notstarted") {%>
-                        <p class= "progressbarText">Not started</p>
-                        <div id="progress-1"></div>
-                        <% } else if(data.tasksArray[i].status == "started") { %>
-                            <p class= "progressbarText">Started</p>
-                            <div id="progress-1"></div>
+                        <% } else {%>
+                                <p class= "progressbarText">Not started</p>
+                                <div id="progress-1"></div>
                         <% } %>
         
                     </div>
@@ -377,7 +424,9 @@
                         <div id="stylebar"></div>
                         
                     </div>
-                    <% for (let j = 0; j< data.tasksArray[i].children.length; j++) { %>
+                    <%
+                    
+                    for (let j = 0; j< data.tasksArray[i].children.length; j++) { %>
                         <% if(j!=0 && j%2==0){ %>  
                             
                             <% pageNo = pageNo + 1; %>
@@ -391,7 +440,8 @@
                         <% } %>
                         <!--add subtask name -->
                         <p class="subtaskName"><%= data.tasksArray[i].children[j].name %></p>   
-                    <% } %>
+                    <% }
+                          %>
                 <% } %>
                 <div id="taskEndBar"></div>
                 <!--add task evidences-->
@@ -419,17 +469,20 @@
                         </div>
                     
                         <div class="taskEvidences" >
+                            
                             <!--adding remarks-->
                             <div class="row" style="font-size: 16px; padding-left:70px;">
                                 <div class="titleDiv">
-                                    <p class="title">Remarks :</p>
+                                    <p class="title">Remarks : </p>
                                 </div>
                                 <div class = "titleData">
                                     <% let remark ; %> 
-                                    <% if ( !data.tasksArray[i].remark || data.tasksArray[i].remark == "" ) { %>
-                                        <% remark = "N/A" %>
-                                    <% } else { remark = data.tasksArray[i].remark  } %>
-                                    <p><%= remark %></p>
+                                    <% if ( !data.tasksArray[i].remarks || data.tasksArray[i].remarks == "" ) { %>
+                                        <p style="color:#138ef2">N/A</p>
+                                    <% } else { %>
+                                        <p> <%= data.tasksArray[i].remarks  %> </p>
+                                    <%} %>
+                                    
                                 </div>
                             </div>
                         
@@ -497,6 +550,7 @@
                     <%} %>
                        
                 <%} %> 
+                <!-- <% if(data.tasksArray.length > 0 && ((i+1)%2==0))  { %> <hr> <% } %> -->
             <% } %>
             
         <% } %>
