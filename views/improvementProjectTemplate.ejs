@@ -9,23 +9,33 @@
             visibility: hidden;
             page-break-after: always;
         }
-         progress::-moz-progress-bar {
-            background: orange;
-            border-radius: 5px;
+        
+        progress {
+            border: 0;
+            height: 8px;
+            border-radius: 20px;
+           
+            width: 320px;
+        }
+        progress::-webkit-progress-bar {
+            border: 0;
+            height: 8px;
+            border-radius: 20px;
+            width: 320px;
             
         }
         progress::-webkit-progress-value {
-            background: orange;
-            border-radius: 5px;
-        }
-        audio,canvas,progress,video {
-            display: inline-block;
-            vertical-align: baseline;
+            border: 0;
             height: 8px;
-            width: 320px;
-            background-color: orange;
-            border: none;
             border-radius: 5px;
+            background-color: orange;
+        }
+        progress::-moz-progress-bar {
+            border: 0;
+            height: 8px;
+            border-radius: 5px;
+            width: 320px;
+           
         }
         
         .footer {
@@ -152,7 +162,7 @@
             color: black;
             font-size: 22px; 
             padding-left: 55px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
     
     </style>
@@ -242,7 +252,7 @@
                     <p class= "progressbarText"><%=data.response.completedTaskCount%>/<%=data.tasksArray.length%> tasks submitted</p>
                     <div id="progress-0"></div>
                 <% } else if(data.response.status == "in progress" || data.response.status == "inprogress") {%>
-                <p class ="progressbarText"><%=data.response.completedTaskCount%>/<%=data.tasksArray.length%>In Progress</p>
+                <p class ="progressbarText"><%=data.response.completedTaskCount%>/<%=data.tasksArray.length%> In Progress</p>
                 <progress value="60" max="100"></progress>
                 <% } else if(data.response.status == "not started yet" || data.response.status == "not yet started" || data.response.status == "notstarted") {%>
                 <p class= "progressbarText">Not started</p>
@@ -453,9 +463,21 @@
                         <%data.tasksArray[i].attachments.forEach( attachment => { %>
                             <%if ( attachment.type == "image/jpeg"  && attachment.url !== "" ) { %>
                                 <%evidenceImage.push(attachment.url) %>
-                            <%} else if ( attachment.url !== "" ) { %>
-                                <%evidenceLink.push(attachment.url) %>
-                            <%} %>
+                            <%} else if ( attachment.type == "link" && attachment.url && attachment.url !== "" ) { %>
+                                <% 
+                                    let data = {
+                                        type: attachment.type,
+                                        url: attachment.name
+                                    } %>
+                                <%evidenceLink.push(data) %>
+                            <%} else if( attachment.url && attachment.url !== "" ) {%>
+                                <% 
+                                    let data = {
+                                        type: attachment.type,
+                                        url: attachment.url
+                                    } %>
+                            <%evidenceLink.push(data) %>
+                            <%}%>
                         <% }) %>
                     <% } %>
                     
@@ -516,7 +538,7 @@
                             <% } %>
                         
                         
-            
+                            
                             <% if ( evidenceLink.length > 0 ) { %>
                                 <hr>
                                 <!--add evidence links-->
@@ -529,6 +551,7 @@
                                     </div>
                                 </div>
                                 <!--add links-->
+                                
                                 <% for ( let j = 0; j < evidenceLink.length; j++ ) { %>
                                     <% if(j!=0 && j%2==0){%>  
                                         <% pageNo = pageNo + 1; %>
@@ -538,11 +561,25 @@
                                             Task Evidences <span style="float: right;">  <%= pageNo %></span>
                                         </div>
                                     <% } %>
-                                   
-                                   <div class="row" style="font-size: 14px; padding-left: 70px;"> 
-                                       <p class="linkTitle" ><%= evidenceLink[j] %></p>
-                                    </div> 
+                                    
+
+                                    <%if ( evidenceLink[j].type == "link" ) {%>
+                                        <% let linkUrl %>
+                                        <% if (evidenceLink[j].url.indexOf('://') > 0 || evidenceLink[j].url.indexOf('//') === 0 ) { %>
+                                            <%linkUrl = evidenceLink[i].url%>
+                                        <% } else { %>
+                                            <%linkUrl = "http://"+evidenceLink[j].url%>
+                                        <% } %>
+                                        <div class="row" style="font-size: 14px; padding-left: 70px;">
+                                            <p class="linkTitle">Link- <%=j+1%>.<a href="<%= linkUrl %>"><%= evidenceLink[j].type%></a></p>
+                                        </div>
+                                    <%} else { %>
+                                        <div class="row" style="font-size: 14px; padding-left: 70px;">
+                                            <p class="linkTitle">Link- <%=j+1%>.<a href="<%= evidenceLink[j].url %>"><%= evidenceLink[j].type%></a></p>
+                                        </div>
+                                    <% } %>
                                 <% } %>
+                                
                                 
                             <% } %>
                         
