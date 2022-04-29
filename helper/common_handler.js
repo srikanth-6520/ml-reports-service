@@ -3531,6 +3531,7 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
 
     return new Promise(async function (resolve, reject) {
         
+        
         let currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
 
         let imgPath = __dirname + '/../' + currentTempFolder;
@@ -3542,17 +3543,27 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
         let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
        
         let subTasksCount = 0;
-        
+        let completedTaskCount = 0;
         if (responseData.tasks.length > 0) {
             responseData.tasks.forEach(element => {
                subTasksCount = subTasksCount + element.children.length;
+               if ( element.status == "completed") {
+                    completedTaskCount++;
+               }
             });
         }
+        
+        responseData.taskcompleted = completedTaskCount;
+        if ( completedTaskCount == responseData.tasks.length ) {
+            responseData.status="completed"
+        }
+        responseData.completedTaskCount = completedTaskCount;
 
+        
         try {
             
             let FormData = [];
-
+            
             let obj = {
                 subTasks: subTasksCount,
                 tasksArray: responseData.tasks,
@@ -3595,7 +3606,7 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
                                 }
                             });
                             optionsHtmlToPdf.formData.files = FormData;
-                            optionsHtmlToPdf.formData.paperHeight = 3.9;
+                            optionsHtmlToPdf.formData.paperHeight = 4.2;
                             optionsHtmlToPdf.formData.emulatedMediaType = "screen";
                             optionsHtmlToPdf.formData.marginRight = 0;
                             optionsHtmlToPdf.formData.marginLeft = 0;
@@ -3619,7 +3630,7 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
                                                 return console.log(err);
                                             }
                                             else {
-                                                
+                            
                                                 let uploadFileResponse = await uploadPdfToCloud(pdfFile, dir);
 
                                                 if (uploadFileResponse.success) {
@@ -3698,7 +3709,7 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
 exports.improvementProjectTaskPdfGeneration = async function (responseData) {
 
     return new Promise(async function (resolve, reject) {
-
+        
         console.log("Debugging Reports Issue");
        
         let currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
@@ -3711,6 +3722,20 @@ exports.improvementProjectTaskPdfGeneration = async function (responseData) {
 
         let bootstrapStream = await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
 
+        let completedTaskCount = 0;
+        if (responseData.tasks.length > 0) {
+            responseData.tasks.forEach(element => {
+               if ( element.status == "completed") {
+                    completedTaskCount++;
+               }
+            });
+        }
+        
+        responseData.taskcompleted = completedTaskCount;
+        if ( completedTaskCount == responseData.tasks.length ) {
+            responseData.status="completed"
+        }
+        responseData.completedTaskCount = responseData.taskcompleted;
         try {
 
             let FormData = [];
@@ -3755,7 +3780,7 @@ exports.improvementProjectTaskPdfGeneration = async function (responseData) {
                                 }
                             });
                             optionsHtmlToPdf.formData.files = FormData;
-                            optionsHtmlToPdf.formData.paperHeight = 3.9;
+                            optionsHtmlToPdf.formData.paperHeight = 4.2;
                             optionsHtmlToPdf.formData.emulatedMediaType = "screen";
                             optionsHtmlToPdf.formData.marginRight = 0;
                             optionsHtmlToPdf.formData.marginLeft = 0;
