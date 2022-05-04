@@ -243,23 +243,20 @@
                 <p class="title" style="margin:auto">Project Status</p>
             </div>
             <div style="width:60%; margin-left: 20%;margin-bottom:7px;">
-                <% data.response.status = data.response.status.toLowerCase() %>
-                <% if(data.response.status == "completed") { %>
+                
+                <% if(data.response.completedTaskCount == data.tasksArray.length) { %>
                     <p class= "progressbarText"><%=data.response.completedTaskCount%>/<%=data.tasksArray.length%> tasks completed</p>
                     <div id="progress-0"></div>
-                <% } else if(data.response.status == "submitted") { %>
-                    <p class= "progressbarText"><%=data.response.completedTaskCount%>/<%=data.tasksArray.length%> tasks submitted</p>
-                    <div id="progress-0"></div>
-                <% } else if(data.response.status == "in progress" || data.response.status == "inprogress") {%>
-                <p class ="progressbarText"><%=data.response.completedTaskCount%>/<%=data.tasksArray.length%> In Progress</p>
-                <progress value="60" max="100"></progress>
-                <% } else if(data.response.status == "not started yet" || data.response.status == "not yet started" || data.response.status == "notstarted") {%>
-                <p class= "progressbarText">Not started</p>
-                <div id="progress-1"></div>
-                <% } else if(data.response.status == "started") { %>
-                    <p class= "progressbarText">Started</p>
+                <% } else if(data.response.completedTaskCount !== 0 && data.response.completedTaskCount < data.tasksArray.length ) { %>
+                    <p class= "progressbarText"><%=data.response.completedTaskCount%>/<%=data.tasksArray.length%> tasks completed</p>
+                    <progress value="60" max="100"></progress>
+                <% } else if(data.response.completedTaskCount == 0) {%>
+                    <p class ="progressbarText"><%=data.response.completedTaskCount%>/<%=data.tasksArray.length%> tasks completed</p>
                     <div id="progress-1"></div>
-                <% } %>
+                <% } else  {%>
+                    <p class ="progressbarText"><%=data.response.completedTaskCount%>/<%=data.tasksArray.length%> tasks completed</p>
+                    <div id="progress-1"></div>
+                <% }  %>
             </div>
         </div>
         
@@ -388,7 +385,7 @@
                   
                   %>
                   <% if( ((i+1)%2==0) && skipHeader==true
-                    && data.tasksArray[i-1].attachments.length ==0 && data.tasksArray[i-1].children && data.tasksArray[i-1].children.length == 0){ } else { %>
+                    && data.tasksArray[i-1].attachments && data.tasksArray[i-1].attachments.length ==0 && data.tasksArray[i-1].children && data.tasksArray[i-1].children.length == 0){ } else { %>
                 <hr>
                 <% pageNo = pageNo + 1; %>
                 <div class="pageHeader">
@@ -462,9 +459,9 @@
                         <%data.tasksArray[i].attachments.forEach( attachment => { %>
                             <%if ( attachment.type == "image/jpeg"  && attachment.url !== "" ) { %>
                                 <%evidenceImage.push(attachment.url) %>
-                            <%} else if ( attachment.type == "link" && attachment.url && attachment.url !== "" ) { %>
+                            <%} else if ( attachment.type == "link" && attachment.name && attachment.name !== "" ) { %>
                                 <% 
-                                    let data = {
+                                     let data = {
                                         type: attachment.type,
                                         url: attachment.name
                                     } %>
@@ -552,7 +549,7 @@
                                 <!--add links-->
                                 
                                 <% for ( let j = 0; j < evidenceLink.length; j++ ) { %>
-                                    <% if(j!=0 && j%2==0){%>  
+                                    <% if(j!=0 && j%4==0){%>  
                                         <% pageNo = pageNo + 1; %>
                                         <hr>
                                     
@@ -563,9 +560,10 @@
                                     
 
                                     <%if ( evidenceLink[j].type == "link" ) {%>
-                                        <% let linkUrl %>
+                                        
+                                        <% let linkUrl  %>
                                         <% if (evidenceLink[j].url.indexOf('://') > 0 || evidenceLink[j].url.indexOf('//') === 0 ) { %>
-                                            <%linkUrl = evidenceLink[i].url%>
+                                            <%linkUrl = evidenceLink[j].url%>
                                         <% } else { %>
                                             <%linkUrl = "http://"+evidenceLink[j].url%>
                                         <% } %>
