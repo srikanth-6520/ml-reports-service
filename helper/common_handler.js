@@ -3552,14 +3552,9 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
                }
             });
         }
-        
-        responseData.taskcompleted = completedTaskCount;
-        if ( completedTaskCount == responseData.tasks.length ) {
-            responseData.status="completed"
-        }
+    
         responseData.completedTaskCount = completedTaskCount;
-
-        
+       
         try {
             
             let FormData = [];
@@ -3630,7 +3625,7 @@ exports.improvementProjectPdfGeneration = async function (responseData) {
                                                 return console.log(err);
                                             }
                                             else {
-                            
+                                                
                                                 let uploadFileResponse = await uploadPdfToCloud(pdfFile, dir);
 
                                                 if (uploadFileResponse.success) {
@@ -3731,10 +3726,6 @@ exports.improvementProjectTaskPdfGeneration = async function (responseData) {
             });
         }
         
-        responseData.taskcompleted = completedTaskCount;
-        if ( completedTaskCount == responseData.tasks.length ) {
-            responseData.status="completed"
-        }
         responseData.completedTaskCount = responseData.taskcompleted;
         try {
 
