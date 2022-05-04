@@ -462,9 +462,9 @@
                         <%data.tasksArray[i].attachments.forEach( attachment => { %>
                             <%if ( attachment.type == "image/jpeg"  && attachment.url !== "" ) { %>
                                 <%evidenceImage.push(attachment.url) %>
-                            <%} else if ( attachment.type == "link" && attachment.url && attachment.url !== "" ) { %>
+                            <%} else if ( attachment.type == "link" && attachment.name && attachment.name !== "" ) { %>
                                 <% 
-                                    let data = {
+                                     let data = {
                                         type: attachment.type,
                                         url: attachment.name
                                     } %>
@@ -552,7 +552,7 @@
                                 <!--add links-->
                                 
                                 <% for ( let j = 0; j < evidenceLink.length; j++ ) { %>
-                                    <% if(j!=0 && j%2==0){%>  
+                                    <% if(j!=0 && j%4==0){%>  
                                         <% pageNo = pageNo + 1; %>
                                         <hr>
                                     
@@ -563,9 +563,10 @@
                                     
 
                                     <%if ( evidenceLink[j].type == "link" ) {%>
-                                        <% let linkUrl %>
+                                        
+                                        <% let linkUrl  %>
                                         <% if (evidenceLink[j].url.indexOf('://') > 0 || evidenceLink[j].url.indexOf('//') === 0 ) { %>
-                                            <%linkUrl = evidenceLink[i].url%>
+                                            <%linkUrl = evidenceLink[j].url%>
                                         <% } else { %>
                                             <%linkUrl = "http://"+evidenceLink[j].url%>
                                         <% } %>
