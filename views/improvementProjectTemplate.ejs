@@ -244,7 +244,7 @@
             </div>
             <div style="width:60%; margin-left: 20%;margin-bottom:7px;">
                 
-                <% if(data.response.completedTaskCount == data.tasksArray.length) { %>
+                <% if(data.tasksArray.length != 0 && data.response.completedTaskCount == data.tasksArray.length) { %>
                     <p class= "progressbarText"><%=data.response.completedTaskCount%>/<%=data.tasksArray.length%> tasks completed</p>
                     <div id="progress-0"></div>
                 <% } else if(data.response.completedTaskCount !== 0 && data.response.completedTaskCount < data.tasksArray.length ) { %>
