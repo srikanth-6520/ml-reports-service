@@ -20,7 +20,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes) {
 
 
     return new Promise(async function (resolve, reject) {
-
+        
         let currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
 
         let imgPath = __dirname + '/../' + currentTempFolder;
@@ -261,7 +261,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes) {
                                                                 return console.log(err);
                                                             }
                                                             else {
-
+                                                                
                                                                 let uploadFileResponse = await uploadPdfToCloud(pdfFile, dir);
 
                                                                 if (uploadFileResponse.success) {
@@ -2626,7 +2626,6 @@ async function copyBootStrapFile(from, to) {
 
 //Prepare chartData for chartjs
 const getChartObject = async function (data) {
-
     let chartOptions = [];
 
     await Promise.all(data.map(chartData => {
@@ -2641,12 +2640,38 @@ const getChartObject = async function (data) {
                plugin : {}
            };
         }
+        /* 10-may-2022 - chartjs-node-canvas doesn't have multiple line title property. So spliting questions into array element of fixed length */
+        let titledata = chartData.question;
+        let word = titledata.split(' ');
+        let titleArray = [];
+        let sentence = "";
+        let titleIndex = 0
+        for ( let index = 0; index < word.length; index++ ) {
+            let upcomingLength = sentence.length + word[index].length;
 
+            if ( upcomingLength <= 101 ) {
+                sentence = sentence + " " + word[index];
+                if ( index == (word.length - 1)){
+                    titleArray[titleArray.length] = sentence ;
+                }
+            } else {
+                titleArray[titleIndex] = sentence ;
+                titleIndex ++ ;
+                sentence = "";
+                sentence = sentence + " " + word[index];
+            }
+            
+        }
+        
         if (!chartObj.options.options.title) {
             chartObj.options.options.title = {
                 display: true,
-                text: chartData.question,
-                fontSize: 22
+                text: titleArray,
+                fontSize: 18,
+                fontFamily: 'Arial',
+                fullSize: true,
+                
+                
             };
         }
         
@@ -2688,14 +2713,13 @@ const createChart = async function (chartData, imgPath) {
     return new Promise(async function (resolve, reject) {
 
         try {
-
+            
             let formData = [];
 
             await Promise.all(chartData.map(async data => {
                 let chartImage = "chartPngImage_" + uuidv4() + "_.png";
 
                 let imgFilePath = imgPath + "/" + chartImage;
-
                 let imageBuffer = await chartJSNodeCanvas.renderToBuffer(data.options);
                 fs.writeFileSync(imgFilePath, imageBuffer);
 
