@@ -2641,32 +2641,35 @@ const getChartObject = async function (data) {
            };
         }
         /* 10-may-2022 - chartjs-node-canvas doesn't have multiple line title property. So spliting questions into array element of fixed length */
-        //split questions into an array
-        let words = chartData.question.split(' ');
-        //maximum character length of a line
-        let sentenceLengthLimit = 101;
         let titleArray = [];
-        let sentence = "";
-        let titleIndex = 0
-        
-        for ( let index = 0; index < words.length; index++ ) {
-            let upcomingLength = sentence.length + words[index].length;
-            //check length of upcoming sentence
-            if ( upcomingLength <= sentenceLengthLimit ) {
-                sentence = sentence + " " + words[index];
-                //add last word 
-                if ( index == (words.length - 1)) {
-                    titleArray[titleArray.length] = sentence ;
+        if ( chartData.question && chartData.question !== "" ) {
+                //split questions into an array
+                let words = chartData.question.split(' ');
+                //maximum character length of a line
+                let sentenceLengthLimit = 101;
+                let sentence = "";
+                let titleIndex = 0
+                
+                for ( let index = 0; index < words.length; index++ ) {
+                    let upcomingLength = sentence.length + words[index].length;
+                    //check length of upcoming sentence
+                    if ( upcomingLength <= sentenceLengthLimit ) {
+                        sentence = sentence + " " + words[index];
+                        //add last word 
+                        if ( index == (words.length - 1)) {
+                            titleArray[titleArray.length] = sentence ;
+                        }
+                    } else {
+                        //add line to title array
+                        titleArray[titleIndex] = sentence ;
+                        titleIndex ++ ;
+                        sentence = "";
+                        sentence = sentence + words[index];
+                    }
+                    
                 }
-            } else {
-                //add line to title array
-                titleArray[titleIndex] = sentence ;
-                titleIndex ++ ;
-                sentence = "";
-                sentence = sentence + words[index];
-            }
-            
         }
+        
         
         if (!chartObj.options.options.title) {
             chartObj.options.options.title = {
