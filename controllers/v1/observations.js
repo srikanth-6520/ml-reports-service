@@ -1833,11 +1833,14 @@ exports.submissionsCount = async function (req, res) {
         bodyParam.filter.value = req.body.observationId;
       }
 
+      console.log(bodyParam,"bodyParam")
+
       //pass the query as body param and get the result from druid
       let options = gen.utils.getDruidConnection();
       options.method = "POST";
       options.body = bodyParam;
       let data = await rp(options);
+      console.log(data, "druid response")
 
       if (!data.length) {
         console.log("Response:",{ resp: { "result": false, "data": { "noOfSubmissions": 0 } }});
@@ -1852,6 +1855,7 @@ exports.submissionsCount = async function (req, res) {
     }
   }
   catch (err) {
+    console.log(err,"error")
     res.status(400);
     let response = {
       result: false,

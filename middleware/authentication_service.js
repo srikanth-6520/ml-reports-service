@@ -9,7 +9,8 @@
  */
 
 var ApiInterceptor = require('../helper/key_cloak_authentication');
-
+const applicationEnv = process.env.APPLICATION_ENV;
+const filesHelper = require('../common/files_helper');
 
 
 /**
@@ -34,6 +35,10 @@ function authenticate(req, res, next) {
             if (result.status == "success") {
                
                 req.userDetails = result.userDetails;
+                if (applicationEnv === filesHelper.loadtestApplicationEnv && req.headers["userid"]) {
+                    req.userDetails.userId = req.headers["userid"];
+                }
+
                 next();
 
             } else {
