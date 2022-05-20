@@ -18,5 +18,6 @@ module.exports = {
     on : "ON",
     off : "OFF",
     no_level_matched : "No Level Matched",
-    NA: "NA"
+    NA: "NA",
+    loadtestApplicationEnv : "loadtest"
 }
