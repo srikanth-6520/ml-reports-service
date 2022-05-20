@@ -20,7 +20,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes) {
 
 
     return new Promise(async function (resolve, reject) {
-
+        
         let currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
 
         let imgPath = __dirname + '/../' + currentTempFolder;
@@ -261,7 +261,7 @@ exports.pdfGeneration = async function pdfGeneration(instaRes) {
                                                                 return console.log(err);
                                                             }
                                                             else {
-
+                                                                
                                                                 let uploadFileResponse = await uploadPdfToCloud(pdfFile, dir);
 
                                                                 if (uploadFileResponse.success) {
@@ -1461,6 +1461,14 @@ exports.unnatiViewFullReportPdfGeneration = async function (responseData) {
                                     filename: 'index.html'
                                 }
                             });
+
+                            FormData.push({
+                                value: fs.createReadStream(dir + '/style.css'),
+                                options: {
+                                    filename: 'style.css'
+                                }
+                            });
+
                             optionsHtmlToPdf.formData.files = FormData;
 
 
@@ -2303,6 +2311,7 @@ exports.unnatiEntityReportPdfGeneration = async function (entityReportData) {
                         filename: imgName,
                     }
                 })
+                
             }
 
             //get the chart object
@@ -2343,6 +2352,14 @@ exports.unnatiEntityReportPdfGeneration = async function (entityReportData) {
                                     filename: 'index.html'
                                 }
                             });
+
+                            formData.push({
+                                value: fs.createReadStream(dir + '/style.css'),
+                                options: {
+                                    filename: 'style.css'
+                                }
+                            });
+
                             optionsHtmlToPdf.formData.files = formData;
 
                             rp(optionsHtmlToPdf)
@@ -2609,7 +2626,6 @@ async function copyBootStrapFile(from, to) {
 
 //Prepare chartData for chartjs
 const getChartObject = async function (data) {
-
     let chartOptions = [];
 
     await Promise.all(data.map(chartData => {
@@ -2624,12 +2640,46 @@ const getChartObject = async function (data) {
                plugin : {}
            };
         }
-
+        /* 10-may-2022 - chartjs-node-canvas doesn't have multiple line title property. So spliting questions into array element of fixed length */
+        let titleArray = [];
+        if ( chartData.question && chartData.question !== "" ) {
+                //split questions into an array
+                let words = chartData.question.split(' ');
+                //maximum character length of a line
+                let sentenceLengthLimit = 101;
+                let sentence = "";
+                let titleIndex = 0
+                
+                for ( let index = 0; index < words.length; index++ ) {
+                    let upcomingLength = sentence.length + words[index].length;
+                    //check length of upcoming sentence
+                    if ( upcomingLength <= sentenceLengthLimit ) {
+                        sentence = sentence + " " + words[index];
+                        //add last word 
+                        if ( index == (words.length - 1)) {
+                            titleArray[titleArray.length] = sentence ;
+                        }
+                    } else {
+                        //add line to title array
+                        titleArray[titleIndex] = sentence ;
+                        titleIndex ++ ;
+                        sentence = "";
+                        sentence = sentence + words[index];
+                    }
+                    
+                }
+        }
+        
+        
         if (!chartObj.options.options.title) {
             chartObj.options.options.title = {
                 display: true,
-                text: chartData.question,
-                fontSize: 22
+                text: titleArray,
+                fontSize: 18,
+                fontFamily: 'Arial',
+                fullSize: true,
+                
+                
             };
         }
         
@@ -2671,14 +2721,13 @@ const createChart = async function (chartData, imgPath) {
     return new Promise(async function (resolve, reject) {
 
         try {
-
+            
             let formData = [];
 
             await Promise.all(chartData.map(async data => {
                 let chartImage = "chartPngImage_" + uuidv4() + "_.png";
 
                 let imgFilePath = imgPath + "/" + chartImage;
-
                 let imageBuffer = await chartJSNodeCanvas.renderToBuffer(data.options);
                 fs.writeFileSync(imgFilePath, imageBuffer);
 

@@ -50,7 +50,7 @@ function getGotenbergConnection() {
 
   let options = {
     method: "POST",
-    uri: process.env.GOTENBERG_URL + "/convert/html",
+    uri: process.env.GOTENBERG_URL + "/forms/chromium/convert/html",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded"
     },
