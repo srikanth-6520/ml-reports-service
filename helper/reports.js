@@ -84,13 +84,15 @@ exports.instaceObservationReport = async function (req, res) {
             bodyParam.dimensions.push('completedDate');
         }
 
+        console.log(bodyParam,"bodyParam")
+
         //pass the query get the result from druid
         let options = gen.utils.getDruidConnection();
         options.method = "POST";
         options.body = bodyParam;
         console.log({druidConnection: options});
         let data = await rp(options);
-
+        console.log(data,"resp druid")
         if (!data.length) {
             let message;
             let getSubmissionStatusResponse = await assessmentService.getObservationSubmissionStatusById
@@ -98,7 +100,7 @@ exports.instaceObservationReport = async function (req, res) {
                     req.body.submissionId,
                     req.headers["x-authenticated-user-token"]
                 )
-            console.log({getSubmissionStatusResponse})    
+            console.log(getSubmissionStatusResponse,"getSubmissionStatusResponse")    
 
             if (getSubmissionStatusResponse.result &&
                 getSubmissionStatusResponse.result.status == filesHelper.submission_status_completed) {
@@ -120,20 +122,24 @@ exports.instaceObservationReport = async function (req, res) {
 
             let evidenceData = await getEvidenceData({ submissionId: req.body.submissionId });
             console.log({getEvidenceData: true});
+            console.log(getEvidenceData,"getEvidenceData")
             //Send report based on input
             console.log({ scores: req.body.scores, criteriaWise: req.body.criteriaWise, criteriaLevelReport })
             if (req.body.scores == false && req.body.criteriaWise == false) {
                 chartData = await helperFunc.instanceReportChart(data);
+                console.log(chartData,"chartData instanceReportChart")
                 chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
                     response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
+                    console.log(response,"response evidenceChartObjectCreation")
                 } else {
                     response = chartData;
                 }
 
                 if (req.body.pdf) {
                     let pdfReport = await pdfHandler.instanceObservationPdfGeneration(response);
+                    console.log(pdfReport,"response instanceObservationPdfGeneration ")
                     return resolve(pdfReport);
                 } else {
                     return resolve(response);
@@ -143,10 +149,12 @@ exports.instaceObservationReport = async function (req, res) {
             if (req.body.scores == true && req.body.criteriaWise == false && criteriaLevelReport == false) {
 
                 chartData = await helperFunc.instanceScoreReportChartObjectCreation(data);
+                console.log(chartData,"chartData instanceScoreReportChartObjectCreation" )
                 chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
                     response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
+                    console.log(response,"response evidenceChartObjectCreation")
                 } else {
                     response = chartData;
                 }
@@ -157,6 +165,7 @@ exports.instaceObservationReport = async function (req, res) {
                         scoreAchieved: response.scoreAchieved
                     }
                     let pdfReport = await pdfHandler.instanceObservationScorePdfGeneration(response, pdfHeaderInput);
+                    console.log(pdfReport,"response instanceObservationScorePdfGeneration ")
                     return resolve(pdfReport);
                     
                 } else {
@@ -168,18 +177,21 @@ exports.instaceObservationReport = async function (req, res) {
 
                 let reportType = "criteria";
                 chartData = await helperFunc.instanceReportChart(data, reportType);
+                console.log(chartData, "instanceReportChart chartData")
                 chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
                     response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
+                    console.log(response, "evidenceChartObjectCreation")
                 } else {
                     response = chartData;
                 }
 
                 response = await helperFunc.getCriteriawiseReport(response);
-
+                console.log(response, "getCriteriawiseReport res")
                 if (req.body.pdf) {
                     let pdfReport = await pdfHandler.instanceCriteriaReportPdfGeneration(response);
+                    console.log(pdfReport, "instanceCriteriaReportPdfGeneration pdf")
                     return resolve(pdfReport);
                 } else {
                     return resolve(response);
@@ -190,15 +202,18 @@ exports.instaceObservationReport = async function (req, res) {
 
                 let reportType = "criteria";
                 chartData = await helperFunc.instanceScoreReportChartObjectCreation(data, reportType);
+                console.log(chartData, "instanceScoreReportChartObjectCreation chartData")
                 chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
                     response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
+                    console.log(response, "evidenceChartObjectCreation res")
                 } else {
                     response = chartData;
                 }
 
                 response = await helperFunc.getCriteriawiseReport(response);
+                console.log(response, "getCriteriawiseReport res")
 
                 if (req.body.pdf) {
                     let pdfHeaderInput = {
@@ -207,6 +222,7 @@ exports.instaceObservationReport = async function (req, res) {
                     }
 
                     let pdfReport = await pdfHandler.instanceScoreCriteriaPdfGeneration(response, pdfHeaderInput);
+                    console.log(pdfReport, "instanceScoreCriteriaPdfGeneration pdf")
                     return resolve(pdfReport);
                 } else {
                     return resolve(response);
@@ -224,7 +240,7 @@ exports.instaceObservationReport = async function (req, res) {
                 };
 
                 chartData = await helperFunc.entityLevelReportData(data);
-
+                console.log(chartData,"entityLevelReportData")
                 for (const element of data) {
                     if (response.completedDate) {
                         if (new Date(element.event.completedDate) > new Date(response.completedDate)) {
@@ -249,13 +265,13 @@ exports.instaceObservationReport = async function (req, res) {
 
                 if (req.body.pdf) {
                     let pdfReport = await pdfHandler.assessmentAgainPdfReport(response);
-                    console.log({pdfReport})
+                    console.log(pdfReport,"pdfReport assessmentAgainPdfReport")
                     return resolve(pdfReport);
                 } else {
 
                    response.improvementProjectSuggestions = [];
                    let impSuggestions = await checkIfImpSuggesionExists(req.body.submissionId);
-
+                   console.log(impSuggestions,"checkIfImpSuggesionExists")
                    if (impSuggestions.length > 0) {
                     response.improvementProjectSuggestions = await helperFunc.improvementProjectsObjectCreate(impSuggestions);
                   }
@@ -375,7 +391,8 @@ exports.entityObservationReport = async function (req, res) {
         options.method = "POST";
         options.body = bodyParam;
         let data = await rp(options);
-        console.log({ druidConnection: options });
+        console.log("druidConnection",options );
+        console.log(data, "druid response")
         if (!data.length) {
             let message;
             let getEntityObservationSubmissionsStatus = await assessmentService.getEntityObservationSubmissionsStatus
@@ -413,20 +430,24 @@ exports.entityObservationReport = async function (req, res) {
                     observationId: req.body.observationId,
                     entityType: req.body.entityType
                 });
+            console.log(evidenceData, "getEvidenceData")
 
             if (req.body.scores == false && req.body.criteriaWise == false) {
 
                 chartData = await helperFunc.entityReportChart(data, req.body.entityId, req.body.entityType);
+                console.log(chartData,"entityReportChart resp")
                 chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
                     response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
+                    console.log(response,"evidenceChartObjectCreation")
                 } else {
                     response = chartData;
                 }
 
                 if (req.body.pdf) {
                     let pdfReport = await pdfHandler.pdfGeneration(response);
+                    console.log(pdfReport,"pdfReport pdfGeneration")
                     return resolve(pdfReport);
                     
                 } else {
@@ -438,10 +459,12 @@ exports.entityObservationReport = async function (req, res) {
             if (req.body.scores == true && req.body.criteriaWise == false && criteriaLevelReport == false) {
 
                 chartData = await helperFunc.entityScoreReportChartObjectCreation(data);
+                console.log(chartData,"entityScoreReportChartObjectCreation")
                 chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
                     response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
+                    console.log(response,"evidenceChartObjectCreation response")
                 } else {
                     response = chartData;
                 }
@@ -452,6 +475,7 @@ exports.entityObservationReport = async function (req, res) {
                         totalObservations: response.totalObservations
                     }
                     let pdfReport = await pdfHandler.instanceObservationScorePdfGeneration(response, pdfHeaderInput);
+                    console.log(pdfReport,"pdfReport instanceObservationScorePdfGeneration")
                     return resolve(pdfReport);
                     
                 } else {
@@ -463,18 +487,21 @@ exports.entityObservationReport = async function (req, res) {
 
                 let reportType = "criteria";
                 chartData = await helperFunc.entityReportChart(data, req.body.entityId, req.body.entityType, reportType);
+                console.log(chartData,"entityReportChart resp")
                 chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
                     response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
+                    console.log(response,"evidenceChartObjectCreation response")
                 } else {
                     response = chartData;
                 }
 
                 response = await helperFunc.getCriteriawiseReport(response);
-
+                console.log(response,"getCriteriawiseReport resp")
                 if (req.body.pdf) {
                     let pdfReport = await pdfHandler.entityCriteriaPdfReportGeneration(response);
+                    console.log(pdfReport,"entityCriteriaPdfReportGeneration resp")
                     return resolve(pdfReport);
                 } else {
                     return resolve(response);
@@ -485,16 +512,18 @@ exports.entityObservationReport = async function (req, res) {
 
                 let reportType = "criteria";
                 chartData = await helperFunc.entityScoreReportChartObjectCreation(data, reportType);
+                console.log(chartData,"entityScoreReportChartObjectCreation resp")
                 chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 if (evidenceData.result) {
                     response = await helperFunc.evidenceChartObjectCreation(chartData, evidenceData.data, req.headers["x-authenticated-user-token"]);
+                    console.log(response,"evidenceChartObjectCreation response")
                 } else {
                     response = chartData;
                 }
 
                 response = await helperFunc.getCriteriawiseReport(response);
-
+                console.log(response,"getCriteriawiseReport response")
                 if (req.body.pdf) {
                     let pdfHeaderInput = {
                         entityName: response.entityName,
@@ -502,6 +531,7 @@ exports.entityObservationReport = async function (req, res) {
                     }
 
                     let pdfReport = await pdfHandler.instanceScoreCriteriaPdfGeneration(response, pdfHeaderInput);
+                    console.log(pdfReport, "instanceScoreCriteriaPdfGeneration pdfReport")
                     return resolve(pdfReport);
                 } else {
                     return resolve(response);
@@ -520,6 +550,7 @@ exports.entityObservationReport = async function (req, res) {
                 };
 
                 chartData = await helperFunc.entityLevelReportData(data);
+                console.log(chartData,"entityLevelReportData chartData")
                 chartData.entityName = data[0].event[req.body.entityType + "Name"];
 
                 for (const element of data) {
@@ -548,13 +579,14 @@ exports.entityObservationReport = async function (req, res) {
                 if (req.body.pdf) {
 
                     let pdfReport = await pdfHandler.assessmentAgainPdfReport(response);
+                    console.log(pdfReport,"assessmentAgainPdfReport resp")
                     return resolve(pdfReport);
 
                 } else {
 
                     response.improvementProjectSuggestions = [];
                     let impSuggestions = await checkIfImpSuggesionExists(submissionId);
- 
+                    console.log(impSuggestions,"checkIfImpSuggesionExists")
                     if (impSuggestions.length > 0) {
                      response.improvementProjectSuggestions = await helperFunc.improvementProjectsObjectCreate(impSuggestions);
                    }

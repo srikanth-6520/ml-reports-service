@@ -3490,13 +3490,14 @@ async function allEvidencesList(req, res) {
           }
 
           bodyParam.filter = filter;
+          console.log(bodyParam,"bodyParam druid query")
 
           //pass the query as body param and get the resul from druid
           var options = gen.utils.getDruidConnection();
           options.method = "POST";
           options.body = bodyParam;
           var data = await rp(options);
-
+          console.log(data,"data from druid")
           if (!data.length) {
             resolve({
               "result": false,
@@ -3505,11 +3506,11 @@ async function allEvidencesList(req, res) {
           } else {
 
             let evidenceList = await helperFunc.getEvidenceList(data);
-
+            console.log(evidenceList,"evidenceList")
             let downloadableUrl = await kendraService.getDownloadableUrl(evidenceList[0], req.headers["x-authenticated-user-token"]);
-
+            console.log(downloadableUrl,"downloadableUrl")
             let response = await helperFunc.evidenceResponseCreateFunc(downloadableUrl.result);
-
+            console.log(response,"response")
             response.remarks = evidenceList[1];
             
             resolve({"result" : true, "data" : response});
