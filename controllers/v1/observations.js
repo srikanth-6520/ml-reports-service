@@ -3490,13 +3490,14 @@ async function allEvidencesList(req, res) {
           }
 
           bodyParam.filter = filter;
-          console.log(bodyParam,"bodyParam druid query")
+          console.log(JSON.stringify(bodyParam),"bodyParam druid query")
 
           //pass the query as body param and get the resul from druid
           var options = gen.utils.getDruidConnection();
           options.method = "POST";
           options.body = bodyParam;
           var data = await rp(options);
+          console.log(options,"options druid")
           console.log(data,"data from druid")
           if (!data.length) {
             resolve({

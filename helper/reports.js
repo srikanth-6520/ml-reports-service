@@ -84,7 +84,7 @@ exports.instaceObservationReport = async function (req, res) {
             bodyParam.dimensions.push('completedDate');
         }
 
-        console.log(bodyParam,"bodyParam")
+        console.log(JSON.stringify(bodyParam),"bodyParam")
 
         //pass the query get the result from druid
         let options = gen.utils.getDruidConnection();
