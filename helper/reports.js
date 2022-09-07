@@ -375,7 +375,7 @@ exports.entityObservationReport = async function (req, res) {
         options.method = "POST";
         options.body = bodyParam;
         let data = await rp(options);
-        console.log({ druidConnection: options });
+        
         if (!data.length) {
             let message;
             let getEntityObservationSubmissionsStatus = await assessmentService.getEntityObservationSubmissionsStatus
@@ -384,7 +384,7 @@ exports.entityObservationReport = async function (req, res) {
                     req.body.observationId,
                     req.headers["x-authenticated-user-token"]
                 )
-            console.log({ observationSubmissionStatusLength: getEntityObservationSubmissionsStatus.result.length }); 
+            
 
             if (getEntityObservationSubmissionsStatus.result &&
                 getEntityObservationSubmissionsStatus.result.length > 0) {
