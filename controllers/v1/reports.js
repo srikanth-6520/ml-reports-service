@@ -46,14 +46,12 @@ exports.fetch = async function (req, res) {
 */
 
 exports.createQuestionResponseReport = async function (req, res) {
-
     try {
-        console.log("inside the api")
         if ( !req.params._id ) {
             res.status(400);
             let response = {
                 result: false,
-                message: 'solutionId is required '
+                message: "solutionId is required"
             }
             res.send(response);
         }

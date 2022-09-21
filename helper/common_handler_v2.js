@@ -2826,3 +2826,310 @@ const getDownloadableUrl = async function (filePath) {
  
      })
 }
+
+//create pdf report for Questions Response
+exports.questionResponseReportPdf = async function ( dataObj ) {
+    return new Promise(async function (resolve, reject) {
+        try {
+            let solutionName = dataObj.filterData.solutionName;
+            solutionName = solutionName.replace(/ /g,"");   //remove space from solution name
+            solutionName = solutionName.replace(/\//g, ''); //remove slashes from solution name
+            var optionFormData = [];
+
+            let currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
+            let imgPath = __dirname + '/../' + currentTempFolder;
+            if (!fs.existsSync(imgPath)) {
+                fs.mkdirSync(imgPath);
+            }
+            
+            await copyBootStrapFile(__dirname + '/../public/css/bootstrap.min.css', imgPath + '/style.css');
+    
+            // let headerFile = await copyBootStrapFile(__dirname + '/../views/header.html', imgPath + '/header.html');
+            await copyBootStrapFile(__dirname + '/../views/footer.html', imgPath + '/footer.html');
+            
+            await Promise.all(dataObj.responseData.map(async domainElement => {
+                
+                    await Promise.all(domainElement.criterias.map(async criteriaElement => {
+                        
+                        await Promise.all(criteriaElement.questionData.map(async questionDataElement => {
+                            const options = await createChartOption(questionDataElement);
+                            const questionResponseChart = await createChart(options.chartOptions, imgPath);
+                            questionDataElement.formData = {
+                                filename : questionResponseChart[0].options.filename
+                            };
+                            optionFormData.push(questionResponseChart[0]);
+                            questionDataElement.legendData = options.legendArray
+                        }))
+                        
+                    }))
+            }))
+            //ecm based sorting
+            await Promise.all(dataObj.responseData.map(async domainElement => {
+                await Promise.all(domainElement.criterias.map(async criteriaElement => {
+                    if( criteriaElement.questionData && criteriaElement.questionData.length > 0 ) {
+                        let myArray = criteriaElement.questionData;
+                        myArray.sort((a, b) => a.questionSequenceByEcm - b.questionSequenceByEcm)
+                        criteriaElement.questionData = myArray;
+                    }   
+                }))
+            }))
+    
+            ejs.renderFile(__dirname + '/../views/questionResponseReportTemplate.ejs', {
+                data: dataObj
+            })
+                .then(function (dataEjsRender) {
+    
+                    var dir = imgPath;
+                    if (!fs.existsSync(dir)) {
+                        fs.mkdirSync(dir);
+                    }
+                    fs.writeFile(dir + '/index.html', dataEjsRender, function (errWriteFile, dataWriteFile) {
+                        if (errWriteFile) {
+                            throw errWriteFile;
+                        } else {
+                            let optionsHtmlToPdf = gen.utils.getGotenbergConnection();
+                            
+                                
+                                optionsHtmlToPdf.formData = {
+                                    files: [
+                                    ]
+                                };
+                                optionFormData.push({
+                                    value: fs.createReadStream(dir + '/index.html'),
+                                    options: {
+                                        filename: 'index.html'
+                                    }
+                                    
+                                });
+                                optionFormData.push({
+                                    value: fs.createReadStream(dir + '/style.css'),
+                                    options: {
+                                        filename: 'style.css'
+                                    }
+                                });
+                                optionsHtmlToPdf.formData.files = optionFormData;
+                                optionsHtmlToPdf.formData.paperHeight = 4.6;
+                                optionsHtmlToPdf.formData.emulatedMediaType = "screen";
+                                optionsHtmlToPdf.formData.marginRight = 0;
+                                optionsHtmlToPdf.formData.marginLeft = 0;
+                                optionsHtmlToPdf.formData.marginTop = 0.2;
+                                optionsHtmlToPdf.formData.marginBottom = 0;
+        
+                                rp(optionsHtmlToPdf)
+                                    .then(function (responseHtmlToPdf) {
+    
+                                        let pdfBuffer = Buffer.from(responseHtmlToPdf.body);
+                                        
+                                        if (responseHtmlToPdf.statusCode == 200) {
+                                           
+                                            let pdfFile = solutionName + '-' + uuidv4() + ".pdf";
+                                            fs.writeFile( dir + '/' + pdfFile, pdfBuffer, 'binary', async function (err) {
+                                                if (err) {
+                                                    
+                                                    return console.log(err);
+                                                }
+                                                else {
+                                                    let uploadFileResponse = await uploadPdfToCloud(pdfFile, dir);
+
+                                                    if (uploadFileResponse.success) {
+                                                        let pdfDownloadableUrl = await getDownloadableUrl(uploadFileResponse.data);
+
+                                                        if (pdfDownloadableUrl.success && pdfDownloadableUrl.data.result && Object.keys(pdfDownloadableUrl.data.result).length > 0) {
+
+                                                            fs.readdir(imgPath, (err, files) => {
+                                                                if (err) throw err;
+
+                                                                let i = 0;
+                                                                for (const file of files) {
+
+                                                                    fs.unlink(path.join(imgPath, file), err => {
+                                                                        if (err) throw err;
+                                                                    });
+
+                                                                    if (i == files.length) {
+                                                                        fs.unlink('../../' + currentTempFolder, err => {
+                                                                            if (err) throw err;
+
+                                                                        });
+                                                                        console.log("path.dirname(filename).split(path.sep).pop()", path.dirname(file).split(path.sep).pop());
+
+                                                                    }
+
+                                                                    i = i + 1;
+
+                                                                }
+                                                            });
+                                                            rimraf(imgPath, function () { console.log("done"); });
+
+                                                            return resolve({
+                                                                status: filesHelper.status_success,
+                                                                message: filesHelper.pdf_report_generated,
+                                                                pdfUrl: pdfDownloadableUrl.data.result.url
+                                                            });
+                                                        }
+                                                        else {
+                                                            
+                                                            return resolve({
+                                                                status: filesHelper.status_failure,
+                                                                message: pdfDownloadableUrl.message ? pdfDownloadableUrl.message : filesHelper.could_not_generate_pdf,
+                                                                pdfUrl: ""
+                                                            })
+                                                        }
+                                                    }
+                                                    else {
+                                                        return resolve({
+                                                            status: filesHelper.status_failure,
+                                                            message: uploadFileResponse.message ? uploadFileResponse.message : filesHelper.could_not_generate_pdf,
+                                                            pdfUrl: ""
+                                                        })
+                                                    }
+                                                }
+                                            });
+                                        }
+    
+                                    }).catch(err => {
+                                       throw err;
+                                    })
+    
+                            
+                        }
+                    });
+                })
+                .catch(function (errEjsRender) {
+                    throw errEjsRender
+                });
+    
+        } catch ( err ) {
+            return resolve(err)
+        }
+    });
+    
+}
+
+//add options to each question data - for question response report
+const createChartOption = async function(questionData) {
+    try {
+        let optionsData;
+        var xValues = [];
+        var yValues = [];
+        let legendData = [];
+        //create data arrays to plot graph
+        if ( questionData.answerData.length > 0 ) {
+            await Promise.all(questionData.answerData.map( answerElement => {
+                xValues.push(answerElement[0]);
+                yValues.push(answerElement[1])    
+            }))
+        }
+        let totalSubmissions = yValues.reduce((a, b) => a + b, 0)
+        
+        for ( let i = 0; i < yValues.length; i++ ) {
+            let newValue = (yValues[i] / totalSubmissions) * 100;
+            let num = Math.round( ( newValue + Number.EPSILON ) * 100 ) / 100;
+            yValues[i] = num;
+        }
+
+        if( questionData.questionResponseType == "radio" || questionData.questionResponseType == "slider" ) {
+
+            let yValuesNew = [];
+            for ( let i = 0; i < yValues.length; i++ ) {
+                yValuesNew[i] = yValues[i]+'%';
+            }
+            legendData = xValues
+            
+            optionsData = [{
+                options : {
+                    type: "pie",
+                    data: {
+                        labels: yValuesNew,
+                        datasets: [{
+                        backgroundColor: ['#FD7F6F', '#7EB0D5', '#B2E061', '#BD7EBE', '#FFB55A', '#FFEE65', '#BEB9DB', '#FDCCE5', '#8BD3C7','#A4A2A8'],
+                        data: yValues
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            datalabels: {
+                              display: false
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                "fontSize": 14,
+                            }
+                            
+                        },
+                    }
+                    
+                }
+            }];
+            
+        } else {
+            let xValuesNew = [];
+            for ( let i = 0; i < xValues.length; i++ ) {
+                xValuesNew[i] = 'R'+(i+1);
+                legendData[i] = 'R'+(i+1)+' - '+xValues[i];
+
+            }
+            
+            //bar chart options
+            optionsData = [{
+                options : {
+                    type: 'bar',
+                    data: {
+                        labels: xValuesNew,
+                        datasets: [
+                            {
+                                data: yValues,
+                                backgroundColor: 'rgb(84, 113, 243)',
+                                barPercentage: 0.5
+                            }
+                    
+                        ]
+                    },
+                    options: {
+                        //display of legend
+                        legend: {
+                            display: false
+                        },
+                        plugins: {
+                            //not display data on bar
+                            datalabels: {
+                              display: false
+                            }
+                        },
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero:true
+                                },
+                                scaleLabel: {
+                                    display: true,
+                                    fontSize: 20,
+                                    labelString:  'Percentage times options chosen'
+                                },
+                            }],
+                            xAxes: [{
+                                scaleLabel: {
+                                    display: true,
+                                    fontSize: 18,
+                                    labelString:  'Options'
+                                },
+                                
+                            }]
+                        },
+                    }
+                    
+                }
+            }];
+        }
+        questionData.percentageData = yValues;
+        return {
+            chartOptions :optionsData,
+            legendArray : legendData
+        };
+    } catch (error) {
+        throw error;
+    }
+} 

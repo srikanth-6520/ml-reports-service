@@ -698,3 +698,109 @@ async function getEvidenceData(inputObj) {
       };
     })
 }
+
+//generate question response report
+exports.questionResponseReport = async function ( req ,res ) {
+    try {
+        //get druid query for question response report
+        const bodyParams = gen.utils.getDruidQuery('question_response_query');
+      
+        //Apply program id and solution id filters to druid query
+        bodyParams.filter.fields.push(
+            {
+                "type": "selector",
+                "dimension": "solutionId",
+                "value": req.params._id
+            }
+        );
+        bodyParams.columns.push( "solutionId");  
+       
+        //Apply optional filters if they are provided by the user { programId, organization, district, block or school }
+        if( req.query.programId && req.query.programId != "" ) {
+            bodyParams.filter.fields.push(
+                {
+                    "type": "selector",
+                    "dimension": "programId",
+                    "value": req.query.programId
+                }
+            );          
+        }
+
+        if( req.body.organization && req.body.organization != "" ) {
+            bodyParams.filter.fields.push(
+                {
+                    "type": "search",
+                    "dimension": "organisation_name",
+                    "query": {
+                        "type": "insensitive_contains",
+                        "value": req.body.organization
+                    }
+                }
+            );
+            bodyParams.columns.push( "organisation_name");           
+        }
+       
+        if( req.body.block && req.body.block != "" ) {
+            bodyParams.filter.fields.push(
+                {
+                    "type": "selector",
+                    "dimension": "block_externalId",
+                    "value":  req.body.block
+                }
+            );   
+            bodyParams.columns.push( "user_blockName");    
+        }
+        
+        if( req.body.district && req.body.district != "" ) {
+            bodyParams.filter.fields.push(
+                {
+                    "type": "selector",
+                    "dimension": "district_externalId",
+                    "value": req.body.district
+                }
+            );   
+            bodyParams.columns.push( "user_districtName");           
+        }
+        let datefilter = {};
+        if ( req.body.from && req.body.from !="" && req.body.to && req.body.to !="" ) {
+
+            let from = await utils.getDruidIntervalDate(req.body.from);
+            let to = await utils.getDruidIntervalDate(req.body.to);
+            let druidInterval = from + '/' + to;
+            bodyParams.intervals = druidInterval;
+            datefilter.from = req.body.from;
+            datefilter.to = req.body.to;
+
+        } else {
+
+            bodyParams.intervals = "1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00";
+
+        }
+        
+        //pass the query get the result from druid
+        const options = gen.utils.getDruidConnection();
+        options.method = "POST";
+        options.body = bodyParams;
+        const data = await rp(options);
+
+        //check data from druid
+        if( data.length ) {
+            //send data for processing
+            const response = await helperFunc.questionResponseReportDataObjectCreation(data, datefilter);
+            const result = await pdfHandler.questionResponseReportPdf(response);
+            return result;
+        } else {
+            return {
+                "result" : false,
+                "data" : "QUESTION_RESPONSE_NOT_FOUND"
+            }
+        }
+
+    } catch(error) {
+        let response = {
+            result: false,
+            message: error.message
+          };
+          return response;
+    }
+}
