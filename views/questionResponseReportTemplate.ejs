@@ -1,0 +1,214 @@
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Latest compiled and minified CSS -->
+
+    <link rel="stylesheet" type="text/css" href="style.css">
+
+    
+    <style>
+        hr {
+            visibility: hidden;
+            page-break-after: always;
+        }
+        .firstPage {
+            text-align: center;
+            margin-top: 90px;
+        }
+        .reportType {
+            font-size: 25px;
+            font-weight: bold;
+            color: rgb(246, 169, 4);
+            letter-spacing: 1px;
+        }
+        .subHeading {
+            font-size: 14px;
+            color: rgb(84, 113, 243);
+            margin: 0;
+            padding-top: 5px;
+            letter-spacing: .4px;
+        }
+        .title {
+            font-size: 18px;
+            margin: 0;
+            font-weight: 700;
+        }
+        .pageHeader {
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: .7px;
+            color: rgba(0, 0, 0, 0.357);
+            margin-top: 0px;
+            padding-bottom: 12px;
+        }
+        .filter {
+            margin: 0;
+            margin-left: 35px;
+            font-size: 14px;   
+        }
+        .chartContainer {
+            height: auto;
+            margin-top: -10;
+        }
+        img {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            width: 46%;
+        }
+        .subHeadingFilter {
+            font-size: 14px;
+            color: rgb(84, 113, 243);
+            margin: 0;
+            padding-top: 10px;
+            letter-spacing: .3px;
+        }
+        .filterdata {
+            font-size: 12px;
+            margin: 0;
+            font-weight: 700;
+        }
+        ul {
+            list-style-type: square;
+            font-size: 8px;
+        }
+        .legends {
+
+            margin-left: 8px;
+        }
+        .titleclass {
+            text-align: center;
+            padding-left: 100px;
+            padding-right: 100px;
+            font-size: 10px;
+            margin-top: 14px;
+        }
+        .question {
+            font-family: Arial;
+            line-height: 12px;
+            font-weight: 600;
+        }
+        
+        
+    
+    </style>
+</head>
+
+<body style="padding: 0px; margin: 0;">
+    <!-- first page -->
+    <% if ( data.filterData.programName != "" && data.filterData.solutionName !="" ) {%>
+        <div class = "firstPage">
+            <P class = "reportType">Question Response Report</P>
+            <p class = "subHeading">Program Name</p>
+            <p class = "title"><%=data.filterData.programName%></p>
+            <p class = "subHeading">Observation Name</p>
+            <p class = "title"><%=data.filterData.solutionName%></p>
+            <% if ( data.filterData.optionalFilters.length > 0 || data.filterData.dateFilters ) {%>
+                <p class = "subHeadingFilter">Applied Filters </p>
+                <% if ( data.filterData.optionalFilters.length > 0 ) {%>
+                    <% for ( let i = data.filterData.optionalFilters.length - 1; i > -1; i-- ) { %>
+                        <p class = "filterdata"><%=data.filterData.optionalFilters[i]%></p>
+                    <% } %>
+                <%}%>
+                <% if ( data.filterData.dateFilters ) {%>
+                    <p class = "filterdata">From : <%=data.filterData.dateFilters.from %> , To : <%=data.filterData.dateFilters.to %></p>
+                <%}%>
+            <%}%>
+
+        </div>
+        
+       
+    <%}%>
+
+    <!--add page iterately-->
+    
+    <% if ( data.responseData.length > 0 ) {%>
+        <% for ( let i = 0; i < data.responseData.length; i++ ) { %>
+            <% if ( data.responseData[i].criterias.length > 0 ) {%>
+                <% for ( let j = 0; j < data.responseData[i].criterias.length; j++ ) { %>
+                    <% if ( data.responseData[i].criterias[j].questionData.length > 0 ) {%>
+                        <% for ( let k = 0; k < data.responseData[i].criterias[j].questionData.length; k++ ) { %>
+                            <hr>
+                            <div class= "pageHeader">
+                                Question Response Report 
+                            </div>
+                            <% if( data.filterData.solutionType == "observation_with_rubric" ) { %>
+                                <p class="filter"><span style="color: rgb(84, 113, 243);">Domain Name&nbsp;&nbsp;: </span><%=  data.responseData[i].domain %></p>
+                                <p class="filter"><span style="color: rgb(84, 113, 243);">Criteria Name &nbsp;&nbsp;: </span><%=  data.responseData[i].criterias[j].criteriaName %></p>
+                            <%} else { %>
+                                <br>
+                            <% } %>
+                             <div class = "titleclass"><p class="question"><%= data.responseData[i].criterias[j].questionData[k].questionName %></p></div><div class = "chartContainer"><img src="<%= data.responseData[i].criterias[j].questionData[k].formData.filename %>"></div>
+                            
+                            <% if ( data.responseData[i].criterias[j].questionData[k].questionResponseType == "multiselect" && data.responseData[i].criterias[j].questionData[k].legendData.length > 0 ) {%>
+                                <div class="legends">
+                                    <ul>
+                                        <% for ( let y = 0; y < data.responseData[i].criterias[j].questionData[k].legendData.length; y++ ) { %> 
+                                            <% if( y == 2 && data.responseData[i].criterias[j].questionData[k].legendData.length > 2 ) { %>
+                                                <hr>
+                                            <%}%>
+                                            <li ><%=data.responseData[i].criterias[j].questionData[k].legendData[y]%> </li> 
+                                        <% } %>
+                                    </ul>
+                                    
+                                </div>
+                            <%} else {%>
+                                <% if ( data.responseData[i].criterias[j].questionData[k].legendData.length > 0 ) {%>
+                                    <% for ( let y = 0; y < data.responseData[i].criterias[j].questionData[k].legendData.length; y++ ) { %>
+                                        <% if( y == 2 && data.responseData[i].criterias[j].questionData[k].legendData.length > 2 ) { %>
+                                            <hr>
+                                        <%}%>
+                                        <div style="height: auto;width: 100%; margin-top: 4px">
+                                            <% if( y == 0) { %>
+                                                <div style="height: 8px;width: 22px;background-color: #FD7F6F; margin-left: 35px; float: left;"></div>
+                                            <%}%>
+                                            <% if( y == 1) { %>
+                                                <div style="height: 8px;width: 22px;background-color: #7EB0D5; margin-left: 35px; float: left;"></div>
+                                            <%}%>
+                                            <% if( y == 2) { %>
+                                                <div style="height: 8px;width: 22px;background-color: #B2E061; margin-left: 35px; float: left;"></div>
+                                            <%}%>
+                                            <% if( y == 3) { %>
+                                                <div style="height: 8px;width: 22px;background-color: #BD7EBE; margin-left: 35px; float: left;"></div>
+                                            <%}%>
+                                            <% if( y == 4) { %>
+                                                <div style="height: 8px;width: 22px;background-color: #FFB55A; margin-left: 35px; float: left;"></div>
+                                            <%}%>
+                                            <% if( y == 5) { %>
+                                                <div style="height: 8px;width: 22px;background-color: #FFEE65; margin-left: 35px; float: left;"></div>
+                                            <%}%>
+                                            <% if( y == 6) { %>
+                                                <div style="height: 8px;width: 22px;background-color: #BEB9DB; margin-left: 35px; float: left;"></div>
+                                            <%}%>
+                                            <% if( y == 7) { %>
+                                                <div style="height: 8px;width: 22px;background-color: #FDCCE5; margin-left: 35px; float: left;"></div>
+                                            <%}%>
+                                            <% if( y == 8) { %>
+                                                <div style="height: 8px;width: 22px;background-color: #8BD3C7; margin-left: 35px; float: left;"></div>
+                                            <%}%>
+                                            <% if( y == 9) { %>
+                                                <div style="height: 8px;width: 22px;background-color: #A4A2A8; margin-left: 35px; float: left;"></div>
+                                            <%}%>
+                                            
+                                            <% if( y > 9) { %>
+                                                <div style="height: 8px;width: 22px;background-color: rgba(248, 244, 244, 0.735); margin-left: 35px; float: left;"></div>
+                                            <%}%>
+                                            
+                                            <div style="margin-left: 65px ; padding:0;height: auto; font-size: 7px;"><%=data.responseData[i].criterias[j].questionData[k].legendData[y]%> </div>
+                                        </div>
+                            
+                                    <% } %>
+                                
+                                <%}%>
+                            <%}%>
+                            
+                            
+                        <% } %>
+                    <%}%>
+                <% } %>
+            <%}%>
+        <% } %>
+    <%}%>    
+</body>
+</html>

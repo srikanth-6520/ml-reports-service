@@ -63,9 +63,27 @@ function getGotenbergConnection() {
   return options;
 }
 
+/**
+  * Return interval string for druid interval
+  * @function
+  * @name getDruidIntervalDate
+  * @returns {String}  returns druid interval.  
+*/
+
+function getDruidIntervalDate( data ) {
+
+  function padToTwoDigits( num ) {
+    return num.toString().padStart(2, '0')
+  }
+  const [ date, month, year ] = data.split('-');
+  const isoSring = `${year}-${padToTwoDigits(month)}-${padToTwoDigits(date)}T00:00:00+00:00`;
+  return isoSring;
+}
+
 
 module.exports = {
   getDruidQuery: getDruidQuery,
   getDruidConnection: getDruidConnection,
-  getGotenbergConnection: getGotenbergConnection
+  getGotenbergConnection: getGotenbergConnection,
+  getDruidIntervalDate: getDruidIntervalDate
 }
