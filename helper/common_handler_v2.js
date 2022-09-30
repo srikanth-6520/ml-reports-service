@@ -248,6 +248,8 @@ exports.pdfGeneration = async function pdfGeneration(instaRes) {
                                                 }
                                             });
                                             optionsHtmlToPdf.formData.files = FormData;
+                                            optionsHtmlToPdf.formData.marginTop = 1.2;
+                                            optionsHtmlToPdf.formData.marginBottom = 1;
 
                                             rp(optionsHtmlToPdf)
                                                 .then(function (responseHtmlToPdf) {
@@ -261,7 +263,6 @@ exports.pdfGeneration = async function pdfGeneration(instaRes) {
                                                                 return console.log(err);
                                                             }
                                                             else {
-                                                                
                                                                 let uploadFileResponse = await uploadPdfToCloud(pdfFile, dir);
 
                                                                 if (uploadFileResponse.success) {
@@ -733,6 +734,8 @@ exports.instanceObservationScorePdfGeneration = async function instanceObservati
                                                 }
                                             });
                                             optionsHtmlToPdf.formData.files = formData;
+                                            optionsHtmlToPdf.formData.marginTop = 1.2;
+                                            optionsHtmlToPdf.formData.marginBottom = 1;
 
                                             rp(optionsHtmlToPdf)
                                                 .then(function (responseHtmlToPdf) {
@@ -1195,6 +1198,8 @@ exports.assessmentAgainPdfReport = async function (assessmentResponse) {
                                                 }
                                             });
                                             optionsHtmlToPdf.formData.files = FormData;
+                                            optionsHtmlToPdf.formData.marginTop = 1.2;
+                                            optionsHtmlToPdf.formData.marginBottom = 1;
 
                                             rp(optionsHtmlToPdf)
                                                 .then(function (responseHtmlToPdf) {
@@ -1853,6 +1858,8 @@ exports.entityCriteriaPdfReportGeneration = async function (responseData) {
                                                 }
                                             });
                                             optionsHtmlToPdf.formData.files = formData;
+                                            optionsHtmlToPdf.formData.marginTop = 1.2;
+                                            optionsHtmlToPdf.formData.marginBottom = 1;
 
                                             rp(optionsHtmlToPdf)
                                                 .then(function (responseHtmlToPdf) {
@@ -2055,6 +2062,8 @@ exports.instanceScoreCriteriaPdfGeneration = async function (observationResp, ob
                                                 }
                                             });
                                             optionsHtmlToPdf.formData.files = formData;
+                                            optionsHtmlToPdf.formData.marginTop = 1.2;
+                                            optionsHtmlToPdf.formData.marginBottom = 1;
 
                                             rp(optionsHtmlToPdf)
                                                 .then(function (responseHtmlToPdf) {
