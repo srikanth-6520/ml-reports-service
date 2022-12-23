@@ -5,6 +5,10 @@ WORKDIR /opt/reports
 #copy package.json file
 COPY package.json /opt/reports
 
+#install fonts
+RUN apt update && apt install fonts-indic -y \
+    && fc-cache -f 
+
 #install node packges
 RUN npm install
 
