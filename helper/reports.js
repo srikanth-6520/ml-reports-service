@@ -63,7 +63,7 @@ exports.instaceObservationReport = async function (req, res) {
 
         if (req.body.scores == true && req.body.criteriaWise == false && criteriaLevelReport == false) {
             bodyParam.dimensions.push("questionName", "questionAnswer", "questionExternalId", "questionResponseType", "minScore", "maxScore", "totalScore", "scoreAchieved", "observationName", "completedDate");
-            bodyParam.filter.fields.push({"type":"or","fields":[{"type":"selector","dimension":"questionResponseType","value":"radio"},{"type":"selector","dimension":"questionResponseType","value":"multiselect"},{"type":"selector","dimension":"questionResponseType","value":"slider"}]})
+            // bodyParam.filter.fields.push({"type":"or","fields":[{"type":"selector","dimension":"questionResponseType","value":"radio"},{"type":"selector","dimension":"questionResponseType","value":"multiselect"},{"type":"selector","dimension":"questionResponseType","value":"slider"}]})
         }
 
         if (req.body.scores == false && req.body.criteriaWise == true) {
