@@ -523,6 +523,8 @@ exports.instanceObservationPdfGeneration = async function instanceObservationPdf
                                                 }
                                             });
                                             optionsHtmlToPdf.formData.files = formData;
+                                            optionsHtmlToPdf.formData.marginTop = 1.4;
+                                            optionsHtmlToPdf.formData.marginBottom = 1;
 
                                             rp(optionsHtmlToPdf)
                                                 .then(function (responseHtmlToPdf) {
