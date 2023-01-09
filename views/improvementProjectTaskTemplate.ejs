@@ -100,7 +100,7 @@
             
         }
         .titleData {
-            width:83%; 
+            width:73%; 
             float:left;
             padding-left: 6px;
             font-weight: 550;
@@ -213,7 +213,7 @@
                 <p><%= data.response.description %></p>
             </div>
         </div>
-        <% if ((data.response.description.length + data.response.programName.length) > 300) {%>
+        <% if ((data.response.description.length + data.response.programName.length) > 210) {%>
             <hr>
             <% pageNo = pageNo + 1; %>
             <div class="pageHeaderProject">
