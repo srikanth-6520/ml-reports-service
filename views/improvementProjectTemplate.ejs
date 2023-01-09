@@ -105,6 +105,12 @@
             padding-left: 6px;
             font-weight: 550;
         }
+        .remarksTitle {
+            width:88%; 
+            float:left;
+            padding-left: 1px;
+            font-weight: 550;
+        }
         .row{
             margin-right: 70px;
         }
@@ -237,6 +243,7 @@
                 </div>
             </div>
         <%}%>
+        
         <div class="row" style="position: relative;">
             <div style="width:auto; float:left;position: absolute; bottom:0;">
                 <p class="title" style="margin:auto">Project Status</p>
@@ -276,11 +283,11 @@
                 <div class="titleDiv">
                     <p class="title">Remarks :</p>
                 </div>
-                <div class = "titleData">
+                <div class = "remarksTitle">
                     <% if ( !data.response.remarks || data.response.remarks == "" ) { %>
                         <p style="color: #138ef2;">N/A</p>
                     <% } else { %>
-                        <p ><%= data.response.remarks %></p>    
+                        <p style="word-wrap:break-word;"><%= data.response.remarks %></p>    
                     <% } %>
                 </div>
            </div>
@@ -492,13 +499,13 @@
                                 <div class="titleDiv">
                                     <p class="title">Remarks : </p>
                                 </div>
-                                <div class = "titleData">
+                                <div class = "remarksTitle">
                                     <% let remark ; %> 
                                     <% if ( !data.tasksArray[i].remarks || data.tasksArray[i].remarks == "" ) { %>
                                         <p style="color:#138ef2">N/A</p>
                                     <% } else { %>
-                                        <p> <%= data.tasksArray[i].remarks  %> </p>
-                                    <%} %>
+                                        <p style="word-wrap:break-word;"> <%= data.tasksArray[i].remarks  %> </p>
+                                    <%} 
                                     
                                 </div>
                             </div>
