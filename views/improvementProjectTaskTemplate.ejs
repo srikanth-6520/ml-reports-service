@@ -100,10 +100,11 @@
             
         }
         .titleData {
-            width:60%; 
+            width:83%; 
             float:left;
             padding-left: 6px;
             font-weight: 550;
+            
         }
         .remarksTitle {
             width:88%; 
@@ -168,6 +169,15 @@
             padding-left: 55px;
             margin-bottom: 15px;
         }
+        .pageHeaderProject{
+            background-color: #f8c703;
+            color: black;
+            font-size: 22px; 
+            margin-left: -70px;
+            padding:12px;
+            padding-left: 55px;
+            margin-bottom: 15px;
+        }
     
     </style>
 </head>
@@ -203,6 +213,13 @@
                 <p><%= data.response.description %></p>
             </div>
         </div>
+        <% if ((data.response.description.length + data.response.programName.length) > 300) {%>
+            <hr>
+            <% pageNo = pageNo + 1; %>
+            <div class="pageHeaderProject">
+                Project Details <span style="float: right;color: #024F9D; padding-right: 15px;"> <%= pageNo %></span>
+            </div>
+        <%}%>
         <%if ( data.response.recommendedForRoles.length > 0) {%>
             <div class="row">
                 <div class="titleDiv">
