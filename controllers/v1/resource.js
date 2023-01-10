@@ -1,0 +1,116 @@
+const resourceHelper = require("../../helper/resource")
+const {ResourceType, ResourceTypeProjection} = require("../../common/enum.utils")
+
+ /**
+     * @api {post} /mlreports/api/v1/resource/filtervalues?resourceType=program&resourceId=6013eab15faeea0e88a26ef5
+     * List of data based on collection
+     * @apiVersion 1.0.0
+     * @apiGroup public
+     * @apiSampleRequest /mlreports/api/v1/resource/filtervalues
+     * @param {json} Request-Body:
+     {
+     "projection": "block",
+        "query":{           // optional required for block
+        "districtLocationId": "b5c35cfc-6c1e-4266-94ef-a425c43c7f4e"
+        }
+      }
+     * @apiParamExample {json} Response:
+     * {
+          "message": "Program resource fetched successfully ",
+          "status": 200,
+          "result": {
+          "districts": [
+                {
+                    "id": "98ae45d7-9257-4c14-a16a-9760a442ff28",
+                    "name": "PRAKASAM"
+                },
+                {
+                    "id": "0c0391ba-610b-4796-8645-338d047b1e28",
+                    "name": "TIRUVALLUR"
+                }
+            ],
+            "organisations": [
+                {
+                    "id": "0126796199493140480",
+                    "name": "Staging Custodian Organization"
+                }
+            ]  
+          }
+     * }   
+     * @apiUse successBody
+     * @apiUse errorBody
+     */
+
+    /**
+      * List of data based on collection
+      * @method
+      * @name filtervalues
+      * @returns {JSON} list of data.
+    */
+exports.filtervalues = async function (req, res) { 
+    if(req.query.resourceType == ResourceType.PROGRAM || req.query.resourceType == ResourceType.SOLUTION){
+        if(!req.query.resourceId){
+            res.status(400).send({
+                message: "Resource id not passed"
+            })
+        }
+        if(req.body.projection == ResourceTypeProjection.DISTRICT){
+            const getDistict = await resourceHelper.getDistricts( req ,res)
+            const getOrganisation = await resourceHelper.getOrganisations(req,res)
+            if(req.query.resourceType == ResourceType.SOLUTION){
+                if(getDistict || getOrganisation){
+                    const districtOrganisationResponse = {
+                        message: "Solution details fetched successfully",
+                        status: "success",
+                        result:{
+                            districts: getDistict,
+                            organisations: getOrganisation
+                        }
+                    }
+                    res.status(200).send(districtOrganisationResponse)
+                }
+            } else if(req.query.resourceType == ResourceType.PROGRAM){
+                if(getDistict || getOrganisation){
+                    const districtOrganisationResponse = {
+                        message: "Program details fetched successfully",
+                        status: "success",
+                        result:{
+                            districts: getDistict,
+                            organisations: getOrganisation
+                        }
+                    }
+                    res.status(200).send(districtOrganisationResponse)
+                }
+            }
+        }else if(req.body.projection == ResourceTypeProjection.BLOCK){
+            const getBlock = await resourceHelper.getBlocks( req,res )
+            if(req.query.resourceType == ResourceType.SOLUTION){
+                if(getBlock){
+                    const blockResponse = {
+                        message: "Solution details fetched successfully",
+                        status: "success",
+                        result:{
+                            block: getBlock,
+                        }
+                    }
+                    res.status(200).send(blockResponse)
+                }
+            }else if(req.query.resourceType == ResourceType.PROGRAM){
+                if(getBlock){
+                    const blockResponse = {
+                        message: "Program details fetched successfully",
+                        status: "success",
+                        result:{
+                            block: getBlock,
+                        }
+                    }
+                    res.status(200).send(blockResponse)
+                }
+            }
+        }
+    }else{
+        res.status(400).send({
+            message: "No data found"
+        })
+    }
+}
