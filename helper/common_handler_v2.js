@@ -2842,9 +2842,10 @@ const getDownloadableUrl = async function (filePath) {
 exports.questionResponseReportPdf = async function ( dataObj ) {
     return new Promise(async function (resolve, reject) {
         try {
+
             let solutionName = dataObj.filterData.solutionName;
+            solutionName = solutionName.replace(/[^a-zA-Z0-9 ]/g, "")
             solutionName = solutionName.replace(/ /g,"");   //remove space from solution name
-            solutionName = solutionName.replace(/\//g, ''); //remove slashes from solution name
             var optionFormData = [];
 
             let currentTempFolder = 'tmp/' + uuidv4() + "--" + Math.floor(Math.random() * (10000 - 10 + 1) + 10)
