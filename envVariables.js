@@ -38,6 +38,14 @@ let enviromentVariables = {
     "message" : "Required",
     "optional" : false
   },
+  "SOLUTION_RESOURCE_DATASOURCE_NAME" : {
+    "message" : "Required",
+    "optional" : false
+  },
+  "PROGRAM_RESOURCE_DATASOURCE_NAME" : {
+    "message" : "Required",
+    "optional" : false
+  },
   "ENTITY_SCORE_REPORT_THRESHOLD" : {
     "message" : "Required",
     "optional" : false
