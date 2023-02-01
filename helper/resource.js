@@ -4,31 +4,16 @@ exports.getDistricts = async function(req,res){
     return new Promise(async function (resolve, reject) {
         try {
             let bodyParam = gen.utils.getDruidQuery("distric_level_query");
-            if(req.query.resourceType == ResourceType.SOLUTION) {
-                if (process.env.SOLUTION_RESOURCE_DATASOURCE_NAME) {
-                    bodyParam.dataSource = process.env.SOLUTION_RESOURCE_DATASOURCE_NAME;
-                }
-                const solutionFilter = {
-                    type: "selector",
-                    dimension: "solution_id",
-                    value: req.query.resourceId
-                }
-                bodyParam.filter.fields.push(solutionFilter)
-            } else if(req.query.resourceType == ResourceType.PROGRAM) {
-                if (process.env.PROGRAM_RESOURCE_DATASOURCE_NAME) {
-                    bodyParam.dataSource = process.env.PROGRAM_RESOURCE_DATASOURCE_NAME;
-                }
-                const programFilter = {
-                    type: "selector",
-                    dimension: "program_id",
-                    value: req.query.resourceId
-                }
-                bodyParam.filter.fields.push(programFilter)
+            bodyParam.dataSource = req.query.resourceType === ResourceType.SOLUTION ? process.env.SOLUTION_RESOURCE_DATASOURCE_NAME : process.env.PROGRAM_RESOURCE_DATASOURCE_NAME
+            const resourceFilter = {
+                type: "selector",
+                dimension: req.query.resourceType == ResourceType.SOLUTION ? "solution_id" : "program_id",
+                value: req.query.resourceId
             }
+            bodyParam.filter.fields.push(resourceFilter)
             let options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
-            console.log({druidConnection: options});
             let data = await rp(options);
             if(data){
                 const result = data.map(district => ({ id: district.event.district_externalId, name: district.event.district_name }));
@@ -47,31 +32,16 @@ exports.getOrganisations = async function(req,res){
     return new Promise(async function (resolve, reject) {
         try {
             let bodyParam = gen.utils.getDruidQuery("organisations_level_query");
-            if(req.query.resourceType == ResourceType.SOLUTION) {
-                if (process.env.SOLUTION_RESOURCE_DATASOURCE_NAME) {
-                    bodyParam.dataSource = process.env.SOLUTION_RESOURCE_DATASOURCE_NAME;
-                }
-                const solutionFilter = {
-                    type: "selector",
-                    dimension: "solution_id",
-                    value: req.query.resourceId
-                }
-                bodyParam.filter.fields.push(solutionFilter)
-            } else if(req.query.resourceType == ResourceType.PROGRAM) {
-                if (process.env.PROGRAM_RESOURCE_DATASOURCE_NAME) {
-                    bodyParam.dataSource = process.env.PROGRAM_RESOURCE_DATASOURCE_NAME;
-                }
-                const programFilter = {
-                    type: "selector",
-                    dimension: "program_id",
-                    value: req.query.resourceId
-                }
-                bodyParam.filter.fields.push(programFilter)
+            bodyParam.dataSource = req.query.resourceType === ResourceType.SOLUTION ? process.env.SOLUTION_RESOURCE_DATASOURCE_NAME : process.env.PROGRAM_RESOURCE_DATASOURCE_NAME
+            const resourceFilter = {
+                type: "selector",
+                dimension: req.query.resourceType == ResourceType.SOLUTION ? "solution_id" : "program_id",
+                value: req.query.resourceId
             }
+            bodyParam.filter.fields.push(resourceFilter)
             let options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
-            console.log({druidConnection: options});
             let data = await rp(options);
             if(data){
                 const result = data.map(district => ({ id: district.event.organisation_id, name: district.event.organisation_name }));
@@ -91,27 +61,13 @@ exports.getBlocks = async function(req,res){
     return new Promise(async function (resolve, reject) {
         try {
             let bodyParam = gen.utils.getDruidQuery("block_level_query");
-            if(req.query.resourceType == ResourceType.SOLUTION) {
-                if (process.env.SOLUTION_RESOURCE_DATASOURCE_NAME) {
-                    bodyParam.dataSource = process.env.SOLUTION_RESOURCE_DATASOURCE_NAME;
-                }
-                const solutionFilter = {
-                    type: "selector",
-                    dimension: "solution_id",
-                    value: req.query.resourceId
-                }
-                bodyParam.filter.fields.push(solutionFilter)
-            }else if(req.query.resourceType == ResourceType.PROGRAM) {
-               if (process.env.PROGRAM_RESOURCE_DATASOURCE_NAME) {
-                    bodyParam.dataSource = process.env.PROGRAM_RESOURCE_DATASOURCE_NAME;
-                }
-                const programFilter = {
-                    type: "selector",
-                    dimension: "program_id",
-                    value: req.query.resourceId
-                }
-                bodyParam.filter.fields.push(programFilter)
+            bodyParam.dataSource = req.query.resourceType === ResourceType.SOLUTION ? process.env.SOLUTION_RESOURCE_DATASOURCE_NAME : process.env.PROGRAM_RESOURCE_DATASOURCE_NAME
+            const resourceFilter = {
+                type: "selector",
+                dimension: req.query.resourceType == ResourceType.SOLUTION ? "solution_id" : "program_id",
+                value: req.query.resourceId
             }
+            bodyParam.filter.fields.push(resourceFilter)
 
             const districtFilter = {
                 type: "selector",
@@ -122,7 +78,6 @@ exports.getBlocks = async function(req,res){
             let options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
-            console.log({druidConnection: options});
             let data = await rp(options);
             if(data){
                 const result = data.map(block => ({ id: block.event.block_externalId, name: block.event.block_name }));

@@ -57,55 +57,28 @@ exports.filtervalues = async function (req, res) {
         if(req.body.projection == ResourceTypeProjection.DISTRICT){
             const getDistict = await resourceHelper.getDistricts( req ,res)
             const getOrganisation = await resourceHelper.getOrganisations(req,res)
-            if(req.query.resourceType == ResourceType.SOLUTION){
-                if(getDistict || getOrganisation){
-                    const districtOrganisationResponse = {
-                        message: "Solution details fetched successfully",
-                        status: "success",
-                        result:{
-                            districts: getDistict,
-                            organisations: getOrganisation
-                        }
+            if(getDistict || getOrganisation){
+                const districtOrganisationResponse = {
+                    message: req.query.resourceType == ResourceType.SOLUTION? "Solution details fetched successfully":"Program details fetched successfully",
+                    status: "success",
+                    result:{
+                        districts: getDistict,
+                        organisations: getOrganisation
                     }
-                    res.status(200).send(districtOrganisationResponse)
                 }
-            } else if(req.query.resourceType == ResourceType.PROGRAM){
-                if(getDistict || getOrganisation){
-                    const districtOrganisationResponse = {
-                        message: "Program details fetched successfully",
-                        status: "success",
-                        result:{
-                            districts: getDistict,
-                            organisations: getOrganisation
-                        }
-                    }
-                    res.status(200).send(districtOrganisationResponse)
-                }
+                res.status(200).send(districtOrganisationResponse)
             }
-        }else if(req.body.projection == ResourceTypeProjection.BLOCK){
+        } else if(req.body.projection == ResourceTypeProjection.BLOCK){
             const getBlock = await resourceHelper.getBlocks( req,res )
-            if(req.query.resourceType == ResourceType.SOLUTION){
-                if(getBlock){
-                    const blockResponse = {
-                        message: "Solution details fetched successfully",
-                        status: "success",
-                        result:{
-                            block: getBlock,
-                        }
+            if(getBlock){
+                const blockResponse = {
+                    message: req.query.resourceType == ResourceType.SOLUTION? "Solution details fetched successfully":"Program details fetched successfully",
+                    status: "success",
+                    result:{
+                        block: getBlock,
                     }
-                    res.status(200).send(blockResponse)
                 }
-            }else if(req.query.resourceType == ResourceType.PROGRAM){
-                if(getBlock){
-                    const blockResponse = {
-                        message: "Program details fetched successfully",
-                        status: "success",
-                        result:{
-                            block: getBlock,
-                        }
-                    }
-                    res.status(200).send(blockResponse)
-                }
+                res.status(200).send(blockResponse)
             }
         }
     }else{
