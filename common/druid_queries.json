@@ -75,9 +75,15 @@
     
     "question_response_query" : {"queryType":"scan","dataSource":"sl-observation","resultFormat": "list","columns":[ "solutionName", "criteriaName", "domainName", "questionName", "programName", "questionResponseLabel", "observationSubmissionId", "questionResponseType", "questionId", "questionSequenceByEcm","solution_type"],"filter": {"type":"and","fields": [ { "type": "or", "fields": [ { "type": "selector", "dimension": "questionResponseType", "value": "radio" }, { "type": "selector", "dimension": "questionResponseType", "value": "multiselect" }, { "type": "selector", "dimension": "questionResponseType", "value": "slider" } ] } ] },"intervals":"1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00"},
 
-    "distric_level_query": {"queryType": "groupBy","dataSource": "ml-project-status","dimensions": ["district_name", "district_externalId"],"granularity": "all","intervals": "1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00","filter": {"type": "and","fields": []}},
+    "solution_distric_level_query": {"queryType": "groupBy","dataSource": "ml-project-status","dimensions": ["district_name", "district_externalId"],"granularity": "all","intervals": "1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00","filter": {"type": "and","fields": []}},
 
-    "organisations_level_query": {"queryType": "groupBy","dataSource": "ml-project-status","dimensions": ["organisation_id", "organisation_name"],"granularity": "all","intervals": "1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00","filter": {"type": "and","fields": []}},
+    "solution_organisations_level_query": {"queryType": "groupBy","dataSource": "ml-project-status","dimensions": ["organisation_id", "organisation_name"],"granularity": "all","intervals": "1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00","filter": {"type": "and","fields": []}},
 
-    "block_level_query": {"queryType": "groupBy","dataSource": "ml-project-status","dimensions": ["block_externalId", "block_name"],"granularity": "all","intervals": "1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00","filter": {"type": "and","fields": []}}
+    "solution_block_level_query": {"queryType": "groupBy","dataSource": "ml-project-status","dimensions": ["block_externalId", "block_name"],"granularity": "all","intervals": "1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00","filter": {"type": "and","fields": []}},
+
+    "program_distric_level_query": {"queryType": "groupBy","dataSource": "ml-programusers-status","dimensions": ["district_name", "district_id"],"granularity": "all","intervals": "1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00","filter": {"type": "and","fields": []}},
+
+    "program_organisations_level_query": {"queryType": "groupBy","dataSource": "ml-programusers-status","dimensions": ["organisation_id", "organisation_name"],"granularity": "all","intervals": "1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00","filter": {"type": "and","fields": []}},
+
+    "program_block_level_query": {"queryType": "groupBy","dataSource": "ml-programusers-status","dimensions": ["block_id", "block_name"],"granularity": "all","intervals": "1901-01-01T00:00:00+00:00/2101-01-01T00:00:00+00:00","filter": {"type": "and","fields": []}}
 }

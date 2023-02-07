@@ -1,9 +1,27 @@
 const { ResourceType } = require("../common/enum.utils");
 const rp = require('request-promise');
+const { get } = require("request");
+const kendra_service = require("./kendra_service");
+
+exports.userExtensions = async function (req,res){
+    return new Promise(async function (resolve, reject) {
+        try {
+            let userExtensions = await kendra_service.getUserExtension(req.userDetails.token)
+            if(userExtensions.status === 200){
+                resolve(true);
+            }else{
+                resolve(false);
+            }
+        }catch(error){
+            console.log(error);
+        }
+})}
+
+
 exports.getDistricts = async function(req,res){
     return new Promise(async function (resolve, reject) {
         try {
-            let bodyParam = gen.utils.getDruidQuery("distric_level_query");
+            let bodyParam = req.query.resourceType === ResourceType.SOLUTION ? gen.utils.getDruidQuery("solution_distric_level_query") : get.utils.getDruidQuery("program_distric_level_query");
             bodyParam.dataSource = req.query.resourceType === ResourceType.SOLUTION ? process.env.SOLUTION_RESOURCE_DATASOURCE_NAME : process.env.PROGRAM_RESOURCE_DATASOURCE_NAME
             const resourceFilter = {
                 type: "selector",
@@ -31,7 +49,7 @@ exports.getDistricts = async function(req,res){
 exports.getOrganisations = async function(req,res){
     return new Promise(async function (resolve, reject) {
         try {
-            let bodyParam = gen.utils.getDruidQuery("organisations_level_query");
+            let bodyParam = req.query.resourceType === ResourceType.SOLUTION ? gen.utils.getDruidQuery("solution_organisations_level_query") : get.utils.getDruidQuery("program_organisations_level_query");
             bodyParam.dataSource = req.query.resourceType === ResourceType.SOLUTION ? process.env.SOLUTION_RESOURCE_DATASOURCE_NAME : process.env.PROGRAM_RESOURCE_DATASOURCE_NAME
             const resourceFilter = {
                 type: "selector",
@@ -60,7 +78,7 @@ exports.getOrganisations = async function(req,res){
 exports.getBlocks = async function(req,res){
     return new Promise(async function (resolve, reject) {
         try {
-            let bodyParam = gen.utils.getDruidQuery("block_level_query");
+            let bodyParam = req.query.resourceType === ResourceType.SOLUTION ? gen.utils.getDruidQuery("solution_block_level_query") : get.utils.getDruidQuery("program_block_level_query");
             bodyParam.dataSource = req.query.resourceType === ResourceType.SOLUTION ? process.env.SOLUTION_RESOURCE_DATASOURCE_NAME : process.env.PROGRAM_RESOURCE_DATASOURCE_NAME
             const resourceFilter = {
                 type: "selector",
@@ -71,7 +89,7 @@ exports.getBlocks = async function(req,res){
 
             const districtFilter = {
                 type: "selector",
-                dimension: "district_externalId",
+                dimension: req.query.resourceType == ResourceType.SOLUTION ?  "district_externalId" : "district_id",
                 value: req.body.query.districtLocationId
             }
             bodyParam.filter.fields.push(districtFilter)

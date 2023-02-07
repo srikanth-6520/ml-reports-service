@@ -66,8 +66,38 @@ async function getPreSignedUrl(file) {
   })
 }
 
+async function getUserExtension(token){
+  return new Promise(async function (resolve, reject) {
+    
+    let url = urlPrefix + endpoints.GET_USER_EXTENSION;
+    console.log({ 'CoreServiceUserExtensionUrl: ': url });
+    
+    let options = {
+      method: "POST",
+      json: true,
+      headers: {
+        "x-authenticated-user-token": token,
+        "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
+        "Content-Type": "application/json",
+      },
+      body: {},
+      uri: url
+    }
+
+    rp(options)
+      .then(result => {
+        return resolve(result);
+      })
+      .catch(err => {
+        return resolve(err);
+      })
+  })
+
+}
+
 
 module.exports = {
   getDownloadableUrl: getDownloadableUrl,
-  getPreSignedUrl: getPreSignedUrl
+  getPreSignedUrl: getPreSignedUrl,
+  getUserExtension:getUserExtension
 }

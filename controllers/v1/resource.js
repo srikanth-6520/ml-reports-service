@@ -48,42 +48,50 @@ const {ResourceType, ResourceTypeProjection} = require("../../common/enum.utils"
       * @returns {JSON} list of data.
     */
 exports.filtervalues = async function (req, res) { 
-    if(req.query.resourceType == ResourceType.PROGRAM || req.query.resourceType == ResourceType.SOLUTION){
-        if(!req.query.resourceId){
+    
+    const userExtension = await resourceHelper.userExtensions(req,res);
+    if(userExtension){
+        if(req.query.resourceType == ResourceType.PROGRAM || req.query.resourceType == ResourceType.SOLUTION){
+            if(!req.query.resourceId){
+                res.status(400).send({
+                    message: "Resource id not passed"
+                })
+            }
+            if(req.body.projection == ResourceTypeProjection.DISTRICT){
+                const getDistict = await resourceHelper.getDistricts( req ,res)
+                const getOrganisation = await resourceHelper.getOrganisations(req,res)
+                if(getDistict || getOrganisation){
+                    const districtOrganisationResponse = {
+                        message: req.query.resourceType == ResourceType.SOLUTION? "Solution details fetched successfully":"Program details fetched successfully",
+                        status: "success",
+                        result:{
+                            districts: getDistict,
+                            organisations: getOrganisation
+                        }
+                    }
+                    res.status(200).send(districtOrganisationResponse)
+                }
+            } else if(req.body.projection == ResourceTypeProjection.BLOCK){
+                const getBlock = await resourceHelper.getBlocks( req,res )
+                if(getBlock){
+                    const blockResponse = {
+                        message: req.query.resourceType == ResourceType.SOLUTION? "Solution details fetched successfully":"Program details fetched successfully",
+                        status: "success",
+                        result:{
+                            block: getBlock,
+                        }
+                    }
+                    res.status(200).send(blockResponse)
+                }
+            }
+        }else{
             res.status(400).send({
-                message: "Resource id not passed"
+                message: "No data found"
             })
         }
-        if(req.body.projection == ResourceTypeProjection.DISTRICT){
-            const getDistict = await resourceHelper.getDistricts( req ,res)
-            const getOrganisation = await resourceHelper.getOrganisations(req,res)
-            if(getDistict || getOrganisation){
-                const districtOrganisationResponse = {
-                    message: req.query.resourceType == ResourceType.SOLUTION? "Solution details fetched successfully":"Program details fetched successfully",
-                    status: "success",
-                    result:{
-                        districts: getDistict,
-                        organisations: getOrganisation
-                    }
-                }
-                res.status(200).send(districtOrganisationResponse)
-            }
-        } else if(req.body.projection == ResourceTypeProjection.BLOCK){
-            const getBlock = await resourceHelper.getBlocks( req,res )
-            if(getBlock){
-                const blockResponse = {
-                    message: req.query.resourceType == ResourceType.SOLUTION? "Solution details fetched successfully":"Program details fetched successfully",
-                    status: "success",
-                    result:{
-                        block: getBlock,
-                    }
-                }
-                res.status(200).send(blockResponse)
-            }
-        }
-    }else{
-        res.status(400).send({
-            message: "No data found"
+    }else {
+        res.status(401).send({
+            message: "You are not authorised to access this resource"
         })
     }
 }
