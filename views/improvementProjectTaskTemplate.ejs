@@ -213,7 +213,37 @@
                 <p><%= data.response.description %></p>
             </div>
         </div>
-        <% if ((data.response.title.length + data.response.description.length + data.response.programName.length) > 220) {%>
+        <% let projectNameLines = 0 %>
+        <% let programNameLines = 0 %>
+        <% let objectivesLines = 0 %>
+        <% if (data.response.title.length < 60) {%>
+            <% projectNameLines = 1 %>
+        <%} else { %>
+            <% projectNameLines = ~~(data.response.title.length / 60)  %>
+            <% if ((data.response.title.length % 60) > 0 ) {%>
+                <% projectNameLines = projectNameLines + 1 %>
+            <%} %>
+        <% } %>
+
+        <% if (data.response.description.length < 50) {%>
+            <% programNameLines = 1 %>
+        <%} else { %>
+            <% programNameLines = ~~(data.response.description.length / 50)  %>
+            <% if ((data.response.description.length % 50) > 0 ) {%>
+                <% programNameLines = programNameLines + 1 %>
+            <%} %>
+        <% } %>
+
+        <% if (data.response.programName.length < 50) {%>
+            <% objectivesLines = 1 %>
+        <%} else { %>
+            <% objectivesLines = ~~(data.response.programName.length / 50)  %>
+            <% if ((data.response.programName.length % 50) > 0 ) {%>
+                <% objectivesLines = objectivesLines + 1 %>
+            <%} %>
+        <% } %>
+        <% let totalLines =  projectNameLines + programNameLines + objectivesLines %>
+        <% if (totalLines > 4) {%>
             <hr>
             <% pageNo = pageNo + 1; %>
             <div class="pageHeaderProject">
