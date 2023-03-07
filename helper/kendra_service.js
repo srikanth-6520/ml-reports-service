@@ -70,8 +70,6 @@ async function getUserExtension(token){
   return new Promise(async function (resolve, reject) {
     
     let url = urlPrefix + endpoints.GET_USER_EXTENSION;
-    console.log({ 'CoreServiceUserExtensionUrl: ': url });
-    
     let options = {
       method: "POST",
       json: true,
