@@ -41,7 +41,9 @@ exports.getDistricts = async function(req,res){
     return new Promise(async function (resolve, reject) {
         try {
             let bodyParam = req.query.resourceType === ResourceType.SOLUTION ? gen.utils.getDruidQuery("solution_distric_level_query") : gen.utils.getDruidQuery("program_distric_level_query");
+            //Gets data source name based on resource type and solution type
             bodyParam.dataSource = await utils.getDataSourceName(req.query, req.body)
+            //Gets Resource filter based on Resource type
             const resourceFilter = await utils.getResourceFilter(req.query)
             bodyParam.filter.fields.push(resourceFilter)
             let options = gen.utils.getDruidConnection();
@@ -66,7 +68,9 @@ exports.getOrganisations = async function(req,res){
     return new Promise(async function (resolve, reject) {
         try {
             let bodyParam = req.query.resourceType === ResourceType.SOLUTION ? gen.utils.getDruidQuery("solution_organisations_level_query") : gen.utils.getDruidQuery("program_organisations_level_query");
+            //Gets data source name based on resource type and solution type
             bodyParam.dataSource = await utils.getDataSourceName(req.query, req.body)
+            //Gets Resource filter based on Resource type
             const resourceFilter = await utils.getResourceFilter(req.query)
             bodyParam.filter.fields.push(resourceFilter)
             let options = gen.utils.getDruidConnection();
@@ -92,7 +96,9 @@ exports.getBlocks = async function(req,res){
     return new Promise(async function (resolve, reject) {
         try {
             let bodyParam = req.query.resourceType === ResourceType.SOLUTION ? gen.utils.getDruidQuery("solution_block_level_query") : gen.utils.getDruidQuery("program_block_level_query");
+            //Gets data source name based on resource type and solution type
             bodyParam.dataSource = await utils.getDataSourceName(req.query, req.body)
+            //Gets Resource filter based on Resource type
             const resourceFilter = await utils.getResourceFilter(req.query)
             bodyParam.filter.fields.push(resourceFilter)
 
