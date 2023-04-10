@@ -7,7 +7,6 @@ exports.userExtensions = async function (req,res){
     return new Promise(async function (resolve, reject) {
         try {
             let userExtensions = await kendra_service.getUserExtension(req.userDetails.token)
-            console.log(JSON.stringify(userExtensions))
             if(userExtensions.status === 200){
                 for(let platformCode = 0; platformCode < userExtensions.result.platformRoles.length; platformCode++){
                     if(userExtensions.result.platformRoles[platformCode].code === "PROGRAM_DESIGNER" || userExtensions.result.platformRoles[platformCode].code === "PROGRAM_MANAGER"){
