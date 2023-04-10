@@ -64,3 +64,5 @@ typings/
 config/config.json
 tmp/*
 package-lock.json
+keycloak-public-keys/
+.vscode/

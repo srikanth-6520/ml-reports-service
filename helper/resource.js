@@ -6,18 +6,19 @@
  */
 
 
-const { ResourceType, SolutionType } = require("../common/enum.utils");
+ const { ResourceType } = require("../common/enum.utils");
 const rp = require('request-promise');
-const { get } = require("request");
 const kendra_service = require("./kendra_service");
+const utils = require("../common/utils");
 
+//user-extension validation: this will check if user is program manager or program designer of particular porgram.
 exports.userExtensions = async function (req,res){
     return new Promise(async function (resolve, reject) {
         try {
             let userExtensions = await kendra_service.getUserExtension(req.userDetails.token)
             if(userExtensions.status === 200){
                 for(let platformCode = 0; platformCode < userExtensions.result.platformRoles.length; platformCode++){
-                    if(userExtensions.result.platformRoles[platformCode].code === "PROGRAM_DESIGNER" || userExtensions.result.platformRoles[platformCode].code === "PROGRAM_MANAGER"){
+                    if((userExtensions.result.platformRoles[platformCode].code === "PROGRAM_DESIGNER" || userExtensions.result.platformRoles[platformCode].code === "PROGRAM_MANAGER") && (userExtensions.result.platformRoles[platformCode].programs.includes(req.body.programId))){
                         resolve(true)
                         break;
                     }
@@ -27,25 +28,21 @@ exports.userExtensions = async function (req,res){
                 resolve(false);
             }
         }catch(error){
-            console.log(error);
+            res.status(400).send({
+                result: false,
+                message: err.message
+            });
         }
-})}
+    })
+}
 
-
+//this function will call druid and return all the districts to particular program or solution
 exports.getDistricts = async function(req,res){
     return new Promise(async function (resolve, reject) {
         try {
             let bodyParam = req.query.resourceType === ResourceType.SOLUTION ? gen.utils.getDruidQuery("solution_distric_level_query") : gen.utils.getDruidQuery("program_distric_level_query");
-            if(req.query.resourceType === ResourceType.PROGRAM){
-                bodyParam.dataSource = process.env.PROGRAM_RESOURCE_DATASOURCE_NAME
-            }else {
-                bodyParam.dataSource  = req.body.solutionType === SolutionType.PROJECT ? process.env.PROJECT_RESOURCE_DATASOURCE_NAME : req.body.solutionType === SolutionType.OBSERVATION ? process.env.OBSERVATION_RESOURCE_DATASOURCE_NAME : process.env.SURVEY_RESOURCE_DATASOURCE_NAME
-            }
-            const resourceFilter = {
-                type: "selector",
-                dimension: req.query.resourceType == ResourceType.SOLUTION ? "solution_id" : "program_id",
-                value: req.query.resourceId
-            }
+            bodyParam.dataSource = await utils.getDataSourceName(req.query, req.body)
+            const resourceFilter = await utils.getResourceFilter(req.query)
             bodyParam.filter.fields.push(resourceFilter)
             let options = gen.utils.getDruidConnection();
             options.method = "POST";
@@ -58,26 +55,19 @@ exports.getDistricts = async function(req,res){
         }catch(err){
             res.status(400).send({
                 result: false,
-                message: 'INTERNAL_SERVER_ERROR'
+                message: err.message
             });
         }
     })
 }
 
+//this function will call druid and return all the organisations to particular program or solution
 exports.getOrganisations = async function(req,res){
     return new Promise(async function (resolve, reject) {
         try {
             let bodyParam = req.query.resourceType === ResourceType.SOLUTION ? gen.utils.getDruidQuery("solution_organisations_level_query") : gen.utils.getDruidQuery("program_organisations_level_query");
-            if(req.query.resourceType === ResourceType.PROGRAM){
-                bodyParam.dataSource = process.env.PROGRAM_RESOURCE_DATASOURCE_NAME
-            }else {
-                bodyParam.dataSource  = req.body.solutionType === SolutionType.PROJECT ? process.env.PROJECT_RESOURCE_DATASOURCE_NAME : req.body.solutionType === SolutionType.OBSERVATION ? process.env.OBSERVATION_RESOURCE_DATASOURCE_NAME : process.env.SURVEY_RESOURCE_DATASOURCE_NAME
-            }
-            const resourceFilter = {
-                type: "selector",
-                dimension: req.query.resourceType == ResourceType.SOLUTION ? "solution_id" : "program_id",
-                value: req.query.resourceId
-            }
+            bodyParam.dataSource = await utils.getDataSourceName(req.query, req.body)
+            const resourceFilter = await utils.getResourceFilter(req.query)
             bodyParam.filter.fields.push(resourceFilter)
             let options = gen.utils.getDruidConnection();
             options.method = "POST";
@@ -90,27 +80,20 @@ exports.getOrganisations = async function(req,res){
         }catch(err){
             res.status(400).send({
                 result: false,
-                message: 'INTERNAL_SERVER_ERROR'}
-            );
+                message: err.message
+            });
         }
     })
 
 }
 
+//this function will call druid and return all the block to particular program or solution
 exports.getBlocks = async function(req,res){
     return new Promise(async function (resolve, reject) {
         try {
             let bodyParam = req.query.resourceType === ResourceType.SOLUTION ? gen.utils.getDruidQuery("solution_block_level_query") : gen.utils.getDruidQuery("program_block_level_query");
-            if(req.query.resourceType === ResourceType.PROGRAM){
-                bodyParam.dataSource = process.env.PROGRAM_RESOURCE_DATASOURCE_NAME
-            }else {
-                bodyParam.dataSource  = req.body.solutionType === SolutionType.PROJECT ? process.env.PROJECT_RESOURCE_DATASOURCE_NAME : req.body.solutionType === SolutionType.OBSERVATION ? process.env.OBSERVATION_RESOURCE_DATASOURCE_NAME : process.env.SURVEY_RESOURCE_DATASOURCE_NAME
-            }
-            const resourceFilter = {
-                type: "selector",
-                dimension: req.query.resourceType == ResourceType.SOLUTION ? "solution_id" : "program_id",
-                value: req.query.resourceId
-            }
+            bodyParam.dataSource = await utils.getDataSourceName(req.query, req.body)
+            const resourceFilter = await utils.getResourceFilter(req.query)
             bodyParam.filter.fields.push(resourceFilter)
 
             const districtFilter = {
@@ -130,8 +113,8 @@ exports.getBlocks = async function(req,res){
         }catch(err){
             res.status(400).send({
                 result: false,
-                message: 'INTERNAL_SERVER_ERROR'}
-            );
+                message: err.message
+            });
         }
         
     })

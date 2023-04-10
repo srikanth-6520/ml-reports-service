@@ -58,6 +58,7 @@ const {ResourceType, ResourceTypeProjection} = require("../../common/enum.utils"
     */
 exports.filtervalues = async function (req, res) { 
     
+    //userExtension will validate whether user have access to the program as designer or manager.
     const userExtension = await resourceHelper.userExtensions(req,res);
     if(userExtension){
         if(req.query.resourceType == ResourceType.PROGRAM || req.query.resourceType == ResourceType.SOLUTION){

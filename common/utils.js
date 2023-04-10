@@ -1,5 +1,5 @@
 const druidQueries = require('./druid_queries.json');
-
+const { ResourceType, SolutionType } = require("../common/enum.utils");
 /**
   * Return druid query for the given query name
   * @function
@@ -80,10 +80,42 @@ function getDruidIntervalDate( data ) {
   return isoSring;
 }
 
+/**
+  * Returns Druid Data source Name
+  * @function
+  * @name getDataSourceName
+  * @returns {String}  returns druid data source name.  
+*/
+function getDataSourceName (query, body){
+  let dataSource
+  if(query.resourceType === ResourceType.PROGRAM){
+    dataSource = process.env.PROGRAM_RESOURCE_DATASOURCE_NAME
+  }else {
+    dataSource  = body.solutionType === SolutionType.PROJECT ? process.env.PROJECT_RESOURCE_DATASOURCE_NAME : body.solutionType === SolutionType.OBSERVATION ? process.env.OBSERVATION_RESOURCE_DATASOURCE_NAME : process.env.SURVEY_RESOURCE_DATASOURCE_NAME
+  }
+  return dataSource
+}
+
+/**
+  * Returns Druid Query Filter
+  * @function
+  * @name getResourceFilter
+  * @returns {String}  returns druid query filter  
+*/
+function getResourceFilter (query) {
+  const resourceFilter = {
+    type: "selector",
+    dimension: query.resourceType == ResourceType.SOLUTION ? "solution_id" : "program_id",
+    value: query.resourceId
+  }
+  return resourceFilter
+}
 
 module.exports = {
   getDruidQuery: getDruidQuery,
   getDruidConnection: getDruidConnection,
   getGotenbergConnection: getGotenbergConnection,
-  getDruidIntervalDate: getDruidIntervalDate
+  getDruidIntervalDate: getDruidIntervalDate,
+  getDataSourceName: getDataSourceName,
+  getResourceFilter:getResourceFilter
 }
