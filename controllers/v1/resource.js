@@ -69,7 +69,9 @@ exports.filtervalues = async function (req, res) {
                 })
             }
             if(req.body.projection == ResourceTypeProjection.DISTRICT){
+                //Gets list of district where program or solution started
                 const getDistict = await resourceHelper.getDistricts( req ,res)
+                //Gets list of Organisation where program or solution started
                 const getOrganisation = await resourceHelper.getOrganisations(req,res)
                 if(getDistict || getOrganisation){
                     const districtOrganisationResponse = {
@@ -83,6 +85,7 @@ exports.filtervalues = async function (req, res) {
                     res.status(200).send(districtOrganisationResponse)
                 }
             } else if(req.body.projection == ResourceTypeProjection.BLOCK){
+                //Gets list of block where program or solution started
                 const getBlock = await resourceHelper.getBlocks( req,res )
                 if(getBlock){
                     const blockResponse = {
