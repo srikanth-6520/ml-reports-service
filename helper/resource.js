@@ -1,3 +1,11 @@
+/**
+ * name : resource.js
+ * author : Ankit Shahu
+ * created-date : 10-April-2023
+ * Description : Resource level data for program and solution.
+ */
+
+
 const { ResourceType, SolutionType } = require("../common/enum.utils");
 const rp = require('request-promise');
 const { get } = require("request");

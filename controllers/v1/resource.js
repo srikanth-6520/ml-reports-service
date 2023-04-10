@@ -1,3 +1,11 @@
+/**
+ * name : resource.js
+ * author : Ankit Shahu
+ * created-date : 10-April-2023
+ * Description : Resource level data for program and solution.
+ */
+
+
 const resourceHelper = require("../../helper/resource")
 const {ResourceType, ResourceTypeProjection} = require("../../common/enum.utils")
 
@@ -13,6 +21,7 @@ const {ResourceType, ResourceTypeProjection} = require("../../common/enum.utils"
         "query":{           // optional required for block
         "districtLocationId": "b5c35cfc-6c1e-4266-94ef-a425c43c7f4e"
         }
+        "solutionType": "observation"/"survey"/"improvementProject" //Required only for resourceType=solution
       }
      * @apiParamExample {json} Response:
      * {
