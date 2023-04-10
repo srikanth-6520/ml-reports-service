@@ -1,4 +1,4 @@
-const { ResourceType } = require("../common/enum.utils");
+const { ResourceType, SolutionType } = require("../common/enum.utils");
 const rp = require('request-promise');
 const { get } = require("request");
 const kendra_service = require("./kendra_service");
@@ -7,8 +7,15 @@ exports.userExtensions = async function (req,res){
     return new Promise(async function (resolve, reject) {
         try {
             let userExtensions = await kendra_service.getUserExtension(req.userDetails.token)
+            console.log(JSON.stringify(userExtensions))
             if(userExtensions.status === 200){
-                resolve(true);
+                for(let platformCode = 0; platformCode < userExtensions.result.platformRoles.length; platformCode++){
+                    if(userExtensions.result.platformRoles[platformCode].code === "PROGRAM_DESIGNER" || userExtensions.result.platformRoles[platformCode].code === "PROGRAM_MANAGER"){
+                        resolve(true)
+                        break;
+                    }
+                }
+                resolve(false);
             }else{
                 resolve(false);
             }
@@ -21,8 +28,12 @@ exports.userExtensions = async function (req,res){
 exports.getDistricts = async function(req,res){
     return new Promise(async function (resolve, reject) {
         try {
-            let bodyParam = req.query.resourceType === ResourceType.SOLUTION ? gen.utils.getDruidQuery("solution_distric_level_query") : get.utils.getDruidQuery("program_distric_level_query");
-            bodyParam.dataSource = req.query.resourceType === ResourceType.SOLUTION ? process.env.SOLUTION_RESOURCE_DATASOURCE_NAME : process.env.PROGRAM_RESOURCE_DATASOURCE_NAME
+            let bodyParam = req.query.resourceType === ResourceType.SOLUTION ? gen.utils.getDruidQuery("solution_distric_level_query") : gen.utils.getDruidQuery("program_distric_level_query");
+            if(req.query.resourceType === ResourceType.PROGRAM){
+                bodyParam.dataSource = process.env.PROGRAM_RESOURCE_DATASOURCE_NAME
+            }else {
+                bodyParam.dataSource  = req.body.solutionType === SolutionType.PROJECT ? process.env.PROJECT_RESOURCE_DATASOURCE_NAME : req.body.solutionType === SolutionType.OBSERVATION ? process.env.OBSERVATION_RESOURCE_DATASOURCE_NAME : process.env.SURVEY_RESOURCE_DATASOURCE_NAME
+            }
             const resourceFilter = {
                 type: "selector",
                 dimension: req.query.resourceType == ResourceType.SOLUTION ? "solution_id" : "program_id",
@@ -34,14 +45,14 @@ exports.getDistricts = async function(req,res){
             options.body = bodyParam;
             let data = await rp(options);
             if(data){
-                const result = data.map(district => ({ id: district.event.district_externalId, name: district.event.district_name }));
+                const result = data.map(district => ({ id: req.query.resourceType == ResourceType.SOLUTION ? district.event.district_externalId : district.event.district_id, name: district.event.district_name }));
                 resolve(result)
             }
         }catch(err){
             res.status(400).send({
                 result: false,
-                message: 'INTERNAL_SERVER_ERROR'}
-            );
+                message: 'INTERNAL_SERVER_ERROR'
+            });
         }
     })
 }
@@ -49,8 +60,12 @@ exports.getDistricts = async function(req,res){
 exports.getOrganisations = async function(req,res){
     return new Promise(async function (resolve, reject) {
         try {
-            let bodyParam = req.query.resourceType === ResourceType.SOLUTION ? gen.utils.getDruidQuery("solution_organisations_level_query") : get.utils.getDruidQuery("program_organisations_level_query");
-            bodyParam.dataSource = req.query.resourceType === ResourceType.SOLUTION ? process.env.SOLUTION_RESOURCE_DATASOURCE_NAME : process.env.PROGRAM_RESOURCE_DATASOURCE_NAME
+            let bodyParam = req.query.resourceType === ResourceType.SOLUTION ? gen.utils.getDruidQuery("solution_organisations_level_query") : gen.utils.getDruidQuery("program_organisations_level_query");
+            if(req.query.resourceType === ResourceType.PROGRAM){
+                bodyParam.dataSource = process.env.PROGRAM_RESOURCE_DATASOURCE_NAME
+            }else {
+                bodyParam.dataSource  = req.body.solutionType === SolutionType.PROJECT ? process.env.PROJECT_RESOURCE_DATASOURCE_NAME : req.body.solutionType === SolutionType.OBSERVATION ? process.env.OBSERVATION_RESOURCE_DATASOURCE_NAME : process.env.SURVEY_RESOURCE_DATASOURCE_NAME
+            }
             const resourceFilter = {
                 type: "selector",
                 dimension: req.query.resourceType == ResourceType.SOLUTION ? "solution_id" : "program_id",
@@ -78,8 +93,12 @@ exports.getOrganisations = async function(req,res){
 exports.getBlocks = async function(req,res){
     return new Promise(async function (resolve, reject) {
         try {
-            let bodyParam = req.query.resourceType === ResourceType.SOLUTION ? gen.utils.getDruidQuery("solution_block_level_query") : get.utils.getDruidQuery("program_block_level_query");
-            bodyParam.dataSource = req.query.resourceType === ResourceType.SOLUTION ? process.env.SOLUTION_RESOURCE_DATASOURCE_NAME : process.env.PROGRAM_RESOURCE_DATASOURCE_NAME
+            let bodyParam = req.query.resourceType === ResourceType.SOLUTION ? gen.utils.getDruidQuery("solution_block_level_query") : gen.utils.getDruidQuery("program_block_level_query");
+            if(req.query.resourceType === ResourceType.PROGRAM){
+                bodyParam.dataSource = process.env.PROGRAM_RESOURCE_DATASOURCE_NAME
+            }else {
+                bodyParam.dataSource  = req.body.solutionType === SolutionType.PROJECT ? process.env.PROJECT_RESOURCE_DATASOURCE_NAME : req.body.solutionType === SolutionType.OBSERVATION ? process.env.OBSERVATION_RESOURCE_DATASOURCE_NAME : process.env.SURVEY_RESOURCE_DATASOURCE_NAME
+            }
             const resourceFilter = {
                 type: "selector",
                 dimension: req.query.resourceType == ResourceType.SOLUTION ? "solution_id" : "program_id",
@@ -98,7 +117,7 @@ exports.getBlocks = async function(req,res){
             options.body = bodyParam;
             let data = await rp(options);
             if(data){
-                const result = data.map(block => ({ id: block.event.block_externalId, name: block.event.block_name }));
+                const result = data.map(block => ({ id: req.query.resourceType == ResourceType.SOLUTION ? block.event.block_externalId : block.event.block_id, name: block.event.block_name }));
                 resolve(result)
             }
         }catch(err){

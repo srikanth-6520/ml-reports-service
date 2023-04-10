@@ -9,3 +9,9 @@ exports.ResourceType = {
     PROGRAM:"program",
     SOLUTION:"solution"
 }
+
+exports.SolutionType = {
+    PROJECT : "improvementProject",
+    OBSERVATION: "observation",
+    SURVEY :"survey"
+}
