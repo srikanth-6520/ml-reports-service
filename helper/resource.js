@@ -6,7 +6,7 @@
  */
 
 
- const { ResourceType } = require("../common/enum.utils");
+ const { ResourceType } = require("../common/constants");
 const rp = require('request-promise');
 const kendra_service = require("./kendra_service");
 const utils = require("../common/utils");
@@ -51,7 +51,8 @@ exports.getDistricts = async function(req,res){
             options.body = bodyParam;
             let data = await rp(options);
             if(data){
-                const result = data.map(district => ({ id: req.query.resourceType == ResourceType.SOLUTION ? district.event.district_externalId : district.event.district_id, name: district.event.district_name }));
+                const typeOfId = req.query.resourceType == ResourceType.SOLUTION ? "district_externalId" : "district_id"
+                const result = data.map(district => ({ id: district.event[typeOfId] , name: district.event.district_name }));
                 resolve(result)
             }
         }catch(err){
@@ -78,7 +79,7 @@ exports.getOrganisations = async function(req,res){
             options.body = bodyParam;
             let data = await rp(options);
             if(data){
-                const result = data.map(district => ({ id: district.event.organisation_id, name: district.event.organisation_name }));
+                const result = data.map(organisation => ({ id: organisation.event.organisation_id, name: organisation.event.organisation_name }));
                 resolve(result)
             }
         }catch(err){
@@ -113,7 +114,8 @@ exports.getBlocks = async function(req,res){
             options.body = bodyParam;
             let data = await rp(options);
             if(data){
-                const result = data.map(block => ({ id: req.query.resourceType == ResourceType.SOLUTION ? block.event.block_externalId : block.event.block_id, name: block.event.block_name }));
+                const typeOfId = req.query.resourceType == ResourceType.SOLUTION ? "block_externalId" : "block_id"
+                const result = data.map(block => ({ id: block.event[typeOfId] , name: block.event.block_name }));
                 resolve(result)
             }
         }catch(err){

@@ -1,5 +1,5 @@
 const druidQueries = require('./druid_queries.json');
-const { ResourceType, SolutionType } = require("../common/enum.utils");
+const { ResourceType, SolutionType } = require("./constants");
 /**
   * Return druid query for the given query name
   * @function
@@ -91,7 +91,14 @@ function getDataSourceName (query, body){
   if(query.resourceType === ResourceType.PROGRAM){
     dataSource = process.env.PROGRAM_RESOURCE_DATASOURCE_NAME
   }else {
-    dataSource  = body.solutionType === SolutionType.PROJECT ? process.env.PROJECT_RESOURCE_DATASOURCE_NAME : body.solutionType === SolutionType.OBSERVATION ? process.env.OBSERVATION_RESOURCE_DATASOURCE_NAME : process.env.SURVEY_RESOURCE_DATASOURCE_NAME
+    switch (body.solutionType) {
+      case SolutionType.PROJECT : dataSource = process.env.PROJECT_RESOURCE_DATASOURCE_NAME
+        break;
+      case SolutionType.OBSERVATION : dataSource = process.env.OBSERVATION_RESOURCE_DATASOURCE_NAME
+        break;
+      case SolutionType.SURVEY : dataSource = process.env.SURVEY_RESOURCE_DATASOURCE_NAME
+        break;
+    }
   }
   return dataSource
 }

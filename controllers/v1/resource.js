@@ -7,7 +7,7 @@
 
 
 const resourceHelper = require("../../helper/resource")
-const {ResourceType, ResourceTypeProjection} = require("../../common/enum.utils")
+const {ResourceType, ResourceTypeProjection} = require("../../common/constants")
 
  /**
      * @api {post} /mlreports/api/v1/resource/filtervalues?resourceType=program&resourceId=6013eab15faeea0e88a26ef5
