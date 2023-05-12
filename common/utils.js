@@ -118,11 +118,26 @@ function getResourceFilter (query) {
   return resourceFilter
 }
 
+/**
+  * Returns interval for druid query
+  * @function
+  * @name getInterval
+  * @returns {String}  returns interval filter  
+*/
+function getIntervalFilter () {
+  const date = new Date()
+  const currentDate = date.toLocaleDateString("default", {year: 'numeric'}) + '-' + date.toLocaleDateString("default", {month:"2-digit"}) + '-' + (date.toLocaleDateString("default", {day:"2-digit"}))
+  const priviouseDate = date.toLocaleDateString("default", {year: 'numeric'}) + '-' + date.toLocaleDateString("default", {month:"2-digit"}) + '-' + (date.toLocaleDateString("default", {day:"2-digit"})-1)
+  const interval = priviouseDate+"T00:00:00+00:00/"+currentDate+"T00:00:00+00:00"
+  return interval
+}
+
 module.exports = {
   getDruidQuery: getDruidQuery,
   getDruidConnection: getDruidConnection,
   getGotenbergConnection: getGotenbergConnection,
   getDruidIntervalDate: getDruidIntervalDate,
   getDataSourceName: getDataSourceName,
-  getResourceFilter:getResourceFilter
+  getResourceFilter:getResourceFilter,
+  getIntervalFilter:getIntervalFilter
 }

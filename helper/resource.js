@@ -46,6 +46,8 @@ exports.getDistricts = async function(req,res){
             //Gets Resource filter based on Resource type
             const resourceFilter = await utils.getResourceFilter(req.query)
             bodyParam.filter.fields.push(resourceFilter)
+            //Gets Interval filter 
+            bodyParam.intervals = await utils.getIntervalFilter()
             let options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
@@ -74,6 +76,8 @@ exports.getOrganisations = async function(req,res){
             //Gets Resource filter based on Resource type
             const resourceFilter = await utils.getResourceFilter(req.query)
             bodyParam.filter.fields.push(resourceFilter)
+            //Gets Interval filter 
+            bodyParam.intervals = await utils.getIntervalFilter()
             let options = gen.utils.getDruidConnection();
             options.method = "POST";
             options.body = bodyParam;
@@ -102,7 +106,8 @@ exports.getBlocks = async function(req,res){
             //Gets Resource filter based on Resource type
             const resourceFilter = await utils.getResourceFilter(req.query)
             bodyParam.filter.fields.push(resourceFilter)
-
+            //Gets Interval filter 
+            bodyParam.intervals = await utils.getIntervalFilter()
             const districtFilter = {
                 type: "selector",
                 dimension: req.query.resourceType == ResourceType.SOLUTION ?  "district_externalId" : "district_id",
