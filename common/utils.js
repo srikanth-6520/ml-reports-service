@@ -119,10 +119,10 @@ function getResourceFilter (query) {
 }
 
 /**
-  * Returns interval for druid query
+  * Returns interval for druid query from previous Date to current Date
   * @function
-  * @name getInterval
-  * @returns {String}  returns interval filter  
+  * @name getIntervalFilter
+  * @returns {String}  returns interval filter "2023-05-11T00:00:00+00:00/2023-05-12T00:00:00+00:00"
 */
 function getIntervalFilter () {
   const date = new Date()

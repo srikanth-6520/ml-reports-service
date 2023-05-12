@@ -46,7 +46,7 @@ exports.getDistricts = async function(req,res){
             //Gets Resource filter based on Resource type
             const resourceFilter = await utils.getResourceFilter(req.query)
             bodyParam.filter.fields.push(resourceFilter)
-            //Gets Interval filter 
+            //Gets Interval filter from previous Date to current Date "2023-05-11T00:00:00+00:00/2023-05-12T00:00:00+00:00"
             bodyParam.intervals = await utils.getIntervalFilter()
             let options = gen.utils.getDruidConnection();
             options.method = "POST";
@@ -76,7 +76,7 @@ exports.getOrganisations = async function(req,res){
             //Gets Resource filter based on Resource type
             const resourceFilter = await utils.getResourceFilter(req.query)
             bodyParam.filter.fields.push(resourceFilter)
-            //Gets Interval filter 
+            //Gets Interval filter from previous Date to current Date "2023-05-11T00:00:00+00:00/2023-05-12T00:00:00+00:00"
             bodyParam.intervals = await utils.getIntervalFilter()
             let options = gen.utils.getDruidConnection();
             options.method = "POST";
@@ -106,7 +106,7 @@ exports.getBlocks = async function(req,res){
             //Gets Resource filter based on Resource type
             const resourceFilter = await utils.getResourceFilter(req.query)
             bodyParam.filter.fields.push(resourceFilter)
-            //Gets Interval filter 
+            //Gets Interval filter from previous Date to current Date "2023-05-11T00:00:00+00:00/2023-05-12T00:00:00+00:00"
             bodyParam.intervals = await utils.getIntervalFilter()
             const districtFilter = {
                 type: "selector",
