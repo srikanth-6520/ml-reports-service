@@ -127,8 +127,8 @@ function getResourceFilter (query) {
 function getIntervalFilter () {
   const date = new Date()
   const currentDate = date.toLocaleDateString("default", {year: 'numeric'}) + '-' + date.toLocaleDateString("default", {month:"2-digit"}) + '-' + (date.toLocaleDateString("default", {day:"2-digit"}))
-  const priviouseDate = date.toLocaleDateString("default", {year: 'numeric'}) + '-' + date.toLocaleDateString("default", {month:"2-digit"}) + '-' + (date.toLocaleDateString("default", {day:"2-digit"})-1)
-  const interval = priviouseDate+"T00:00:00+00:00/"+currentDate+"T00:00:00+00:00"
+  const previousDate = date.toLocaleDateString("default", {year: 'numeric'}) + '-' + date.toLocaleDateString("default", {month:"2-digit"}) + '-' + (date.toLocaleDateString("default", {day:"2-digit"})-1)
+  const interval = previousDate+"T00:00:00+00:00/"+currentDate+"T00:00:00+00:00"
   return interval
 }
 
