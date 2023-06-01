@@ -125,11 +125,12 @@ function getResourceFilter (query) {
   * @returns {String}  returns interval filter "2023-05-11T00:00:00+00:00/2023-05-12T00:00:00+00:00"
 */
 function getIntervalFilter () {
-  const date = new Date()
-  const currentDate = date.toLocaleDateString("default", {year: 'numeric'}) + '-' + date.toLocaleDateString("default", {month:"2-digit"}) + '-' + (date.toLocaleDateString("default", {day:"2-digit"}))
-  const previousDate = date.toLocaleDateString("default", {year: 'numeric'}) + '-' + date.toLocaleDateString("default", {month:"2-digit"}) + '-' + (date.toLocaleDateString("default", {day:"2-digit"})-1)
-  const interval = previousDate+"T00:00:00+00:00/"+currentDate+"T00:00:00+00:00"
-  return interval
+  const date = new Date();
+  const currentDate = date.toISOString().split("T")[0];
+  date.setDate(date.getDate() - 1);
+  const previousDate = date.toISOString().split("T")[0];
+  const interval = previousDate + "T00:00:00+00:00/" + currentDate + "T00:00:00+00:00";
+  return interval;
 }
 
 module.exports = {
